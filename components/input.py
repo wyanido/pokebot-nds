@@ -1,3 +1,4 @@
+import time
 import mmap
 from enum import IntEnum
 
@@ -22,7 +23,7 @@ def frames_to_ms(frames: float):
     return max((frames/60.0), 0.02)
 
 @staticmethod
-def emu_combo(sequence: list):
+def press_combo(sequence: list):
     for k in sequence:
         if type(k) is int:
             wait_frames(k)
@@ -30,27 +31,29 @@ def emu_combo(sequence: list):
             press_button(k)
             wait_frames(1)
 
+def press_screen_at(x: int, y: int):
+    touchscreen_mmap.seek(0)
+    touchscreen_mmap.write(bytes(f"{x},{y}", encoding="utf-8"))
+    # touchscreen_mmap[0] = x
+    # touchscreen_mmap[1] = y
+
 def press_button(button: str):
     global g_current_index
 
     match button:
-        case 'A':       byte = 1 << 0
-        case 'B':       byte = 1 << 1
-        case 'X':       byte = 1 << 2
-        case 'Y':       byte = 1 << 3
-        case 'Up':      byte = 1 << 4
-        case 'Down':    byte = 1 << 5
-        case 'Left':    byte = 1 << 6
-        case 'Right':   byte = 1 << 7
-        case 'Start':   byte = 1 << 8
-        case 'Select':  byte = 1 << 9
-        case 'L':       byte = 1 << 10
-        case 'R':       byte = 1 << 11
-        case 'Power':   byte = 1 << 12
-        case _:         byte = 0
-    
+        case 'Up':      button = "U"
+        case 'Down':    button = "D"
+        case 'Left':    button = "L"
+        case 'Right':   button = "R"
+        case 'Start':   button = "S"
+        case 'Select':  button = "s"
+        case 'L':       button = "l"
+        case 'R':       button = "r"
+        case 'Power':   button = "P"
+        case 'Touch':   button = "T"
+
     input_list_mmap.seek(g_current_index)
-    input_list_mmap.write(bytes(str(byte), encoding="utf-8"))
+    input_list_mmap.write(bytes(button, encoding="utf-8"))
     input_list_mmap.seek(100) # Position 100 stores the current index
     input_list_mmap.write(bytes([g_current_index+1]))
 
@@ -59,6 +62,7 @@ def press_button(button: str):
     
     if g_current_index > 99:
         g_current_index = 0
+
 
 # def hold_button(button: str):
 #     global hold_input
@@ -83,14 +87,15 @@ def press_button(button: str):
 #         hold_input_mmap.write(bytes(json.dumps(hold_input), encoding="utf-8"))
 
 # def touch_screen_at(x: int, y: int)
-    
 
-# Create input map
 g_current_index, hold_input, press_input = 0, False, False
-input_list_mmap = mmap.mmap(-1, 512, tagname="bizhawk_input_list", access=mmap.ACCESS_WRITE)
-input_list_mmap.flush()
+input_list_mmap = mmap.mmap(-1, 4096, tagname="bizhawk_input_list", access=mmap.ACCESS_WRITE)
 input_list_mmap.seek(0)
 
 # Clear inputs from last instance in case it wasn't refreshed in the Lua Console
 for i in range(100):
     input_list_mmap.write(bytes(str(0), encoding="utf-8"))
+
+touchscreen_mmap = mmap.mmap(-1, 1024, tagname="bizhawk_touchscreen", access=mmap.ACCESS_WRITE)
+touchscreen_mmap.seek(0)
+

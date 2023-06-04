@@ -1,14 +1,18 @@
 -- constants
 MAX_MAP_ENTITIES = 8
+NUM_OF_FRAMES_PER_PRESS = 5
 
 offsets = {
 	entity_positions = 	0x252220,
 	warp_target = 		0x2592CC,
-	map_id = 			0x27587C
+	map_id = 			0x27587C,
+	hovered_starter =   0x269994
 	-- These seem to change in different states of loading mere frames apart
 	-- map_id2 = 			0x24F90C,
 	-- map_id4 = 			0x275884
 }
+
+trainer = {}
 
 map_player_index = -1
 
@@ -20,7 +24,13 @@ posY = 0
 last_posX = 0
 last_posY = 0
 
+json = require "components\\lua\\json"
+
 function mainLoop()
+	trainer = getTrainer()
+
+	comm.mmfWrite("bizhawk_game_info", json.encode({["trainer"] = trainer}) .. "\x00")
+
 	-- Test for map updates
 	map = memory.read_u16_le(offsets.map_id, "Main RAM")
 	if map ~= last_map then
@@ -48,7 +58,7 @@ function updateEntityPositions(set_player)
 
 	-- Allow room to load (player position takes longer to register than NPCs)
 	if set_player then
-		for i = 0, 60 do
+		for i = 0, 120 do
 			emu.frameadvance()
 		end
 	end
@@ -90,8 +100,41 @@ end
 
 g_current_index = 0
 
+function getTrainer()
+	local trainer
+	
+	trainer = {
+		map = map,
+		posX = posX,
+		posY = posY,
+		hovered_starter = memory.read_u8(offsets.hovered_starter, "Main RAM")
+	}
+	
+	return trainer
+end
+
+function pollTouchScreen()
+	local pcall_result, touchscreen = pcall(comm.mmfRead,"bizhawk_touchscreen", 1024)
+
+	if pcall_result == false then
+		gui.addmessage("pcall fail list")
+		return false
+	end
+
+	-- Split at comma
+	x, y = touchscreen:match("([^,]+),([^,]+)")
+
+	if x and y then
+		console.log("Touch X: " .. x .. ", Touch Y: " .. y)
+		console.log("")
+
+		joypad.set({Touch=1})
+	  joypad.setanalog({['Touch X'] = x, ['Touch Y'] = y})
+	end
+end
+
 function traverseNewInputs()
-	local pcall_result, input_list = pcall(comm.mmfRead,"bizhawk_input_list", 512)
+	local pcall_result, input_list = pcall(comm.mmfRead,"bizhawk_input_list", 4096)
 
 	if pcall_result == false then
 		gui.addmessage("pcall fail list")
@@ -108,37 +151,26 @@ function traverseNewInputs()
 			current_index = 0
 		end
 
-		button = tonumber(utf8.char(input_list:byte(current_index)))
+		button = utf8.char(input_list:byte(current_index))
 
-  	if button == 1 << 0 then
-  		button = "A"
-  	elseif button == 1 << 1 then
-			button = "B"
-  	elseif button == 1 << 2 then
-  		button = "X"
-  	elseif button == 1 << 3 then
-  		button = "Y"
-  	elseif button == 1 << 4 then
-  		button = "Up"
-  	elseif button == 1 << 5 then
-  		button = "Down"
-  	elseif button == 1 << 6 then
-  		button = "Left"
-  	elseif button == 1 << 7 then
-  		button = "Right"
-  	elseif button == 1 << 8 then
-  		button = "Start"
-  	elseif button == 1 << 9 then
-  		button = "Select"
-  	elseif button == 1 << 10 then
-  		button = "L"
-  	elseif button == 1 << 11 then
-  		button = "R"
-  	elseif button == 1 << 12 then
-  		button = "Power"
-  	end
+		if button then
+			-- A, B, X, and Y are all identical in their byte form
+	  	if button == "U" then button = "Up"
+	  	elseif button == "D" then button = "Down"
+	  	elseif button == "L" then button = "Left"
+	  	elseif button == "R" then button = "Right"
+	  	elseif button == "S" then button = "Start"
+	  	elseif button == "s" then button = "Select"
+	  	elseif button == "l" then button = "L"
+	  	elseif button == "r" then button = "R"
+	  	elseif button == "P" then button = "Power"
+	  	elseif button == "T" then button = "Touch"
+	  	end
 
-		input[button] = true
+	  	if input[button] ~= nil then
+				input[button] = true
+			end
+		end
 	end
 
 	g_current_index = current_index
@@ -147,11 +179,18 @@ end
 
 function clearUnheldInputs()
 	for k, v in pairs(input) do
-	  input[k] = false
+		if not (k == "Touch X" or k == "Touch Y") then
+	  	input[k] = false
+	  end
 	end
 
 	joypad.set(input)
 end
+
+-- function onexit()
+-- 	-- Re-enable regular touch input in case script is disabled
+-- 	client.clearautohold()
+-- end
 
 input = joypad.get()
 clearUnheldInputs()
@@ -166,8 +205,9 @@ for i = 0, 100 do --101 entries, the final entry is for the index.
 end
 
 comm.mmfWriteBytes("bizhawk_input_list", input_list)
+comm.mmfWrite("bizhawk_game_info", string.rep("\x00", 4096))
+comm.mmfWrite("bizhawk_touchscreen", string.rep("\x00", 16))
 
-NUM_OF_FRAMES_PER_PRESS = 5
 while true do
 	mainLoop()
 
@@ -175,7 +215,9 @@ while true do
 		clearUnheldInputs()
 	else
 		traverseNewInputs()
+		pollTouchScreen()
 	end
 
 	emu.frameadvance()
+	client.clearautohold()
 end
