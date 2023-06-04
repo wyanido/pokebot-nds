@@ -1,18 +1,21 @@
 -- constants
-MAX_MAP_ENTITIES = 8
+MAX_MAP_ENTITIES = 16
 NUM_OF_FRAMES_PER_PRESS = 5
+
+DEBUG_DISABLE_INPUT_HOOK = true
 
 offsets = {
 	entity_positions = 	0x252220,
 	warp_target = 		0x2592CC,
-	map_id = 			0x27587C,
-	hovered_starter =   0x269994
+	hovered_starter =   0x269994,
 	-- These seem to change in different states of loading mere frames apart
-	-- map_id2 = 			0x24F90C,
-	-- map_id4 = 			0x275884
+	map_id = 			0x24F90C
+	-- map_id2 = 		0x27587C,
+	-- map_id4 = 		0x275884
 }
 
 trainer = {}
+entity_pos_list = {}
 
 map_player_index = -1
 
@@ -28,40 +31,58 @@ json = require "components\\lua\\json"
 
 function mainLoop()
 	trainer = getTrainer()
-
 	comm.mmfWrite("bizhawk_game_info", json.encode({["trainer"] = trainer}) .. "\x00")
 
-	-- Test for map updates
+	map_updated = poll_mapUpdate()
+	if not map_updated then
+		updateEntityPositions(false)
+	end
+
+	gui.addmessage("Map: " .. map .. ", Seamless?: " .. tostring(not was_loading_zone))
+
+	-- -- Display new player coordinates
+	-- if (last_posX ~= posX) or (last_posY ~= posY) then
+	-- 	last_posX, last_posY = posX, posY
+	-- 	gui.addmessage("X: " .. posX .. ", Y: " .. posY)
+	-- end
+end
+
+function onMapChanged()
+	was_loading_zone = false
+
+	-- If the first entity index is empty, indicates the game is loading an entire new area
+	-- # TODO Make this check more comprehensive.
+	-- Sometimes when loading bigger maps, the first index is 0 for a brief moment, despite being a "seamless" load
+	if entity_pos_list[1] and entity_pos_list[1][1] == 0 then
+		was_loading_zone = true
+	end
+
+	updateEntityPositions(was_loading_zone)
+end
+
+function poll_mapUpdate()
 	map = memory.read_u16_le(offsets.map_id, "Main RAM")
 	if map ~= last_map then
 		onMapChanged()
 		last_map = map
+		return true
 	end
-
-	updateEntityPositions(false)
-
-	-- Display new player coordinates
-	if (last_posX ~= posX) or (last_posY ~= posY) then
-		last_posX, last_posY = posX, posY
-		gui.addmessage("X: " .. posX .. ", Y: " .. posY)
-	end
-end
-
-function onMapChanged()
-	gui.addmessage("Map changed! Old: " .. last_map .. ", New: " .. map)
-	updateEntityPositions(true)
+	return false
 end
 
 function updateEntityPositions(set_player)
+	-- # TODO Fix failed entity indexing in Castelia City central
 	entity_pos_list = {}
 	last_entity_index = 0
 
-	-- Allow room to load (player position takes longer to register than NPCs)
+	-- Wait for entity data to load
 	if set_player then
-		for i = 0, 120 do
+		while memory.read_u8(offsets.entity_positions, "Main RAM") == 0 do
 			emu.frameadvance()
 		end
 	end
+
+	gui.addmessage("-----------")
 
 	-- Find the positions of all entities in the map
 	for i = 0, MAX_MAP_ENTITIES do
@@ -75,8 +96,13 @@ function updateEntityPositions(set_player)
 	   		last_entity_index = i
 	   	end
 
-	   	-- gui.addmessage("-----" .. i .. "-----")
-	   	-- gui.addmessage("X: " .. x .. ", Y: " .. y)
+	   	if i == map_player_index then
+	   		prefix = "PLAYER | "
+	   	else
+	   		prefix = "ID " .. i .. "   | "
+	   	end
+
+	   	gui.addmessage(prefix .. "X: " .. x .. ", Y: " .. y)
 	end
 
 	-- The player is always the last entry in the list, so mark their offset with the last set of valid coordinates
@@ -113,7 +139,7 @@ function getTrainer()
 	return trainer
 end
 
-function pollTouchScreen()
+function poll_TouchScreen()
 	local pcall_result, touchscreen = pcall(comm.mmfRead,"bizhawk_touchscreen", 1024)
 
 	if pcall_result == false then
@@ -187,37 +213,41 @@ function clearUnheldInputs()
 	joypad.set(input)
 end
 
--- function onexit()
--- 	-- Re-enable regular touch input in case script is disabled
--- 	client.clearautohold()
--- end
+if not DEBUG_DISABLE_INPUT_HOOK then
+	input = joypad.get()
+	clearUnheldInputs()
 
-input = joypad.get()
-clearUnheldInputs()
+	-- Create memory mapped input files for Python script to write to
+	-- comm.mmfWrite("bizhawk_hold_input", json.encode(input) .. "\x00")
+	comm.mmfWrite("bizhawk_input_list", string.rep("\x00", 512))
 
--- Create memory mapped input files for Python script to write to
--- comm.mmfWrite("bizhawk_hold_input", json.encode(input) .. "\x00")
-comm.mmfWrite("bizhawk_input_list", string.rep("\x00", 512))
+	input_list = {}
+	for i = 0, 100 do --101 entries, the final entry is for the index.
+		input_list[i] = 0
+	end
 
-input_list = {}
-for i = 0, 100 do --101 entries, the final entry is for the index.
-	input_list[i] = 0
+	comm.mmfWriteBytes("bizhawk_input_list", input_list)
+	comm.mmfWrite("bizhawk_touchscreen", string.rep("\x00", 16))
 end
 
-comm.mmfWriteBytes("bizhawk_input_list", input_list)
 comm.mmfWrite("bizhawk_game_info", string.rep("\x00", 4096))
-comm.mmfWrite("bizhawk_touchscreen", string.rep("\x00", 16))
 
+-- Main stuff
 while true do
 	mainLoop()
 
-	if emu.framecount() % NUM_OF_FRAMES_PER_PRESS == 0 then
-		clearUnheldInputs()
-	else
-		traverseNewInputs()
-		pollTouchScreen()
+	if not DEBUG_DISABLE_INPUT_HOOK then
+		if emu.framecount() % NUM_OF_FRAMES_PER_PRESS == 0 then
+			clearUnheldInputs()
+		else
+			traverseNewInputs()
+			poll_TouchScreen()
+		end
 	end
 
 	emu.frameadvance()
+
+	-- Allows manual touch screen input if the script is stopped
+	-- # TODO run this only when the script is stopped
 	client.clearautohold()
 end
