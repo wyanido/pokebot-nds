@@ -1,16 +1,24 @@
 -- constants
 MAX_MAP_ENTITIES = 16
-NUM_OF_FRAMES_PER_PRESS = 5
+FRAMES_PER_PRESS = 5
 
 DEBUG_DISABLE_INPUT_HOOK = false
 DEBUG_DISABLE_OUTPUT = true
+
+MON_DATA_SIZE = 220
+PARTY_OFFSET = 0x2349B4
 
 offsets = {
 	entity_positions 	= 0x252220,
 	warp_target 		= 0x2592CC,
 	starter_box_open 	= 0x26E5B0, -- Unknown address; 0 when opening gift, 1 when gift is open
 	hovered_starter 	= 0x269994,	-- Unconfirmed selection in gift box; 0 Snivy, 1 Tepig, 2 Oshawott
-	party_slot_1		= 0x2349B4,	-- PID, start of data
+	party_slot1			= PARTY_OFFSET + MON_DATA_SIZE * 0,	-- PID, start of data
+	party_slot2			= PARTY_OFFSET + MON_DATA_SIZE * 1,
+ 	party_slot3			= PARTY_OFFSET + MON_DATA_SIZE * 2,
+	party_slot4			= PARTY_OFFSET + MON_DATA_SIZE * 3,
+	party_slot5			= PARTY_OFFSET + MON_DATA_SIZE * 4,
+	party_slot6			= PARTY_OFFSET + MON_DATA_SIZE * 5,
 	state				= 0x146A48, -- Closest address to a real "state" so far
 	-- These seem to gradually change during a room transition, mere frames apart from each other
 	map_id 				= 0x24F90C
@@ -440,7 +448,10 @@ function readMonData(address)
 	mon.spAttack			= battleData(0x98, 2)
 	mon.spDefense			= battleData(0x9A, 2)
 	-- mon.mailMessage			= battleData(0x9C, 37)
-	
+
+	mon.shinyValue 			= mon.otID ~ mon.otSID ~ ((mon.pid >> 16) & 0xFFFF) ~ (mon.pid & 0xFFFF)
+	mon.shiny 				= mon.shinyValue < 8
+
 	return mon
 end
 
@@ -464,15 +475,16 @@ end
 
 comm.mmfWrite("bizhawk_game_info", string.rep("\x00", 4096))
 
+-- mon = readMonData(offsets.party_slot1)
 -- print(mon.pid)
--- print(mon.experience)
+-- print(mon.shiny)
 
 -- Main stuff
 while true do
 	mainLoop()
 
 	if not DEBUG_DISABLE_INPUT_HOOK then
-		if emu.framecount() % NUM_OF_FRAMES_PER_PRESS == 0 then
+		if emu.framecount() % FRAMES_PER_PRESS == 0 then
 			clearUnheldInputs()
 		else
 			traverseNewInputs()
