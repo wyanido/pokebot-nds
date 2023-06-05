@@ -6,6 +6,7 @@ from threading import Thread, Event
 # Helper functions
 from maps import MapID
 from gamestate import GameState
+from pokemon import *
 from input import press_button, press_combo, press_screen_at
 
 def load_json_mmap(size, file): 
@@ -24,7 +25,7 @@ def load_json_mmap(size, file):
         return False
 
 def mem_getGameInfo():
-    global trainer_info, game_info
+    global trainer_info, game_info, party_info
 
     while True:
         try:
@@ -33,10 +34,15 @@ def mem_getGameInfo():
             if game_info_mmap:
                 trainer_info = game_info_mmap["trainer"]
                 game_info = game_info_mmap["game_state"]
-            
+                party_info = game_info_mmap["party"]
+                
+                if len(party_info) > 0:
+                    for pokemon in party_info:
+                        pokemon = enrich_mon_data(pokemon)
             wait_frames(1)
         except Exception as e:
-            print(str(e))
+            # print(party_info)
+            pass
 
 @staticmethod
 def wait_frames(frames):
@@ -70,17 +76,35 @@ def mode_starters():
 
     while game_info["state"] == GameState.BATTLE:
         wait_frames(60) # Nothing yet
+        print(game_info["party"][0])
+
+def enrich_mon_data(pokemon: dict):
+    pokemon["otLanguage"] = monLanguage[pokemon["otLanguage"]]
+    pokemon["shiny"] = pokemon["shinyValue"] < 8
+    pokemon["ability"] = monAbility[pokemon["ability"]]
+    pokemon["nature"] = monNature[pokemon["nature"]]
+    pokemon["name"] = monName[pokemon["species"]]
+    pokemon["heldItem"] = monItem[pokemon["heldItem"]]
+    pokemon["gender"] = monGender[pokemon["gender"]] 
+    pokemon["moves"] = [monMove[move] for move in pokemon["moves"]]
+
+    return pokemon
 
 def mainLoop():
     while True:
-        mode_starters()
+        wait_frames(60)
+        
+        if len(party_info) > 0:
+            print(party_info[0])
 
-trainer_info, game_info = None, None
+        # mode_starters()
+
+trainer_info, game_info, party_info = None, None, None
 get_game_info = Thread(target=mem_getGameInfo)
 get_game_info.start()
 
 # Wait to start bot until key information is gathered
-while trainer_info == None or game_info == None:
+while trainer_info == None:
     wait_frames(15)
 
 mainLoop()

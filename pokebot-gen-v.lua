@@ -450,7 +450,6 @@ function readMonData(address)
 	-- mon.mailMessage			= battleData(0x9C, 37)
 
 	mon.shinyValue 			= mon.otID ~ mon.otSID ~ ((mon.pid >> 16) & 0xFFFF) ~ (mon.pid & 0xFFFF)
-	mon.shiny 				= mon.shinyValue < 8
 
 	return mon
 end
@@ -475,14 +474,11 @@ end
 
 comm.mmfWrite("bizhawk_game_info", string.rep("\x00", 4096))
 
--- mon = readMonData(offsets.party_slot1)
--- print(mon.pid)
--- print(mon.shiny)
-
 -- Main stuff
 while true do
 	mainLoop()
 
+	-- Send inputs if not disabled
 	if not DEBUG_DISABLE_INPUT_HOOK then
 		if emu.framecount() % FRAMES_PER_PRESS == 0 then
 			clearUnheldInputs()
@@ -492,6 +488,9 @@ while true do
 		end
 	end
 
+	-- Do stuff every 2 frames
+	-- # TODO emu.framecount() % FRAMES_PER_MON_UPDATE
+	emu.frameadvance()
 	emu.frameadvance()
 
 	-- Allows manual touch screen input if the script is stopped
