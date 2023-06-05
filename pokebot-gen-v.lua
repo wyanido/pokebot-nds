@@ -7,18 +7,34 @@ DEBUG_DISABLE_INPUT_HOOK = false
 DEBUG_DISABLE_OUTPUT = true
 
 offsets = {
-	entity_positions 	= 0x252220,
-	warp_target 		= 0x2592CC,
-	starter_box_open 	= 0x26E5B0, -- Unknown address; 0 when opening gift, 1 when gift is open
-	hovered_starter 	= 0x269994,	-- Unconfirmed selection in gift box; 0 Snivy, 1 Tepig, 2 Oshawott
-	party_count			= 0x2349B0, -- 4 bytes before first party index
-	party_data			= 0x2349B4,	-- PID, start of data
+	in_battle			= 0x140520, -- 1 or 0
 	state				= 0x146A48, -- Closest address to a real "state" so far
-	-- These seem to gradually change during a room transition, mere frames apart from each other
-	map_id 				= 0x24F90C
-	-- map_id2 			= 0x27587C,
-	-- map_id4 			= 0x275884
+
+	-- Bag pouches, 4 byte pairs | 0001 0004 = 4x Master Ball
+	items_pouch			= 0x233FAC, -- 1240 bytes long
+	key_items_pouch		= 0x234484, -- 332 bytes long
+	tms_hms_case		= 0x2345D0, -- 436 bytes long
+	medicine_pouch		= 0x234784, -- 192 bytes long
+	berries_pouch		= 0x234844, -- 234 bytes long
+
+	-- Party
+	party_count			= 0x2349B0, -- 4 bytes before first index
+	party_data			= 0x2349B4,	-- PID of first party member
+
+	map_id 				= 0x24F90C, -- Changes on room transition
+
+	-- Battle
+	current_opponent	= 0x26ACF4,	-- PID of wild opponent, set immediately after the battle transition ends
+
+	-- Misc testing
+	entity_positions 	= 0x252220, -- List of positions for every entity in the current map
+	-- warp_target 		= 0x2592CC,
+	starter_box_open 	= 0x2B0C40, -- 0 when opening gift, 1 at starter select
+	hovered_starter 	= 0x269994,	-- Unconfirmed selection in gift box; 0 Snivy, 1 Tepig, 2 Oshawott, 4 Nothing
 }
+
+
+last_battle_state = 0
 
 entity_pos_list = {}
 map_player_index = -1
@@ -39,7 +55,8 @@ function mainLoop()
 	data = json.encode({
 		["trainer"] = getTrainer(), 
 		["game_state"] = getGameState(),
-		["party"] = getParty()
+		["party"] = getParty(),
+		["opponent"] = getOpponent()
 	})
 
 	comm.mmfWrite("bizhawk_game_info", data .. "\x00")
@@ -48,7 +65,7 @@ function mainLoop()
 	if not map_updated then
 		updateEntityPositions(false)
 	end
-
+	
 	if not DEBUG_DISABLE_OUTPUT then
 		gui.addmessage("Map: " .. map .. ", Seamless?: " .. tostring(not was_loading_zone))
 	end
@@ -58,19 +75,6 @@ function mainLoop()
 	-- 	last_posX, last_posY = posX, posY
 	-- 	gui.addmessage("X: " .. posX .. ", Y: " .. posY)
 	-- end
-end
-
-function getParty()
-	party = {}
-
-	party_size = RAM.readbyte(offsets.party_count)
-
-	for i = 0, party_size - 1 do
-		mon = readMonData(offsets.party_data + i * MON_DATA_SIZE)
-		table.insert(party, mon)
-	end
-
-	return party
 end
 
 function onMapChanged()
@@ -156,14 +160,36 @@ end
 
 g_current_index = 0
 
--- Misc. data relevant to ce0x2349B4rtain events
+function getParty()
+	party = {}
+
+	party_size = RAM.readbyte(offsets.party_count)
+
+	for i = 0, party_size - 1 do
+		mon = readMonData(offsets.party_data + i * MON_DATA_SIZE)
+		table.insert(party, mon)
+	end
+
+	return party
+end
+
+function getOpponent()
+	opponent = {}
+
+	mon = readMonData(offsets.current_opponent)
+
+	return opponent
+end
+
+-- Misc. data relevant to certain events
 function getGameState()
 	local game_state
 
 	game_state = {
-		hovered_starter = memory.read_u8(offsets.hovered_starter, "Main RAM"),
+		selected_starter = memory.read_u8(offsets.hovered_starter, "Main RAM"),
 		starter_box_open = memory.read_u8(offsets.starter_box_open, "Main RAM"),
-		state = memory.read_u8(offsets.state, "Main RAM")
+		state = memory.read_u8(offsets.state, "Main RAM"),
+		in_battle = memory.read_u8(offsets.in_battle, "Main RAM")
 	}
 
 	return game_state

@@ -8,6 +8,7 @@ from threading import Thread, Event
 from maps import MapID
 from gamestate import GameState
 from pokemon import *
+# from dashboard import *
 from input import press_button, press_combo, press_screen_at
 
 def load_json_mmap(size, file): 
@@ -26,17 +27,18 @@ def load_json_mmap(size, file):
         return False
 
 def mem_getGameInfo():
-    global trainer_info, game_info, party_info
+    global trainer_info, game_info, party_info, opponent_info
 
     while True:
         try:
             game_info_mmap = load_json_mmap(4096, "bizhawk_game_info")
-
+            
             if game_info_mmap:
-                trainer_info = game_info_mmap["trainer"]
-                game_info = game_info_mmap["game_state"]
-                party_info = game_info_mmap["party"]
-                
+                trainer_info =  game_info_mmap["trainer"]
+                game_info =     game_info_mmap["game_state"]
+                party_info =    game_info_mmap["party"]
+                opponent_info = game_info_mmap["opponent"]
+
                 if len(party_info) > 0:
                     for pokemon in party_info:
                         pokemon = enrich_mon_data(pokemon)
@@ -64,9 +66,45 @@ def wait_frames(frames):
 def frames_to_ms(frames: float):
     return max((frames/60.0), 0.02)
 
+def log_mon_encounter(mon):
+    # Statistics
+    global record_ivSum, record_shinyValue, record_encounters
+    iv_sum = mon["hpIV"] + mon["attackIV"] + mon["defenseIV"] + mon["spAttackIV"] + mon["spDefenseIV"] + mon["speedIV"]
+
+    record_ivSum        = iv_sum if record_ivSum == None else max(record_ivSum, iv_sum)
+    record_shinyValue   = mon["shinyValue"] if record_shinyValue == None else min(record_shinyValue, mon["shinyValue"])
+    record_encounters   += 1
+
+    print("--------------")
+    print(f"Received Pokemon #{record_encounters}: a {mon['nature']} {mon['name']}!")
+    print(f"HP: {mon['hpIV']}, ATK: {mon['attackIV']}, DEF: {mon['defenseIV']}, SP.ATK: {mon['spAttackIV']}, SP.DEF: {mon['spDefenseIV']}, SPD: {mon['speedIV']}")
+    print(f"Shiny Value: {mon['shinyValue']}, Shiny?: {str(mon['shiny'])}")
+    print("")
+    print(f"Highest IV sum: {record_ivSum}")
+    print(f"Lowest shiny value: {record_shinyValue}")
+    print("--------------")
+
+    # # Write current encounter
+    # open('output.txt', 'w').close()
+
+    # with open('output.txt', 'a') as f:
+    #     f.write(f"IVs\nHP: {mon['hpIV']} | ATK: {mon['attackIV']} | DEF: {mon['defenseIV']} | SP.ATK: {mon['spAttackIV']} | SP.DEF: {mon['spDefenseIV']} | SPD: {mon['speedIV']}")
+    #     f.write(f"\nTotal: {iv_sum} ({math.floor((iv_sum / (31 * 6)) * 100)}% Perfect)")
+    #     f.write(f"\n\nNature: {mon['nature']}")
+    #     f.write(f"\nGender: {mon['gender']}")
+    #     f.write(f"\nShiny Value: {mon['shinyValue']} (Shiny?: {str(mon['shiny'])})")
+
+    # # Write total stats
+    # open('totals.txt', 'w').close()
+
+    # with open('totals.txt', 'a') as f:
+    #     f.write(f"# Oshawott Seen: {record_encounters}")
+    #     f.write(f"\nLowest ever Shiny Value: {record_shinyValue}")
+    #     f.write(f"\nHighest IV total: {record_ivSum} ({math.floor((record_ivSum / (31 * 6)) * 100)}% Perfect)")
+
 # --------------- v MAIN BOT STUFF BELOW v ---------------
 
-def mode_starters():
+def mode_starters(ball_position):
     print("Waiting to reach overworld...")
     while not game_info["state"] == GameState.OVERWORLD:
         press_combo(["A", 10])
@@ -76,27 +114,35 @@ def mode_starters():
     while not game_info["starter_box_open"]:
         press_combo(["Down", "A", 10])
 
-    print("Choosing Oshawott...")
+    print("Choosing Starter...")
 
     while game_info["starter_box_open"]:
-        press_screen_at(185, 100) # Oshawott
-        wait_frames(5)
-        press_screen_at(120, 180) # Pick this one!
-        wait_frames(5)
-        press_screen_at(216, 100) # Yes
-        wait_frames(5)
+        if game_info["selected_starter"] != 4:
+            press_screen_at((120, 180)) # Pick this one!
+            wait_frames(5)
+            press_screen_at((240, 100)) # Yes
+            wait_frames(5)
+        else:
+            press_screen_at(ball_position) # Starter
+            wait_frames(5)
     
-    print("Waiting for party info to update...")
+    print("Waiting to start battle...")
 
-    while len(party_info) < 1:
+    # while len(party_info) < 1:
+    #     press_combo(["A", 10])
+    
+    while not game_info["in_battle"]:
         press_combo(["A", 10])
     
+    i = 0
+    while i < 23:
+        press_button("A")
+        wait_frames(30)
+        i += 1
+
     mon = party_info[0]
-    print("--------------")
-    print(f"Received Pokemon: {mon['name']}!")
-    print(f"HP: {mon['hpIV']}, ATK: {mon['attackIV']}, DEF: {mon['defenseIV']}, SP.ATK: {mon['spAttackIV']}, SP.DEF: {mon['spDefenseIV']}, SPD: {mon['speedIV']}")
-    print(f"Shiny Value: {mon['shinyValue']}, Shiny?: {str(mon['shiny'])}")
-    print("--------------")
+    
+    log_mon_encounter(mon)
 
     if not mon["shiny"]:
         press_button("Power")
@@ -106,10 +152,21 @@ def mode_starters():
         os._exit(1)
 
 def mainLoop():
-    while True:
-        mode_starters()
+    starter = "snivy"
 
-trainer_info, game_info, party_info = None, None, None
+    match starter:
+        case "snivy":    ball_position = (60, 100)
+        case "tepig":    ball_position = (128, 75)
+        case "oshawott": ball_position = (185, 100)
+
+    while True:
+        mode_starters(ball_position)
+
+record_shinyValue = None
+record_ivSum = None
+record_encounters = 0
+
+trainer_info, game_info, opponent_info, party_info = None, None, None, None
 get_game_info = Thread(target=mem_getGameInfo)
 get_game_info.start()
 

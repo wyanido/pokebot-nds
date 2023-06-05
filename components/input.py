@@ -31,12 +31,14 @@ def press_combo(sequence: list):
             press_button(k)
             wait_frames(1)
 
-def press_screen_at(x: int, y: int):
+def press_screen_at(pos: tuple):
+    # Fill mmap with nothing, fixes a bug where values had end digits of previous values if it was shorter
     touchscreen_mmap.seek(0)
-    touchscreen_mmap.write(bytes(f"{x},{y}", encoding="utf-8"))
+    touchscreen_mmap.write(bytes("       ", encoding="utf-8"))
+    
+    touchscreen_mmap.seek(0)
+    touchscreen_mmap.write(bytes(f"{pos[0]},{pos[1]}", encoding="utf-8"))
     press_button("Touch")
-    # touchscreen_mmap[0] = x
-    # touchscreen_mmap[1] = y
 
 def press_button(button: str):
     global g_current_index
