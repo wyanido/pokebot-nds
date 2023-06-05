@@ -1,24 +1,18 @@
 -- constants
 MAX_MAP_ENTITIES = 16
 FRAMES_PER_PRESS = 5
+MON_DATA_SIZE = 220
 
 DEBUG_DISABLE_INPUT_HOOK = false
 DEBUG_DISABLE_OUTPUT = true
-
-MON_DATA_SIZE = 220
-PARTY_OFFSET = 0x2349B4
 
 offsets = {
 	entity_positions 	= 0x252220,
 	warp_target 		= 0x2592CC,
 	starter_box_open 	= 0x26E5B0, -- Unknown address; 0 when opening gift, 1 when gift is open
 	hovered_starter 	= 0x269994,	-- Unconfirmed selection in gift box; 0 Snivy, 1 Tepig, 2 Oshawott
-	party_slot1			= PARTY_OFFSET + MON_DATA_SIZE * 0,	-- PID, start of data
-	party_slot2			= PARTY_OFFSET + MON_DATA_SIZE * 1,
- 	party_slot3			= PARTY_OFFSET + MON_DATA_SIZE * 2,
-	party_slot4			= PARTY_OFFSET + MON_DATA_SIZE * 3,
-	party_slot5			= PARTY_OFFSET + MON_DATA_SIZE * 4,
-	party_slot6			= PARTY_OFFSET + MON_DATA_SIZE * 5,
+	party_count			= 0x2349B0, -- 4 bytes before first party index
+	party_data			= 0x2349B4,	-- PID, start of data
 	state				= 0x146A48, -- Closest address to a real "state" so far
 	-- These seem to gradually change during a room transition, mere frames apart from each other
 	map_id 				= 0x24F90C
@@ -37,12 +31,15 @@ posY = 0
 -- last_posX = 0
 -- last_posY = 0
 
+dofile "components\\lua\\RAM.lua"
+
 json = require "components\\lua\\json"
 
 function mainLoop()
 	data = json.encode({
 		["trainer"] = getTrainer(), 
-		["game_state"] = getGameState()
+		["game_state"] = getGameState(),
+		["party"] = getParty()
 	})
 
 	comm.mmfWrite("bizhawk_game_info", data .. "\x00")
@@ -61,6 +58,19 @@ function mainLoop()
 	-- 	last_posX, last_posY = posX, posY
 	-- 	gui.addmessage("X: " .. posX .. ", Y: " .. posY)
 	-- end
+end
+
+function getParty()
+	party = {}
+
+	party_size = RAM.readbyte(offsets.party_count)
+
+	for i = 0, party_size - 1 do
+		mon = readMonData(offsets.party_data + i * MON_DATA_SIZE)
+		table.insert(party, mon)
+	end
+
+	return party
 end
 
 function onMapChanged()
@@ -183,10 +193,6 @@ function poll_TouchScreen()
 	x, y = touchscreen:match("([^,]+),([^,]+)")
 
 	if x ~= nil and y ~= nil then
-		-- console.log("Touch X: " .. x .. ", Touch Y: " .. y)
-		-- console.log("")
-
-		-- joypad.set({Touch=1})
 	 	joypad.setanalog({['Touch X'] = x, ['Touch Y'] = y})
 	end
 end
@@ -289,7 +295,7 @@ function loopTable(dataTable, offset, length)
 end
 
 function blockData(offset, length)
-	return loopTable(monTable, offset - 0x7, length)
+	return loopTable(monTable, offset - 0x07, length)
 end
 
 function battleData(offset, length)
@@ -299,8 +305,8 @@ end
 function readMonData(address)
 	local mon = {}
 	-- Unencrypted bytes
-	mon.pid 		= memory.read_u32_le(address + 0x0, "Main RAM")
-	mon.checksum 	= memory.read_u16_le(address + 0x06, "Main RAM")
+	mon.pid 		= RAM.readdword(address)
+	mon.checksum 	= RAM.readword(address + 0x06)
 	
 	-- Encrypted Blocks
 	block = { {}, {}, {}, {} }
@@ -404,13 +410,13 @@ function readMonData(address)
 	mon.isNsPokemon			= data & 0x02
 
 	-- Block C
-	mon.nickname 			= blockData(0x48, 15)
+	mon.nickname 			= blockData(0x48, 23)
 	mon.originGame			= blockData(0x5F, 1)
 	-- mon.sinnohRibbonSet3	= blockData(0x60, 2)
 	-- mon.sinnohRibbonSet3	= blockData(0x62, 2)
 	
 	-- Block D
-	mon.otName 				= blockData(0x68, 15)
+	mon.otName 				= blockData(0x68, 16)
 	mon.dateEggReceived		= blockData(0x78, 3)
 	mon.dateMet				= blockData(0x7B, 3)
 	mon.eggLocation			= blockData(0x7E, 2)

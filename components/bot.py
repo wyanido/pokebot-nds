@@ -1,3 +1,4 @@
+import os
 import io
 import time
 import mmap
@@ -44,40 +45,6 @@ def mem_getGameInfo():
             # print(party_info)
             pass
 
-@staticmethod
-def wait_frames(frames):
-    time.sleep(frames_to_ms(frames))
-
-def frames_to_ms(frames: float):
-    return max((frames/60.0), 0.02)
-
-# --------------- v MAIN BOT STUFF BELOW v ---------------
-
-def mode_starters():
-    print("Opening Gift Box...")
-
-    while not game_info["starter_box_open"]:
-        press_combo(["A", 10])
-
-    print("Choosing Oshawott...")
-
-    while game_info["starter_box_open"]:
-        press_screen_at(185, 100) # Oshawott
-        wait_frames(30)
-        press_screen_at(120, 180) # Pick this one!
-        wait_frames(30)
-        press_screen_at(216, 100) # Yes
-        wait_frames(30)
-    
-    print("Waiting to start battle...")
-
-    while game_info["state"] != GameState.BATTLE:
-        press_combo(["A", 10])
-
-    while game_info["state"] == GameState.BATTLE:
-        wait_frames(60) # Nothing yet
-        print(game_info["party"][0])
-
 def enrich_mon_data(pokemon: dict):
     pokemon["otLanguage"] = monLanguage[pokemon["otLanguage"]]
     pokemon["shiny"] = pokemon["shinyValue"] < 8
@@ -90,14 +57,57 @@ def enrich_mon_data(pokemon: dict):
 
     return pokemon
 
+@staticmethod
+def wait_frames(frames):
+    time.sleep(frames_to_ms(frames))
+
+def frames_to_ms(frames: float):
+    return max((frames/60.0), 0.02)
+
+# --------------- v MAIN BOT STUFF BELOW v ---------------
+
+def mode_starters():
+    print("Waiting to reach overworld...")
+    while not game_info["state"] == GameState.OVERWORLD:
+        press_combo(["A", 10])
+
+    print("Opening Gift Box...")
+
+    while not game_info["starter_box_open"]:
+        press_combo(["Down", "A", 10])
+
+    print("Choosing Oshawott...")
+
+    while game_info["starter_box_open"]:
+        press_screen_at(185, 100) # Oshawott
+        wait_frames(5)
+        press_screen_at(120, 180) # Pick this one!
+        wait_frames(5)
+        press_screen_at(216, 100) # Yes
+        wait_frames(5)
+    
+    print("Waiting for party info to update...")
+
+    while len(party_info) < 1:
+        press_combo(["A", 10])
+    
+    mon = party_info[0]
+    print("--------------")
+    print(f"Received Pokemon: {mon['name']}!")
+    print(f"HP: {mon['hpIV']}, ATK: {mon['attackIV']}, DEF: {mon['defenseIV']}, SP.ATK: {mon['spAttackIV']}, SP.DEF: {mon['spDefenseIV']}, SPD: {mon['speedIV']}")
+    print(f"Shiny Value: {mon['shinyValue']}, Shiny?: {str(mon['shiny'])}")
+    print("--------------")
+
+    if not mon["shiny"]:
+        press_button("Power")
+        wait_frames(60)
+    else:
+        print("Found a shiny Oshawott! Ending the script.")
+        os._exit(1)
+
 def mainLoop():
     while True:
-        wait_frames(60)
-        
-        if len(party_info) > 0:
-            print(party_info[0])
-
-        # mode_starters()
+        mode_starters()
 
 trainer_info, game_info, party_info = None, None, None
 get_game_info = Thread(target=mem_getGameInfo)
