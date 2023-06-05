@@ -11,3 +11,8 @@ The position of every entity in the room is listed from address `0x252220` onwar
 - The player's index will always be the last item in the list after a loading zone. 
 - When moving between maps that don't have a loading zone, the old map's entities are removed, but the player's index in the list remains the same. 
 - When entities are removed from the current map, the indexes of other entities do not move to fill in the new gap, however new entities will fill in the first empty index in the list, filling in any gaps.
+
+### Pokemon Data
+The first party Pokemon begins at offset `0x2349B4`. Despite not being written to a save file yet, this data is still unusable and needs to be decrypted and rearranged with the checksum.
+
+See https://projectpokemon.org/home/docs/gen-5/bw-save-structure-r60/ for in-depth information on this topic.
