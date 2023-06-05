@@ -34,6 +34,7 @@ def press_combo(sequence: list):
 def press_screen_at(x: int, y: int):
     touchscreen_mmap.seek(0)
     touchscreen_mmap.write(bytes(f"{x},{y}", encoding="utf-8"))
+    press_button("Touch")
     # touchscreen_mmap[0] = x
     # touchscreen_mmap[1] = y
 
