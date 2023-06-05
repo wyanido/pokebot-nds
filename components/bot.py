@@ -57,16 +57,19 @@ def mode_starters():
 
     while game_info["starter_box_open"]:
         press_screen_at(185, 100) # Oshawott
-        wait_frames(60)
+        wait_frames(30)
         press_screen_at(120, 180) # Pick this one!
-        wait_frames(60)
+        wait_frames(30)
         press_screen_at(216, 100) # Yes
-        wait_frames(60)
+        wait_frames(30)
     
     print("Waiting to start battle...")
 
     while game_info["state"] != GameState.BATTLE:
         press_combo(["A", 10])
+
+    while game_info["state"] == GameState.BATTLE:
+        wait_frames(60) # Nothing yet
 
 def mainLoop():
     while True:

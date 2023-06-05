@@ -268,6 +268,26 @@ substructSelector = {
 	[23] = {3, 2, 1, 0},
 }
 
+function rand(seed)
+	return (0x41C64E6D * seed) + 0x00006073
+end
+
+function loopTable(dataTable, offset, length)
+	local data = 0 
+	for i = 0, length - 1 do
+		data = data + (dataTable[offset + i] << i * 8)
+	end
+	return data
+end
+
+function blockData(offset, length)
+	return loopTable(monTable, offset - 0x7, length)
+end
+
+function battleData(offset, length)
+	return loopTable(battleStats, offset - 0x87, length)
+end
+
 function readMonData(address)
 	local mon = {}
 	-- Unencrypted bytes
@@ -275,80 +295,152 @@ function readMonData(address)
 	mon.checksum 	= memory.read_u16_le(address + 0x06, "Main RAM")
 	
 	-- Encrypted Blocks
-	ss = {
-		{},
-		{},
-		{},
-		{}
-	}
+	block = { {}, {}, {}, {} }
 	
 	seed = mon.checksum
 
+	-- 128 byte block data is decrypted in 2 byte pairs
 	for i = 0x08, 0x87, 2 do
 	    local word = memory.read_u16_le(address + i, "Main RAM")
 
-	    seed = (0x41C64E6D * seed) + 0x00006073
-	    local xor = seed >> 16
-	    local decryptedByte = word ~ xor
+	    seed = rand(seed)
+	    local decryptedByte = word ~ (seed >> 16)
 	    local endBytes = decryptedByte & 0xFFFF
 
 	    local blockIndex = math.floor((i - 0x08) / 32) + 1
 	    
-	    table.insert(ss[blockIndex], endBytes)
+	    -- Insert the two end bytes as single bytes
+	    table.insert(block[blockIndex], endBytes & 0xFF)
+	    table.insert(block[blockIndex], (endBytes >> 8) & 0xFF)
 	end
 
-	-- for i, value in ipairs(ss0) do
-	--     print(string.format("%04X", value))
-	-- end
-	
-	-- Block Order
+	-- Inverse block order
 	shift = ((mon.pid & 0x3E000) >> 0xD) % 24
 	blockOrder = substructSelector[shift]
 
 	monTable = {}
-
+	
+	-- Iterate through each block and reorganise the data into a single master table
 	for i = 1, 4 do
-		block = ss[blockOrder[i] + 1]
+		thisBlock = block[blockOrder[i] + 1]
 
-	    for j = 1, 16 do
-	        table.insert(monTable, block[j])
+	    for j = 1, 32 do
+	        table.insert(monTable, thisBlock[j])
 	    end
 	end
 
-	-- for i, value in ipairs(monTable) do
-	-- 	print(string.format("%04X", value))
-	-- end
-
-	-- Encrypted bytes
 	-- Block A
-	mon.species 			= monTable[1]
-	mon.heldItem 			= monTable[2]
-	mon.otID 				= monTable[3]
-	mon.otSID 				= monTable[4]
-	mon.experience 			= monTable[5]
-	-- mon.friendship 			= memory.read_u8(address + 0x14, "Main RAM")
-	-- mon.ability 			= memory.read_u8(address + 0x15, "Main RAM")
-	-- mon.markings 			= memory.read_u8(address + 0x16, "Main RAM")
-	-- mon.otLanguage 			= memory.read_u8(address + 0x17, "Main RAM")
-	-- mon.hpEv 				= memory.read_u8(address + 0x18, "Main RAM")
-	-- mon.attackEv 			= memory.read_u8(address + 0x19, "Main RAM")
-	-- mon.defenseEV 			= memory.read_u8(address + 0x1A, "Main RAM")
-	-- mon.speedEV 			= memory.read_u8(address + 0x1B, "Main RAM")
-	-- mon.spAttackEV 			= memory.read_u8(address + 0x1C, "Main RAM")
-	-- mon.spDefenseEV 		= memory.read_u8(address + 0x1D, "Main RAM")
-	-- mon.cool 				= memory.read_u8(address + 0x1E, "Main RAM")
-	-- mon.beauty 				= memory.read_u8(address + 0x1F, "Main RAM")
-	-- mon.cute 				= memory.read_u8(address + 0x20, "Main RAM")
-	-- mon.smart 				= memory.read_u8(address + 0x21, "Main RAM")
-	-- mon.tough 				= memory.read_u8(address + 0x22, "Main RAM")
-	-- mon.sheen 				= memory.read_u8(address + 0x23, "Main RAM")
-	-- mon.sinnohRibbonSet1 	= memory.read_u16_le(address + 0x24, "Main RAM")
-	-- mon.UnovaRibbonSet 		= memory.read_u16_le(address + 0x26, "Main RAM")
+	mon.species 			= blockData(0x08, 2)
+	mon.heldItem 			= blockData(0x0A, 2)
+	mon.otID 				= blockData(0x0C, 2)
+	mon.otSID 				= blockData(0x0E, 2)
+	mon.experience 			= blockData(0x10, 3)
+	mon.friendship 			= blockData(0x14, 1)
+	mon.ability 			= blockData(0x15, 1)
+	mon.markings 			= blockData(0x16, 1)
+	mon.otLanguage 			= blockData(0x17, 1)
+	mon.hpEv 				= blockData(0x18, 1)
+	mon.attackEv 			= blockData(0x19, 1)
+	mon.defenseEV 			= blockData(0x1A, 1)
+	mon.speedEV 			= blockData(0x1B, 1)
+	mon.spAttackEV 			= blockData(0x1C, 1)
+	mon.spDefenseEV 		= blockData(0x1D, 1)
+	-- mon.cool 				= blockData(0x1E, 1)
+	-- mon.beauty 				= blockData(0x1F, 1)
+	-- mon.cute 				= blockData(0x20, 1)
+	-- mon.smart 				= blockData(0x21, 1)
+	-- mon.tough 				= blockData(0x22, 1)
+	-- mon.sheen 				= blockData(0x23, 1)
+	-- mon.sinnohRibbonSet1 	= blockData(0x24, 2)
+	-- mon.unovaRibbonSet 		= blockData(0x26, 2)
+
+	-- Block B
+	mon.moves = {
+		blockData(0x28, 2),
+		blockData(0x2A, 2),
+		blockData(0x2C, 2),
+		blockData(0x2E, 2)
+	}
+	
+	mon.pp = {
+		blockData(0x30, 1),
+		blockData(0x31, 1),
+		blockData(0x32, 1),
+		blockData(0x33, 1)
+	}
+	
+	mon.ppUps				= blockData(0x34, 4)
+	
+	local data = blockData(0x38, 5)
+	mon.hpIV				= (data >>  0) & 0x1F
+	mon.attackIV 			= (data >>  5) & 0x1F
+	mon.defenseIV 			= (data >> 10) & 0x1F
+	mon.speedIV 			= (data >> 15) & 0x1F
+	mon.spAttackIV 			= (data >> 20) & 0x1F
+	mon.spDefenseIV			= (data >> 25) & 0x1F
+	mon.isEgg				= (data >> 30) & 0x01
+	mon.isNicknamed			= (data >> 31) & 0x01
+
+	-- mon.hoennRibbonSet1		= blockData(0x3C, 2)
+	-- mon.hoennRibbonSet2		= blockData(0x3E, 2)
+
+	local data = blockData(0x40, 1)
+	mon.fatefulEncounter 	= (data >> 0) & 0x01
+	mon.gender 				= (data >> 1) & 0x03
+	mon.altForm				= (data >> 3) & 0x1F
+
+	mon.nature				= blockData(0x41, 1)
+
+	local data = blockData(0x42, 1)
+	mon.dreamWorldAbility	= data & 0x01
+	mon.isNsPokemon			= data & 0x02
+
+	-- Block C
+	mon.nickname 			= blockData(0x48, 15)
+	mon.originGame			= blockData(0x5F, 1)
+	-- mon.sinnohRibbonSet3	= blockData(0x60, 2)
+	-- mon.sinnohRibbonSet3	= blockData(0x62, 2)
+	
+	-- Block D
+	mon.otName 				= blockData(0x68, 15)
+	mon.dateEggReceived		= blockData(0x78, 3)
+	mon.dateMet				= blockData(0x7B, 3)
+	mon.eggLocation			= blockData(0x7E, 2)
+	mon.metLocation			= blockData(0x80, 2)
+	mon.pokerus				= blockData(0x83, 1)
+	mon.pokeball			= blockData(0x84, 1)
+	mon.encounterType		= blockData(0x85, 1)
 
 	-- Battle stats
-	-- mon.status 		= memory.read_u8(address + 0x88, "Main RAM")
+	battleStats = {}
+	seed = mon.pid
+	
+	-- Battle stats are also encrypted in 2-byte pairs
+	-- # TODO combine both decryption loops into a single method
+	for i = 0x88, 0xDB, 2 do
+	    local word = memory.read_u16_le(address + i, "Main RAM")
 
-	-- console.log(decryptData(mon.status, mon.pid))
+	    seed = rand(seed)
+	    local decryptedByte = word ~ (seed >> 16)
+	    local endBytes = decryptedByte & 0xFFFF
+
+	    -- Insert the two end bytes as single bytes
+	    table.insert(battleStats, endBytes & 0xFF)
+	    table.insert(battleStats, (endBytes >> 8) & 0xFF)
+	end
+
+	mon.status				= battleData(0x88, 1)
+	mon.level				= battleData(0x8C, 1)
+	-- mon.capsuleIndex		= battleData(0x8D, 1)
+	mon.currentHP			= battleData(0x8E, 2)
+	mon.maxHP				= battleData(0x90, 2)
+	mon.attack				= battleData(0x92, 2)
+	mon.defense				= battleData(0x94, 2)
+	mon.speed				= battleData(0x96, 2)
+	mon.spAttack			= battleData(0x98, 2)
+	mon.spDefense			= battleData(0x9A, 2)
+	-- mon.mailMessage			= battleData(0x9C, 37)
+	
 	return mon
 end
 
@@ -372,6 +464,9 @@ end
 
 comm.mmfWrite("bizhawk_game_info", string.rep("\x00", 4096))
 
+-- print(mon.pid)
+-- print(mon.experience)
+
 -- Main stuff
 while true do
 	mainLoop()
@@ -391,8 +486,3 @@ while true do
 	-- # TODO run this only when the script is stopped
 	-- client.clearautohold()
 end
-
--- mon = readMonData(offsets.party_slot_1)
-
--- print(mon.pid)
--- print(mon.experience)
