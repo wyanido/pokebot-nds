@@ -4,6 +4,7 @@ import time
 import mmap
 import json
 import logging
+import math
 from threading import Thread, Event
 # Helper functions
 from maps import MapID
@@ -93,11 +94,28 @@ def mem_getGameInfo():
             # print(party_info)
             pass
 
+@staticmethod
+def getRaisedStat(nature_id: int):
+    stats = ["Attack", "Defense", "Speed", "Sp. Attack", "Sp. Defense"]
+
+    return stats[math.floor(nature_id / 5)]
+
+@staticmethod
+def getLoweredStat(nature_id: int):
+    stats = ["Attack", "Defense", "Speed", "Sp. Attack", "Sp. Defense"]
+
+    return stats[nature_id % 5]
+
 def enrich_mon_data(pokemon: dict):
     pokemon["otLanguage"] = monLanguage[pokemon["otLanguage"]]
     pokemon["shiny"] = pokemon["shinyValue"] < 8
     pokemon["ability"] = monAbility[pokemon["ability"]]
-    pokemon["nature"] = monNature[pokemon["nature"]]
+
+    nature = pokemon["nature"]
+    pokemon["raisedStat"] = getRaisedStat(nature)
+    pokemon["loweredStat"] = getLoweredStat(nature)
+    pokemon["nature"] = monNature[nature]
+
     pokemon["name"] = monName[pokemon["species"]]
     pokemon["heldItem"] = monItem[pokemon["heldItem"]]
     pokemon["gender"] = monGender[pokemon["gender"]] 
