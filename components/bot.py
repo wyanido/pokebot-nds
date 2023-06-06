@@ -37,7 +37,9 @@ def mem_getGameInfo():
                 trainer_info =  game_info_mmap["trainer"]
                 game_info =     game_info_mmap["game_state"]
                 party_info =    game_info_mmap["party"]
-                opponent_info = game_info_mmap["opponent"]
+                
+                if opponent_info:
+                    opponent_info = enrich_mon_data(game_info_mmap["opponent"])
 
                 if len(party_info) > 0:
                     for pokemon in party_info:
@@ -151,6 +153,27 @@ def mode_starters(ball_position):
         print("Found a shiny Oshawott! Ending the script.")
         os._exit(1)
 
+def mode_randomEncounters():
+    print("Waiting for battle")
+
+    while not game_info["in_battle"]:
+        wait_frames(30)
+
+    print("Starting battle")
+
+    # i = 0
+    # while i < 23:
+    #     press_button("A")
+    #     wait_frames(30)
+    #     i += 1
+
+    print(f"Battling {opponent_info['name']}")
+    print("Waiting for battle to end")
+
+    while game_info["in_battle"]:
+        wait_frames(60)
+
+
 def mainLoop():
     starter = "snivy"
 
@@ -160,7 +183,8 @@ def mainLoop():
         case "oshawott": ball_position = (185, 100)
 
     while True:
-        mode_starters(ball_position)
+        # mode_starters(ball_position)
+        mode_randomEncounters()
 
 record_shinyValue = None
 record_ivSum = None

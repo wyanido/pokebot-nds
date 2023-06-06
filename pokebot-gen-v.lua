@@ -1,10 +1,10 @@
 -- constants
-MAX_MAP_ENTITIES = 16
+MAX_MAP_ENTITIES = 20
 FRAMES_PER_PRESS = 5
 MON_DATA_SIZE = 220
 
-DEBUG_DISABLE_INPUT_HOOK = false
-DEBUG_DISABLE_OUTPUT = true
+DEBUG_DISABLE_INPUT_HOOK = true
+DEBUG_DISABLE_OUTPUT = false
 
 offsets = {
 	in_battle			= 0x140520, -- 1 or 0
@@ -28,9 +28,11 @@ offsets = {
 
 	-- Misc testing
 	entity_positions 	= 0x252220, -- List of positions for every entity in the current map
+	entities_ready		= 0x27FEA8, -- 0 or 1
 	-- warp_target 		= 0x2592CC,
 	starter_box_open 	= 0x2B0C40, -- 0 when opening gift, 1 at starter select
 	hovered_starter 	= 0x269994,	-- Unconfirmed selection in gift box; 0 Snivy, 1 Tepig, 2 Oshawott, 4 Nothing
+	map_transition		= 0x216110  -- 1 during a transition, 0 otherwise
 }
 
 
@@ -80,11 +82,13 @@ end
 function onMapChanged()
 	was_loading_zone = false
 
-	-- If the first entity index is empty, indicates the game is loading an entire new area
-	-- # TODO Make this check more comprehensive.
-	-- Sometimes when loading bigger maps, the first index is 0 for a brief moment, despite being a "seamless" load
-	if entity_pos_list[1] and entity_pos_list[1][1] == 0 then
+	if memory.read_u16_le(offsets.map_transition, "Main RAM") == 0 then
 		was_loading_zone = true
+		print("yep, that's a loading zone")
+	end
+
+	while memory.read_u16_le(offsets.entities_ready, "Main RAM") == 0 do
+		emu.frameadvance()
 	end
 
 	updateEntityPositions(was_loading_zone)
@@ -107,44 +111,48 @@ function updateEntityPositions(set_player)
 
 	-- Wait for entity data to load
 	if set_player then
-		while memory.read_u8(offsets.entity_positions, "Main RAM") == 0 do
+		while RAM.readbyte(offsets.entities_ready) == 0 do
 			emu.frameadvance()
 		end
 	end
 
 	if not DEBUG_DISABLE_OUTPUT then
-		gui.addmessage("-----------")
+		gui.addmessage("")
 	end
 
 	-- Find the positions of all entities in the map
 	for i = 0, MAX_MAP_ENTITIES do
 		d = i * 256
-		x = memory.read_u8(offsets.entity_positions + d, "Main RAM")
-		y = memory.read_u8(offsets.entity_positions + d + 4, "Main RAM")
+		x = memory.read_u16_le(offsets.entity_positions + d, "Main RAM")
+		y = memory.read_u16_le(offsets.entity_positions + d + 4, "Main RAM")
 
 	   	table.insert(entity_pos_list, {x, y})
 
-	   	if x ~= 0 or y ~= 0 then
-	   		last_entity_index = i
-	   	end
-
-	   	if not DEBUG_DISABLE_OUTPUT then
+	   	if x == 0 and y == 0 then
+	   		if set_player then
+				-- Assign the player to the last entity position on the map
+		   		map_player_index = i
+		   		gui.addmessage("New player index is " .. map_player_index)
+				break
+			end
+	   	elseif not DEBUG_DISABLE_OUTPUT then
 		   	if i == map_player_index then
-		   		prefix = "PLAYER | "
+		   		prefix = "X | "
 		   	else
-		   		prefix = "ID " .. i .. "   | "
+		   		prefix = ". | "
 		   	end
 
 		   	gui.addmessage(prefix .. "X: " .. x .. ", Y: " .. y)
-		   end
+		end
 	end
+
+	-- if emu.framecount() % 5 == 0 then
+	-- 	print(last_entity_index)
+	-- end
 
 	-- The player is always the last entry in the list, so mark their offset with the last set of valid coordinates
 	-- # TODO confirm whether the data always ends in (0, 0), or if other data may begin immediately after
-	if set_player then
-   		map_player_index = last_entity_index + 1
-   		gui.addmessage("New player index is " .. map_player_index)
-	end
+	
 
 	updatePlayerPosition()
 end
@@ -174,11 +182,11 @@ function getParty()
 end
 
 function getOpponent()
-	opponent = {}
+	if not RAM.readbyte(offsets.in_battle) then
+		return nil
+	end
 
-	mon = readMonData(offsets.current_opponent)
-
-	return opponent
+	return readMonData(offsets.current_opponent)
 end
 
 -- Misc. data relevant to certain events
@@ -189,7 +197,8 @@ function getGameState()
 		selected_starter = memory.read_u8(offsets.hovered_starter, "Main RAM"),
 		starter_box_open = memory.read_u8(offsets.starter_box_open, "Main RAM"),
 		state = memory.read_u8(offsets.state, "Main RAM"),
-		in_battle = memory.read_u8(offsets.in_battle, "Main RAM")
+		in_battle = RAM.readbyte(offsets.in_battle)
+		-- entities_ready = memory.read_u8(offsets.entities_ready, "Main RAM")
 	}
 
 	return game_state
@@ -520,9 +529,7 @@ while true do
 		end
 	end
 
-	-- Do stuff every 2 frames
 	-- # TODO emu.framecount() % FRAMES_PER_MON_UPDATE
-	emu.frameadvance()
 	emu.frameadvance()
 
 	-- Allows manual touch screen input if the script is stopped
