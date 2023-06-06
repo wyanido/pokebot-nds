@@ -1,10 +1,11 @@
 -- constants
 MAX_MAP_ENTITIES = 20
 FRAMES_PER_PRESS = 5
+FRAMES_PER_MON_UPDATE = 1
 MON_DATA_SIZE = 220
 
-DEBUG_DISABLE_INPUT_HOOK = true
-DEBUG_DISABLE_OUTPUT = false
+DEBUG_DISABLE_INPUT_HOOK = false
+DEBUG_DISABLE_OUTPUT = true
 
 offsets = {
 	in_battle			= 0x140520, -- 1 or 0
@@ -54,14 +55,16 @@ dofile "components\\lua\\RAM.lua"
 json = require "components\\lua\\json"
 
 function mainLoop()
-	data = json.encode({
-		["trainer"] = getTrainer(), 
-		["game_state"] = getGameState(),
-		["party"] = getParty(),
-		["opponent"] = getOpponent()
-	})
+	if emu.framecount() % FRAMES_PER_MON_UPDATE == 0 then
+		data = json.encode({
+			["trainer"] = getTrainer(), 
+			["game_state"] = getGameState(),
+			["party"] = getParty(),
+			["opponent"] = getOpponent()
+		})
 
-	comm.mmfWrite("bizhawk_game_info", data .. "\x00")
+		comm.mmfWrite("bizhawk_game_info", data .. "\x00")
+	end
 
 	map_updated = poll_mapUpdate()
 	if not map_updated then
@@ -84,11 +87,17 @@ function onMapChanged()
 
 	if memory.read_u16_le(offsets.map_transition, "Main RAM") == 0 then
 		was_loading_zone = true
-		print("yep, that's a loading zone")
+
+		if not DEBUG_DISABLE_OUTPUT then
+			print("yep, that's a loading zone")
+		end
 	end
 
-	while memory.read_u16_le(offsets.entities_ready, "Main RAM") == 0 do
+	-- # TODO use a more refined solution, this just stops infinite loops on the title screen
+	i = 0
+	while memory.read_u16_le(offsets.entities_ready, "Main RAM") == 0 and i < 30 do
 		emu.frameadvance()
+		i = i + 1
 	end
 
 	updateEntityPositions(was_loading_zone)
@@ -111,8 +120,10 @@ function updateEntityPositions(set_player)
 
 	-- Wait for entity data to load
 	if set_player then
-		while RAM.readbyte(offsets.entities_ready) == 0 do
+		i = 0
+		while RAM.readbyte(offsets.entities_ready) == 0 and i < 30 do
 			emu.frameadvance()
+			i = i + 1
 		end
 	end
 
@@ -182,10 +193,6 @@ function getParty()
 end
 
 function getOpponent()
-	if not RAM.readbyte(offsets.in_battle) then
-		return nil
-	end
-
 	return readMonData(offsets.current_opponent)
 end
 
@@ -529,7 +536,6 @@ while true do
 		end
 	end
 
-	-- # TODO emu.framecount() % FRAMES_PER_MON_UPDATE
 	emu.frameadvance()
 
 	-- Allows manual touch screen input if the script is stopped
