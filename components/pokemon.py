@@ -241,3 +241,55 @@ monMove = [ "--" , "Pound", "Karate Chop", "Double Slap", "Comet Punch", "Mega P
 			"Steamroller", "Cotton Guard", "Night Daze", "Psystrike", "Tail Slap", "Hurricane", "Head Charge", "Gear Grind",
 			"Searing Shot", "Techno Blast", "Relic Song", "Secret Sword", "Glaciate", "Bolt Strike", "Blue Flare", "Fiery Dance",
 			"Freeze Shock", "Ice Burn", "Snarl", "Icicle Crash", "V-create", "Fusion Flare", "Fusion Bolt"]
+
+@staticmethod
+def get_raised_stat(nature_id: int):
+    stats = ["Attack", "Defense", "Speed", "Sp. Attack", "Sp. Defense"]
+
+    return stats[math.floor(nature_id / 5)]
+
+@staticmethod
+def get_lowered_stat(nature_id: int):
+    stats = ["Attack", "Defense", "Speed", "Sp. Attack", "Sp. Defense"]
+
+    return stats[nature_id % 5]
+
+def enrich_mon_data(pokemon: dict):
+    pokemon["otLanguage"] = monLanguage[pokemon["otLanguage"]]
+    pokemon["shiny"] = pokemon["shinyValue"] < 8
+    pokemon["ability"] = monAbility[pokemon["ability"]]
+
+    nature = pokemon["nature"]
+    pokemon["raisedStat"] = get_raised_stat(nature)
+    pokemon["loweredStat"] = get_lowered_stat(nature)
+    pokemon["nature"] = monNature[nature]
+
+    pokemon["name"] = monName[pokemon["species"]]
+    pokemon["heldItem"] = monItem[pokemon["heldItem"]]
+    pokemon["gender"] = monGender[pokemon["gender"]] 
+    pokemon["moves"] = [monMove[move] for move in pokemon["moves"]]
+    
+    return pokemon
+
+def log_pokemon_encounter(pokemon: dict):
+    # Statistics
+    global record_ivSum, record_shinyValue, record_encounters
+    iv_sum = pokemon["hpIV"] + pokemon["attackIV"] + pokemon["defenseIV"] + pokemon["spAttackIV"] + pokemon["spDefenseIV"] + pokemon["speedIV"]
+
+    totals["totals"]["highest_iv_sum"]        = iv_sum if totals["totals"]["highest_iv_sum"] == None else max(totals["totals"]["highest_iv_sum"], iv_sum)
+    totals["totals"]["lowest_sv"]   = pokemon["shinyValue"] if totals["totals"]["lowest_sv"] == None else min(totals["totals"]["lowest_sv"], pokemon["shinyValue"])
+    totals["totals"]["encounters"]   += 1
+
+    print("--------------")
+    print(f"Received Pokemon #{totals['totals']['encounters']}: a {pokemon['nature']} {pokemon['name']}!")
+    print(f"HP: {pokemon['hpIV']}, ATK: {pokemon['attackIV']}, DEF: {pokemon['defenseIV']}, SP.ATK: {pokemon['spAttackIV']}, SP.DEF: {pokemon['spDefenseIV']}, SPD: {pokemon['speedIV']}")
+    print(f"Shiny Value: {pokemon['shinyValue']}, Shiny?: {str(pokemon['shiny'])}")
+    print("")
+    print(f"Highest IV sum: {totals['totals']['highest_iv_sum']}")
+    print(f"Lowest shiny value: {totals['totals']['lowest_sv']}")
+    print("--------------")
+
+    encounters["encounters"].append(pokemon)
+    
+    write_file("stats/totals.json", json.dumps(totals, indent=4, sort_keys=True)) # Save stats file
+    write_file("stats/encounters.json", json.dumps(encounters, indent=4, sort_keys=True)) # Save encounter log file
