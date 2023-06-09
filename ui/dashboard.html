@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" class="auto-scaling-disabled">
+
+<head>
+    <!-- Meta tags -->
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
+    <meta name="viewport" content="width=device-width" />
+    <!-- Favicon and title -->
+    <link rel="icon" href="path/to/fav.png">
+    <title>PokeBot Gen V</title>
+    <!-- Halfmoon CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/halfmoon@1.1.1/css/halfmoon-variables.min.css" rel="stylesheet" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.templates/beta1/jquery.tmpl.min.js"></script>
+    <script src="./js/moment.min.js">
+    </script>
+    <script src="./js/dashboard.js">
+    </script>
+</head>
+
+<body class="with-custom-webkit-scrollbars with-custom-css-scrollbars" data-dm-shortcut-enabled="true" data-set-preferred-mode-onload="true">
+    <!-- Modals go here -->
+    <!-- Reference: https://www.gethalfmoon.com/docs/modal -->
+    <!-- Page wrapper start -->
+    <div class="page-wrapper with-navbar">
+        <!-- Navbar start -->
+        <nav class="navbar">
+            <!-- Navbar brand -->
+            <div class="navbar-brand">
+                <img src="icons/pokemon/494.png" class="icon">
+                Pokébot Gen V
+            </div>
+            <!-- Navbar nav -->
+            <ul class="navbar-nav d-flex d-md-flex">
+                <li class="nav-item active">
+                    <a href="#" class="nav-link">Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link"><s>Config</s></a>
+                </li>
+            </ul>
+        </nav>
+        <!-- Navbar end -->
+        <!-- Content wrapper start -->
+        <div class="content-wrapper">
+            <div class="col-12">
+                <div class="card">
+                    <h2 class="card-title text-center">Recently Seen</h2>
+                    <!-- No outer padding -->
+                    <table class="table ">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                                <th class="text-center">Item</th>
+                                <th class="text-center">Ability</th>
+                                <th class="text-center">Nature</th>
+                                <th class="text-center">IVs</th>
+                                <th class="text-center">PID</th>
+                                <th class="text-center">Shiny Value (SV)</th>
+                                <th class="text-center">Shiny?</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recents">
+                            <script id="row-template" type="text/x-jQuery-tmpl">
+                                <tr>
+                                    <td style="width:0px">
+                                        <img src="icons/pokemon/${species}.png">
+                                    </td>
+                                    <td style="width:0px">
+                                        <img src="icons/${gender}.png">
+                                    </td>
+                                    <td>Lv ${level}</td>
+                                    <td class="text-center"><img src="icons/items/${item}.png"></td>
+                                    <td class="text-center">${ability}</td>
+                                    <td class="text-center">${nature}</td>
+                                    <td class="text-center">${hpIV} ${attackIV} ${defenseIV} ${spAttackIV} ${spDefenseIV} ${speedIV}</td>
+                                    <td class="text-center">${pid}</td>
+                                    <td class="text-center">${shinyValue}</td>
+                                    <td class="text-center">${shiny}</td>
+                                </tr>
+                            </script>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <!-- Content wrapper end -->
+    </div>
+    <!-- Page wrapper end -->
+    <!-- Halfmoon JS -->
+    <script src="https://cdn.jsdelivr.net/npm/halfmoon@1.1.1/js/halfmoon.min.js"></script>
+</body>
+
+</html>

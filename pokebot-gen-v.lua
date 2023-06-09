@@ -4,7 +4,7 @@ FRAMES_PER_PRESS = 5
 FRAMES_PER_MON_UPDATE = 1
 MON_DATA_SIZE = 220
 
-DEBUG_DISABLE_INPUT_HOOK = false
+DEBUG_DISABLE_INPUT_HOOK = true
 DEBUG_DISABLE_OUTPUT = true
 
 offsets = {
@@ -36,7 +36,6 @@ offsets = {
 	map_transition		= 0x216110  -- 1 during a transition, 0 otherwise
 }
 
-
 last_battle_state = 0
 
 entity_pos_list = {}
@@ -62,7 +61,7 @@ function mainLoop()
 			["party"] = getParty(),
 			["opponent"] = getOpponent()
 		})
-
+		
 		comm.mmfWrite("bizhawk_game_info", data .. "\x00")
 	end
 
@@ -193,7 +192,11 @@ function getParty()
 end
 
 function getOpponent()
-	return readMonData(offsets.current_opponent)
+	if RAM.readbyte(offsets.in_battle) == 1 then
+		return readMonData(offsets.current_opponent)
+	else
+		return nil
+	end
 end
 
 -- Misc. data relevant to certain events
@@ -328,6 +331,22 @@ function rand(seed)
 	return (0x41C64E6D * seed) + 0x00006073
 end
 
+function blockDataString(offset, length)
+    local data = ""
+    i = 0
+    while i < length - 1 do
+        local value = monTable[offset + i - 0x07]
+        
+        if value == 0xFF then
+        	break
+        end
+
+        data = data .. utf8.char(value)
+        i = i + 2
+    end
+    return data
+end
+
 function loopTable(dataTable, offset, length)
 	local data = 0 
 	for i = 0, length - 1 do
@@ -452,13 +471,14 @@ function readMonData(address)
 	mon.isNsPokemon			= data & 0x02
 
 	-- Block C
-	mon.nickname 			= blockData(0x48, 23)
+	mon.nickname 			= blockDataString(0x48, 23)
+
 	mon.originGame			= blockData(0x5F, 1)
 	-- mon.sinnohRibbonSet3	= blockData(0x60, 2)
 	-- mon.sinnohRibbonSet3	= blockData(0x62, 2)
 	
 	-- Block D
-	mon.otName 				= blockData(0x68, 16)
+	mon.otName 				= blockDataString(0x68, 16)
 	mon.dateEggReceived		= blockData(0x78, 3)
 	mon.dateMet				= blockData(0x7B, 3)
 	mon.eggLocation			= blockData(0x7E, 2)

@@ -4,8 +4,9 @@ import time
 import mmap
 import json
 import math
+import traceback
 from threading import Thread, Event
-# Helper functions
+
 from maps import MapID
 from gamestate import GameState
 from pokemon import *
@@ -15,16 +16,16 @@ from input import press_button, press_combo, press_screen_at
 def load_json_mmap(size, file): 
     # BizHawk writes game information to memory mapped files every few frames (see pokebot.lua)
     # See https://tasvideos.org/Bizhawk/LuaFunctions (comm.mmfWrite)
+    shmem = mmap.mmap(0, size, file)
+    
     try:
-        shmem = mmap.mmap(0, size, file)
-        if shmem:
-            bytes_io = io.BytesIO(shmem)
-            byte_str = bytes_io.read()
-            json_obj = json.loads(byte_str.decode("utf-8").split("\x00")[0])
-            return json_obj
-        else: return False
+        bytes_io = io.BytesIO(shmem)
+        byte_str = bytes_io.read().decode('utf-8').split("\x00")[0]
+
+        if byte_str != "":
+            return json.loads(byte_str)
     except Exception as e:
-        print(str(e))
+        traceback.print_exc()
         return False
 
 def mem_getGameInfo():
@@ -38,14 +39,18 @@ def mem_getGameInfo():
                 trainer_info =  game_info_mmap["trainer"]
                 game_info =     game_info_mmap["game_state"]
                 party_info =    game_info_mmap["party"]
-                opponent_info = enrich_mon_data(game_info_mmap["opponent"])
-                
+
+                if "opponent" in game_info_mmap:
+                    opponent_info = enrich_mon_data(game_info_mmap["opponent"])
+                else:
+                    opponent_info = None
+
                 if len(party_info) > 0:
                     for pokemon in party_info:
                         pokemon = enrich_mon_data(pokemon)
             wait_frames(1)
         except Exception as e:
-            # print(party_info)
+            traceback.print_exc()
             pass
 
 @staticmethod
@@ -93,7 +98,7 @@ def mode_starters(ball_position):
 
     mon = party_info[0]
     
-    log_mon_encounter(mon)
+    log_encounter(mon)
 
     if not mon["shiny"]:
         press_button("Power")
@@ -116,7 +121,8 @@ def mode_randomEncounters():
     #     wait_frames(30)
     #     i += 1
 
-    log_mon_encounter(opponent_info)
+    log_encounter(opponent_info)
+
     print("Waiting for battle to end")
 
     while game_info["in_battle"]:
@@ -131,18 +137,21 @@ def main_loop():
     #     case "tepig":    ball_position = (128, 75)
     #     case "oshawott": ball_position = (185, 100)
 
-    starter = 0
+    # starter = 0
+
+    # while True:
+    #     match starter % 3:
+    #         case 0: ball_position = (60, 100)
+    #         case 1: ball_position = (128, 75)
+    #         case 2: ball_position = (185, 100)
+
+    #     mode_starters(ball_position)
+
+    #     starter += 1
 
     while True:
-        match starter % 3:
-            case 0: ball_position = (60, 100)
-            case 1: ball_position = (128, 75)
-            case 2: ball_position = (185, 100)
+        mode_randomEncounters()
 
-        mode_starters(ball_position)
-
-        starter += 1
-        
 record_shinyValue = None
 record_ivSum = None
 record_encounters = 0
@@ -153,6 +162,9 @@ get_game_info.start()
 
 # Wait to start bot until key information is gathered
 while trainer_info == None:
-    wait_frames(15)
+    wait_frames(10)
 
-main_loop()
+main_loop = Thread(target=main_loop)
+main_loop.start()
+
+dashboard_init()
