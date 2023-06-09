@@ -21,10 +21,53 @@ function hev_reverse(hex) {
     return hex.match(/[a-fA-F0-9]{2}/g).reverse().join('').padEnd(8, '0');
 }
 
-function encounter_log() {
+function party() {
     $.ajax({
             method: "GET",
-            url: "http://127.0.0.1:6969/encounters",
+            url: "http://127.0.0.1:55056/party",
+            crossDomain: true,
+            dataType: "json",
+            format: "json",
+            timeout: 50
+        })
+        .done(function(party) {
+            var template = $("#party-template");
+            
+            for (var i = 0; i < 6; i++) {
+                if (party[i]) {
+                    var partyID = "#party-" + (i + 1).toString()
+
+                    mon = party[i]
+
+                    var partyMonData = {
+                        species: mon.species,
+                        gender: mon.gender.toLowerCase(),
+                        name: mon.name,
+                        level: mon.level,
+                        ability: mon.ability,
+                        item: mon.heldItem,
+                        nature: mon.nature,
+                        hpIV: mon.hpIV,
+                        attackIV: mon.attackIV,
+                        defenseIV: mon.defenseIV,
+                        spAttackIV: mon.spAttackIV,
+                        spDefenseIV: mon.spDefenseIV,
+                        speedIV: mon.speedIV,
+                        pid: hev_reverse(mon.pid.toString(16).toUpperCase()),
+                    };
+
+                    var newTableRow = template.tmpl(partyMonData);
+                    $(partyID).empty();
+                    $(partyID).append(newTableRow)
+                }
+            }
+        })
+}
+
+function recent_encounters() {
+    $.ajax({
+            method: "GET",
+            url: "http://127.0.0.1:55056/encounters",
             crossDomain: true,
             dataType: "json",
             format: "json",
@@ -35,8 +78,6 @@ function encounter_log() {
             if (encounter_log["hash"] == previous_hash) {
                 return
             }
-            
-            console.log("Updated list!")
             
             previous_hash = encounter_log["hash"]
 
@@ -79,7 +120,8 @@ function encounter_log() {
 var previous_hash = ""
 
 window.setInterval(function() {
-    encounter_log();
+    recent_encounters();
+    party();
 }, 250);
 
 // window.setInterval(function() {

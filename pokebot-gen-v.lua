@@ -49,9 +49,9 @@ posY = 0
 -- last_posX = 0
 -- last_posY = 0
 
-dofile "components\\lua\\RAM.lua"
+dofile "lua\\RAM.lua"
 
-json = require "components\\lua\\json"
+json = require "lua\\json"
 
 function mainLoop()
 	if emu.framecount() % FRAMES_PER_MON_UPDATE == 0 then

@@ -6,6 +6,7 @@ from threading import Thread, Event
 # HTTP server/interface modules         
 from flask import Flask, abort, jsonify, request
 from flask_cors import CORS
+import common
 import webview
 
 def log_encounter(pokemon: dict):
@@ -73,7 +74,15 @@ def httpServer():
             
             return response
         else: abort(503)
-    server.run(debug=False, threaded=True, host="127.0.0.1", port=6969)
+    @server.route('/party', methods=['GET'])
+    def req_party():
+        if common.party_info:
+            # Add a hash so dashboard.js knows whether to update its list
+            response = jsonify(common.party_info)
+            
+            return response
+        else: abort(503)
+    server.run(debug=False, threaded=True, host="127.0.0.1", port=55056)
 
 def dashboard_init():
     def on_window_close():
@@ -99,3 +108,7 @@ encounters = json.loads(file) if file else { "encounters": [] }
 
 http_server = Thread(target=httpServer)
 http_server.start()
+
+record_shinyValue = None
+record_ivSum = None
+record_encounters = 0

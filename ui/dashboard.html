@@ -18,6 +18,53 @@
     </script>
     <script src="./js/dashboard.js">
     </script>
+    <script id="party-template" type="text/x-jQuery-tmpl">
+        <div class="text-center">
+            <img src="icons/pokemon/${species}.png">
+            <br>
+            ${name}
+            <img src="icons/${gender}.png">
+            Lv ${level}
+        </div>
+        <table>
+            <tbody>
+                <tr>
+                  <th>Item</th>
+                  <td><img src="icons/items/${item}.png"></td>
+                </tr>
+                <tr>
+                  <th>Ability</th>
+                  <td>${ability}</td>
+                </tr>
+                <tr>
+                  <th>Nature</th>
+                  <td>${nature}</td>
+                </tr>
+                <tr>
+                  <th>IVs</th>
+                  <td>${hpIV} ${attackIV} ${defenseIV} ${spAttackIV} ${spDefenseIV} ${speedIV}</td>
+                </tr>
+            </tbody>
+        </table>
+    </script>
+    <script id="row-template" type="text/x-jQuery-tmpl">
+        <tr>
+            <td style="width:0px">
+                <img src="icons/pokemon-icon/${species}.png">
+            </td>
+            <td style="width:0px">
+                <img src="icons/${gender}.png">
+            </td>
+            <td style="white-space: nowrap;">Lv ${level}</td>
+            <td class="text-center"><img src="icons/items/${item}.png"></td>
+            <td class="text-center">${ability}</td>
+            <td class="text-center">${nature}</td>
+            <td class="text-center" style="white-space: nowrap;">${hpIV} ${attackIV} ${defenseIV} ${spAttackIV} ${spDefenseIV} ${speedIV}</td>
+            <td class="text-center">${pid}</td>
+            <td class="text-center">${shinyValue}</td>
+            <td class="text-center">${shiny}</td>
+        </tr>
+    </script>
 </head>
 
 <body class="with-custom-webkit-scrollbars with-custom-css-scrollbars" data-dm-shortcut-enabled="true" data-set-preferred-mode-onload="true">
@@ -29,7 +76,7 @@
         <nav class="navbar">
             <!-- Navbar brand -->
             <div class="navbar-brand">
-                <img src="icons/pokemon/494.png" class="icon">
+                <img src="icons/pokemon-icon/494.png" class="icon">
                 Pokébot Gen V
             </div>
             <!-- Navbar nav -->
@@ -45,11 +92,31 @@
         <!-- Navbar end -->
         <!-- Content wrapper start -->
         <div class="content-wrapper">
-            <div class="col-12">
-                <div class="card">
+            <div class="row">
+                <div class="card col-s">
+                    <h2 class="card-title text-center">Party</h2>
+                    <!-- No outer padding -->
+                    <table class="table">
+                        <tbody id="party">
+                            <tr>
+                                <td id="party-1"></td>
+                                <td id="party-2"></td>
+                            </tr>
+                            <tr>
+                                <td id="party-3"></td>
+                                <td id="party-4"></td>
+                            </tr>
+                            <tr>
+                                <td id="party-5"></td>
+                                <td id="party-6"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card row-eq-spacing-lg">
                     <h2 class="card-title text-center">Recently Seen</h2>
                     <!-- No outer padding -->
-                    <table class="table ">
+                    <table class="table">
                         <thead>
                             <tr>
                                 <th></th>
@@ -65,24 +132,6 @@
                             </tr>
                         </thead>
                         <tbody id="recents">
-                            <script id="row-template" type="text/x-jQuery-tmpl">
-                                <tr>
-                                    <td style="width:0px">
-                                        <img src="icons/pokemon/${species}.png">
-                                    </td>
-                                    <td style="width:0px">
-                                        <img src="icons/${gender}.png">
-                                    </td>
-                                    <td>Lv ${level}</td>
-                                    <td class="text-center"><img src="icons/items/${item}.png"></td>
-                                    <td class="text-center">${ability}</td>
-                                    <td class="text-center">${nature}</td>
-                                    <td class="text-center">${hpIV} ${attackIV} ${defenseIV} ${spAttackIV} ${spDefenseIV} ${speedIV}</td>
-                                    <td class="text-center">${pid}</td>
-                                    <td class="text-center">${shinyValue}</td>
-                                    <td class="text-center">${shiny}</td>
-                                </tr>
-                            </script>
                         </tbody>
                     </table>
                 </div>
