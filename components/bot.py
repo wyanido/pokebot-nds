@@ -4,10 +4,10 @@ import math
 import time
 from threading import Thread, Event
 
+import common
 from maps import MapID
 from gamestate import GameState
-from dashboard import *
-import common
+from dashboard import dashboard_init, log_encounter
 from input import press_button, press_combo, press_screen_at
 
 @staticmethod
@@ -70,14 +70,14 @@ def mode_randomEncounters():
 
     while not common.game_info["in_battle"]:
         wait_frames(30)
-    
-    log_encounter(common.opponent_info)
 
+    for foe in common.opponent_info:
+        log_encounter(foe)
+    
     print("Waiting for battle to end")
 
     while common.game_info["in_battle"]:
         wait_frames(60)
-
 
 def main_loop():
     # starter = 0
@@ -95,8 +95,10 @@ def main_loop():
     while True:
         mode_randomEncounters()
 
-get_game_info = Thread(target=common.mem_getGameInfo)
+get_game_info = Thread(target=common.mem_get_game_info)
 get_game_info.start()
+get_party_info = Thread(target=common.mem_get_party_info)
+get_party_info.start()
 
 # Wait to start bot until key information is gathered
 while common.trainer_info == None:

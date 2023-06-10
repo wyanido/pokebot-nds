@@ -1,7 +1,6 @@
 -- constants
 MAX_MAP_ENTITIES = 20
 FRAMES_PER_PRESS = 5
-FRAMES_PER_MON_UPDATE = 1
 MON_DATA_SIZE = 220
 
 DEBUG_DISABLE_INPUT_HOOK = true
@@ -25,7 +24,11 @@ offsets = {
 	map_id 				= 0x24F90C, -- Changes on room transition
 
 	-- Battle
-	current_opponent	= 0x26ACF4,	-- PID of wild opponent, set immediately after the battle transition ends
+	battle_indicator	= 0x26ACE6, -- 0x41 if during a battle
+	opponent_count		= 0x26ACF0, -- 4 bytes before the first index
+	current_opponent	= 0x26ACF4,	-- PID of opponent, set immediately after the battle transition ends
+	-- battle_type			= 0x270FD0, -- Random address, changes a lot. Stays 1 during a wild battle or 0 during a trainer battle.
+	opponents_ready		= 0x2E4A80, -- Random address, changes a lot. Stays on 1 once foe data is safe to read
 
 	-- Misc testing
 	entity_positions 	= 0x252220, -- List of positions for every entity in the current map
@@ -54,18 +57,29 @@ dofile "lua\\RAM.lua"
 json = require "lua\\json"
 
 function mainLoop()
-	if emu.framecount() % FRAMES_PER_MON_UPDATE == 0 then
-		data = json.encode({
-			["trainer"] = getTrainer(), 
-			["game_state"] = getGameState(),
-			["party"] = getParty(),
-			["opponent"] = getOpponent()
-		})
-		
-		comm.mmfWrite("bizhawk_game_info", data .. "\x00")
+	-- General game data
+	data = {
+		["trainer"] = getTrainer(), 
+		["game_state"] = getGameState(),
+	}
+
+	opponent = getOpponent()
+	if opponent ~= nil then
+		data["opponent"] = opponent
 	end
 
+	comm.mmfWrite("bizhawk_game_info", json.encode(data) .. "\x00")
+
+	-- Party mon
+	data = {
+		["party"] = getParty()
+	}
+
+	comm.mmfWrite("bizhawk_party_info", json.encode(data) .. "\x00")
+
+	-- Other state tracking
 	map_updated = poll_mapUpdate()
+
 	if not map_updated then
 		updateEntityPositions(false)
 	end
@@ -192,10 +206,20 @@ function getParty()
 end
 
 function getOpponent()
-	if RAM.readbyte(offsets.in_battle) == 1 then
-		return readMonData(offsets.current_opponent)
-	else
+	-- Make sure it's not reading garbage non-battle data
+	if RAM.readbyte(offsets.battle_indicator) ~= 0x41 or RAM.readbyte(offsets.opponent_count) == 0 then
 		return nil
+	else
+		foes = {}
+
+		foe_count = RAM.readbyte(offsets.opponent_count)
+
+		for i = 0, foe_count - 1 do
+			mon = readMonData(offsets.current_opponent + i * MON_DATA_SIZE)
+			table.insert(foes, mon)
+		end
+
+		return foes
 	end
 end
 
@@ -207,7 +231,7 @@ function getGameState()
 		selected_starter = memory.read_u8(offsets.hovered_starter, "Main RAM"),
 		starter_box_open = memory.read_u8(offsets.starter_box_open, "Main RAM"),
 		state = memory.read_u8(offsets.state, "Main RAM"),
-		in_battle = RAM.readbyte(offsets.in_battle)
+		in_battle = RAM.readbyte(offsets.battle_indicator) == 0x41 and RAM.readbyte(offsets.opponent_count) > 0
 		-- entities_ready = memory.read_u8(offsets.entities_ready, "Main RAM")
 	}
 
@@ -288,7 +312,7 @@ end
 
 function clearUnheldInputs()
 	for k, v in pairs(input) do
-		if not (k == "Touch X" or k == "Touch Y") then
+		if k ~= "Touch X" and k ~= "Touch Y" then
 	  	input[k] = false
 	  end
 	end
@@ -333,16 +357,15 @@ end
 
 function blockDataString(offset, length)
     local data = ""
-    i = 0
-    while i < length - 1 do
-        local value = monTable[offset + i - 0x07]
+    
+    for i = 0, length - 1, 2 do
+        local value = monTable[offset + i - 0x07] + (monTable[offset + i - 0x07] << 8)
         
-        if value == 0xFF then
+        if value == 0xFFFF or value == 0x0000 then
         	break
-        end
-
-        data = data .. utf8.char(value)
-        i = i + 2
+        else
+	        data = data .. utf8.char(value & 0xFF)
+	    end
     end
     return data
 end
@@ -404,6 +427,20 @@ function readMonData(address)
 	    end
 	end
 
+	-- Verify checksums
+	-- If the mon data is invalid, assume it's unprepared or garbage data
+	sum = 0
+
+	for i = 1, #monTable, 2 do
+	  sum = sum + monTable[i] + (monTable[i + 1] << 8)
+	end
+
+	sum = sum & 0xFFFF
+
+	if sum ~= mon.checksum then
+		return nil
+	end
+
 	-- Block A
 	mon.species 			= blockData(0x08, 2)
 	mon.heldItem 			= blockData(0x0A, 2)
@@ -412,7 +449,7 @@ function readMonData(address)
 	mon.experience 			= blockData(0x10, 3)
 	mon.friendship 			= blockData(0x14, 1)
 	mon.ability 			= blockData(0x15, 1)
-	mon.markings 			= blockData(0x16, 1)
+	-- mon.markings 			= blockData(0x16, 1)
 	mon.otLanguage 			= blockData(0x17, 1)
 	mon.hpEv 				= blockData(0x18, 1)
 	mon.attackEv 			= blockData(0x19, 1)
@@ -479,13 +516,13 @@ function readMonData(address)
 	
 	-- Block D
 	mon.otName 				= blockDataString(0x68, 16)
-	mon.dateEggReceived		= blockData(0x78, 3)
+	-- mon.dateEggReceived		= blockData(0x78, 3)
 	mon.dateMet				= blockData(0x7B, 3)
-	mon.eggLocation			= blockData(0x7E, 2)
+	-- mon.eggLocation			= blockData(0x7E, 2)
 	mon.metLocation			= blockData(0x80, 2)
 	mon.pokerus				= blockData(0x83, 1)
 	mon.pokeball			= blockData(0x84, 1)
-	mon.encounterType		= blockData(0x85, 1)
+	-- mon.encounterType		= blockData(0x85, 1)
 
 	-- Battle stats
 	battleStats = {}
@@ -541,6 +578,7 @@ if not DEBUG_DISABLE_INPUT_HOOK then
 end
 
 comm.mmfWrite("bizhawk_game_info", string.rep("\x00", 4096))
+comm.mmfWrite("bizhawk_party_info", string.rep("\x00", 8192))
 
 -- Main stuff
 while true do

@@ -1,7 +1,7 @@
 import os
 import json
+import time
 import logging
-import hashlib
 from threading import Thread, Event
 # HTTP server/interface modules         
 from flask import Flask, abort, jsonify, request
@@ -63,25 +63,50 @@ def httpServer():
         if totals:
             response = jsonify(totals)
             return response
-        else: abort(503)
+        
+        abort(204)
     @server.route('/encounters', methods=['GET'])
     def req_encounters():
+        global encounters_hash
         if encounters:
-            # Add a hash so dashboard.js knows whether to update its list
-            enc_hashed = encounters.copy()
-            enc_hashed["hash"] = hashlib.md5(json.dumps(encounters, sort_keys=True).encode()).hexdigest()
-            response = jsonify(enc_hashed)
+            # Compare with the last encounter list; don't send repeat data
+            while True:
+                new_hash = hash(json.dumps(encounters, sort_keys=True).encode())
+
+                if encounters_hash != new_hash:
+                    break
+
+                time.sleep(1)
+
+            encounters_hash = new_hash
             
+            # print("enc: " + str(encounters_hash))
+
+            response = jsonify(encounters)
             return response
-        else: abort(503)
+        else:
+            abort(503)
     @server.route('/party', methods=['GET'])
     def req_party():
+        global party_hash
         if common.party_info:
-            # Add a hash so dashboard.js knows whether to update its list
-            response = jsonify(common.party_info)
+            # Compare with the last encounter list; don't send repeat data
+            while True:
+                new_hash = hash(json.dumps(common.party_info, sort_keys=True))
+
+                if party_hash != new_hash:
+                    break
+
+                time.sleep(1)
+
+            party_hash = new_hash
             
+            # print("party: " + str(party_hash))
+
+            response = jsonify(common.party_info)
             return response
-        else: abort(503)
+        else:
+            abort(503)
     server.run(debug=False, threaded=True, host="127.0.0.1", port=55056)
 
 def dashboard_init():
@@ -96,6 +121,9 @@ def dashboard_init():
 
 os.makedirs("stats", exist_ok=True) # Sets up stats files if they don't exist
 
+encounters_hash = ""
+party_hash = ""
+
 file = read_file("stats/totals.json")
 totals = json.loads(file) if file else {
     "highest_iv_sum": 0, 
@@ -106,9 +134,9 @@ totals = json.loads(file) if file else {
 file = read_file("stats/encounters.json")
 encounters = json.loads(file) if file else { "encounters": [] }
 
-http_server = Thread(target=httpServer)
-http_server.start()
-
 record_shinyValue = None
 record_ivSum = None
 record_encounters = 0
+
+http_server = Thread(target=httpServer)
+http_server.start()

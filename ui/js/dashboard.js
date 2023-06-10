@@ -21,66 +21,50 @@ function hev_reverse(hex) {
     return hex.match(/[a-fA-F0-9]{2}/g).reverse().join('').padEnd(8, '0');
 }
 
-function party() {
+function longPoll_party() {
     $.ajax({
-            method: "GET",
-            url: "http://127.0.0.1:55056/party",
-            crossDomain: true,
-            dataType: "json",
-            format: "json",
-            timeout: 50
-        })
-        .done(function(party) {
+        method: "GET",
+        url: "http://127.0.0.1:55056/party",
+        crossDomain: true,
+        dataType: "json",
+        format: "json",
+        timeout: 0,
+        success: function(party) {
             var template = $("#party-template");
             
+            $("#party tr td").empty();
+
             for (var i = 0; i < 6; i++) {
                 if (party[i]) {
                     var partyID = "#party-" + (i + 1).toString()
 
                     mon = party[i]
+                    mon.gender = mon.gender.toLowerCase()
+                    mon.name = "(" + mon.name + ")"
+                    mon.pid = hev_reverse(mon.pid.toString(16).toUpperCase())
 
-                    var partyMonData = {
-                        species: mon.species,
-                        gender: mon.gender.toLowerCase(),
-                        name: mon.name,
-                        level: mon.level,
-                        ability: mon.ability,
-                        item: mon.heldItem,
-                        nature: mon.nature,
-                        hpIV: mon.hpIV,
-                        attackIV: mon.attackIV,
-                        defenseIV: mon.defenseIV,
-                        spAttackIV: mon.spAttackIV,
-                        spDefenseIV: mon.spDefenseIV,
-                        speedIV: mon.speedIV,
-                        pid: hev_reverse(mon.pid.toString(16).toUpperCase()),
-                    };
-
-                    var newTableRow = template.tmpl(partyMonData);
-                    $(partyID).empty();
+                    var newTableRow = template.tmpl(mon);
                     $(partyID).append(newTableRow)
                 }
             }
-        })
+
+            longPoll_party()
+        },
+        error: function(xhr, status, error) {
+            longPoll_party();
+        }
+    });
 }
 
-function recent_encounters() {
+function longPoll_encounters() {
     $.ajax({
-            method: "GET",
-            url: "http://127.0.0.1:55056/encounters",
-            crossDomain: true,
-            dataType: "json",
-            format: "json",
-            timeout: 50
-        })
-        .done(function(encounter_log) {
-            // Don't update list if data is the same
-            if (encounter_log["hash"] == previous_hash) {
-                return
-            }
-            
-            previous_hash = encounter_log["hash"]
-
+        method: "GET",
+        url: "http://127.0.0.1:55056/encounters",
+        crossDomain: true,
+        dataType: "json",
+        format: "json",
+        timeout: 0,
+        success: function(encounter_log) {
             var template = $("#row-template");
             var recents = $("#recents")
             $("#recents tr").empty();
@@ -90,40 +74,24 @@ function recent_encounters() {
             for (var i = 0; i < 7; i++) {
                 if (reverse_encounter_log[i]) {
                     mon = reverse_encounter_log[i]
-                    
-                    var newRowData = {
-                        species: mon.species,
-                        gender: mon.gender.toLowerCase(),
-                        level: mon.level,
-                        ability: mon.ability,
-                        item: mon.heldItem,
-                        nature: mon.nature,
-                        hpIV: mon.hpIV,
-                        attackIV: mon.attackIV,
-                        defenseIV: mon.defenseIV,
-                        spAttackIV: mon.spAttackIV,
-                        spDefenseIV: mon.spDefenseIV,
-                        speedIV: mon.speedIV,
-                        pid: hev_reverse(mon.pid.toString(16).toUpperCase()),
-                        shinyValue: mon.shinyValue,
-                        shiny: mon.shiny ? "✅" : "❌"
-                    };
 
-                    var newTableRow = template.tmpl(newRowData);
+                    mon.gender = mon.gender.toLowerCase()
+                    mon.pid = hev_reverse(mon.pid.toString(16).toUpperCase())
+                    mon.shiny = mon.shiny ? "✅" : "❌"
+
+                    var newTableRow = template.tmpl(mon);
 
                     recents.append(newTableRow)
                 }
             }
-        })
+
+            longPoll_encounters()
+        },
+        error: function(xhr, status, error) {
+            longPoll_encounters();
+        }
+    });
 }
 
-var previous_hash = ""
-
-window.setInterval(function() {
-    recent_encounters();
-    party();
-}, 250);
-
-// window.setInterval(function() {
-//     stats_info();
-// }, 250);
+longPoll_encounters();
+longPoll_party();
