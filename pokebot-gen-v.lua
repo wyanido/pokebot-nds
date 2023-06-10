@@ -451,8 +451,8 @@ function readMonData(address)
 	mon.ability 			= blockData(0x15, 1)
 	-- mon.markings 			= blockData(0x16, 1)
 	mon.otLanguage 			= blockData(0x17, 1)
-	mon.hpEv 				= blockData(0x18, 1)
-	mon.attackEv 			= blockData(0x19, 1)
+	mon.hpEV 				= blockData(0x18, 1)
+	mon.attackEV 			= blockData(0x19, 1)
 	mon.defenseEV 			= blockData(0x1A, 1)
 	mon.speedEV 			= blockData(0x1B, 1)
 	mon.spAttackEV 			= blockData(0x1C, 1)
@@ -497,7 +497,7 @@ function readMonData(address)
 	-- mon.hoennRibbonSet2		= blockData(0x3E, 2)
 
 	local data = blockData(0x40, 1)
-	mon.fatefulEncounter 	= (data >> 0) & 0x01
+	-- mon.fatefulEncounter 	= (data >> 0) & 0x01
 	mon.gender 				= (data >> 1) & 0x03
 	mon.altForm				= (data >> 3) & 0x1F
 
@@ -510,16 +510,16 @@ function readMonData(address)
 	-- Block C
 	mon.nickname 			= blockDataString(0x48, 23)
 
-	mon.originGame			= blockData(0x5F, 1)
+	-- mon.originGame			= blockData(0x5F, 1)
 	-- mon.sinnohRibbonSet3	= blockData(0x60, 2)
 	-- mon.sinnohRibbonSet3	= blockData(0x62, 2)
 	
 	-- Block D
 	mon.otName 				= blockDataString(0x68, 16)
 	-- mon.dateEggReceived		= blockData(0x78, 3)
-	mon.dateMet				= blockData(0x7B, 3)
+	-- mon.dateMet				= blockData(0x7B, 3)
 	-- mon.eggLocation			= blockData(0x7E, 2)
-	mon.metLocation			= blockData(0x80, 2)
+	-- mon.metLocation			= blockData(0x80, 2)
 	mon.pokerus				= blockData(0x83, 1)
 	mon.pokeball			= blockData(0x84, 1)
 	-- mon.encounterType		= blockData(0x85, 1)

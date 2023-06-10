@@ -68,8 +68,8 @@ def mode_starters(ball_position):
 def mode_randomEncounters():
     print("Waiting for battle")
 
-    while not common.game_info["in_battle"]:
-        wait_frames(30)
+    while not common.opponent_info:
+        wait_frames(10)
 
     for foe in common.opponent_info:
         log_encounter(foe)
@@ -77,7 +77,7 @@ def mode_randomEncounters():
     print("Waiting for battle to end")
 
     while common.game_info["in_battle"]:
-        wait_frames(60)
+        wait_frames(10)
 
 def main_loop():
     # starter = 0

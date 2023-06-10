@@ -9,6 +9,29 @@ from flask_cors import CORS
 import common
 import webview
 
+ENCOUNTER_LOG_LIMIT = 20
+
+# Values not relevant to the encounter log
+# Gets trimmed before the dict is appended
+excess_keys = [
+    "hpEV"
+    "attackEV", 
+    "defenseEV", 
+    "spAttackEV",
+    "spDefenseEV",
+    "speedEV",
+    "dreamWorldAbility", 
+    "friendship",
+    "isEgg",
+    "isNicknamed",
+    "otLanguage",
+    "otName",
+    "pokeball",
+    "pokerus",
+    "ppUps",
+    "status"
+]
+
 def log_encounter(pokemon: dict):
     # Statistics
     global record_ivSum, record_shinyValue, record_encounters, encounters
@@ -26,9 +49,13 @@ def log_encounter(pokemon: dict):
     print(f"Highest IV sum: {totals['highest_iv_sum']}")
     print(f"Lowest shiny value: {totals['lowest_sv']}")
     print("--------------")
+    
+    for key in excess_keys:
+        pokemon.pop(key, None)
 
     encounters["encounters"].append(pokemon)
-    
+    encounters["encounters"] = encounters["encounters"][-ENCOUNTER_LOG_LIMIT:]
+
     write_file("stats/totals.json", json.dumps(totals, indent=4, sort_keys=True)) # Save stats file
     write_file("stats/encounters.json", json.dumps(encounters, indent=4, sort_keys=True)) # Save encounter log file
 
