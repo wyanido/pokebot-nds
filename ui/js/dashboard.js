@@ -42,7 +42,7 @@ function longPoll_party() {
         success: function(party) {
             var template = $("#party-template");
             
-            $("#party tr td").empty();
+            $("#party div").empty();
 
             for (var i = 0; i < 6; i++) {
                 if (party[i]) {

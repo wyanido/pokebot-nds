@@ -1,5 +1,4 @@
 -- constants
-MAX_MAP_ENTITIES = 20
 FRAMES_PER_PRESS = 5
 MON_DATA_SIZE = 220
 
@@ -21,7 +20,13 @@ offsets = {
 	party_count			= 0x2349B0, -- 4 bytes before first index
 	party_data			= 0x2349B4,	-- PID of first party member
 
-	map_id 				= 0x24F90C, -- Changes on room transition
+	-- Location
+	map_header 			= 0x24F90C,
+	player_x			= 0x24F910,
+	player_y			= 0x24F914,
+	player_z			= 0x24F918,
+	player_direction	= 0x24F924, -- 0, 4, 8, 12 -> Up, Left, Down, Right
+	map_matrix			= 0x250C1C,
 
 	-- Battle
 	battle_indicator	= 0x26ACE6, -- 0x41 if during a battle
@@ -32,7 +37,6 @@ offsets = {
 
 	-- Misc testing
 	entity_positions 	= 0x252220, -- List of positions for every entity in the current map
-	entities_ready		= 0x27FEA8, -- 0 or 1
 	-- warp_target 		= 0x2592CC,
 	starter_box_open 	= 0x2B0C40, -- 0 when opening gift, 1 at starter select
 	hovered_starter 	= 0x269994,	-- Unconfirmed selection in gift box; 0 Snivy, 1 Tepig, 2 Oshawott, 4 Nothing
@@ -42,15 +46,9 @@ offsets = {
 last_battle_state = 0
 
 entity_pos_list = {}
-map_player_index = -1
 
 map = 0
 last_map = 0
-
-posX = 0
-posY = 0
--- last_posX = 0
--- last_posY = 0
 
 dofile "lua\\RAM.lua"
 
@@ -79,20 +77,6 @@ function mainLoop()
 
 	-- Other state tracking
 	map_updated = poll_mapUpdate()
-
-	if not map_updated then
-		updateEntityPositions(false)
-	end
-	
-	if not DEBUG_DISABLE_OUTPUT then
-		gui.addmessage("Map: " .. map .. ", Seamless?: " .. tostring(not was_loading_zone))
-	end
-
-	-- -- Display new player coordinates
-	-- if (last_posX ~= posX) or (last_posY ~= posY) then
-	-- 	last_posX, last_posY = posX, posY
-	-- 	gui.addmessage("X: " .. posX .. ", Y: " .. posY)
-	-- end
 end
 
 function onMapChanged()
@@ -105,89 +89,16 @@ function onMapChanged()
 			print("yep, that's a loading zone")
 		end
 	end
-
-	-- # TODO use a more refined solution, this just stops infinite loops on the title screen
-	i = 0
-	while memory.read_u16_le(offsets.entities_ready, "Main RAM") == 0 and i < 30 do
-		emu.frameadvance()
-		i = i + 1
-	end
-
-	updateEntityPositions(was_loading_zone)
 end
 
 function poll_mapUpdate()
-	map = memory.read_u16_le(offsets.map_id, "Main RAM")
+	map = memory.read_u16_le(offsets.map_header, "Main RAM")
 	if map ~= last_map then
 		onMapChanged()
 		last_map = map
 		return true
 	end
 	return false
-end
-
-function updateEntityPositions(set_player)
-	-- # TODO Fix failed entity indexing in Castelia City central
-	entity_pos_list = {}
-	last_entity_index = 0
-
-	-- Wait for entity data to load
-	if set_player then
-		i = 0
-		while RAM.readbyte(offsets.entities_ready) == 0 and i < 30 do
-			emu.frameadvance()
-			i = i + 1
-		end
-	end
-
-	if not DEBUG_DISABLE_OUTPUT then
-		gui.addmessage("")
-	end
-
-	-- Find the positions of all entities in the map
-	for i = 0, MAX_MAP_ENTITIES do
-		d = i * 256
-		x = memory.read_u16_le(offsets.entity_positions + d, "Main RAM")
-		y = memory.read_u16_le(offsets.entity_positions + d + 4, "Main RAM")
-
-	   	table.insert(entity_pos_list, {x, y})
-
-	   	if x == 0 and y == 0 then
-	   		if set_player then
-				-- Assign the player to the last entity position on the map
-		   		map_player_index = i
-		   		gui.addmessage("New player index is " .. map_player_index)
-				break
-			end
-	   	elseif not DEBUG_DISABLE_OUTPUT then
-		   	if i == map_player_index then
-		   		prefix = "X | "
-		   	else
-		   		prefix = ". | "
-		   	end
-
-		   	gui.addmessage(prefix .. "X: " .. x .. ", Y: " .. y)
-		end
-	end
-
-	-- if emu.framecount() % 5 == 0 then
-	-- 	print(last_entity_index)
-	-- end
-
-	-- The player is always the last entry in the list, so mark their offset with the last set of valid coordinates
-	-- # TODO confirm whether the data always ends in (0, 0), or if other data may begin immediately after
-	
-
-	updatePlayerPosition()
-end
-
-function updatePlayerPosition()
-	player_pos = entity_pos_list[map_player_index]
-
-	if player_pos then
-		posX = player_pos[1]
-		posY = player_pos[2]
-	end
 end
 
 g_current_index = 0
@@ -232,7 +143,6 @@ function getGameState()
 		starter_box_open = memory.read_u8(offsets.starter_box_open, "Main RAM"),
 		state = memory.read_u8(offsets.state, "Main RAM"),
 		in_battle = RAM.readbyte(offsets.battle_indicator) == 0x41 and RAM.readbyte(offsets.opponent_count) > 0
-		-- entities_ready = memory.read_u8(offsets.entities_ready, "Main RAM")
 	}
 
 	return game_state
@@ -243,8 +153,11 @@ function getTrainer()
 	
 	trainer = {
 		map = map,
-		posX = posX,
-		posY = posY	
+		map_matrix = RAM.readdword(offsets.map_matrix),
+		posX = RAM.readdword(offsets.player_x),
+		posY = RAM.readdword(offsets.player_y),
+		posZ = RAM.readdword(offsets.player_z),
+		facing = RAM.readdword(offsets.player_direction)
 	}
 	
 	return trainer

@@ -20,8 +20,11 @@
     </script>
     <script id="party-template" type="text/x-jQuery-tmpl">
         <div class="text-center">
-            <img style="position:absolute" src="icons/items/${pokeball}.png"></td>
-            <img src="icons/pokemon/${folder}${species}.png">
+            <div style="position: relative; display: inline-block;">
+                <img style="position:absolute" src="icons/items/${pokeball}.png"></td>
+                <img style="position:absolute;bottom:0;right:0" src="icons/items/${heldItem}.png"></td>
+                <img src="icons/pokemon/${folder}${species}.png">
+            </div>
             <br>
             ${nickname}
             <img src="icons/${gender}.png">
@@ -29,12 +32,8 @@
             <br>
             ${name}
         </div>
-        <table>
+        <table class="table" style="white-space: nowrap;">
             <tbody>
-                <tr>
-                  <th>Item</th>
-                  <td><img src="icons/items/${heldItem}.png"></td>
-                </tr>
                 <tr>
                   <th>Ability</th>
                   <td>${ability}</td>
@@ -46,10 +45,6 @@
                 <tr>
                   <th>IVs</th>
                   <td style="white-space: nowrap;">${hpIV} ${attackIV} ${defenseIV} ${spAttackIV} ${spDefenseIV} ${speedIV}</td>
-                </tr>
-                <tr>
-                  <th>Rank</th>
-                  <td>${rating}</td>
                 </tr>
             </tbody>
         </table>
@@ -101,45 +96,65 @@
         <!-- Content wrapper start -->
         <div class="content-wrapper">
             <div class="row">
-                <div class="card col-s">
-                    <h2 class="card-title text-center">Party</h2>
-                    <!-- No outer padding -->
-                    <table class="table">
-                        <tbody id="party">
-                            <tr>
-                                <td id="party-1"></td>
-                                <td id="party-2"></td>
-                                <td id="party-3"></td>
-                                <td id="party-4"></td>
-                                <td id="party-5"></td>
-                                <td id="party-6"></td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="col-8">
+                    <div class="card">
+                        <h2 class="card-title text-center">Party</h2>
+                        <div class="row" id="party">
+                            <div class="col-4" id="party-1"></div>
+                            <div class="col-4" id="party-2"></div>
+                            <div class="col-4" id="party-3"></div>
+                            <div class="col-4" id="party-4"></div>
+                            <div class="col-4" id="party-5"></div>
+                            <div class="col-4" id="party-6"></div>
+                        </div>
+                    </div>
                 </div>
-                <div class="card row-eq-spacing-lg">
-                    <h2 class="card-title text-center">Recently Seen</h2>
-                    <!-- No outer padding -->
-                    <table class="table">
-                        <thead>
+                <div class="col-4">
+                    <div class="card">
+                        <h2 class="card-title text-center">Trainer Info</h2>
+                        <table class="table">
                             <tr>
-                                <th></th>
-                                <th></th>
-                                <th></th>
-                                <th class="text-center">Item</th>
-                                <th class="text-center">Ability</th>
-                                <th class="text-center">Nature</th>
-                                <th class="text-center">PID</th>
-                                <th class="text-center">IVs</th>
-                                <th class="text-center">Rank</th>
-                                <th class="text-center">Shiny Value (SV)</th>
-                                <th class="text-center">Shiny?</th>
+                                <td>TID</td>
+                                <td>SID</td>
                             </tr>
-                        </thead>
-                        <tbody id="recents">
-                        </tbody>
-                    </table>
+                            <tr>
+                                <th>Map ID</th>
+                                <td>MapID</td>
+                            </tr>
+                            <tr>
+                                <th>Position</th>
+                                <td>X, Y, Z</td>
+                            </tr>
+                            <tr>
+                                <th>Position</th>
+                                <td>X, Y, Z</td>
+                            </tr>
+                        </table>
+                    </div>
                 </div>
+            </div>
+            <div class="card row-eq-spacing-lg">
+                <h2 class="card-title text-center">Recently Seen</h2>
+                <!-- No outer padding -->
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th class="text-center">Item</th>
+                            <th class="text-center">Ability</th>
+                            <th class="text-center">Nature</th>
+                            <th class="text-center">PID</th>
+                            <th class="text-center">IVs</th>
+                            <th class="text-center">Rank</th>
+                            <th class="text-center">Shiny Value (SV)</th>
+                            <th class="text-center">Shiny?</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recents">
+                    </tbody>
+                </table>
             </div>
         </div>
         <!-- Content wrapper end -->

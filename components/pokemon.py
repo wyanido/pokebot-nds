@@ -210,7 +210,7 @@ def get_mon_rating(pokemon: dict):
 	
 	rating *= iv_sum / (6 * 31)
 
-	print(f"Final rating for {pokemon['name']}: {round(rating, 4)}")
+	# print(f"Final rating for {pokemon['name']}: {round(rating, 4)}")
 
 	return rating
 

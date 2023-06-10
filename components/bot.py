@@ -68,7 +68,7 @@ def mode_starters(ball_position):
 def mode_randomEncounters():
     print("Waiting for battle")
 
-    while not common.opponent_info:
+    while common.opponent_info is None and not common.game_info["in_battle"]:
         wait_frames(10)
 
     for foe in common.opponent_info:
