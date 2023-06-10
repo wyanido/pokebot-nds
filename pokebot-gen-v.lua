@@ -1,8 +1,9 @@
 -- constants
-FRAMES_PER_PRESS = 5
+FRAMES_PER_INPUT = 5
+FRAMES_PER_MMAP_WRITE = 5
 MON_DATA_SIZE = 220
 
-DEBUG_DISABLE_INPUT_HOOK = true
+DEBUG_DISABLE_INPUT_HOOK = false
 DEBUG_DISABLE_OUTPUT = true
 
 offsets = {
@@ -45,11 +46,6 @@ offsets = {
 
 last_battle_state = 0
 
-entity_pos_list = {}
-
-map = 0
-last_map = 0
-
 dofile "lua\\RAM.lua"
 
 json = require "lua\\json"
@@ -57,8 +53,9 @@ json = require "lua\\json"
 function mainLoop()
 	-- General game data
 	data = {
-		["trainer"] = getTrainer(), 
-		["game_state"] = getGameState(),
+		trainer = getTrainer(),
+		game_state = getGameState(),
+		emu_fps = client.get_approx_framerate()
 	}
 
 	opponent = getOpponent()
@@ -70,35 +67,11 @@ function mainLoop()
 
 	-- Party mon
 	data = {
-		["party"] = getParty()
+		party_count = RAM.readbyte(offsets.party_count),
+		party = getParty()
 	}
 
 	comm.mmfWrite("bizhawk_party_info", json.encode(data) .. "\x00")
-
-	-- Other state tracking
-	map_updated = poll_mapUpdate()
-end
-
-function onMapChanged()
-	was_loading_zone = false
-
-	if memory.read_u16_le(offsets.map_transition, "Main RAM") == 0 then
-		was_loading_zone = true
-
-		if not DEBUG_DISABLE_OUTPUT then
-			print("yep, that's a loading zone")
-		end
-	end
-end
-
-function poll_mapUpdate()
-	map = memory.read_u16_le(offsets.map_header, "Main RAM")
-	if map ~= last_map then
-		onMapChanged()
-		last_map = map
-		return true
-	end
-	return false
 end
 
 g_current_index = 0
@@ -152,7 +125,7 @@ function getTrainer()
 	local trainer
 	
 	trainer = {
-		map = map,
+		map_header = RAM.readword(offsets.map_header),
 		map_matrix = RAM.readdword(offsets.map_matrix),
 		posX = RAM.readdword(offsets.player_x),
 		posY = RAM.readdword(offsets.player_y),
@@ -233,74 +206,46 @@ function clearUnheldInputs()
 	joypad.set(input)
 end
 
-function rand(seed)
-	return (0x41C64E6D * seed) + 0x6073
-end
-
-substructSelector = {
-	[ 0] = {0, 1, 2, 3},
-	[ 1] = {0, 1, 3, 2},
-	[ 2] = {0, 2, 1, 3},
-	[ 3] = {0, 3, 1, 2},
-	[ 4] = {0, 2, 3, 1},
-	[ 5] = {0, 3, 2, 1},
-	[ 6] = {1, 0, 2, 3},
-	[ 7] = {1, 0, 3, 2},
-	[ 8] = {2, 0, 1, 3},
-	[ 9] = {3, 0, 1, 2},
-	[10] = {2, 0, 3, 1},
-	[11] = {3, 0, 2, 1},
-	[12] = {1, 2, 0, 3},
-	[13] = {1, 3, 0, 2},
-	[14] = {2, 1, 0, 3},
-	[15] = {3, 1, 0, 2},
-	[16] = {2, 3, 0, 1},
-	[17] = {3, 2, 0, 1},
-	[18] = {1, 2, 3, 0},
-	[19] = {1, 3, 2, 0},
-	[20] = {2, 1, 3, 0},
-	[21] = {3, 1, 2, 0},
-	[22] = {2, 3, 1, 0},
-	[23] = {3, 2, 1, 0},
-}
-
-function rand(seed)
-	return (0x41C64E6D * seed) + 0x00006073
-end
-
-function blockDataString(offset, length)
-    local data = ""
-    
-    for i = 0, length - 1, 2 do
-        local value = monTable[offset + i - 0x07] + (monTable[offset + i - 0x07] << 8)
-        
-        if value == 0xFFFF or value == 0x0000 then
-        	break
-        else
-	        data = data .. utf8.char(value & 0xFF)
-	    end
-    end
-    return data
-end
-
-function loopTable(dataTable, offset, length)
-	local data = 0 
-	for i = 0, length - 1 do
-		data = data + (dataTable[offset + i] << i * 8)
-	end
-	return data
-end
-
-function blockData(offset, length)
-	return loopTable(monTable, offset - 0x07, length)
-end
-
-function battleData(offset, length)
-	return loopTable(battleStats, offset - 0x87, length)
-end
-
 function readMonData(address)
-	local mon = {}
+	function rand(seed)
+		return (0x41C64E6D * seed) + 0x00006073
+	end
+
+	function blockDataString(offset, length)
+	    local data = ""
+	    
+	    for i = 0, length - 1, 2 do
+	        local value = monTable[offset + i - 0x07] + (monTable[offset + i - 0x07] << 8)
+	        
+	        if value == 0xFFFF or value == 0x0000 then
+	        	break
+	        else
+		        data = data .. utf8.char(value & 0xFF)
+		    end
+	    end
+	    return data
+	end
+
+	function loopTable(dataTable, offset, length)
+		local data = 0 
+		for i = 0, length - 1 do
+			data = data + (dataTable[offset + i] << i * 8)
+		end
+		return data
+	end
+
+	function blockData(offset, length)
+		return loopTable(monTable, offset - 0x07, length)
+	end
+
+	function battleData(offset, length)
+		return loopTable(battleStats, offset - 0x87, length)
+	end
+
+	local substructSelector = require("lua\\substructSelector")
+
+	mon = {}
+
 	-- Unencrypted bytes
 	mon.pid 		= RAM.readdword(address)
 	mon.checksum 	= RAM.readword(address + 0x06)
@@ -327,7 +272,7 @@ function readMonData(address)
 
 	-- Inverse block order
 	shift = ((mon.pid & 0x3E000) >> 0xD) % 24
-	blockOrder = substructSelector[shift]
+	blockOrder = substructSelector(shift)
 
 	monTable = {}
 	
@@ -495,11 +440,13 @@ comm.mmfWrite("bizhawk_party_info", string.rep("\x00", 8192))
 
 -- Main stuff
 while true do
-	mainLoop()
+	if emu.framecount() % FRAMES_PER_MMAP_WRITE == 0 then
+		mainLoop()
+	end
 
 	-- Send inputs if not disabled
 	if not DEBUG_DISABLE_INPUT_HOOK then
-		if emu.framecount() % FRAMES_PER_PRESS == 0 then
+		if emu.framecount() % FRAMES_PER_INPUT == 0 then
 			clearUnheldInputs()
 		else
 			traverseNewInputs()
