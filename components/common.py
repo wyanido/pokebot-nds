@@ -32,10 +32,12 @@ def mem_get_game_info():
                 game_info =     game_info_mmap["game_state"]
 
                 if "opponent" in game_info_mmap:
-                    opponent_info = game_info_mmap["opponent"]
-
-                    for foe in opponent_info:
-                        foe = enrich_mon_data(foe)
+                    if opponent_info is None or len(opponent_info) != len(game_info_mmap["opponent"]):
+                        opponent_info = [None] * len(game_info_mmap["opponent"])
+                    
+                    for i, foe in enumerate(game_info_mmap["opponent"]):
+                        if opponent_info[i] is None or foe["checksum"] != opponent_info[i]["checksum"]:
+                            opponent_info[i] = enrich_mon_data(foe)
                 else:
                     opponent_info = None
 
@@ -52,14 +54,18 @@ def mem_get_party_info():
             party_info_mmap = load_json_mmap(8192, "bizhawk_party_info")
 
             if party_info_mmap:
-                party_info = party_info_mmap["party"]
-
-                if len(party_info) > 0:
-                    for pokemon in party_info:
-                        pokemon = enrich_mon_data(pokemon)
+                i = 0
+                for mon in party_info_mmap["party"]:
+                    if len(party_info) != len(party_info_mmap["party"]):
+                        party_info = [None] * len(party_info_mmap["party"])
+                    
+                    if party_info[i] is None or mon["checksum"] != party_info[i]["checksum"]:
+                        party_info[i] = enrich_mon_data(mon)
+                    i += 1
+                
             time.sleep(0.016)
         except Exception as e:
             traceback.print_exc()
             pass
 
-trainer_info, game_info, opponent_info, party_info = None, None, None, None
+trainer_info, game_info, opponent_info, party_info = None, None, None, []

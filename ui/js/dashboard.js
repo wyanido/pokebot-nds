@@ -21,6 +21,16 @@ function hev_reverse(hex) {
     return hex.match(/[a-fA-F0-9]{2}/g).reverse().join('').padEnd(8, '0');
 }
 
+function rating_stars(rating) {
+    switch (Math.floor(rating * 1.5)) {
+        case 3: return "★★★☆"; break;
+        case 2: return "★★☆☆"; break;
+        case 1: return "★☆☆☆"; break;
+        case 0: return "☆☆☆☆"; break;
+        default: return "★★★★"; break;
+    }
+}
+
 function longPoll_party() {
     $.ajax({
         method: "GET",
@@ -39,9 +49,11 @@ function longPoll_party() {
                     var partyID = "#party-" + (i + 1).toString()
 
                     mon = party[i]
+                    mon.folder = mon.shiny ? "shiny/" : ""
                     mon.gender = mon.gender.toLowerCase()
                     mon.name = "(" + mon.name + ")"
                     mon.pid = hev_reverse(mon.pid.toString(16).toUpperCase())
+                    mon.rating = rating_stars(mon.rating)
 
                     var newTableRow = template.tmpl(mon);
                     $(partyID).append(newTableRow)
@@ -78,9 +90,9 @@ function longPoll_encounters() {
                     mon.gender = mon.gender.toLowerCase()
                     mon.pid = hev_reverse(mon.pid.toString(16).toUpperCase())
                     mon.shiny = mon.shiny ? "✅" : "❌"
+                    mon.rating = rating_stars(mon.rating)
 
                     var newTableRow = template.tmpl(mon);
-
                     recents.append(newTableRow)
                 }
             }

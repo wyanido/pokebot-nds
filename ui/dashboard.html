@@ -20,7 +20,8 @@
     </script>
     <script id="party-template" type="text/x-jQuery-tmpl">
         <div class="text-center">
-            <img src="icons/pokemon/${species}.png">
+            <img style="position:absolute" src="icons/items/${pokeball}.png"></td>
+            <img src="icons/pokemon/${folder}${species}.png">
             <br>
             ${nickname}
             <img src="icons/${gender}.png">
@@ -46,6 +47,10 @@
                   <th>IVs</th>
                   <td style="white-space: nowrap;">${hpIV} ${attackIV} ${defenseIV} ${spAttackIV} ${spDefenseIV} ${speedIV}</td>
                 </tr>
+                <tr>
+                  <th>Rank</th>
+                  <td>${rating}</td>
+                </tr>
             </tbody>
         </table>
     </script>
@@ -61,8 +66,9 @@
             <td class="text-center"><img src="icons/items/${heldItem}.png"></td>
             <td class="text-center">${ability}</td>
             <td class="text-center">${nature}</td>
-            <td class="text-center" style="white-space: nowrap;">${hpIV} ${attackIV} ${defenseIV} ${spAttackIV} ${spDefenseIV} ${speedIV}</td>
             <td class="text-center">${pid}</td>
+            <td class="text-center" style="white-space: nowrap;">${hpIV} ${attackIV} ${defenseIV} ${spAttackIV} ${spDefenseIV} ${speedIV}</td>
+            <td class="text-center" style="white-space: nowrap;">${rating}</td>
             <td class="text-center">${shinyValue}</td>
             <td class="text-center">${shiny}</td>
         </tr>
@@ -123,8 +129,9 @@
                                 <th class="text-center">Item</th>
                                 <th class="text-center">Ability</th>
                                 <th class="text-center">Nature</th>
-                                <th class="text-center">IVs</th>
                                 <th class="text-center">PID</th>
+                                <th class="text-center">IVs</th>
+                                <th class="text-center">Rank</th>
                                 <th class="text-center">Shiny Value (SV)</th>
                                 <th class="text-center">Shiny?</th>
                             </tr>

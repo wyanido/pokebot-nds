@@ -14,6 +14,7 @@ ENCOUNTER_LOG_LIMIT = 20
 # Values not relevant to the encounter log
 # Gets trimmed before the dict is appended
 excess_keys = [
+    "nickname",
     "hpEV"
     "attackEV", 
     "defenseEV", 
@@ -35,6 +36,11 @@ excess_keys = [
 def log_encounter(pokemon: dict):
     # Statistics
     global record_ivSum, record_shinyValue, record_encounters, encounters
+
+    if pokemon is None:
+        print("Tried to log null Pokemon!")
+        return
+
     iv_sum = pokemon["hpIV"] + pokemon["attackIV"] + pokemon["defenseIV"] + pokemon["spAttackIV"] + pokemon["spDefenseIV"] + pokemon["speedIV"]
 
     totals["highest_iv_sum"]        = iv_sum if totals["highest_iv_sum"] == None else max(totals["highest_iv_sum"], iv_sum)
@@ -103,7 +109,7 @@ def httpServer():
                 if encounters_hash != new_hash:
                     break
 
-                time.sleep(1)
+                time.sleep(0.16)
 
             encounters_hash = new_hash
             

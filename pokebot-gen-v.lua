@@ -508,7 +508,7 @@ function readMonData(address)
 	mon.isNsPokemon			= data & 0x02
 
 	-- Block C
-	mon.nickname 			= blockDataString(0x48, 23)
+	mon.nickname 			= blockDataString(0x48, 21)
 
 	-- mon.originGame			= blockData(0x5F, 1)
 	-- mon.sinnohRibbonSet3	= blockData(0x60, 2)
@@ -520,8 +520,8 @@ function readMonData(address)
 	-- mon.dateMet				= blockData(0x7B, 3)
 	-- mon.eggLocation			= blockData(0x7E, 2)
 	-- mon.metLocation			= blockData(0x80, 2)
-	mon.pokerus				= blockData(0x83, 1)
-	mon.pokeball			= blockData(0x84, 1)
+	mon.pokerus				= blockData(0x82, 1)
+	mon.pokeball			= blockData(0x83, 1)
 	-- mon.encounterType		= blockData(0x85, 1)
 
 	-- Battle stats
