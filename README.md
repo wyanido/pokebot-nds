@@ -1,8 +1,14 @@
 # pokebot-gen-v
  
-This is a _heavily_ WIP repository for creating a 5th generation spin on https://github.com/40Cakes/pokebot-bizhawk 
+This is a _heavily_ WIP repository for creating a 5th generation spin on https://github.com/40Cakes/pokebot-bizhawk. Any contributions or reported issues are heavily appreciated, as making this project widely compatible takes a lot of work.
 
 Add `pokebot-gen-v.lua` to the Lua Console in BizHawk to begin using it.
+
+### Supported games
+|  | Black | White | Black 2 | White 2 | 
+|--| :--: | :--: | :--: | :--: |
+| English | ✅ | ❔ | ❌ | ❌ |
+| Japanese| ❔ | ❔ | ❌ | ❌ |
 
 ## Known Information
 ### Entity Positions
