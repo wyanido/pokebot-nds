@@ -23,12 +23,33 @@ offsets = {
 
 	-- Location
 	map_header 			= 0x24F90C,
-	player_x			= 0x24F910,
+	player_x			= 0x24F910, -- Player X, read the lower word for local X
 	player_y			= 0x24F914,
 	player_z			= 0x24F918,
 	player_direction	= 0x24F924, -- 0, 4, 8, 12 -> Up, Left, Down, Right
+	encounter_table		= 0x24FFE0,
 	map_matrix			= 0x250C1C,
+	
+	phenomena_x			= 0x25701A,
+	phenomena_y			= 0x25701E,
 
+	-- 0x2000 bytes, 8 32x32 layers that can be in any order
+	-- utilised layers prefixed with 0x20, unused 0x00
+	-- layer order is not consistent, is specified by the byte above 0x20 flag
+	-- C0 = Collision (Movement)
+	-- 80 = Flags
+	-- house_collision		= 0x2ABB10
+	-- house_collision		= 0x2AC618
+	-- house_collision		= 0x2AD140
+	-- house_collision		= 0x2AD818
+
+	-- instances separated by 0x1B4D0 bytes
+	
+	-- nuvema_1 	= 0x2C4670, -- when exiting cheren's house
+	-- nuvema_2	= 0x2DFB38, -- when exiting bianca's house
+	-- nuvema_3 	= 0x2FB008, -- when loaded normally
+	-- nuvema_4 	= 0x3164D0, -- when exiting home or juniper's lab or flying
+	
 	-- Battle
 	battle_indicator	= 0x26ACE6, -- 0x41 if during a battle
 	opponent_count		= 0x26ACF0, -- 4 bytes before the first index
@@ -41,7 +62,8 @@ offsets = {
 	-- warp_target 		= 0x2592CC,
 	starter_box_open 	= 0x2B0C40, -- 0 when opening gift, 1 at starter select
 	hovered_starter 	= 0x269994,	-- Unconfirmed selection in gift box; 0 Snivy, 1 Tepig, 2 Oshawott, 4 Nothing
-	map_transition		= 0x216110  -- 1 during a transition, 0 otherwise
+	map_transition		= 0x216110,  -- 1 during a transition, 0 otherwise
+	gamecode			= 0x3FFE0C
 }
 
 last_battle_state = 0
