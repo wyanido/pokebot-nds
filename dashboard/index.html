@@ -12,12 +12,9 @@
     <title>PokeBot Gen V</title>
     <!-- Halfmoon CSS -->
     <link href="https://cdn.jsdelivr.net/npm/halfmoon@1.1.1/css/halfmoon-variables.min.css" rel="stylesheet" />
+    <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.templates/beta1/jquery.tmpl.min.js"></script>
-    <script src="./js/moment.min.js">
-    </script>
-    <script src="./js/dashboard.js">
-    </script>
+    <script src="https://ajax.aspnetcdn.com/ajax/jquery.templates/beta1/jquery.tmpl.min.js"></script>
     <script id="party-template" type="text/x-jQuery-tmpl">
         <div class="text-center">
             <div style="position: relative; display: inline-block;">
@@ -68,6 +65,40 @@
             <td class="text-center">${shiny}</td>
         </tr>
     </script>
+    <script>
+      const {ipcRenderer} = require('electron')
+
+      function hex_reverse(hex) {
+          return hex.match(/[a-fA-F0-9]{2}/g).reverse().join('').padEnd(8, '0');
+      }
+      
+      // Listen for data from the main process
+      ipcRenderer.on('party', (event, data) => {
+        var party = data
+        var template = $("#party-template");
+        
+        $("#party div").empty();
+
+        for (var i = 0; i < party.length; i++) {
+            if (party[i]) {
+                var partyID = "#party-" + (i + 1).toString()
+                
+                mon = party[i]
+                mon.folder = mon.shiny ? "shiny/" : ""
+                // mon.gender = mon.gender.toLowerCase()
+                mon.name = "(" + mon.name + ")"
+                mon.pid = hex_reverse(mon.pid.toString(16).toUpperCase())
+                // mon.rating = rating_stars(mon.rating)
+
+                var newTableRow = template.tmpl(mon);
+                $(partyID).append(newTableRow)
+
+                console.log('Added new party member ', mon.name)
+            }
+        }
+      });
+    </script>
+    <script>if (window.module) module = window.module;</script>
 </head>
 
 <body class="with-custom-webkit-scrollbars with-custom-css-scrollbars" data-dm-shortcut-enabled="true" data-set-preferred-mode-onload="true">

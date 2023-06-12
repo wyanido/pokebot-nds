@@ -45,20 +45,21 @@ offset = {
 	
 	-- Party
 	party_count			= 0x2349B0 + wt, -- 4 bytes before first index
-	party_data			= 0x2349B4 + wt,	-- PID of first party member
+	party_data			= 0x2349B4 + wt, -- PID of first party member
 	
 	-- Location
 	map_header 			= 0x24F90C + wt,
-	player_x			= 0x24F910 + wt, -- Player X, read the lower word for local X
-	player_y			= 0x24F914 + wt,
-	player_z			= 0x24F918 + wt,
-	player_direction	= 0x24F924 + wt, -- 0, 4, 8, 12 -> Up, Left, Down, Right
+	trainer_name		= 0x24FC00 + wt,
+	trainer_x			= 0x24F910 + wt, -- Trainer X, read the lower word for local X
+	trainer_y			= 0x24F914 + wt,
+	trainer_z			= 0x24F918 + wt,
+	trainer_direction	= 0x24F924 + wt, -- 0, 4, 8, 12 -> Up, Left, Down, Right
 	encounter_table		= 0x24FFE0 + wt,
 	map_matrix			= 0x250C1C + wt,
 	
 	phenomena_x			= 0x25701A + wt,
 	phenomena_y			= 0x25701E + wt,
-
+	
 	-- Map tile data
 	-- 0x2000 bytes, 8 32x32 layers that can be in any order
 	-- utilised layers prefixed with 0x20, unused 0x00

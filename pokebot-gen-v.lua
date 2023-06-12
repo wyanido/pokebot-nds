@@ -2,18 +2,12 @@
 -- Initialization
 -----------------------
 -- Constants
-FRAMES_PER_MMAP_WRITE = 12
+FRAMES_PER_SOCKET_COMM = 60
 MON_DATA_SIZE = 220
 MAP_HEADER_COUNT = 426
 
 DEBUG_DISABLE_INPUT_HOOK = false
 DEBUG_DISABLE_OUTPUT = true
-
--- Memory-mapped files, read by the .py dashboard
-comm.mmfWrite("bizhawk_party_info", string.rep("\x00", 8192))
-comm.mmfWrite("bizhawk_foe_info", string.rep("\x00", 8192))
-comm.mmfWrite("bizhawk_general_info", string.rep("\x00", 1024))
-comm.mmfWrite("bizhawk_encounter", string.rep("\x00", 1024))
 
 -- Bot setup
 mem = dofile "lua\\memory.lua"
@@ -22,9 +16,19 @@ pokemon = require "lua\\pokemon"
 
 console.log("\nDetected game: " .. gamename)
 console.log("Running Lua version: ".._VERSION)
+
+-- Dashboard
+console.log("Trying to establish a connection to the dashboard...")
+
+comm.socketServerSetIp("127.0.0.1")
+comm.socketServerSend('{ "type": "comm_check" }')
+
+local server = comm.socketServerGetInfo()
+console.log("Dashboard connected at server " .. server)
 console.log("---------------------------")
 
-os.execute("start pythonw.exe components\\dashboard.py")
+-- comm.socketServerSend("welcome message")
+-- os.execute("start python.exe dashboard\\py\\dashboard.py")
 
 -----------------------
 -- GAME INFO POLLING
@@ -37,7 +41,7 @@ function getParty()
 	for i = 0, party_size - 1 do
 		local mon = pokemon.read_data(offset.party_data + i * MON_DATA_SIZE)
 		-- mon = pokemon.enrich_data(mon)
-		table.insert(party, mon)
+		table.insert(party, enrich_pokemon_data(mon))
 	end
 
 	return party
@@ -81,10 +85,11 @@ function getTrainer()
 	trainer = {
 		map_header = mem.readword(offset.map_header),
 		map_matrix = mem.readdword(offset.map_matrix),
-		posX = mem.readdword(offset.player_x),
-		posY = mem.readdword(offset.player_y),
-		posZ = mem.readdword(offset.player_z),
-		facing = mem.readdword(offset.player_direction)
+		name = mem.readdword(offset.trainer_name),
+		posX = mem.readdword(offset.trainer_x),
+		posY = mem.readdword(offset.trainer_y),
+		posZ = mem.readdword(offset.trainer_z),
+		facing = mem.readdword(offset.trainer_direction)
 	}
 	
 	return trainer
@@ -98,19 +103,22 @@ function updateGameInfo()
 	party = getParty()
 	foe = getFoe()
 
-	-- Only write data for the dashboard occasionally to save on memory
-	if (emu.framecount() % FRAMES_PER_MMAP_WRITE) == 0 then
-
-		comm.mmfWrite("bizhawk_party_info", json.encode({
-			party = party,
-			party_count = party_count
-		}) .. "\x00")
-
-		comm.mmfWrite("bizhawk_foe_info", json.encode(foe) .. "\x00")
-		comm.mmfWrite("bizhawk_general_info", json.encode({
-			trainer = trainer
-		}) .. "\x00")
+	if emu.framecount() % FRAMES_PER_SOCKET_COMM == 0 then
+		comm.socketServerSend(json.encode({
+			type = "party",
+			data = party
+		}))
 	end
+
+	-- comm.mmfWrite("bizhawk_party_info", json.encode({
+	-- 	party = party,
+	-- 	party_count = party_count
+	-- }) .. "\x00")
+
+	-- comm.mmfWrite("bizhawk_foe_info", json.encode(foe) .. "\x00")
+	-- comm.mmfWrite("bizhawk_general_info", json.encode({
+	-- 	trainer = trainer
+	-- }) .. "\x00")
 end
 
 -----------------------
@@ -149,12 +157,12 @@ end
 function wait_frames(frames)
 	for _ = 1, frames do
 		emu.frameadvance()
+		updateGameInfo()
 	end
 
 	-- Every frame advance goes through this function
 	-- Meaning it can update game state info at the same time without needing async
 	clearUnheldInputs()
-	updateGameInfo()
 end
 
 function clearUnheldInputs()
@@ -168,6 +176,50 @@ function clearUnheldInputs()
 end
 
 -----------------------
+-- POKEMON HANDLING
+-----------------------
+
+function json_load(filename)
+    local file = io.open(filename, "r")
+    local jsonData = file:read("*a")
+    file:close()
+
+    return json.decode(jsonData)
+end
+
+mon_ability = json_load("lua/data/ability.json")
+mon_item = json_load("lua/data/item.json")
+mon_move = json_load("lua/data/move.json")
+mon_dex = json_load("lua/data/pokedex.json")
+mon_lang = {"none", "日本語", "English", "Français", "Italiano", "Deutsch", "Español", "한국어"}
+mon_gender = {"Male", "Female", "Genderless"}
+mon_nature = {
+  "Hardy", "Lonely", "Brave", "Adamant", "Naughty",
+  "Bold", "Docile", "Relaxed", "Impish", "Lax",
+  "Timid", "Hasty", "Serious", "Jolly", "Naive",
+  "Modest", "Mild", "Quiet", "Bashful", "Rash",
+  "Calm", "Gentle", "Sassy", "Careful", "Quirky"
+}
+
+function enrich_pokemon_data(mon)
+  mon.name = mon_dex[mon.species + 1].name
+  -- mon.rating = pokemon.get_rating(mon)
+  mon.pokeball = mon_item[mon.pokeball + 1]
+  mon.otLanguage = mon_lang[mon.otLanguage + 1]
+  mon.ability = mon_ability[mon.ability + 1]
+  mon.nature = mon_nature[mon.nature + 1]
+  mon.heldItem = mon_item[mon.heldItem + 1]
+  mon.gender = mon_gender[mon.gender + 1]
+  mon.moves = {}
+  
+  for _, move in ipairs(mon.moves) do
+    table.insert(mon.moves, mon_move[move])
+  end
+  
+  return mon
+end
+
+-----------------------
 -- BOT MODES
 -----------------------
 
@@ -175,7 +227,7 @@ function mode_starters(ball_x, ball_y)
 	console.log("Waiting to reach overworld...")
 
 	while not game_state.in_game do
-		press_combo("A", 1)
+		press_combo("A", 5)
 	end
 
 	console.log("Opening Gift Box...")
@@ -189,17 +241,17 @@ function mode_starters(ball_x, ball_y)
 	while game_state.starter_box_open ~= 0 do
 		if game_state.selected_starter ~= 4 then
 			touch_screen_at(120, 180) -- Pick this one!
-			wait_frames(1)
+			wait_frames(5)
 			touch_screen_at(240, 100) -- Yes
-			wait_frames(1)
+			wait_frames(5)
 		else
 			touch_screen_at(ball_x, ball_y) -- Starter
-			wait_frames(1)
+			wait_frames(5)
 		end
 	end
 
 	while party_size == 0 do
-		press_combo("A", 1)
+		press_combo("A", 5)
 	end
 
 	mon = party[1]
@@ -207,31 +259,32 @@ function mode_starters(ball_x, ball_y)
 	console.log("Waiting to start battle...")
 	
 	while not game_state.in_battle do
-		press_combo("A", 1)
+		press_combo("A", 5)
 	end
 
 	console.log("Waiting to see starter...")
 
-	-- For whatever reason, press_button("A", 1)
+	-- For whatever reason, press_button("A", 5)
 	-- does not work on its own within this specific loop
-	for i = 0, 340, 1 do
+	for i = 0, 80, 1 do
 	  press_button("A")
 	  clearUnheldInputs()
-	  wait_frames(1)
+	  wait_frames(5)
 	end
 
-	if not mon.shiny then
-		console.log("Starter was not shiny, resetting...")
-		press_button("Power")
-		wait_frames(60)
-	else
+	-- Check both cases because I can't trust it on just one
+	if mon.shiny or mon.shinyValue < 8 then
 		console.log("------------------------------------------")
 		console.log("Found a shiny! Ending the script.")
 		console.log("------------------------------------------")
 		
 		while true do
-			emu.frameadvance()
+			wait_frames(1)
 		end
+	else
+		console.log("Starter was not shiny, resetting...")
+		press_button("Power")
+		wait_frames(60)
 	end
 end
 
