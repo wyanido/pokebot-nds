@@ -220,12 +220,11 @@ def enrich_mon_data(pokemon: dict):
 	pokemon["pokeball"] = item[pokemon["pokeball"]]
 
 	pokemon["otLanguage"] = monLanguage[pokemon["otLanguage"]]
-	pokemon["shiny"] = pokemon["shinyValue"] < 8
 	pokemon["ability"] = monAbility[pokemon["ability"]]
 
 	pokemon["nature"] = monNature[pokemon["nature"]]
 	pokemon["heldItem"] = item[pokemon["heldItem"]]
 	pokemon["gender"] = monGender[pokemon["gender"]] 
 	pokemon["moves"] = [monMove[move] for move in pokemon["moves"]]
-
+	
 	return pokemon

@@ -34,7 +34,7 @@ function rating_stars(rating) {
 function longPoll_party() {
     $.ajax({
         method: "GET",
-        url: "http://127.0.0.1:55056/party",
+        url: "http://127.0.0.1:51055/party",
         crossDomain: true,
         dataType: "json",
         format: "json",
@@ -47,7 +47,7 @@ function longPoll_party() {
             for (var i = 0; i < 6; i++) {
                 if (party[i]) {
                     var partyID = "#party-" + (i + 1).toString()
-
+                    
                     mon = party[i]
                     mon.folder = mon.shiny ? "shiny/" : ""
                     mon.gender = mon.gender.toLowerCase()
@@ -71,7 +71,7 @@ function longPoll_party() {
 function longPoll_encounters() {
     $.ajax({
         method: "GET",
-        url: "http://127.0.0.1:55056/encounters",
+        url: "http://127.0.0.1:51055/encounters",
         crossDomain: true,
         dataType: "json",
         format: "json",
@@ -80,8 +80,8 @@ function longPoll_encounters() {
             var template = $("#row-template");
             var recents = $("#recents")
             $("#recents tr").empty();
-
-            reverse_encounter_log = encounter_log["encounters"].reverse()
+            
+            reverse_encounter_log = encounter_log.reverse()
 
             for (var i = 0; i < 7; i++) {
                 if (reverse_encounter_log[i]) {
@@ -107,3 +107,4 @@ function longPoll_encounters() {
 
 longPoll_encounters();
 longPoll_party();
+longPoll_general();

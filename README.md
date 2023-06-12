@@ -7,7 +7,7 @@ Add `pokebot-gen-v.lua` to the Lua Console in BizHawk to begin using it.
 ### Supported games
 |  | Black | White | Black 2 | White 2 | 
 |--| :--: | :--: | :--: | :--: |
-| English | ✅ | ❔ | ❌ | ❌ |
+| English | ✅ | ✅ | ❌ | ❌ |
 | Japanese| ❔ | ❔ | ❌ | ❌ |
 
 ## Known Information
