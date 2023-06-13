@@ -1,6 +1,5 @@
 
 local pokemon = {}
--- local json = require "json.lua"
 
 function pokemon.read_data(address)
 	function rand(seed)
@@ -289,15 +288,22 @@ function pokemon.log(mon)
 
 	write_file("logs/stats.json", json.encode(stats))
 	
-	console.log("--------------")
-	console.log("Seen mon #" .. stats.encounters .. ": a " .. mon.nature .. " " .. mon.name .. "!")
-	console.log("HP: " .. mon.hpIV ..", ATK: " .. mon.attackIV .. ", DEF: " .. mon.defenseIV .. ", SP.ATK: " .. mon.spAttackIV .. ", SP.DEF: " .. mon.spDefenseIV .. ", SPD: " .. mon.speedIV)
-	console.log("Shiny Value: " .. mon.shinyValue .. ", Shiny?: " .. tostring(mon.shiny))
-	console.log("")
-	console.log("Highest IV sum: " .. stats.highest_iv_sum)
-	console.log("Lowest shiny value: " .. stats.lowest_sv)
-	console.log("--------------")
+	-- Use the correct article before a Pokemon's nature
+	-- e.g. an Impish Snivy, a Modest Oshawott
+	-- local article = "a"
+	-- if string.find("aeiou", string.lower(string.sub(mon.nature, 1, 1)), 1, true) then
+	--     article = "an"
+	-- end
 
+	-- console.log("--------------")
+	-- console.log("Seen mon #" .. stats.encounters .. ": " .. article .. " " .. mon.nature .. " " .. mon.name .. "!")
+	-- console.log("HP: " .. mon.hpIV ..", ATK: " .. mon.attackIV .. ", DEF: " .. mon.defenseIV .. ", SP.ATK: " .. mon.spAttackIV .. ", SP.DEF: " .. mon.spDefenseIV .. ", SPD: " .. mon.speedIV)
+	-- console.log("Shiny Value: " .. mon.shinyValue .. ", Shiny?: " .. tostring(mon.shiny))
+	-- console.log("")
+	-- console.log("Highest IV sum: " .. stats.highest_iv_sum)
+	-- console.log("Lowest shiny value: " .. stats.lowest_sv)
+	-- console.log("--------------")
+	
 	for key, _ in pairs(excess_keys) do
 		mon[key] = nil
     end
@@ -309,6 +315,44 @@ function pokemon.log(mon)
 	while #encounters > ENCOUNTER_LOG_LIMIT do
 	    table.remove(encounters, 1)
 	end
+end
+
+-----------------------
+-- POKEMON HANDLING
+-----------------------
+
+local mon_ability = json.load("lua/data/ability.json")
+local mon_item = json.load("lua/data/item.json")
+local mon_move = json.load("lua/data/move.json")
+local mon_dex = json.load("lua/data/pokedex.json")
+local mon_lang = {"none", "日本語", "English", "Français", "Italiano", "Deutsch", "Español", "한국어"}
+local mon_gender = {"Male", "Female", "Genderless"}
+local mon_nature = {
+  "Hardy", "Lonely", "Brave", "Adamant", "Naughty",
+  "Bold", "Docile", "Relaxed", "Impish", "Lax",
+  "Timid", "Hasty", "Serious", "Jolly", "Naive",
+  "Modest", "Mild", "Quiet", "Bashful", "Rash",
+  "Calm", "Gentle", "Sassy", "Careful", "Quirky"
+}
+
+function pokemon.enrich_data(mon)
+  mon.name = mon_dex[mon.species + 1].name
+  -- mon.rating = pokemon.get_rating(mon)
+  mon.pokeball = mon_item[mon.pokeball + 1]
+  mon.otLanguage = mon_lang[mon.otLanguage + 1]
+  mon.ability = mon_ability[mon.ability + 1]
+  mon.nature = mon_nature[mon.nature + 1]
+  mon.heldItem = mon_item[mon.heldItem + 1]
+  mon.gender = mon_gender[mon.gender + 1]
+  
+  local move_id = mon.moves
+  mon.moves = {}
+
+  for _, move in ipairs(move_id) do
+    table.insert(mon.moves, mon_move[move + 1])
+  end
+  
+  return mon
 end
 
 return pokemon

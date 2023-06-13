@@ -112,6 +112,19 @@ function json.encode (v)
   assert(false,'encode attempt to encode unsupported type ' .. vtype .. ':' .. tostring(v))
 end
 
+--- Reads data from a file and returns a .json decrypted table of values
+-- @param s Filename
+function json.load(filename)
+    local file = io.open(filename, "r")
+
+    if file then
+      local json_data = file:read("*a")
+      file:close()
+      return json.decode(json_data)
+    else
+      return false
+    end
+end
 
 --- Decodes a JSON string and returns the decoded value as a Lua data structure / value.
 -- @param s The string to scan.

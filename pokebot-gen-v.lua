@@ -2,30 +2,9 @@
 -- INITIALIZATION
 -----------------------
 -- Requirements
-mem = dofile "lua\\memory.lua"
-json = require "lua\\json"
-pokemon = require "lua\\pokemon"
-
-function json_load(filename)
-    local file = io.open(filename, "r")
-
-    if file then
-	    local jsonData = file:read("*a")
-	    file:close()
-
-	    return json.decode(jsonData)
-	  else
-	  	return false
-	  end
-end
-
-map_names = json_load("lua\\data\\maps.json")
-
--- Constants
-ENCOUNTER_LOG_LIMIT = 30
-FRAMES_PER_DATA_REFRESH = 30
-MON_DATA_SIZE = 220
-MAP_HEADER_COUNT = 426
+json = require("lua\\json")
+mem = dofile("lua\\memory.lua")
+pokemon = require("lua\\pokemon")
 
 console.log("\nDetected game: " .. gamename)
 console.log("Running Lua version: ".._VERSION)
@@ -40,22 +19,31 @@ comm.socketServerSetTimeout(50)
 console.log("Dashboard connected at server " .. comm.socketServerGetInfo())
 console.log("---------------------------")
 
+-- Data
+local map_names = json.load("lua\\data\\maps.json")
+local config = json.load("config.json")
+
+-- Constants
+ENCOUNTER_LOG_LIMIT = 30
+MON_DATA_SIZE = 220
+MAP_HEADER_COUNT = 426
+
 -----------------------
 -- LOGGING
 -----------------------
 
-encounters = json_load("logs/encounters.json")
+encounters = json.load("logs/encounters.json")
 if not encounters then
 	encounters = {}
 else
-	-- Send encounter list to the dashboard to initialize
+	-- Send full encounter list to the dashboard to initialize
 	comm.socketServerSend(json.encode({
 		type = "encounters",
 		data = encounters
 	}) .. "\x00")
 end
 
-stats = json_load("logs/stats.json")
+stats = json.load("logs/stats.json")
 if not stats then
 	stats = {
 		highest_iv_sum = 0,
@@ -77,10 +65,10 @@ comm.socketServerSend(json.encode({
 last_party_checksums = {}
 
 function getParty()
-	local checksums = {}
 	party_size = mem.readbyte(offset.party_count)
 
 	-- Get the checksums of all party members
+	local checksums = {}
 	for i = 0, party_size - 1 do
 		table.insert(checksums, offset.party_data + i * MON_DATA_SIZE + 0x06)
 	end
@@ -102,18 +90,19 @@ function getParty()
 		end
 	end
 
+	-- Party changed, update info
 	last_party_checksums = checksums
-
-	-- Update party info
 	party = {}
 
 	for i = 0, party_size - 1 do
 		local mon = pokemon.read_data(offset.party_data + i * MON_DATA_SIZE)
-		-- mon = pokemon.enrich_data(mon)
-		table.insert(party, enrich_pokemon_data(mon))
+
+		if mon then
+			mon = pokemon.enrich_data(mon)
+			table.insert(party, mon)
+		end
 	end
 
-	-- console.log("party changed!")
 	return true
 end
 
@@ -127,8 +116,11 @@ function getFoe()
 
 		for i = 0, foe_count - 1 do
 			local mon = pokemon.read_data(offset.current_foe + i * MON_DATA_SIZE)
-			-- mon = pokemon.enrich_data(mon)
-			table.insert(foe_table, mon)
+
+			if mon then
+				mon = pokemon.enrich_data(mon)
+				table.insert(foe_table, mon)
+			end
 		end
 
 		return foe_table
@@ -136,62 +128,78 @@ function getFoe()
 end
 
 function getGameState()
-	local state
-	local mh = mem.readword(offset.map_header)
-
-	state = {
-		selected_starter = mem.readbyte(offset.selected_starter),
-		starter_box_open = mem.readbyte(offset.starter_box_open),
-		in_battle = mem.readbyte(offset.battle_indicator) == 0x41 and mem.readbyte(offset.foe_count) > 0,
-		in_game = mh ~= 0x0 and mh <= MAP_HEADER_COUNT
-	}
-
-	return state
-end
-
-function getTrainer()
-	local trainer
+	local state = {}
 	local map = mem.readword(offset.map_header)
-
-	trainer = {
-		map_header = map,
-		map_matrix = mem.readdword(offset.map_matrix),
-		name = mem.readdword(offset.trainer_name),
-		posX = mem.readword(offset.trainer_x + 2),
-		posY = mem.readword(offset.trainer_y + 2),
-		posZ = mem.readword(offset.trainer_z + 2),
-		facing = mem.readdword(offset.trainer_direction)
+	local in_game = map ~= 0x0 and map <= MAP_HEADER_COUNT
+	
+	-- Set default values for the dashboard
+	state = {
+		map_matrix = 0,
+		map_header = 0,
+		map_name = "--",
+		trainer_x = 0,
+		trainer_y = 0,
+		trainer_z = 0,
+		phenomenon_x = 0,
+		phenomenon_z = 0,
 	}
 
-	if map == 0 or map > MAP_HEADER_COUNT then
-		trainer.map_string = "--"
-	else
-		trainer.map_string = map_names[map] .. " (" .. map .. ")"
+	-- Update in-game values
+	if in_game then
+		state = {
+			selected_starter = mem.readbyte(offset.selected_starter),
+			starter_box_open = mem.readbyte(offset.starter_box_open),
+			map_matrix = mem.readdword(offset.map_matrix),
+			map_header = map,
+			map_name = map_names[map + 1],
+			trainer_x = mem.readword(offset.trainer_x + 2),
+			trainer_y = mem.readword(offset.trainer_y + 2),
+			trainer_z = mem.readword(offset.trainer_z + 2),
+			phenomenon_x = mem.readword(offset.phenomenon_x + 2),
+			phenomenon_z = mem.readword(offset.phenomenon_z + 2),
+			trainer_name = mem.readdword(offset.trainer_name),
+			trainer_dir = mem.readdword(offset.trainer_direction),
+			in_battle = mem.readbyte(offset.battle_indicator) == 0x41 and mem.readbyte(offset.foe_count) > 0,
+		}
+
 	end
 
-	return trainer
+	state.in_game = in_game
+
+	return state
 end
 
 function updateDashboardLog()
 	-- Send the latest encounter and updated bot stats to the dashboard
 	comm.socketServerSend(json.encode({
 		type = "encounters",
-		data = {encounters[#encounters]}
+		data = {encounters[#encounters]},
 	}) .. "\x00")
 
 	comm.socketServerSend(json.encode({
 		type = "stats",
-		data = stats
+		data = stats,
 	}) .. "\x00")
 end
 
+function frames_per_move()
+	if mem.readbyte(offset.on_bike) == 1 then
+		return 4
+	elseif mem.readbyte(offset.running_shoes) == 0xE then
+		return 8
+	end
+
+	return 16
+end
+
 function updateGameInfo(force)
-	if emu.framecount() % FRAMES_PER_DATA_REFRESH == 0 or force then
-		local party_changed = getParty()
-		trainer = getTrainer()
-		game_state = getGameState()
+	-- Refresh data at the rate it takes to move 1 tile
+	local refresh_frames = frames_per_move() / 2
+
+	if emu.framecount() % refresh_frames == 0 or force then
 		foe = getFoe()
 		
+		local party_changed = getParty()
 		if party_changed then
 			comm.socketServerSend(json.encode({
 				type = "party",
@@ -199,33 +207,61 @@ function updateGameInfo(force)
 			}) .. "\x00")
 		end
 
+		game_state = getGameState()
 		comm.socketServerSend(json.encode({
 			type = "game",
-			data = trainer
+			data = game_state
 		}) .. "\x00")
 	end
 end
 
 -----------------------
--- INPUT FUNCTIONS
+-- INPUTS AND TIMING
 -----------------------
 
 function touch_screen_at(x, y)
 	joypad.setanalog({['Touch X'] = x, ['Touch Y'] = y})
-	wait_frames(1)
 	press_button("Touch")
+	 -- Force release Touch because it gets set to 'held' somehow
+	release_button("Touch")
 end
 
 function press_button(button)
-	-- local input = joypad.get()
 	input[button] = true
 	joypad.set(input)
 	wait_frames(1)
 end
 
+function hold_button(button)
+	held_input[button] = true
+	input[button] = true
+
+	-- Release conflicting D-pad inputs
+	if button == "Left" then
+		held_input["Right"] = false
+		input["Right"] = false
+	elseif button == "Right" then
+		held_input["Left"] = false
+		input["Left"] = false
+	elseif button == "Down" then
+		held_input["Up"] = false
+		input["Up"] = false
+	elseif button == "Up" then
+		held_input["Down"] = false
+		input["Down"] = false
+	end
+
+	joypad.set(input)
+end
+
+function release_button(button)
+	held_input[button] = false
+	input[button] = false
+	joypad.set(input)
+end
+
 function press_combo(...)
   local args = {...}
-  -- local input = joypad.get()
   
   for _, arg in ipairs(args) do
     if type(arg) == "number" then
@@ -239,20 +275,21 @@ function press_combo(...)
   end
 end
 
+-- Most frame advances go through this function, meaning 
+-- it can update the game state for other functions without needing asynchronosity
 function wait_frames(frames)
 	for _ = 1, frames do
+		joypad.set(input)
 		emu.frameadvance()
 		updateGameInfo()
 	end
 
-	-- Every frame advance goes through this function
-	-- Meaning it can update game state info at the same time without needing async
 	clearUnheldInputs()
 end
 
 function clearUnheldInputs()
 	for k, _ in pairs(input) do
-		if k ~= "Touch X" and k ~= "Touch Y" then
+		if k ~= "Touch X" and k ~= "Touch Y" and not held_input[k] then
 	  	input[k] = false
 	  end
 	end
@@ -261,47 +298,9 @@ function clearUnheldInputs()
 end
 
 -----------------------
--- POKEMON HANDLING
------------------------
-
-mon_ability = json_load("lua/data/ability.json")
-mon_item = json_load("lua/data/item.json")
-mon_move = json_load("lua/data/move.json")
-mon_dex = json_load("lua/data/pokedex.json")
-mon_lang = {"none", "日本語", "English", "Français", "Italiano", "Deutsch", "Español", "한국어"}
-mon_gender = {"Male", "Female", "Genderless"}
-mon_nature = {
-  "Hardy", "Lonely", "Brave", "Adamant", "Naughty",
-  "Bold", "Docile", "Relaxed", "Impish", "Lax",
-  "Timid", "Hasty", "Serious", "Jolly", "Naive",
-  "Modest", "Mild", "Quiet", "Bashful", "Rash",
-  "Calm", "Gentle", "Sassy", "Careful", "Quirky"
-}
-
-function enrich_pokemon_data(mon)
-  mon.name = mon_dex[mon.species + 1].name
-  -- mon.rating = pokemon.get_rating(mon)
-  mon.pokeball = mon_item[mon.pokeball + 1]
-  mon.otLanguage = mon_lang[mon.otLanguage + 1]
-  mon.ability = mon_ability[mon.ability + 1]
-  mon.nature = mon_nature[mon.nature + 1]
-  mon.heldItem = mon_item[mon.heldItem + 1]
-  mon.gender = mon_gender[mon.gender + 1]
-  
-  local move_id = mon.moves
-  mon.moves = {}
-
-  for _, move in ipairs(move_id) do
-    table.insert(mon.moves, mon_move[move + 1])
-  end
-  
-  return mon
-end
-
------------------------
 -- BOT MODES
 -----------------------
-
+-- Choose a starter and reset until one is shiny
 function mode_starters(ball_x, ball_y)
 	console.log("Waiting to reach overworld...")
 
@@ -356,12 +355,9 @@ function mode_starters(ball_x, ball_y)
 	-- Check both cases because I can't trust it on just one
 	if mon.shiny or mon.shinyValue < 8 then
 		console.log("------------------------------------------")
-		console.log("Found a shiny! Ending the script.")
+		console.log("Found a shiny, pausing emulation! (Make sure to disable the lua script before intervening)")
 		console.log("------------------------------------------")
-		
-		while true do
-			wait_frames(1)
-		end
+		client.pause()
 	else
 		console.log("Starter was not shiny, resetting...")
 		press_button("Power")
@@ -369,22 +365,88 @@ function mode_starters(ball_x, ball_y)
 	end
 end
 
-function mode_randomEncounters()
-	console.log("Waiting for battle")
+-- Run back and forth until a random encounter is triggered, run if not shiny
+function mode_random_encounters()
+	local tile_frames = frames_per_move()
+
+	console.log("Attempting to start a battle...")
+
+	hold_button("B")
 
 	while not foe and not game_state.in_battle do
-		wait_frames(1)
+		hold_button("Left")
+		wait_frames(tile_frames)
+		hold_button("Right")
+		wait_frames(tile_frames)
 	end
 
-	for i in foe do
-		pokemon.log(i)
-		updateDashboardLog()
+	release_button("B")
+	release_button("Right")
+
+	local foe_shiny = false
+
+	for i = 1, #foe, 1 do
+		pokemon.log(foe[i])
+		updateDashboardLog() -- Only sends the latest encounter to the dashboard, so it needs to be called for every log
+		if foe[i].shiny or foe[i].shinyValue < 8 then
+			foe_shiny = true
+		end
 	end
 
-	console.log("Waiting for battle to end")
+	if foe_shiny then
+		console.log("------------------------------------------")
+		console.log("Found a shiny, pausing emulation! (Make sure to disable the lua script before intervening)")
+		console.log("------------------------------------------")
+		client.pause()
+	else
+		console.log("Wild Pokemon was not shiny, fleeing battle...")
 
-	while game_state.in_battle do
-		wait_frames(1)
+		while game_state.in_battle do
+			touch_screen_at(125, 175) -- Run
+			wait_frames(5)
+		end
+	end
+end
+
+-- Run back and forth until a phenomenon spawns
+-- https://bulbapedia.bulbagarden.net/wiki/Phenomenon
+function mode_phenomenon_encounters()
+	console.log("Attempting to start a battle...")
+
+	hold_button("B")
+
+	while not foe and not game_state.in_battle do
+		hold_button("Left")
+		wait_frames(8)
+		hold_button("Right")
+		wait_frames(8)
+	end
+
+	release_button("B")
+	release_button("Right")
+
+	local foe_shiny = false
+
+	for i = 1, #foe, 1 do
+		pokemon.log(foe[i])
+		if foe[i].shiny or foe[i].shinyValue < 8 then
+			foe_shiny = true
+		end
+	end
+	updateDashboardLog()
+
+	if foe_shiny then
+		console.log("------------------------------------------")
+		console.log("Found a shiny, pausing emulation! (Make sure to disable the lua script before intervening)")
+		console.log("------------------------------------------")
+		client.pause()
+	else
+		console.log("Wild Pokemon was not shiny, fleeing battle...")
+
+		while game_state.in_battle do
+			touch_screen_at(125, 175) -- Run
+			wait_frames(5)
+		end
 	end
 end
 
@@ -393,23 +455,43 @@ end
 -----------------------
 
 input = joypad.get()
-starter = 0
+
+-- Initialise with no held inputs
+held_input = input
+for k, _ in pairs(held_input) do
+	held_input[k] = false
+end
+
+console.log("Bot mode set to " .. config.mode)
+local mode = string.lower(config.mode)
 
 while true do
 	updateGameInfo(true)
 
-	local s = starter % 3
+	if mode == "starters" then
+		local s = config.starter % 3
 
-	if s == 0 then
-		mode_starters(60, 100)
-	elseif s == 1 then
-		mode_starters(128, 75)
-	elseif s == 2 then
-		mode_starters(185, 100)
+		if s == 0 then
+			mode_starters(60, 100)
+		elseif s == 1 then
+			mode_starters(128, 75)
+		elseif s == 2 then
+			mode_starters(185, 100)
+		end
+
+		if config.cycle_starters then
+			config.starter = config.starter + 1
+		end
+	elseif mode == "random encounters" then
+		mode_random_encounters()
+	elseif mode == "phenomenon encounters" then
+		mode_phenomenon_encounters()
+	else
+		console.log("Unknown bot mode: " .. config.mode)
+		client.pause()
 	end
 
-	starter = starter + 1
-
+	joypad.set(input)
 	emu.frameadvance()
 	clearUnheldInputs()
 end

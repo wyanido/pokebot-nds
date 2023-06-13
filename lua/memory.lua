@@ -34,8 +34,6 @@ end
 local wt = 0x20 * game
 
 offset = {
-	-- state				= 0x146A48, -- Closest address to a real "state" so far
-
 	-- Bag pouches, 4 byte pairs | 0001 0004 = 4x Master Ball
 	items_pouch			= 0x233FAC + wt, -- 1240 bytes long
 	key_items_pouch		= 0x234484 + wt, -- 332 bytes long
@@ -43,6 +41,8 @@ offset = {
 	medicine_pouch		= 0x234784 + wt, -- 192 bytes long
 	berries_pouch		= 0x234844 + wt, -- 234 bytes long
 	
+	running_shoes		= 0x23C054 + wt, -- 14 after receiving 
+
 	-- Party
 	party_count			= 0x2349B0 + wt, -- 4 bytes before first index
 	party_data			= 0x2349B4 + wt, -- PID of first party member
@@ -50,15 +50,17 @@ offset = {
 	-- Location
 	map_header 			= 0x24F90C + wt,
 	trainer_name		= 0x24FC00 + wt,
-	trainer_x			= 0x24F910 + wt, -- Trainer X, read the lower word for local X
+	-- Read the lower word for map-local coordinates
+	trainer_x			= 0x24F910 + wt,
 	trainer_y			= 0x24F914 + wt,
 	trainer_z			= 0x24F918 + wt,
 	trainer_direction	= 0x24F924 + wt, -- 0, 4, 8, 12 -> Up, Left, Down, Right
+	on_bike				= 0x24F94C + wt,
 	encounter_table		= 0x24FFE0 + wt,
 	map_matrix			= 0x250C1C + wt,
-	
-	phenomena_x			= 0x25701A + wt,
-	phenomena_y			= 0x25701E + wt,
+
+	phenomenon_x		= 0x257018 + wt,
+	phenomenon_z		= 0x25701C + wt,
 	
 	-- Map tile data
 	-- 0x2000 bytes, 8 32x32 layers that can be in any order

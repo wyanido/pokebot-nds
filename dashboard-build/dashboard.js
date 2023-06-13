@@ -34,7 +34,7 @@ ipcRenderer.on('encounters', (event, encounters) => {
         mon = encounters[i]
         mon.gender = mon.gender.toLowerCase()
         mon.pid = hex_reverse(mon.pid.toString(16).toUpperCase())
-        mon.shiny = mon.shiny ? "✅" : "❌"
+        mon.shiny = (mon.shiny ? "✨ " : "➖ ") + mon.shinyValue
         
         encounter_log.push(mon)
     }
@@ -63,6 +63,7 @@ ipcRenderer.on('stats', (event, stats) => {
 });
 
 ipcRenderer.on('game', (event, game) => {
-    document.getElementById("map-header").innerHTML = game.map_string
-    document.getElementById("position").innerHTML = game.posX.toString() + ", " + game.posY.toString() + ", " + game.posZ.toString()
+    document.getElementById("map-header").innerHTML = game.map_name + " (" + game.map_header.toString() + ")"
+    document.getElementById("position").innerHTML = game.trainer_x.toString() + ", " + game.trainer_y.toString() + ", " + game.trainer_z.toString()
+    document.getElementById("phenomenon").innerHTML = game.phenomenon_x.toString() + ", --, " + game.phenomenon_z.toString()
 });

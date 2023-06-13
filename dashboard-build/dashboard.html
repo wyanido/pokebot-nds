@@ -61,7 +61,6 @@
             <td class="text-center">${nature}</td>
             <td class="text-center">${pid}</td>
             <td class="text-center" style="white-space: nowrap;">${hpIV} ${attackIV} ${defenseIV} ${spAttackIV} ${spDefenseIV} ${speedIV}</td>
-            <td class="text-center">${shinyValue}</td>
             <td class="text-center">${shiny}</td>
         </tr>
     </script>
@@ -120,12 +119,16 @@
                                 <th>Position</th>
                                 <td id="position"></td>
                             </tr>
+                            <tr>
+                                <th>Phenomenon</th>
+                                <td id="phenomenon"></td>
+                            </tr>
                         </table>
                         <br>
                         <h2 class="card-title text-center">Stats</h2>
                         <table class="table">
                             <tr>
-                                <th>Total Encounters</th>
+                                <th>Total Seen</th>
                                 <td id="encounters"></td>
                             </tr>
                             <tr>
@@ -155,7 +158,6 @@
                             <th class="text-center">PID</th>
                             <th class="text-center">IVs</th>
                             <th class="text-center">Shiny Value (SV)</th>
-                            <th class="text-center">Shiny?</th>
                         </tr>
                     </thead>
                     <tbody id="recents">

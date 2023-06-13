@@ -19,12 +19,13 @@ The dashboard relies on net sockets which aren't enabled in BizHawk by default, 
 
 #### Black/White specific
 - [x] Starter resets
-- [ ] Random encounters
-- [ ] Phenomena encounters (shaking grass, dust clouds, rippling water)
+- [x] Random encounters
+- [ ] Phenomenon encounters (shaking grass, dust clouds, rippling water)
 - [ ] EXP grinding
-- [ ] Pickup farming
-- [ ] Gift Pokemon resets (Dreamyard monkeys, fossils)
+- [ ] Pickup item farming
+- [ ] Wild held item farming (Thief)
 - [ ] Dust cloud item farming
+- [ ] Gift Pokemon resets (Dreamyard monkeys, fossils)
 - [ ] Egg collecting and hatching
 - [ ] Route 18 Larvesta hatch & resets
 - [ ] Thundurus/Tornadus dex resets

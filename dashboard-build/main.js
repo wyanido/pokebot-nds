@@ -1,3 +1,34 @@
+const { app, BrowserWindow } = require('electron')
+const path = require('path')
+const net = require('net');
+
+var mainWindow = null
+
+function createWindow() {
+    mainWindow = new BrowserWindow({
+        width: 1280,
+        height: 720,
+        webPreferences: {
+            contextIsolation: false,
+            nodeIntegration: true
+        }
+    })
+
+    // mainWindow.setMenuBarVisibility(false)
+    mainWindow.loadFile('dashboard.html')
+}
+
+app.whenReady().then(() => {
+    createWindow()
+    
+    app.on('activate', function() {
+        if (BrowserWindow.getAllWindows().length === 0) createWindow()
+    })
+})
+
+app.on('window-all-closed', function() {
+    if (process.platform !== 'darwin') app.quit()
+})
 
 const server = net.createServer((socket) => {
     console.log('Client connected');
