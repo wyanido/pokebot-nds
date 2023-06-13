@@ -23,8 +23,9 @@ The dashboard relies on net sockets which aren't enabled in BizHawk by default, 
 - [ ] Phenomena encounters (shaking grass, dust clouds, rippling water)
 - [ ] EXP grinding
 - [ ] Pickup farming
-- [ ] Gift Pokemon resets (Dreamyard monkeys, event Zorua, fossils)
+- [ ] Gift Pokemon resets (Dreamyard monkeys, fossils)
 - [ ] Dust cloud item farming
 - [ ] Egg collecting and hatching
+- [ ] Route 18 Larvesta hatch & resets
 - [ ] Thundurus/Tornadus dex resets
 - [ ] Swords of Justice resets
