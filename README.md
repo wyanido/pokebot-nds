@@ -2,27 +2,29 @@
  
 This is a _heavily_ WIP repository for creating a 5th generation spin on https://github.com/40Cakes/pokebot-bizhawk. Any contributions or reported issues are heavily appreciated, as making this project widely compatible takes a lot of work.
 
-## Requirements
-Communication with the Electron dashboard works using net sockets. You'll need to install npm for the .bat file in /dashboard to execute it properly, and to run EmuHawk with some command line arguments.
-Add `pokebot-gen-v.lua` to the Lua Console in BizHawk to begin using it.
-
-Either run EmuHawk through a command line with the arguments `--socket_ip=127.0.0.1 --socket_port=51055`, or create a shortcut with those arguments added to the end of the 'target' field for convenience.
-
 ### Supported games
 |  | Black | White | Black 2 | White 2 | 
 |--| :--: | :--: | :--: | :--: |
 | English | ✅ | ✅ | ❌ | ❌ |
 | Japanese| ❔ | ❔ | ❌ | ❌ |
 
-## RAM Research
-### Entity Positions
-The position of every entity in the room is listed from address `0x252220` onwards in the Main RAM. 
-- When a loading zone is triggered, all values are set to 0 and replaced with the new room's entities. 
-- The player's index will always be the last item in the list after a loading zone. 
-- When moving between maps that don't have a loading zone, the old map's entities are removed, but the player's index in the list remains the same. 
-- When entities are removed from the current map, the indexes of other entities do not move to fill in the new gap, however new entities will fill in the first empty index in the list, filling in any gaps.
+## Requirements
+The lua script comes with a dashboard which is heavily recommended, but also entirely optional. To use it, decompress dashboard.tar.gz and run the executable before you would otherwise enable `pokebot-gen-v.lua` in the Lua Console in BizHawk.
 
-### Pokemon Data
-The first party Pokemon begins at offset `0x2349B4`. Despite not being written to a save file yet, this data is still unusable and needs to be decrypted and rearranged with the checksum.
+The dashboard relies on net sockets which aren't enabled in BizHawk by default, so it's important that EmuHawk is executed with the arguments `--socket_ip=127.0.0.1 --socket_port=51055`. Either do this via a command line, or create a shortcut to EmuHawk.exe with the arguments added to the end of the 'target' field.
 
-See https://projectpokemon.org/home/docs/gen-5/bw-save-structure-r60/ for in-depth information on this topic.
+## To-do list
+- [x] Dashboard with stats
+- [ ] Config page
+
+#### Black/White specific
+- [x] Starter resets
+- [ ] Random encounters
+- [ ] Phenomena encounters (shaking grass, dust clouds, rippling water)
+- [ ] EXP grinding
+- [ ] Pickup farming
+- [ ] Gift Pokemon resets (Dreamyard monkeys, event Zorua, fossils)
+- [ ] Dust cloud item farming
+- [ ] Egg collecting and hatching
+- [ ] Thundurus/Tornadus dex resets
+- [ ] Swords of Justice resets
