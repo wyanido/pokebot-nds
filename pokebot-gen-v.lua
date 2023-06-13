@@ -23,7 +23,6 @@ map_names = json_load("lua\\data\\maps.json")
 
 -- Constants
 ENCOUNTER_LOG_LIMIT = 30
-FRAMES_PER_SOCKET_COMM = 60
 FRAMES_PER_DATA_REFRESH = 30
 MON_DATA_SIZE = 220
 MAP_HEADER_COUNT = 426
@@ -36,7 +35,7 @@ console.log("Trying to establish a connection to the dashboard...")
 
 comm.socketServerSetIp("127.0.0.1") -- Refreshes the connection, the dashboard suppresses the disconnect error this usually causes in favour of an easy solution
 comm.socketServerSend('{ "type": "comm_check" }' .. "\x00")
-comm.socketServerSetTimeout(FRAMES_PER_SOCKET_COMM)
+comm.socketServerSetTimeout(50)
 
 console.log("Dashboard connected at server " .. comm.socketServerGetInfo())
 console.log("---------------------------")
@@ -48,6 +47,12 @@ console.log("---------------------------")
 encounters = json_load("logs/encounters.json")
 if not encounters then
 	encounters = {}
+else
+	-- Send encounter list to the dashboard to initialize
+	comm.socketServerSend(json.encode({
+		type = "encounters",
+		data = encounters
+	}) .. "\x00")
 end
 
 stats = json_load("logs/stats.json")
@@ -59,13 +64,48 @@ if not stats then
 	}
 end
 
+-- Also send stats to the dashboard
+comm.socketServerSend(json.encode({
+	type = "stats",
+	data = stats
+}) .. "\x00")
+
 -----------------------
 -- GAME INFO POLLING
 -----------------------
 
+last_party_checksums = {}
+
 function getParty()
-	local party = {}
+	local checksums = {}
 	party_size = mem.readbyte(offset.party_count)
+
+	-- Get the checksums of all party members
+	for i = 0, party_size - 1 do
+		table.insert(checksums, offset.party_data + i * MON_DATA_SIZE + 0x06)
+	end
+
+	-- Check for changes in the party data
+	-- Necessary for only sending data to the socket when things have changed
+	if party_size == #last_party_checksums then
+		local party_changed = false
+
+		for i = 1, #checksums, 1 do
+			if checksums[i] ~= last_party_checksums[i] then
+				party_changed = true
+				break
+			end
+		end
+
+		if not party_changed then
+			return false
+		end
+	end
+
+	last_party_checksums = checksums
+
+	-- Update party info
+	party = {}
 
 	for i = 0, party_size - 1 do
 		local mon = pokemon.read_data(offset.party_data + i * MON_DATA_SIZE)
@@ -73,7 +113,8 @@ function getParty()
 		table.insert(party, enrich_pokemon_data(mon))
 	end
 
-	return party
+	-- console.log("party changed!")
+	return true
 end
 
 function getFoe()
@@ -131,29 +172,32 @@ function getTrainer()
 	return trainer
 end
 
+function updateDashboardLog()
+	-- Send the latest encounter and updated bot stats to the dashboard
+	comm.socketServerSend(json.encode({
+		type = "encounters",
+		data = {encounters[#encounters]}
+	}) .. "\x00")
+
+	comm.socketServerSend(json.encode({
+		type = "stats",
+		data = stats
+	}) .. "\x00")
+end
+
 function updateGameInfo(force)
 	if emu.framecount() % FRAMES_PER_DATA_REFRESH == 0 or force then
+		local party_changed = getParty()
 		trainer = getTrainer()
 		game_state = getGameState()
-		party = getParty()
 		foe = getFoe()
-	end
-
-	if emu.framecount() % FRAMES_PER_SOCKET_COMM == 0 then
-		comm.socketServerSend(json.encode({
-			type = "party",
-			data = party
-		}) .. "\x00")
 		
-		comm.socketServerSend(json.encode({
-			type = "encounters",
-			data = encounters
-		}) .. "\x00")
-
-		comm.socketServerSend(json.encode({
-			type = "stats",
-			data = stats
-		}) .. "\x00")
+		if party_changed then
+			comm.socketServerSend(json.encode({
+				type = "party",
+				data = party
+			}) .. "\x00")
+		end
 
 		comm.socketServerSend(json.encode({
 			type = "game",
@@ -243,10 +287,12 @@ function enrich_pokemon_data(mon)
   mon.nature = mon_nature[mon.nature + 1]
   mon.heldItem = mon_item[mon.heldItem + 1]
   mon.gender = mon_gender[mon.gender + 1]
-  mon.moves = {}
   
-  for _, move in ipairs(mon.moves) do
-    table.insert(mon.moves, mon_move[move])
+  local move_id = mon.moves
+  mon.moves = {}
+
+  for _, move in ipairs(move_id) do
+    table.insert(mon.moves, mon_move[move + 1])
   end
   
   return mon
@@ -260,7 +306,7 @@ function mode_starters(ball_x, ball_y)
 	console.log("Waiting to reach overworld...")
 
 	while not game_state.in_game do
-		press_combo("A", 30)
+		press_combo("A", 20)
 	end
 
 	console.log("Opening Gift Box...")
@@ -289,6 +335,8 @@ function mode_starters(ball_x, ball_y)
 
 	mon = party[1]
 	pokemon.log(mon)
+	updateDashboardLog()
+
 	console.log("Waiting to start battle...")
 	
 	while not game_state.in_battle do
@@ -299,7 +347,7 @@ function mode_starters(ball_x, ball_y)
 
 	-- For whatever reason, press_button("A", 5)
 	-- does not work on its own within this specific loop
-	for i = 0, 120, 1 do
+	for i = 0, 118, 1 do
 	  press_button("A")
 	  clearUnheldInputs()
 	  wait_frames(5)
@@ -330,6 +378,7 @@ function mode_randomEncounters()
 
 	for i in foe do
 		pokemon.log(i)
+		updateDashboardLog()
 	end
 
 	console.log("Waiting for battle to end")

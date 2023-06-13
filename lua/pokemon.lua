@@ -259,23 +259,26 @@ function pokemon.log(mon)
 	-- Values not relevant to encounters
 	-- Gets trimmed before being logged
 	local excess_keys = {
-		"nickname",
-		"hpEV",
-		"attackEV", 
-		"defenseEV", 
-		"spAttackEV",
-		"spDefenseEV",
-		"speedEV",
-		"dreamWorldAbility", 
-		"friendship",
-		"isEgg",
-		"isNicknamed",
-		"otLanguage",
-		"otName",
-		"pokeball",
-		"pokerus",
-		"ppUps",
-		"status"
+		nickname = 0,
+		hpEV = 0,
+		attackEV = 0, 
+		defenseEV = 0, 
+		spAttackEV = 0,
+		spDefenseEV = 0,
+		speedEV = 0,
+		dreamWorldAbility = 0, 
+		friendship = 0,
+		isEgg = 0,
+		isNicknamed = 0,
+		otLanguage = 0,
+		otName = 0,
+		pokeball = 0,
+		pokerus = 0,
+		ppUps = 0,
+		status = 0,
+		isNsPokemon = 0,
+		pp = 0,
+		experience = 0
 	}
 
 	-- Statistics
@@ -295,17 +298,10 @@ function pokemon.log(mon)
 	console.log("Lowest shiny value: " .. stats.lowest_sv)
 	console.log("--------------")
 
-	-- Remove excess keys
-	for i = 1, #mon, 1 do
-	    local key = mon[i]
-	    for _, excess_key in ipairs(excess_keys) do
-			if key == excess_key then
-				table.remove(mon, i)
-	        	break
-	      	end
-		end
-	end
-
+	for key, _ in pairs(excess_keys) do
+		mon[key] = nil
+    end
+    
 	table.insert(encounters, mon)
 
 	write_file("logs/encounters.json", json.encode(encounters))

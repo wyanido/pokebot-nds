@@ -22,31 +22,36 @@ ipcRenderer.on('party', (event, party) => {
 
             var newTableRow = template.tmpl(mon);
             $(partyID).append(newTableRow)
-
-            // console.log('Added new party member ', mon.name)
         }
     }
 });
 
+encounter_log = []
+
 ipcRenderer.on('encounters', (event, encounters) => {
+    // Modify data and add new encounters to the log
+    for (var i = 0; i < encounters.length; i ++ ) {
+        mon = encounters[i]
+        mon.gender = mon.gender.toLowerCase()
+        mon.pid = hex_reverse(mon.pid.toString(16).toUpperCase())
+        mon.shiny = mon.shiny ? "✅" : "❌"
+        
+        encounter_log.push(mon)
+    }
+
+    // Only keep the latest 7 entries
+    encounter_log = encounter_log.slice(-7)
+    
+    // Refresh log display
     var template = $("#row-template");
     var recents = $("#recents")
     
     $("#recents tr").empty();
 
-    var reverse_log = encounters.reverse()
-    
-    for (var i = 0; i < 7; i++) {
-        if (reverse_log[i]) {
-            mon = reverse_log[i]
-            
-            mon.gender = mon.gender.toLowerCase()
-            mon.pid = hex_reverse(mon.pid.toString(16).toUpperCase())
-            mon.shiny = mon.shiny ? "✅" : "❌"
-            // mon.rating = rating_stars(mon.rating)
-            
-            var newTableRow = template.tmpl(mon);
-            recents.append(newTableRow)
+    for (var i = encounter_log.length; i >= 0; i--) {
+        if (encounter_log[i]) {
+            var row = template.tmpl(encounter_log[i]);
+            recents.append(row)
         }
     }
 });
