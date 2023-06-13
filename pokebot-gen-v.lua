@@ -1,18 +1,32 @@
 -----------------------
--- Initialization
+-- INITIALIZATION
 -----------------------
--- Constants
-FRAMES_PER_SOCKET_COMM = 60
-MON_DATA_SIZE = 220
-MAP_HEADER_COUNT = 426
-
-DEBUG_DISABLE_INPUT_HOOK = false
-DEBUG_DISABLE_OUTPUT = true
-
--- Bot setup
+-- Requirements
 mem = dofile "lua\\memory.lua"
 json = require "lua\\json"
 pokemon = require "lua\\pokemon"
+
+function json_load(filename)
+    local file = io.open(filename, "r")
+
+    if file then
+	    local jsonData = file:read("*a")
+	    file:close()
+
+	    return json.decode(jsonData)
+	  else
+	  	return false
+	  end
+end
+
+map_names = json_load("lua\\data\\maps.json")
+
+-- Constants
+ENCOUNTER_LOG_LIMIT = 30
+FRAMES_PER_SOCKET_COMM = 60
+FRAMES_PER_DATA_REFRESH = 30
+MON_DATA_SIZE = 220
+MAP_HEADER_COUNT = 426
 
 console.log("\nDetected game: " .. gamename)
 console.log("Running Lua version: ".._VERSION)
@@ -20,15 +34,30 @@ console.log("Running Lua version: ".._VERSION)
 -- Dashboard
 console.log("Trying to establish a connection to the dashboard...")
 
-comm.socketServerSetIp("127.0.0.1")
-comm.socketServerSend('{ "type": "comm_check" }')
+comm.socketServerSetIp("127.0.0.1") -- Refreshes the connection, the dashboard suppresses the disconnect error this usually causes in favour of an easy solution
+comm.socketServerSend('{ "type": "comm_check" }' .. "\x00")
+comm.socketServerSetTimeout(FRAMES_PER_SOCKET_COMM)
 
-local server = comm.socketServerGetInfo()
-console.log("Dashboard connected at server " .. server)
+console.log("Dashboard connected at server " .. comm.socketServerGetInfo())
 console.log("---------------------------")
 
--- comm.socketServerSend("welcome message")
--- os.execute("start python.exe dashboard\\py\\dashboard.py")
+-----------------------
+-- LOGGING
+-----------------------
+
+encounters = json_load("logs/encounters.json")
+if not encounters then
+	encounters = {}
+end
+
+stats = json_load("logs/stats.json")
+if not stats then
+	stats = {
+		highest_iv_sum = 0,
+    lowest_sv = 65535,
+    encounters = 0
+	}
+end
 
 -----------------------
 -- GAME INFO POLLING
@@ -81,44 +110,56 @@ end
 
 function getTrainer()
 	local trainer
-	
+	local map = mem.readword(offset.map_header)
+
 	trainer = {
-		map_header = mem.readword(offset.map_header),
+		map_header = map,
 		map_matrix = mem.readdword(offset.map_matrix),
 		name = mem.readdword(offset.trainer_name),
-		posX = mem.readdword(offset.trainer_x),
-		posY = mem.readdword(offset.trainer_y),
-		posZ = mem.readdword(offset.trainer_z),
+		posX = mem.readword(offset.trainer_x + 2),
+		posY = mem.readword(offset.trainer_y + 2),
+		posZ = mem.readword(offset.trainer_z + 2),
 		facing = mem.readdword(offset.trainer_direction)
 	}
-	
+
+	if map == 0 or map > MAP_HEADER_COUNT then
+		trainer.map_string = "--"
+	else
+		trainer.map_string = map_names[map] .. " (" .. map .. ")"
+	end
+
 	return trainer
 end
 
-function updateGameInfo()
-	trainer = getTrainer()
-	game_state = getGameState()
-	emu_fps = client.get_approx_framerate()
-	party_count = mem.readbyte(offset.party_count)
-	party = getParty()
-	foe = getFoe()
+function updateGameInfo(force)
+	if emu.framecount() % FRAMES_PER_DATA_REFRESH == 0 or force then
+		trainer = getTrainer()
+		game_state = getGameState()
+		party = getParty()
+		foe = getFoe()
+	end
 
 	if emu.framecount() % FRAMES_PER_SOCKET_COMM == 0 then
 		comm.socketServerSend(json.encode({
 			type = "party",
 			data = party
-		}))
+		}) .. "\x00")
+		
+		comm.socketServerSend(json.encode({
+			type = "encounters",
+			data = encounters
+		}) .. "\x00")
+
+		comm.socketServerSend(json.encode({
+			type = "stats",
+			data = stats
+		}) .. "\x00")
+
+		comm.socketServerSend(json.encode({
+			type = "game",
+			data = trainer
+		}) .. "\x00")
 	end
-
-	-- comm.mmfWrite("bizhawk_party_info", json.encode({
-	-- 	party = party,
-	-- 	party_count = party_count
-	-- }) .. "\x00")
-
-	-- comm.mmfWrite("bizhawk_foe_info", json.encode(foe) .. "\x00")
-	-- comm.mmfWrite("bizhawk_general_info", json.encode({
-	-- 	trainer = trainer
-	-- }) .. "\x00")
 end
 
 -----------------------
@@ -179,14 +220,6 @@ end
 -- POKEMON HANDLING
 -----------------------
 
-function json_load(filename)
-    local file = io.open(filename, "r")
-    local jsonData = file:read("*a")
-    file:close()
-
-    return json.decode(jsonData)
-end
-
 mon_ability = json_load("lua/data/ability.json")
 mon_item = json_load("lua/data/item.json")
 mon_move = json_load("lua/data/move.json")
@@ -227,7 +260,7 @@ function mode_starters(ball_x, ball_y)
 	console.log("Waiting to reach overworld...")
 
 	while not game_state.in_game do
-		press_combo("A", 5)
+		press_combo("A", 30)
 	end
 
 	console.log("Opening Gift Box...")
@@ -266,7 +299,7 @@ function mode_starters(ball_x, ball_y)
 
 	-- For whatever reason, press_button("A", 5)
 	-- does not work on its own within this specific loop
-	for i = 0, 80, 1 do
+	for i = 0, 120, 1 do
 	  press_button("A")
 	  clearUnheldInputs()
 	  wait_frames(5)
@@ -314,7 +347,7 @@ input = joypad.get()
 starter = 0
 
 while true do
-	updateGameInfo()
+	updateGameInfo(true)
 
 	local s = starter % 3
 

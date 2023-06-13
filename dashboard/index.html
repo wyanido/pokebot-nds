@@ -60,44 +60,11 @@
             <td class="text-center">${nature}</td>
             <td class="text-center">${pid}</td>
             <td class="text-center" style="white-space: nowrap;">${hpIV} ${attackIV} ${defenseIV} ${spAttackIV} ${spDefenseIV} ${speedIV}</td>
-            <td class="text-center" style="white-space: nowrap;">${rating}</td>
             <td class="text-center">${shinyValue}</td>
             <td class="text-center">${shiny}</td>
         </tr>
     </script>
-    <script>
-      const {ipcRenderer} = require('electron')
-
-      function hex_reverse(hex) {
-          return hex.match(/[a-fA-F0-9]{2}/g).reverse().join('').padEnd(8, '0');
-      }
-      
-      // Listen for data from the main process
-      ipcRenderer.on('party', (event, data) => {
-        var party = data
-        var template = $("#party-template");
-        
-        $("#party div").empty();
-
-        for (var i = 0; i < party.length; i++) {
-            if (party[i]) {
-                var partyID = "#party-" + (i + 1).toString()
-                
-                mon = party[i]
-                mon.folder = mon.shiny ? "shiny/" : ""
-                // mon.gender = mon.gender.toLowerCase()
-                mon.name = "(" + mon.name + ")"
-                mon.pid = hex_reverse(mon.pid.toString(16).toUpperCase())
-                // mon.rating = rating_stars(mon.rating)
-
-                var newTableRow = template.tmpl(mon);
-                $(partyID).append(newTableRow)
-
-                console.log('Added new party member ', mon.name)
-            }
-        }
-      });
-    </script>
+    <script src="dashboard.js"></script>
     <script>if (window.module) module = window.module;</script>
 </head>
 
@@ -142,22 +109,31 @@
                 </div>
                 <div class="col-4">
                     <div class="card">
-                        <h2 class="card-title text-center">Trainer Info</h2>
+                        <h2 class="card-title text-center">Game Info</h2>
                         <table class="table">
-                             <tr>
-                                <td id="name">Name</td>
-                            </tr>
                             <tr>
-                                <td id="tid">TID</td>
-                                <td id="sid">SID</td>
-                            </tr>
-                            <tr>
-                                <th>Map ID</th>
-                                <td id="map-id">MapID</td>
+                                <th>Map</th>
+                                <td id="map-header"></td>
                             </tr>
                             <tr>
                                 <th>Position</th>
-                                <td id="position">X, Y, Z</td>
+                                <td id="position"></td>
+                            </tr>
+                        </table>
+                        <br>
+                        <h2 class="card-title text-center">Stats</h2>
+                        <table class="table">
+                            <tr>
+                                <th>Total Encounters</th>
+                                <td id="encounters"></td>
+                            </tr>
+                            <tr>
+                                <th>Lowest SV</th>
+                                <td id="lowest-sv"></td>
+                            </tr>
+                            <tr>
+                                <th>Highest IV sum</th>
+                                <td id="highest-iv-sum"></td>
                             </tr>
                         </table>
                     </div>
@@ -177,7 +153,6 @@
                             <th class="text-center">Nature</th>
                             <th class="text-center">PID</th>
                             <th class="text-center">IVs</th>
-                            <th class="text-center">Rank</th>
                             <th class="text-center">Shiny Value (SV)</th>
                             <th class="text-center">Shiny?</th>
                         </tr>

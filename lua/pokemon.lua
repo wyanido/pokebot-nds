@@ -1,5 +1,6 @@
 
 local pokemon = {}
+-- local json = require "json.lua"
 
 function pokemon.read_data(address)
 	function rand(seed)
@@ -243,36 +244,75 @@ function pokemon.read_data(address)
 end
 
 function write_file(filename, value)
-    local file = io.open(filename, "w") -- Open the file in write mode
+    local file = io.open(filename, "w")
+
     if file then
-        file:write(value) -- Write the content to the file
-        file:close() -- Close the file
-        return true -- Return true to indicate success
-    else
-        return false -- Return false to indicate failure
-    end
+	    file:write(value)
+	    file:close()
+	    return true
+	else
+		return false
+	end
 end
 
 function pokemon.log(mon)
-	-- Statistics
-	-- iv_sum = mon.hpIV + mon.attackIV + mon.defenseIV + mon.spAttackIV + mon.spDefenseIV + mon.speedIV
+	-- Values not relevant to encounters
+	-- Gets trimmed before being logged
+	local excess_keys = {
+		"nickname",
+		"hpEV",
+		"attackEV", 
+		"defenseEV", 
+		"spAttackEV",
+		"spDefenseEV",
+		"speedEV",
+		"dreamWorldAbility", 
+		"friendship",
+		"isEgg",
+		"isNicknamed",
+		"otLanguage",
+		"otName",
+		"pokeball",
+		"pokerus",
+		"ppUps",
+		"status"
+	}
 
+	-- Statistics
+	local iv_sum = mon.hpIV + mon.attackIV + mon.defenseIV + mon.spAttackIV + mon.spDefenseIV + mon.speedIV
+	stats.highest_iv_sum = math.max(stats.highest_iv_sum, iv_sum)
+	stats.encounters = stats.encounters + 1
+	stats.lowest_sv = math.min(mon.shinyValue, stats.lowest_sv)
+
+	write_file("logs/stats.json", json.encode(stats))
+	
 	console.log("--------------")
-	-- console.log(f"Seen mon #" .. {totals.encounters}: a {mon.nature} {mon.name}!")
+	console.log("Seen mon #" .. stats.encounters .. ": a " .. mon.nature .. " " .. mon.name .. "!")
 	console.log("HP: " .. mon.hpIV ..", ATK: " .. mon.attackIV .. ", DEF: " .. mon.defenseIV .. ", SP.ATK: " .. mon.spAttackIV .. ", SP.DEF: " .. mon.spDefenseIV .. ", SPD: " .. mon.speedIV)
 	console.log("Shiny Value: " .. mon.shinyValue .. ", Shiny?: " .. tostring(mon.shiny))
-	-- console.log("")
-	-- console.log(f"Highest IV sum: {totals.highest_iv_sum}")
-	-- console.log(f"Lowest shiny value: {totals.lowest_sv}")
-	-- console.log("--------------")
+	console.log("")
+	console.log("Highest IV sum: " .. stats.highest_iv_sum)
+	console.log("Lowest shiny value: " .. stats.lowest_sv)
+	console.log("--------------")
 
-	-- for key in excess_keys:
-	-- mon.pop(key, None)
+	-- Remove excess keys
+	for i = 1, #mon, 1 do
+	    local key = mon[i]
+	    for _, excess_key in ipairs(excess_keys) do
+			if key == excess_key then
+				table.remove(mon, i)
+	        	break
+	      	end
+		end
+	end
 
-	comm.mmfWrite("bizhawk_encounter", json.encode(mon) .. "\x00")
+	table.insert(encounters, mon)
 
-	-- encounters.encounters.append(mon)
-	-- encounters.encounters = encounters.encounters[-ENCOUNTER_LOG_LIMIT:]
+	write_file("logs/encounters.json", json.encode(encounters))
+	
+	while #encounters > ENCOUNTER_LOG_LIMIT do
+	    table.remove(encounters, 1)
+	end
 end
 
 return pokemon

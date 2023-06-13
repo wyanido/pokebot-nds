@@ -1,3 +1,5 @@
 __pycache__
 stream
-stats
+logs/*
+node_modules
+out
