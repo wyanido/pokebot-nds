@@ -29,3 +29,4 @@ The dashboard relies on net sockets which aren't enabled in BizHawk by default, 
 - [ ] Route 18 Larvesta hatch & resets
 - [ ] Thundurus/Tornadus dex resets
 - [ ] Swords of Justice resets
+- [ ] Kyurem resets
