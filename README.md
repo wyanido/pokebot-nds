@@ -2,7 +2,11 @@
  
 This is a _heavily_ WIP repository for creating a 5th generation spin on https://github.com/40Cakes/pokebot-bizhawk. Any contributions or reported issues are heavily appreciated, as making this project widely compatible takes a lot of work.
 
+## Requirements
+Communication with the Electron dashboard works using net sockets. You'll need to install npm for the .bat file in /dashboard to execute it properly, and to run EmuHawk with some command line arguments.
 Add `pokebot-gen-v.lua` to the Lua Console in BizHawk to begin using it.
+
+Either run EmuHawk through a command line with the arguments `--socket_ip=127.0.0.1 --socket_port=51055`, or create a shortcut with those arguments added to the end of the 'target' field for convenience.
 
 ### Supported games
 |  | Black | White | Black 2 | White 2 | 
@@ -10,7 +14,7 @@ Add `pokebot-gen-v.lua` to the Lua Console in BizHawk to begin using it.
 | English | ✅ | ✅ | ❌ | ❌ |
 | Japanese| ❔ | ❔ | ❌ | ❌ |
 
-## Known Information
+## RAM Research
 ### Entity Positions
 The position of every entity in the room is listed from address `0x252220` onwards in the Main RAM. 
 - When a loading zone is triggered, all values are set to 0 and replaced with the new room's entities. 
