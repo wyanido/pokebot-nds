@@ -1,7 +1,6 @@
 __pycache__
 stream
 logs/*
-dashboard-build
 dashboard
 node_modules
 out
