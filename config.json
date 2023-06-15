@@ -1,5 +1,10 @@
 {
 	"mode": "random encounters",
 	"starter": 0,
-	"cycle_starters": true
+	"cycle_starters": true,
+	"cycle_lead_pokemon": true,
+	"pickup": true,
+	"pickup_threshold": 2,
+	"battle_non_targets": true,
+	"do_earliest_reset": false
 }

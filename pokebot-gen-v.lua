@@ -65,6 +65,7 @@ comm.socketServerSend(json.encode({
 -----------------------
 
 last_party_checksums = {}
+party = {}
 
 function getParty()
 	party_size = mem.readbyte(offset.party_count)
@@ -72,12 +73,12 @@ function getParty()
 	-- Get the checksums of all party members
 	local checksums = {}
 	for i = 0, party_size - 1 do
-		table.insert(checksums, offset.party_data + i * MON_DATA_SIZE + 0x06)
+		table.insert(checksums, mem.readword(offset.party_data + i * MON_DATA_SIZE + 0x06))
 	end
 
 	-- Check for changes in the party data
 	-- Necessary for only sending data to the socket when things have changed
-	if party_size == #last_party_checksums then
+	if party_size == #party then
 		local party_changed = false
 
 		for i = 1, #checksums, 1 do
@@ -199,8 +200,14 @@ function updateGameInfo(force)
 	local refresh_frames = frames_per_move() / 2
 
 	if emu.framecount() % refresh_frames == 0 or force then
-		foe = getFoe()
+		game_state = getGameState()
+		comm.socketServerSend(json.encode({
+			type = "game",
+			data = game_state
+		}) .. "\x00")
 		
+		foe = getFoe()
+
 		local party_changed = getParty()
 		if party_changed then
 			comm.socketServerSend(json.encode({
@@ -208,19 +215,195 @@ function updateGameInfo(force)
 				data = party
 			}) .. "\x00")
 		end
+	end
+end
 
-		game_state = getGameState()
-		comm.socketServerSend(json.encode({
-			type = "game",
-			data = game_state
-		}) .. "\x00")
+-----------------------
+-- MISC. BOT ACTIONS
+-----------------------
+
+function do_pickup()
+	local pickup_count = 0
+	local item_count = 0
+	local items = {}
+
+	for i = 1, #party, 1 do
+		-- Insert all item names, even none, to preserve party order
+		table.insert(items, party[i].heldItem)
+
+		if party[i].ability == "Pickup" then
+			pickup_count = pickup_count + 1
+
+			if party[i].heldItem ~= "none" then
+				item_count = item_count + 1
+			end
+		end
+	end
+
+	if pickup_count > 0 then
+		if item_count < config.pickup_threshold then
+			console.log("Pickup items in party: " .. item_count .. ". Collecting at threshold: " .. config.pickup_threshold)
+		else
+			press_combo(60, "X", 30)
+			touch_screen_at(65, 45)
+			wait_frames(90)
+
+			-- Collect items from each Pickup member
+			for i = 1, #items, 1 do
+				if items[i] ~= "none" then
+					touch_screen_at(80 * ((i - 1) % 2 + 1), 30 + 50 * ((i - 1) // 2)) -- Select Pokemon
+
+					wait_frames(30)
+					touch_screen_at(200, 155) -- Item
+					wait_frames(30)
+					touch_screen_at(200, 155) -- Take
+					press_combo(120, "B", 30)
+				end
+			end
+
+			-- Exit out of menu
+			press_combo(30, "B", 120, "B", 60)
+		end
+	else
+		console.log("Pickup was enabled in config, but no party Pokemon have the Pickup ability. Was this a mistake?")
+	end
+end
+
+function do_battle()
+	local best_move = pokemon.find_best_move(party[1], foe[1])
+
+	if best_move then
+		-- Press B until battle state has advanced
+		local battle_state = 0
+
+		while game_state.in_battle and battle_state == 0 do
+			press_combo("B", 5)
+			battle_state = mem.readbyte(offset.battle_menu_state)
+		end
+
+		if not game_state.in_battle then -- Battle over
+			return
+		elseif battle_state == 4 then -- Fainted or learning new move
+			wait_frames(30)
+			touch_screen_at(128, 100) -- RUN or KEEP OLD MOVES
+			wait_frames(140)
+			touch_screen_at(128, 50) -- FORGET or nothing if fainted
+
+			while game_state.in_battle do
+				press_combo("B", 5)
+			end
+			return
+		end
+
+		if best_move.power > 0 then
+			-- Manually decrement PP count
+			-- The game only updates this itself at the end of the battle
+			local pp_dec = 1
+			if foe[1].ability == "Pressure" then
+				pp_dec = 2
+			end
+
+			party[1].pp[best_move.index] = party[1].pp[best_move.index] - pp_dec
+
+			console.log("Best move against foe is " .. best_move.name .. " (Effective base power is " .. best_move.power .. ")")
+			wait_frames(30)
+			touch_screen_at(128, 90) -- FIGHT
+			wait_frames(30)
+
+			touch_screen_at(80 * ((best_move.index - 1) % 2 + 1), 50 * (((best_move.index - 1) // 2) + 1)) -- Select move slot
+			wait_frames(30)
+		else
+			console.log("Lead Pokemon has no valid moves left to battle! Fleeing...")
+		
+			while game_state.in_battle do
+				touch_screen_at(125, 175) -- Run
+				wait_frames(5)
+			end
+		end
+	else
+		-- Wait another frame for valid battle data
+		wait_frames(1)
+	end
+end
+
+function pause_bot(reason)
+	clearUnheldInputs()
+	client.clearautohold()
+
+	console.log("###################################")
+	console.log(reason .. ". Pausing emulation! (Make sure to disable the lua script before intervening)")
+	client.pause()
+end
+
+function check_party_status()
+	-- Check how many valid move uses the lead has remaining
+	local lead_pp_sum = 0
+
+	for j = 1, #party[1].moves, 1 do
+	    if party[1].moves[j].power ~= nil then
+	    	lead_pp_sum = lead_pp_sum + party[1].pp[j]
+		end
+    end
+
+	if party[1].currentHP == 0 or lead_pp_sum == 0 then
+		if config.cycle_lead_pokemon then
+			console.log("Lead Pokemon can no longer battle. Replacing...")
+
+			-- Find suitable replacement
+			local most_usable_pp = 0
+			local best_index = 1
+
+			for i = 2, #party, 1 do
+				local ally = party[i]
+
+				if ally.currentHP > 0 then
+					local pp_sum = 0
+
+					for j = 1, #ally.moves, 1 do
+					    if ally.moves[j].power ~= nil then
+					    	-- Multiply PP by level to weight selections toward
+					    	-- higher level party members
+					    	pp_sum = pp_sum + ally.pp[j] * ally.level
+						end
+				    end
+
+				    if pp_sum > most_usable_pp then
+				    	most_usable_pp = pp_sum
+				    	best_index = i
+				    end
+				end
+			end
+
+			if most_usable_pp == 0 then
+				pause_bot("No suitable Pokemon left to battle")
+			else
+				console.log("Best replacement was "  .. party[best_index].name .. " (Slot " .. best_index .. ")")
+				-- Party menu
+				press_combo(60, "X", 30)
+				touch_screen_at(65, 45)
+				wait_frames(90)
+
+				touch_screen_at(80, 30) -- Select fainted lead
+						
+				wait_frames(30)
+				touch_screen_at(200, 130) -- SWITCH
+				wait_frames(30)
+				
+				touch_screen_at(80 * ((best_index - 1) % 2 + 1), 30 + 50 * ((best_index - 1) // 2)) -- Select Pokemon
+				wait_frames(30)
+
+				press_combo(30, "B", 120, "B", 60) -- Exit out of menu
+			end
+		else
+			pause_bot("Lead Pokemon can no longer battle, and current config disallows cycling lead")
+		end
 	end
 end
 
 -----------------------
 -- BOT MODES
 -----------------------
--- Choose a starter and reset until one is shiny
+
 function mode_starters(ball_x, ball_y)
 	console.log("Waiting to reach overworld...")
 
@@ -252,32 +435,31 @@ function mode_starters(ball_x, ball_y)
 		press_combo("A", 5)
 	end
 
+	if not config.do_earliest_reset then
+		console.log("Waiting to start battle...")
+		
+		while not game_state.in_battle do
+			press_combo("A", 5)
+		end
+
+		console.log("Waiting to see starter...")
+
+		-- For whatever reason, press_button("A", 5)
+		-- does not work on its own within this specific loop
+		for i = 0, 118, 1 do
+		  press_button("A")
+		  clearUnheldInputs()
+		  wait_frames(5)
+		end
+	end
+
 	mon = party[1]
 	pokemon.log(mon)
 	updateDashboardLog()
 
-	console.log("Waiting to start battle...")
-	
-	while not game_state.in_battle do
-		press_combo("A", 5)
-	end
-
-	console.log("Waiting to see starter...")
-
-	-- For whatever reason, press_button("A", 5)
-	-- does not work on its own within this specific loop
-	for i = 0, 118, 1 do
-	  press_button("A")
-	  clearUnheldInputs()
-	  wait_frames(5)
-	end
-
 	-- Check both cases because I can't trust it on just one
 	if mon.shiny or mon.shinyValue < 8 then
-		console.log("------------------------------------------")
-		console.log("Found a shiny, pausing emulation! (Make sure to disable the lua script before intervening)")
-		console.log("------------------------------------------")
-		client.pause()
+		pause_bot("Starter was shiny")
 	else
 		console.log("Starter was not shiny, resetting...")
 		press_button("Power")
@@ -285,14 +467,15 @@ function mode_starters(ball_x, ball_y)
 	end
 end
 
--- Run back and forth until a random encounter is triggered, run if not shiny
 function mode_random_encounters()
-	local tile_frames = frames_per_move()
+	check_party_status()
 
 	console.log("Attempting to start a battle...")
 
 	hold_button("B")
 
+	local tile_frames = frames_per_move()
+	
 	while not foe and not game_state.in_battle do
 		hold_button("Left")
 		wait_frames(tile_frames)
@@ -314,60 +497,44 @@ function mode_random_encounters()
 	end
 
 	if foe_shiny then
-		console.log("------------------------------------------")
-		console.log("Found a shiny, pausing emulation! (Make sure to disable the lua script before intervening)")
-		console.log("------------------------------------------")
-		client.pause()
+		pause_bot("Found a shiny")
 	else
-		console.log("Wild Pokemon was not shiny, fleeing battle...")
+		console.log("Wild Pokemon was not shiny, attempting next action...")
 
 		while game_state.in_battle do
-			touch_screen_at(125, 175) -- Run
-			wait_frames(5)
+			if config.battle_non_targets then
+				do_battle()
+			else
+				touch_screen_at(125, 175) -- Run
+				wait_frames(5)
+			end
+		end
+
+		if config.pickup then
+			do_pickup()
 		end
 	end
 end
 
--- Run back and forth until a phenomenon spawns
--- https://bulbapedia.bulbagarden.net/wiki/Phenomenon
 function mode_phenomenon_encounters()
-	console.log("Attempting to start a battle...")
+	pause_bot("This mode is unfinished")
 
+	check_party_status()
+
+	console.log("Running until a phenomenon spawns...")
+	
 	hold_button("B")
 
-	while not foe and not game_state.in_battle do
+	local tile_frames = frames_per_move()
+
+	while game_state.phenomenon_x == 0 and game_state.phenomenon_z == 0 do
 		hold_button("Left")
-		wait_frames(8)
+		wait_frames(tile_frames)
 		hold_button("Right")
-		wait_frames(8)
+		wait_frames(tile_frames)
 	end
 
-	release_button("B")
-	release_button("Right")
-
-	local foe_shiny = false
-
-	for i = 1, #foe, 1 do
-		pokemon.log(foe[i])
-		if foe[i].shiny or foe[i].shinyValue < 8 then
-			foe_shiny = true
-		end
-	end
-	updateDashboardLog()
-
-	if foe_shiny then
-		console.log("------------------------------------------")
-		console.log("Found a shiny, pausing emulation! (Make sure to disable the lua script before intervening)")
-		console.log("------------------------------------------")
-		client.pause()
-	else
-		console.log("Wild Pokemon was not shiny, fleeing battle...")
-
-		while game_state.in_battle do
-			touch_screen_at(125, 175) -- Run
-			wait_frames(5)
-		end
-	end
+	console.log("Phenomena spawned! Attempting to start encounter...")
 end
 
 -----------------------
@@ -389,6 +556,7 @@ while true do
 	updateGameInfo(true)
 
 	if mode == "starters" then
+		-- Choose a starter and reset until one is shiny
 		local s = config.starter % 3
 
 		if s == 0 then
@@ -404,7 +572,10 @@ while true do
 		end
 	elseif mode == "random encounters" then
 		mode_random_encounters()
+		-- Run back and forth until a random encounter is triggered, run if not shiny
 	elseif mode == "phenomenon encounters" then
+		-- Run back and forth until a phenomenon spawns, then encounter it
+		-- https://bulbapedia.bulbagarden.net/wiki/Phenomenon
 		mode_phenomenon_encounters()
 	else
 		console.log("Unknown bot mode: " .. config.mode)

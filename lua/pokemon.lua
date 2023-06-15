@@ -255,31 +255,6 @@ function write_file(filename, value)
 end
 
 function pokemon.log(mon)
-	-- Values not relevant to encounters
-	-- Gets trimmed before being logged
-	local excess_keys = {
-		nickname = 0,
-		hpEV = 0,
-		attackEV = 0, 
-		defenseEV = 0, 
-		spAttackEV = 0,
-		spDefenseEV = 0,
-		speedEV = 0,
-		dreamWorldAbility = 0, 
-		friendship = 0,
-		isEgg = 0,
-		isNicknamed = 0,
-		otLanguage = 0,
-		otName = 0,
-		pokeball = 0,
-		pokerus = 0,
-		ppUps = 0,
-		status = 0,
-		isNsPokemon = 0,
-		pp = 0,
-		experience = 0
-	}
-
 	-- Statistics
 	local iv_sum = mon.hpIV + mon.attackIV + mon.defenseIV + mon.spAttackIV + mon.spDefenseIV + mon.speedIV
 	stats.highest_iv_sum = math.max(stats.highest_iv_sum, iv_sum)
@@ -288,26 +263,36 @@ function pokemon.log(mon)
 
 	write_file("logs/stats.json", json.encode(stats))
 	
-	-- Use the correct article before a Pokemon's nature
-	-- e.g. an Impish Snivy, a Modest Oshawott
-	-- local article = "a"
-	-- if string.find("aeiou", string.lower(string.sub(mon.nature, 1, 1)), 1, true) then
-	--     article = "an"
-	-- end
+	-- Values not relevant to the encounter log, gets removed
+	local excess_keys = {
+		"type",
+		"nickname",
+		"moves",
+		"hpEV",
+		"attackEV", 
+		"defenseEV", 
+		"spAttackEV",
+		"spDefenseEV",
+		"speedEV",
+		"dreamWorldAbility", 
+		"friendship",
+		"isEgg",
+		"isNicknamed",
+		"otLanguage",
+		"otName",
+		"pokeball",
+		"pokerus",
+		"ppUps",
+		"status",
+		"isNsPokemon",
+		"pp",
+		"experience",
+	}
 
-	-- console.log("--------------")
-	-- console.log("Seen mon #" .. stats.encounters .. ": " .. article .. " " .. mon.nature .. " " .. mon.name .. "!")
-	-- console.log("HP: " .. mon.hpIV ..", ATK: " .. mon.attackIV .. ", DEF: " .. mon.defenseIV .. ", SP.ATK: " .. mon.spAttackIV .. ", SP.DEF: " .. mon.spDefenseIV .. ", SPD: " .. mon.speedIV)
-	-- console.log("Shiny Value: " .. mon.shinyValue .. ", Shiny?: " .. tostring(mon.shiny))
-	-- console.log("")
-	-- console.log("Highest IV sum: " .. stats.highest_iv_sum)
-	-- console.log("Lowest shiny value: " .. stats.lowest_sv)
-	-- console.log("--------------")
-	
-	for key, _ in pairs(excess_keys) do
-		mon[key] = nil
-    end
-    
+	for _, key in ipairs(excess_keys) do
+	  mon[key] = nil
+	end
+  
 	table.insert(encounters, mon)
 
 	write_file("logs/encounters.json", json.encode(encounters))
@@ -324,6 +309,7 @@ end
 local mon_ability = json.load("lua/data/ability.json")
 local mon_item = json.load("lua/data/item.json")
 local mon_move = json.load("lua/data/move.json")
+local mon_type = json.load("lua/data/type.json")
 local mon_dex = json.load("lua/data/pokedex.json")
 local mon_lang = {"none", "日本語", "English", "Français", "Italiano", "Deutsch", "Español", "한국어"}
 local mon_gender = {"Male", "Female", "Genderless"}
@@ -337,6 +323,8 @@ local mon_nature = {
 
 function pokemon.enrich_data(mon)
   mon.name = mon_dex[mon.species + 1].name
+  mon.type = mon_dex[mon.species + 1].type
+
   -- mon.rating = pokemon.get_rating(mon)
   mon.pokeball = mon_item[mon.pokeball + 1]
   mon.otLanguage = mon_lang[mon.otLanguage + 1]
@@ -353,6 +341,70 @@ function pokemon.enrich_data(mon)
   end
   
   return mon
+end
+
+function pokemon.find_best_move(ally, foe)
+	local function table_contains(tbl, type_check)
+		for _, type in pairs(tbl) do
+		  if type == type_check then
+		    return true
+		  end
+		end
+		return false
+	end
+
+  local max_power_index = 1
+  local max_power = 0
+
+  -- Sometimes, beyond all reasonable explanation, key values are completely missing
+  -- Do nothing in this case to prevent crashes
+  if not foe or not ally or not foe.type or not ally.moves then
+  	return nil
+  end
+
+  for i = 1, #ally.moves, 1 do
+    local type = ally.moves[i].type
+    local power = ally.moves[i].power
+
+    -- Ignore useless moves
+    if ally.pp[i] ~= 0 and power ~= nil then
+      local type_matchup = mon_type[type]
+
+      -- Calculate effectiveness against opponent's type(s)
+      for j = 1, #foe.type do
+      	local foe_type = foe.type[j]
+      	
+        if table_contains(type_matchup.cant_hit, foe_type) then
+            power = 0
+        elseif table_contains(type_matchup.resisted_by, foe_type) then
+            power = power / 2
+        elseif table_contains(type_matchup.super_effective, foe_type) then
+            power = power * 2
+      	end
+      end
+
+      -- STAB
+      for j = 1, #ally.type do
+        if ally.type[j] == type then
+            power = power * 1.5
+            break
+        end
+      end
+
+      if power > max_power then
+	      max_power = power
+	      max_power_index = i
+	    end
+    end
+
+    i = i + 1
+  end
+
+  return {
+    name = ally.moves[max_power_index].name,
+    index = max_power_index,
+    power = max_power
+  }
 end
 
 return pokemon

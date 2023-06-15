@@ -4,6 +4,21 @@
     },
     {
         "base": [
+            45,
+            49,
+            49,
+            65,
+            65,
+            45
+        ],
+        "name": "Bulbasaur",
+        "type": [
+            "Grass",
+            "Poison"
+        ]
+    },
+    {
+        "base": [
             60,
             62,
             63,
@@ -11,7 +26,11 @@
             80,
             60
         ],
-        "name": "Bulbasaur"
+        "name": "Ivysaur",
+        "type": [
+            "Grass",
+            "Poison"
+        ]
     },
     {
         "base": [
@@ -22,7 +41,11 @@
             100,
             80
         ],
-        "name": "Ivysaur"
+        "name": "Venusaur",
+        "type": [
+            "Grass",
+            "Poison"
+        ]
     },
     {
         "base": [
@@ -33,7 +56,10 @@
             50,
             65
         ],
-        "name": "Venusaur"
+        "name": "Charmander",
+        "type": [
+            "Fire"
+        ]
     },
     {
         "base": [
@@ -44,7 +70,10 @@
             65,
             80
         ],
-        "name": "Charmander"
+        "name": "Charmeleon",
+        "type": [
+            "Fire"
+        ]
     },
     {
         "base": [
@@ -55,7 +84,11 @@
             85,
             100
         ],
-        "name": "Charmeleon"
+        "name": "Charizard",
+        "type": [
+            "Fire",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -66,7 +99,10 @@
             64,
             43
         ],
-        "name": "Charizard"
+        "name": "Squirtle",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -77,7 +113,10 @@
             80,
             58
         ],
-        "name": "Squirtle"
+        "name": "Wartortle",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -88,7 +127,10 @@
             105,
             78
         ],
-        "name": "Wartortle"
+        "name": "Blastoise",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -99,7 +141,10 @@
             20,
             45
         ],
-        "name": "Blastoise"
+        "name": "Caterpie",
+        "type": [
+            "Bug"
+        ]
     },
     {
         "base": [
@@ -110,18 +155,25 @@
             25,
             30
         ],
-        "name": "Caterpie"
+        "name": "Metapod",
+        "type": [
+            "Bug"
+        ]
     },
     {
         "base": [
             60,
             45,
             50,
-            80,
+            90,
             80,
             70
         ],
-        "name": "Metapod"
+        "name": "Butterfree",
+        "type": [
+            "Bug",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -132,7 +184,11 @@
             20,
             50
         ],
-        "name": "Butterfree"
+        "name": "Weedle",
+        "type": [
+            "Bug",
+            "Poison"
+        ]
     },
     {
         "base": [
@@ -143,18 +199,26 @@
             25,
             35
         ],
-        "name": "Weedle"
+        "name": "Kakuna",
+        "type": [
+            "Bug",
+            "Poison"
+        ]
     },
     {
         "base": [
             65,
-            80,
+            90,
             40,
             45,
             80,
             75
         ],
-        "name": "Kakuna"
+        "name": "Beedrill",
+        "type": [
+            "Bug",
+            "Poison"
+        ]
     },
     {
         "base": [
@@ -165,7 +229,11 @@
             35,
             56
         ],
-        "name": "Beedrill"
+        "name": "Pidgey",
+        "type": [
+            "Normal",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -176,7 +244,11 @@
             50,
             71
         ],
-        "name": "Pidgey"
+        "name": "Pidgeotto",
+        "type": [
+            "Normal",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -185,9 +257,13 @@
             75,
             70,
             70,
-            91
+            101
         ],
-        "name": "Pidgeotto"
+        "name": "Pidgeot",
+        "type": [
+            "Normal",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -198,7 +274,10 @@
             35,
             72
         ],
-        "name": "Pidgeot"
+        "name": "Rattata",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -209,7 +288,10 @@
             70,
             97
         ],
-        "name": "Rattata"
+        "name": "Raticate",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -220,7 +302,11 @@
             31,
             70
         ],
-        "name": "Raticate"
+        "name": "Spearow",
+        "type": [
+            "Normal",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -231,7 +317,11 @@
             61,
             100
         ],
-        "name": "Spearow"
+        "name": "Fearow",
+        "type": [
+            "Normal",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -242,29 +332,38 @@
             54,
             55
         ],
-        "name": "Fearow"
+        "name": "Ekans",
+        "type": [
+            "Poison"
+        ]
     },
     {
         "base": [
             60,
-            85,
+            95,
             69,
             65,
             79,
             80
         ],
-        "name": "Ekans"
+        "name": "Arbok",
+        "type": [
+            "Poison"
+        ]
     },
     {
         "base": [
             35,
             55,
-            30,
-            50,
             40,
+            50,
+            50,
             90
         ],
-        "name": "Arbok"
+        "name": "Pikachu",
+        "type": [
+            "Electric"
+        ]
     },
     {
         "base": [
@@ -273,9 +372,12 @@
             55,
             90,
             80,
-            100
+            110
         ],
-        "name": "Pikachu"
+        "name": "Raichu",
+        "type": [
+            "Electric"
+        ]
     },
     {
         "base": [
@@ -286,7 +388,10 @@
             30,
             40
         ],
-        "name": "Raichu"
+        "name": "Sandshrew",
+        "type": [
+            "Ground"
+        ]
     },
     {
         "base": [
@@ -297,7 +402,10 @@
             55,
             65
         ],
-        "name": "Sandshrew"
+        "name": "Sandslash",
+        "type": [
+            "Ground"
+        ]
     },
     {
         "base": [
@@ -308,7 +416,10 @@
             40,
             41
         ],
-        "name": "Sandslash"
+        "name": "NidoranF",
+        "type": [
+            "Poison"
+        ]
     },
     {
         "base": [
@@ -319,18 +430,25 @@
             55,
             56
         ],
-        "name": "NidoranF"
+        "name": "Nidorina",
+        "type": [
+            "Poison"
+        ]
     },
     {
         "base": [
             90,
-            82,
+            92,
             87,
             75,
             85,
             76
         ],
-        "name": "Nidorina"
+        "name": "Nidoqueen",
+        "type": [
+            "Poison",
+            "Ground"
+        ]
     },
     {
         "base": [
@@ -341,7 +459,10 @@
             40,
             50
         ],
-        "name": "Nidoqueen"
+        "name": "NidoranM",
+        "type": [
+            "Poison"
+        ]
     },
     {
         "base": [
@@ -352,18 +473,25 @@
             55,
             65
         ],
-        "name": "NidoranM"
+        "name": "Nidorino",
+        "type": [
+            "Poison"
+        ]
     },
     {
         "base": [
             81,
-            92,
+            102,
             77,
             85,
             75,
             85
         ],
-        "name": "Nidorino"
+        "name": "Nidoking",
+        "type": [
+            "Poison",
+            "Ground"
+        ]
     },
     {
         "base": [
@@ -374,18 +502,24 @@
             65,
             35
         ],
-        "name": "Nidoking"
+        "name": "Clefairy",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
             95,
             70,
             73,
-            85,
+            95,
             90,
             60
         ],
-        "name": "Clefairy"
+        "name": "Clefable",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -396,7 +530,10 @@
             65,
             65
         ],
-        "name": "Clefable"
+        "name": "Vulpix",
+        "type": [
+            "Fire"
+        ]
     },
     {
         "base": [
@@ -407,7 +544,10 @@
             100,
             100
         ],
-        "name": "Vulpix"
+        "name": "Ninetales",
+        "type": [
+            "Fire"
+        ]
     },
     {
         "base": [
@@ -418,18 +558,24 @@
             25,
             20
         ],
-        "name": "Ninetales"
+        "name": "Jigglypuff",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
             140,
             70,
             45,
-            75,
+            85,
             50,
             45
         ],
-        "name": "Jigglypuff"
+        "name": "Wigglytuff",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -440,7 +586,11 @@
             40,
             55
         ],
-        "name": "Wigglytuff"
+        "name": "Zubat",
+        "type": [
+            "Poison",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -451,7 +601,11 @@
             75,
             90
         ],
-        "name": "Zubat"
+        "name": "Golbat",
+        "type": [
+            "Poison",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -462,7 +616,11 @@
             65,
             30
         ],
-        "name": "Golbat"
+        "name": "Oddish",
+        "type": [
+            "Grass",
+            "Poison"
+        ]
     },
     {
         "base": [
@@ -473,18 +631,26 @@
             75,
             40
         ],
-        "name": "Oddish"
+        "name": "Gloom",
+        "type": [
+            "Grass",
+            "Poison"
+        ]
     },
     {
         "base": [
             75,
             80,
             85,
-            100,
+            110,
             90,
             50
         ],
-        "name": "Gloom"
+        "name": "Vileplume",
+        "type": [
+            "Grass",
+            "Poison"
+        ]
     },
     {
         "base": [
@@ -495,7 +661,11 @@
             55,
             25
         ],
-        "name": "Vileplume"
+        "name": "Paras",
+        "type": [
+            "Bug",
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -506,7 +676,11 @@
             80,
             30
         ],
-        "name": "Paras"
+        "name": "Parasect",
+        "type": [
+            "Bug",
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -517,7 +691,11 @@
             55,
             45
         ],
-        "name": "Parasect"
+        "name": "Venonat",
+        "type": [
+            "Bug",
+            "Poison"
+        ]
     },
     {
         "base": [
@@ -528,7 +706,11 @@
             75,
             90
         ],
-        "name": "Venonat"
+        "name": "Venomoth",
+        "type": [
+            "Bug",
+            "Poison"
+        ]
     },
     {
         "base": [
@@ -539,18 +721,24 @@
             45,
             95
         ],
-        "name": "Venomoth"
+        "name": "Diglett",
+        "type": [
+            "Ground"
+        ]
     },
     {
         "base": [
             35,
-            80,
+            100,
             50,
             50,
             70,
             120
         ],
-        "name": "Diglett"
+        "name": "Dugtrio",
+        "type": [
+            "Ground"
+        ]
     },
     {
         "base": [
@@ -561,7 +749,10 @@
             40,
             90
         ],
-        "name": "Dugtrio"
+        "name": "Meowth",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -572,7 +763,10 @@
             65,
             115
         ],
-        "name": "Meowth"
+        "name": "Persian",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -583,7 +777,10 @@
             50,
             55
         ],
-        "name": "Persian"
+        "name": "Psyduck",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -594,7 +791,10 @@
             80,
             85
         ],
-        "name": "Psyduck"
+        "name": "Golduck",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -605,7 +805,10 @@
             45,
             70
         ],
-        "name": "Golduck"
+        "name": "Mankey",
+        "type": [
+            "Fighting"
+        ]
     },
     {
         "base": [
@@ -616,7 +819,10 @@
             70,
             95
         ],
-        "name": "Mankey"
+        "name": "Primeape",
+        "type": [
+            "Fighting"
+        ]
     },
     {
         "base": [
@@ -627,7 +833,10 @@
             50,
             60
         ],
-        "name": "Primeape"
+        "name": "Growlithe",
+        "type": [
+            "Fire"
+        ]
     },
     {
         "base": [
@@ -638,7 +847,10 @@
             80,
             95
         ],
-        "name": "Growlithe"
+        "name": "Arcanine",
+        "type": [
+            "Fire"
+        ]
     },
     {
         "base": [
@@ -649,7 +861,10 @@
             40,
             90
         ],
-        "name": "Arcanine"
+        "name": "Poliwag",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -660,18 +875,25 @@
             50,
             90
         ],
-        "name": "Poliwag"
+        "name": "Poliwhirl",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
             90,
-            85,
+            95,
             95,
             70,
             90,
             70
         ],
-        "name": "Poliwhirl"
+        "name": "Poliwrath",
+        "type": [
+            "Water",
+            "Fighting"
+        ]
     },
     {
         "base": [
@@ -682,7 +904,10 @@
             55,
             90
         ],
-        "name": "Poliwrath"
+        "name": "Abra",
+        "type": [
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -693,7 +918,10 @@
             70,
             105
         ],
-        "name": "Abra"
+        "name": "Kadabra",
+        "type": [
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -701,10 +929,13 @@
             50,
             45,
             135,
-            85,
+            95,
             120
         ],
-        "name": "Kadabra"
+        "name": "Alakazam",
+        "type": [
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -715,7 +946,10 @@
             35,
             35
         ],
-        "name": "Alakazam"
+        "name": "Machop",
+        "type": [
+            "Fighting"
+        ]
     },
     {
         "base": [
@@ -726,7 +960,10 @@
             60,
             45
         ],
-        "name": "Machop"
+        "name": "Machoke",
+        "type": [
+            "Fighting"
+        ]
     },
     {
         "base": [
@@ -737,7 +974,10 @@
             85,
             55
         ],
-        "name": "Machoke"
+        "name": "Machamp",
+        "type": [
+            "Fighting"
+        ]
     },
     {
         "base": [
@@ -748,7 +988,11 @@
             30,
             40
         ],
-        "name": "Machamp"
+        "name": "Bellsprout",
+        "type": [
+            "Grass",
+            "Poison"
+        ]
     },
     {
         "base": [
@@ -759,7 +1003,11 @@
             45,
             55
         ],
-        "name": "Bellsprout"
+        "name": "Weepinbell",
+        "type": [
+            "Grass",
+            "Poison"
+        ]
     },
     {
         "base": [
@@ -767,10 +1015,14 @@
             105,
             65,
             100,
-            60,
+            70,
             70
         ],
-        "name": "Weepinbell"
+        "name": "Victreebel",
+        "type": [
+            "Grass",
+            "Poison"
+        ]
     },
     {
         "base": [
@@ -781,7 +1033,11 @@
             100,
             70
         ],
-        "name": "Victreebel"
+        "name": "Tentacool",
+        "type": [
+            "Water",
+            "Poison"
+        ]
     },
     {
         "base": [
@@ -792,7 +1048,11 @@
             120,
             100
         ],
-        "name": "Tentacool"
+        "name": "Tentacruel",
+        "type": [
+            "Water",
+            "Poison"
+        ]
     },
     {
         "base": [
@@ -803,7 +1063,11 @@
             30,
             20
         ],
-        "name": "Tentacruel"
+        "name": "Geodude",
+        "type": [
+            "Rock",
+            "Ground"
+        ]
     },
     {
         "base": [
@@ -814,18 +1078,26 @@
             45,
             35
         ],
-        "name": "Geodude"
+        "name": "Graveler",
+        "type": [
+            "Rock",
+            "Ground"
+        ]
     },
     {
         "base": [
             80,
-            110,
+            120,
             130,
             55,
             65,
             45
         ],
-        "name": "Graveler"
+        "name": "Golem",
+        "type": [
+            "Rock",
+            "Ground"
+        ]
     },
     {
         "base": [
@@ -836,7 +1108,10 @@
             65,
             90
         ],
-        "name": "Golem"
+        "name": "Ponyta",
+        "type": [
+            "Fire"
+        ]
     },
     {
         "base": [
@@ -847,7 +1122,10 @@
             80,
             105
         ],
-        "name": "Ponyta"
+        "name": "Rapidash",
+        "type": [
+            "Fire"
+        ]
     },
     {
         "base": [
@@ -858,7 +1136,11 @@
             40,
             15
         ],
-        "name": "Rapidash"
+        "name": "Slowpoke",
+        "type": [
+            "Water",
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -869,7 +1151,11 @@
             80,
             30
         ],
-        "name": "Slowpoke"
+        "name": "Slowbro",
+        "type": [
+            "Water",
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -880,7 +1166,11 @@
             55,
             45
         ],
-        "name": "Slowbro"
+        "name": "Magnemite",
+        "type": [
+            "Electric",
+            "Steel"
+        ]
     },
     {
         "base": [
@@ -891,18 +1181,26 @@
             70,
             70
         ],
-        "name": "Magnemite"
+        "name": "Magneton",
+        "type": [
+            "Electric",
+            "Steel"
+        ]
     },
     {
         "base": [
             52,
-            65,
+            90,
             55,
             58,
             62,
             60
         ],
-        "name": "Magneton"
+        "name": "Farfetch'd",
+        "type": [
+            "Normal",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -913,7 +1211,11 @@
             35,
             75
         ],
-        "name": "Farfetch'd"
+        "name": "Doduo",
+        "type": [
+            "Normal",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -922,9 +1224,13 @@
             70,
             60,
             60,
-            100
+            110
         ],
-        "name": "Doduo"
+        "name": "Dodrio",
+        "type": [
+            "Normal",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -935,7 +1241,10 @@
             70,
             45
         ],
-        "name": "Dodrio"
+        "name": "Seel",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -946,7 +1255,11 @@
             95,
             70
         ],
-        "name": "Seel"
+        "name": "Dewgong",
+        "type": [
+            "Water",
+            "Ice"
+        ]
     },
     {
         "base": [
@@ -957,7 +1270,10 @@
             50,
             25
         ],
-        "name": "Dewgong"
+        "name": "Grimer",
+        "type": [
+            "Poison"
+        ]
     },
     {
         "base": [
@@ -968,7 +1284,10 @@
             100,
             50
         ],
-        "name": "Grimer"
+        "name": "Muk",
+        "type": [
+            "Poison"
+        ]
     },
     {
         "base": [
@@ -979,7 +1298,10 @@
             25,
             40
         ],
-        "name": "Muk"
+        "name": "Shellder",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -990,7 +1312,11 @@
             45,
             70
         ],
-        "name": "Shellder"
+        "name": "Cloyster",
+        "type": [
+            "Water",
+            "Ice"
+        ]
     },
     {
         "base": [
@@ -1001,7 +1327,11 @@
             35,
             80
         ],
-        "name": "Cloyster"
+        "name": "Gastly",
+        "type": [
+            "Ghost",
+            "Poison"
+        ]
     },
     {
         "base": [
@@ -1012,7 +1342,11 @@
             55,
             95
         ],
-        "name": "Gastly"
+        "name": "Haunter",
+        "type": [
+            "Ghost",
+            "Poison"
+        ]
     },
     {
         "base": [
@@ -1023,7 +1357,11 @@
             75,
             110
         ],
-        "name": "Haunter"
+        "name": "Gengar",
+        "type": [
+            "Ghost",
+            "Poison"
+        ]
     },
     {
         "base": [
@@ -1034,7 +1372,11 @@
             45,
             70
         ],
-        "name": "Gengar"
+        "name": "Onix",
+        "type": [
+            "Rock",
+            "Ground"
+        ]
     },
     {
         "base": [
@@ -1045,7 +1387,10 @@
             90,
             42
         ],
-        "name": "Onix"
+        "name": "Drowzee",
+        "type": [
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -1056,7 +1401,10 @@
             115,
             67
         ],
-        "name": "Drowzee"
+        "name": "Hypno",
+        "type": [
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -1067,7 +1415,10 @@
             25,
             50
         ],
-        "name": "Hypno"
+        "name": "Krabby",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -1078,7 +1429,10 @@
             50,
             75
         ],
-        "name": "Krabby"
+        "name": "Kingler",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -1089,7 +1443,10 @@
             55,
             100
         ],
-        "name": "Kingler"
+        "name": "Voltorb",
+        "type": [
+            "Electric"
+        ]
     },
     {
         "base": [
@@ -1098,9 +1455,12 @@
             70,
             80,
             80,
-            140
+            150
         ],
-        "name": "Voltorb"
+        "name": "Electrode",
+        "type": [
+            "Electric"
+        ]
     },
     {
         "base": [
@@ -1111,7 +1471,11 @@
             45,
             40
         ],
-        "name": "Electrode"
+        "name": "Exeggcute",
+        "type": [
+            "Grass",
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -1119,10 +1483,14 @@
             95,
             85,
             125,
-            65,
+            75,
             55
         ],
-        "name": "Exeggcute"
+        "name": "Exeggutor",
+        "type": [
+            "Grass",
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -1133,7 +1501,10 @@
             50,
             35
         ],
-        "name": "Exeggutor"
+        "name": "Cubone",
+        "type": [
+            "Ground"
+        ]
     },
     {
         "base": [
@@ -1144,7 +1515,10 @@
             80,
             45
         ],
-        "name": "Cubone"
+        "name": "Marowak",
+        "type": [
+            "Ground"
+        ]
     },
     {
         "base": [
@@ -1155,7 +1529,10 @@
             110,
             87
         ],
-        "name": "Marowak"
+        "name": "Hitmonlee",
+        "type": [
+            "Fighting"
+        ]
     },
     {
         "base": [
@@ -1166,7 +1543,10 @@
             110,
             76
         ],
-        "name": "Hitmonlee"
+        "name": "Hitmonchan",
+        "type": [
+            "Fighting"
+        ]
     },
     {
         "base": [
@@ -1177,7 +1557,10 @@
             75,
             30
         ],
-        "name": "Hitmonchan"
+        "name": "Lickitung",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -1188,7 +1571,10 @@
             45,
             35
         ],
-        "name": "Lickitung"
+        "name": "Koffing",
+        "type": [
+            "Poison"
+        ]
     },
     {
         "base": [
@@ -1199,7 +1585,10 @@
             70,
             60
         ],
-        "name": "Koffing"
+        "name": "Weezing",
+        "type": [
+            "Poison"
+        ]
     },
     {
         "base": [
@@ -1210,7 +1599,11 @@
             30,
             25
         ],
-        "name": "Weezing"
+        "name": "Rhyhorn",
+        "type": [
+            "Ground",
+            "Rock"
+        ]
     },
     {
         "base": [
@@ -1221,7 +1614,11 @@
             45,
             40
         ],
-        "name": "Rhyhorn"
+        "name": "Rhydon",
+        "type": [
+            "Ground",
+            "Rock"
+        ]
     },
     {
         "base": [
@@ -1232,7 +1629,10 @@
             105,
             50
         ],
-        "name": "Rhydon"
+        "name": "Chansey",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -1243,7 +1643,10 @@
             40,
             60
         ],
-        "name": "Chansey"
+        "name": "Tangela",
+        "type": [
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -1254,7 +1657,10 @@
             80,
             90
         ],
-        "name": "Tangela"
+        "name": "Kangaskhan",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -1265,7 +1671,10 @@
             25,
             60
         ],
-        "name": "Kangaskhan"
+        "name": "Horsea",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -1276,7 +1685,10 @@
             45,
             85
         ],
-        "name": "Horsea"
+        "name": "Seadra",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -1287,7 +1699,10 @@
             50,
             63
         ],
-        "name": "Seadra"
+        "name": "Goldeen",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -1298,7 +1713,10 @@
             80,
             68
         ],
-        "name": "Goldeen"
+        "name": "Seaking",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -1309,7 +1727,10 @@
             55,
             85
         ],
-        "name": "Seaking"
+        "name": "Staryu",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -1320,7 +1741,11 @@
             85,
             115
         ],
-        "name": "Staryu"
+        "name": "Starmie",
+        "type": [
+            "Water",
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -1331,7 +1756,10 @@
             120,
             90
         ],
-        "name": "Starmie"
+        "name": "Mr. Mime",
+        "type": [
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -1342,7 +1770,11 @@
             80,
             105
         ],
-        "name": "Mr. Mime"
+        "name": "Scyther",
+        "type": [
+            "Bug",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -1353,7 +1785,11 @@
             95,
             95
         ],
-        "name": "Scyther"
+        "name": "Jynx",
+        "type": [
+            "Ice",
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -1364,7 +1800,10 @@
             85,
             105
         ],
-        "name": "Jynx"
+        "name": "Electabuzz",
+        "type": [
+            "Electric"
+        ]
     },
     {
         "base": [
@@ -1375,7 +1814,10 @@
             85,
             93
         ],
-        "name": "Electabuzz"
+        "name": "Magmar",
+        "type": [
+            "Fire"
+        ]
     },
     {
         "base": [
@@ -1386,7 +1828,10 @@
             70,
             85
         ],
-        "name": "Magmar"
+        "name": "Pinsir",
+        "type": [
+            "Bug"
+        ]
     },
     {
         "base": [
@@ -1397,7 +1842,10 @@
             70,
             110
         ],
-        "name": "Pinsir"
+        "name": "Tauros",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -1408,7 +1856,10 @@
             20,
             80
         ],
-        "name": "Tauros"
+        "name": "Magikarp",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -1419,7 +1870,11 @@
             100,
             81
         ],
-        "name": "Magikarp"
+        "name": "Gyarados",
+        "type": [
+            "Water",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -1430,7 +1885,11 @@
             95,
             60
         ],
-        "name": "Gyarados"
+        "name": "Lapras",
+        "type": [
+            "Water",
+            "Ice"
+        ]
     },
     {
         "base": [
@@ -1441,7 +1900,10 @@
             48,
             48
         ],
-        "name": "Lapras"
+        "name": "Ditto",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -1452,7 +1914,10 @@
             65,
             55
         ],
-        "name": "Ditto"
+        "name": "Eevee",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -1463,7 +1928,10 @@
             95,
             65
         ],
-        "name": "Eevee"
+        "name": "Vaporeon",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -1474,7 +1942,10 @@
             95,
             130
         ],
-        "name": "Vaporeon"
+        "name": "Jolteon",
+        "type": [
+            "Electric"
+        ]
     },
     {
         "base": [
@@ -1485,7 +1956,10 @@
             110,
             65
         ],
-        "name": "Jolteon"
+        "name": "Flareon",
+        "type": [
+            "Fire"
+        ]
     },
     {
         "base": [
@@ -1496,7 +1970,10 @@
             75,
             40
         ],
-        "name": "Flareon"
+        "name": "Porygon",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -1507,7 +1984,11 @@
             55,
             35
         ],
-        "name": "Porygon"
+        "name": "Omanyte",
+        "type": [
+            "Rock",
+            "Water"
+        ]
     },
     {
         "base": [
@@ -1518,7 +1999,11 @@
             70,
             55
         ],
-        "name": "Omanyte"
+        "name": "Omastar",
+        "type": [
+            "Rock",
+            "Water"
+        ]
     },
     {
         "base": [
@@ -1529,7 +2014,11 @@
             45,
             55
         ],
-        "name": "Omastar"
+        "name": "Kabuto",
+        "type": [
+            "Rock",
+            "Water"
+        ]
     },
     {
         "base": [
@@ -1540,7 +2029,11 @@
             70,
             80
         ],
-        "name": "Kabuto"
+        "name": "Kabutops",
+        "type": [
+            "Rock",
+            "Water"
+        ]
     },
     {
         "base": [
@@ -1551,7 +2044,11 @@
             75,
             130
         ],
-        "name": "Kabutops"
+        "name": "Aerodactyl",
+        "type": [
+            "Rock",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -1562,7 +2059,10 @@
             110,
             30
         ],
-        "name": "Aerodactyl"
+        "name": "Snorlax",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -1573,7 +2073,11 @@
             125,
             85
         ],
-        "name": "Snorlax"
+        "name": "Articuno",
+        "type": [
+            "Ice",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -1584,7 +2088,11 @@
             90,
             100
         ],
-        "name": "Articuno"
+        "name": "Zapdos",
+        "type": [
+            "Electric",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -1595,7 +2103,11 @@
             85,
             90
         ],
-        "name": "Zapdos"
+        "name": "Moltres",
+        "type": [
+            "Fire",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -1606,7 +2118,10 @@
             50,
             50
         ],
-        "name": "Moltres"
+        "name": "Dratini",
+        "type": [
+            "Dragon"
+        ]
     },
     {
         "base": [
@@ -1617,7 +2132,10 @@
             70,
             70
         ],
-        "name": "Dratini"
+        "name": "Dragonair",
+        "type": [
+            "Dragon"
+        ]
     },
     {
         "base": [
@@ -1628,7 +2146,11 @@
             100,
             80
         ],
-        "name": "Dragonair"
+        "name": "Dragonite",
+        "type": [
+            "Dragon",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -1639,7 +2161,10 @@
             90,
             130
         ],
-        "name": "Dragonite"
+        "name": "Mewtwo",
+        "type": [
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -1650,7 +2175,10 @@
             100,
             100
         ],
-        "name": "Mewtwo"
+        "name": "Mew",
+        "type": [
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -1661,7 +2189,10 @@
             65,
             45
         ],
-        "name": "Mew"
+        "name": "Chikorita",
+        "type": [
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -1672,7 +2203,10 @@
             80,
             60
         ],
-        "name": "Chikorita"
+        "name": "Bayleef",
+        "type": [
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -1683,7 +2217,10 @@
             100,
             80
         ],
-        "name": "Bayleef"
+        "name": "Meganium",
+        "type": [
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -1694,7 +2231,10 @@
             50,
             65
         ],
-        "name": "Meganium"
+        "name": "Cyndaquil",
+        "type": [
+            "Fire"
+        ]
     },
     {
         "base": [
@@ -1705,7 +2245,10 @@
             65,
             80
         ],
-        "name": "Cyndaquil"
+        "name": "Quilava",
+        "type": [
+            "Fire"
+        ]
     },
     {
         "base": [
@@ -1716,7 +2259,10 @@
             85,
             100
         ],
-        "name": "Quilava"
+        "name": "Typhlosion",
+        "type": [
+            "Fire"
+        ]
     },
     {
         "base": [
@@ -1727,7 +2273,10 @@
             48,
             43
         ],
-        "name": "Typhlosion"
+        "name": "Totodile",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -1738,7 +2287,10 @@
             63,
             58
         ],
-        "name": "Totodile"
+        "name": "Croconaw",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -1749,7 +2301,10 @@
             83,
             78
         ],
-        "name": "Croconaw"
+        "name": "Feraligatr",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -1760,7 +2315,10 @@
             45,
             20
         ],
-        "name": "Feraligatr"
+        "name": "Sentret",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -1771,7 +2329,10 @@
             55,
             90
         ],
-        "name": "Sentret"
+        "name": "Furret",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -1782,18 +2343,26 @@
             56,
             50
         ],
-        "name": "Furret"
+        "name": "Hoothoot",
+        "type": [
+            "Normal",
+            "Flying"
+        ]
     },
     {
         "base": [
             100,
             50,
             50,
-            76,
+            86,
             96,
             70
         ],
-        "name": "Hoothoot"
+        "name": "Noctowl",
+        "type": [
+            "Normal",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -1804,7 +2373,11 @@
             80,
             55
         ],
-        "name": "Noctowl"
+        "name": "Ledyba",
+        "type": [
+            "Bug",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -1815,7 +2388,11 @@
             110,
             85
         ],
-        "name": "Ledyba"
+        "name": "Ledian",
+        "type": [
+            "Bug",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -1826,7 +2403,11 @@
             40,
             30
         ],
-        "name": "Ledian"
+        "name": "Spinarak",
+        "type": [
+            "Bug",
+            "Poison"
+        ]
     },
     {
         "base": [
@@ -1834,10 +2415,14 @@
             90,
             70,
             60,
-            60,
+            70,
             40
         ],
-        "name": "Spinarak"
+        "name": "Ariados",
+        "type": [
+            "Bug",
+            "Poison"
+        ]
     },
     {
         "base": [
@@ -1848,7 +2433,11 @@
             80,
             130
         ],
-        "name": "Ariados"
+        "name": "Crobat",
+        "type": [
+            "Poison",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -1859,7 +2448,11 @@
             56,
             67
         ],
-        "name": "Crobat"
+        "name": "Chinchou",
+        "type": [
+            "Water",
+            "Electric"
+        ]
     },
     {
         "base": [
@@ -1870,7 +2463,11 @@
             76,
             67
         ],
-        "name": "Chinchou"
+        "name": "Lanturn",
+        "type": [
+            "Water",
+            "Electric"
+        ]
     },
     {
         "base": [
@@ -1881,7 +2478,10 @@
             35,
             60
         ],
-        "name": "Lanturn"
+        "name": "Pichu",
+        "type": [
+            "Electric"
+        ]
     },
     {
         "base": [
@@ -1892,7 +2492,10 @@
             55,
             15
         ],
-        "name": "Pichu"
+        "name": "Cleffa",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -1903,7 +2506,10 @@
             20,
             15
         ],
-        "name": "Cleffa"
+        "name": "Igglybuff",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -1914,7 +2520,10 @@
             65,
             20
         ],
-        "name": "Igglybuff"
+        "name": "Togepi",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -1925,7 +2534,11 @@
             105,
             40
         ],
-        "name": "Togepi"
+        "name": "Togetic",
+        "type": [
+            "Normal",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -1936,7 +2549,11 @@
             45,
             70
         ],
-        "name": "Togetic"
+        "name": "Natu",
+        "type": [
+            "Psychic",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -1947,7 +2564,11 @@
             70,
             95
         ],
-        "name": "Natu"
+        "name": "Xatu",
+        "type": [
+            "Psychic",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -1958,7 +2579,10 @@
             45,
             35
         ],
-        "name": "Xatu"
+        "name": "Mareep",
+        "type": [
+            "Electric"
+        ]
     },
     {
         "base": [
@@ -1969,29 +2593,38 @@
             60,
             45
         ],
-        "name": "Mareep"
+        "name": "Flaaffy",
+        "type": [
+            "Electric"
+        ]
     },
     {
         "base": [
             90,
             75,
-            75,
+            85,
             115,
             90,
             55
         ],
-        "name": "Flaaffy"
+        "name": "Ampharos",
+        "type": [
+            "Electric"
+        ]
     },
     {
         "base": [
             75,
             80,
-            85,
+            95,
             90,
             100,
             50
         ],
-        "name": "Ampharos"
+        "name": "Bellossom",
+        "type": [
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -2002,18 +2635,24 @@
             50,
             40
         ],
-        "name": "Bellossom"
+        "name": "Marill",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
             100,
             50,
             80,
-            50,
+            60,
             80,
             50
         ],
-        "name": "Marill"
+        "name": "Azumarill",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -2024,7 +2663,10 @@
             65,
             30
         ],
-        "name": "Azumarill"
+        "name": "Sudowoodo",
+        "type": [
+            "Rock"
+        ]
     },
     {
         "base": [
@@ -2035,7 +2677,10 @@
             100,
             70
         ],
-        "name": "Sudowoodo"
+        "name": "Politoed",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -2046,7 +2691,11 @@
             55,
             50
         ],
-        "name": "Politoed"
+        "name": "Hoppip",
+        "type": [
+            "Grass",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -2057,7 +2706,11 @@
             65,
             80
         ],
-        "name": "Hoppip"
+        "name": "Skiploom",
+        "type": [
+            "Grass",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -2065,10 +2718,14 @@
             55,
             70,
             55,
-            85,
+            95,
             110
         ],
-        "name": "Skiploom"
+        "name": "Jumpluff",
+        "type": [
+            "Grass",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -2079,7 +2736,10 @@
             55,
             85
         ],
-        "name": "Jumpluff"
+        "name": "Aipom",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -2090,7 +2750,10 @@
             30,
             30
         ],
-        "name": "Aipom"
+        "name": "Sunkern",
+        "type": [
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -2101,7 +2764,10 @@
             85,
             30
         ],
-        "name": "Sunkern"
+        "name": "Sunflora",
+        "type": [
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -2112,7 +2778,11 @@
             45,
             95
         ],
-        "name": "Sunflora"
+        "name": "Yanma",
+        "type": [
+            "Bug",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -2123,7 +2793,11 @@
             25,
             15
         ],
-        "name": "Yanma"
+        "name": "Wooper",
+        "type": [
+            "Water",
+            "Ground"
+        ]
     },
     {
         "base": [
@@ -2134,7 +2808,11 @@
             65,
             35
         ],
-        "name": "Wooper"
+        "name": "Quagsire",
+        "type": [
+            "Water",
+            "Ground"
+        ]
     },
     {
         "base": [
@@ -2145,7 +2823,10 @@
             95,
             110
         ],
-        "name": "Quagsire"
+        "name": "Espeon",
+        "type": [
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -2156,7 +2837,10 @@
             130,
             65
         ],
-        "name": "Espeon"
+        "name": "Umbreon",
+        "type": [
+            "Dark"
+        ]
     },
     {
         "base": [
@@ -2167,7 +2851,11 @@
             42,
             91
         ],
-        "name": "Umbreon"
+        "name": "Murkrow",
+        "type": [
+            "Dark",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -2178,7 +2866,11 @@
             110,
             30
         ],
-        "name": "Murkrow"
+        "name": "Slowking",
+        "type": [
+            "Water",
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -2189,7 +2881,10 @@
             85,
             85
         ],
-        "name": "Slowking"
+        "name": "Misdreavus",
+        "type": [
+            "Ghost"
+        ]
     },
     {
         "base": [
@@ -2200,7 +2895,10 @@
             48,
             48
         ],
-        "name": "Misdreavus"
+        "name": "Unown",
+        "type": [
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -2211,7 +2909,10 @@
             58,
             33
         ],
-        "name": "Unown"
+        "name": "Wobbuffet",
+        "type": [
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -2222,7 +2923,11 @@
             65,
             85
         ],
-        "name": "Wobbuffet"
+        "name": "Girafarig",
+        "type": [
+            "Normal",
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -2233,7 +2938,10 @@
             35,
             15
         ],
-        "name": "Girafarig"
+        "name": "Pineco",
+        "type": [
+            "Bug"
+        ]
     },
     {
         "base": [
@@ -2244,7 +2952,11 @@
             60,
             40
         ],
-        "name": "Pineco"
+        "name": "Forretress",
+        "type": [
+            "Bug",
+            "Steel"
+        ]
     },
     {
         "base": [
@@ -2255,7 +2967,10 @@
             65,
             45
         ],
-        "name": "Forretress"
+        "name": "Dunsparce",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -2266,7 +2981,11 @@
             65,
             85
         ],
-        "name": "Dunsparce"
+        "name": "Gligar",
+        "type": [
+            "Ground",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -2277,7 +2996,11 @@
             65,
             30
         ],
-        "name": "Gligar"
+        "name": "Steelix",
+        "type": [
+            "Steel",
+            "Ground"
+        ]
     },
     {
         "base": [
@@ -2288,7 +3011,10 @@
             40,
             30
         ],
-        "name": "Steelix"
+        "name": "Snubbull",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -2299,18 +3025,25 @@
             60,
             45
         ],
-        "name": "Snubbull"
+        "name": "Granbull",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
             65,
             95,
-            75,
+            85,
             55,
             55,
             85
         ],
-        "name": "Granbull"
+        "name": "Qwilfish",
+        "type": [
+            "Water",
+            "Poison"
+        ]
     },
     {
         "base": [
@@ -2321,7 +3054,11 @@
             80,
             65
         ],
-        "name": "Qwilfish"
+        "name": "Scizor",
+        "type": [
+            "Bug",
+            "Steel"
+        ]
     },
     {
         "base": [
@@ -2332,7 +3069,11 @@
             230,
             5
         ],
-        "name": "Scizor"
+        "name": "Shuckle",
+        "type": [
+            "Bug",
+            "Rock"
+        ]
     },
     {
         "base": [
@@ -2343,7 +3084,11 @@
             95,
             85
         ],
-        "name": "Shuckle"
+        "name": "Heracross",
+        "type": [
+            "Bug",
+            "Fighting"
+        ]
     },
     {
         "base": [
@@ -2354,7 +3099,11 @@
             75,
             115
         ],
-        "name": "Heracross"
+        "name": "Sneasel",
+        "type": [
+            "Dark",
+            "Ice"
+        ]
     },
     {
         "base": [
@@ -2365,7 +3114,10 @@
             50,
             40
         ],
-        "name": "Sneasel"
+        "name": "Teddiursa",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -2376,7 +3128,10 @@
             75,
             55
         ],
-        "name": "Teddiursa"
+        "name": "Ursaring",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -2387,18 +3142,25 @@
             40,
             20
         ],
-        "name": "Ursaring"
+        "name": "Slugma",
+        "type": [
+            "Fire"
+        ]
     },
     {
         "base": [
-            50,
+            60,
             50,
             120,
-            80,
+            90,
             80,
             30
         ],
-        "name": "Slugma"
+        "name": "Magcargo",
+        "type": [
+            "Fire",
+            "Rock"
+        ]
     },
     {
         "base": [
@@ -2409,7 +3171,11 @@
             30,
             50
         ],
-        "name": "Magcargo"
+        "name": "Swinub",
+        "type": [
+            "Ice",
+            "Ground"
+        ]
     },
     {
         "base": [
@@ -2420,18 +3186,26 @@
             60,
             50
         ],
-        "name": "Swinub"
+        "name": "Piloswine",
+        "type": [
+            "Ice",
+            "Ground"
+        ]
     },
     {
         "base": [
-            55,
-            55,
-            85,
             65,
-            85,
+            55,
+            95,
+            65,
+            95,
             35
         ],
-        "name": "Piloswine"
+        "name": "Corsola",
+        "type": [
+            "Water",
+            "Rock"
+        ]
     },
     {
         "base": [
@@ -2442,7 +3216,10 @@
             35,
             65
         ],
-        "name": "Corsola"
+        "name": "Remoraid",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -2453,7 +3230,10 @@
             75,
             45
         ],
-        "name": "Remoraid"
+        "name": "Octillery",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -2464,18 +3244,26 @@
             45,
             75
         ],
-        "name": "Octillery"
+        "name": "Delibird",
+        "type": [
+            "Ice",
+            "Flying"
+        ]
     },
     {
         "base": [
-            65,
+            85,
             40,
             70,
             80,
             140,
             70
         ],
-        "name": "Delibird"
+        "name": "Mantine",
+        "type": [
+            "Water",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -2486,7 +3274,11 @@
             70,
             70
         ],
-        "name": "Mantine"
+        "name": "Skarmory",
+        "type": [
+            "Steel",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -2497,7 +3289,11 @@
             50,
             65
         ],
-        "name": "Skarmory"
+        "name": "Houndour",
+        "type": [
+            "Dark",
+            "Fire"
+        ]
     },
     {
         "base": [
@@ -2508,7 +3304,11 @@
             80,
             95
         ],
-        "name": "Houndour"
+        "name": "Houndoom",
+        "type": [
+            "Dark",
+            "Fire"
+        ]
     },
     {
         "base": [
@@ -2519,7 +3319,11 @@
             95,
             85
         ],
-        "name": "Houndoom"
+        "name": "Kingdra",
+        "type": [
+            "Water",
+            "Dragon"
+        ]
     },
     {
         "base": [
@@ -2530,7 +3334,10 @@
             40,
             40
         ],
-        "name": "Kingdra"
+        "name": "Phanpy",
+        "type": [
+            "Ground"
+        ]
     },
     {
         "base": [
@@ -2541,7 +3348,10 @@
             60,
             50
         ],
-        "name": "Phanpy"
+        "name": "Donphan",
+        "type": [
+            "Ground"
+        ]
     },
     {
         "base": [
@@ -2552,7 +3362,10 @@
             95,
             60
         ],
-        "name": "Donphan"
+        "name": "Porygon2",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -2563,7 +3376,10 @@
             65,
             85
         ],
-        "name": "Porygon2"
+        "name": "Stantler",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -2574,7 +3390,10 @@
             45,
             75
         ],
-        "name": "Stantler"
+        "name": "Smeargle",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -2585,7 +3404,10 @@
             35,
             35
         ],
-        "name": "Smeargle"
+        "name": "Tyrogue",
+        "type": [
+            "Fighting"
+        ]
     },
     {
         "base": [
@@ -2596,7 +3418,10 @@
             110,
             70
         ],
-        "name": "Tyrogue"
+        "name": "Hitmontop",
+        "type": [
+            "Fighting"
+        ]
     },
     {
         "base": [
@@ -2607,7 +3432,11 @@
             65,
             65
         ],
-        "name": "Hitmontop"
+        "name": "Smoochum",
+        "type": [
+            "Ice",
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -2618,7 +3447,10 @@
             55,
             95
         ],
-        "name": "Smoochum"
+        "name": "Elekid",
+        "type": [
+            "Electric"
+        ]
     },
     {
         "base": [
@@ -2629,7 +3461,10 @@
             55,
             83
         ],
-        "name": "Elekid"
+        "name": "Magby",
+        "type": [
+            "Fire"
+        ]
     },
     {
         "base": [
@@ -2640,7 +3475,10 @@
             70,
             100
         ],
-        "name": "Magby"
+        "name": "Miltank",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -2651,7 +3489,10 @@
             135,
             55
         ],
-        "name": "Miltank"
+        "name": "Blissey",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -2662,7 +3503,10 @@
             100,
             115
         ],
-        "name": "Blissey"
+        "name": "Raikou",
+        "type": [
+            "Electric"
+        ]
     },
     {
         "base": [
@@ -2673,7 +3517,10 @@
             75,
             100
         ],
-        "name": "Raikou"
+        "name": "Entei",
+        "type": [
+            "Fire"
+        ]
     },
     {
         "base": [
@@ -2684,7 +3531,10 @@
             115,
             85
         ],
-        "name": "Entei"
+        "name": "Suicune",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -2695,7 +3545,11 @@
             50,
             41
         ],
-        "name": "Suicune"
+        "name": "Larvitar",
+        "type": [
+            "Rock",
+            "Ground"
+        ]
     },
     {
         "base": [
@@ -2706,7 +3560,11 @@
             70,
             51
         ],
-        "name": "Larvitar"
+        "name": "Pupitar",
+        "type": [
+            "Rock",
+            "Ground"
+        ]
     },
     {
         "base": [
@@ -2717,7 +3575,11 @@
             100,
             61
         ],
-        "name": "Pupitar"
+        "name": "Tyranitar",
+        "type": [
+            "Rock",
+            "Dark"
+        ]
     },
     {
         "base": [
@@ -2728,7 +3590,11 @@
             154,
             110
         ],
-        "name": "Tyranitar"
+        "name": "Lugia",
+        "type": [
+            "Psychic",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -2739,7 +3605,11 @@
             154,
             90
         ],
-        "name": "Lugia"
+        "name": "Ho-Oh",
+        "type": [
+            "Fire",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -2750,7 +3620,11 @@
             100,
             100
         ],
-        "name": "Ho-Oh"
+        "name": "Celebi",
+        "type": [
+            "Psychic",
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -2761,7 +3635,10 @@
             55,
             70
         ],
-        "name": "Celebi"
+        "name": "Treecko",
+        "type": [
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -2772,7 +3649,10 @@
             65,
             95
         ],
-        "name": "Treecko"
+        "name": "Grovyle",
+        "type": [
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -2783,7 +3663,10 @@
             85,
             120
         ],
-        "name": "Grovyle"
+        "name": "Sceptile",
+        "type": [
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -2794,7 +3677,10 @@
             50,
             45
         ],
-        "name": "Sceptile"
+        "name": "Torchic",
+        "type": [
+            "Fire"
+        ]
     },
     {
         "base": [
@@ -2805,7 +3691,11 @@
             60,
             55
         ],
-        "name": "Torchic"
+        "name": "Combusken",
+        "type": [
+            "Fire",
+            "Fighting"
+        ]
     },
     {
         "base": [
@@ -2816,7 +3706,11 @@
             70,
             80
         ],
-        "name": "Combusken"
+        "name": "Blaziken",
+        "type": [
+            "Fire",
+            "Fighting"
+        ]
     },
     {
         "base": [
@@ -2827,7 +3721,10 @@
             50,
             40
         ],
-        "name": "Blaziken"
+        "name": "Mudkip",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -2838,7 +3735,11 @@
             70,
             50
         ],
-        "name": "Mudkip"
+        "name": "Marshtomp",
+        "type": [
+            "Water",
+            "Ground"
+        ]
     },
     {
         "base": [
@@ -2849,7 +3750,11 @@
             90,
             60
         ],
-        "name": "Marshtomp"
+        "name": "Swampert",
+        "type": [
+            "Water",
+            "Ground"
+        ]
     },
     {
         "base": [
@@ -2860,7 +3765,10 @@
             30,
             35
         ],
-        "name": "Swampert"
+        "name": "Poochyena",
+        "type": [
+            "Dark"
+        ]
     },
     {
         "base": [
@@ -2871,7 +3779,10 @@
             60,
             70
         ],
-        "name": "Poochyena"
+        "name": "Mightyena",
+        "type": [
+            "Dark"
+        ]
     },
     {
         "base": [
@@ -2882,7 +3793,10 @@
             41,
             60
         ],
-        "name": "Mightyena"
+        "name": "Zigzagoon",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -2893,7 +3807,10 @@
             61,
             100
         ],
-        "name": "Zigzagoon"
+        "name": "Linoone",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -2904,7 +3821,10 @@
             30,
             20
         ],
-        "name": "Linoone"
+        "name": "Wurmple",
+        "type": [
+            "Bug"
+        ]
     },
     {
         "base": [
@@ -2915,18 +3835,25 @@
             25,
             15
         ],
-        "name": "Wurmple"
+        "name": "Silcoon",
+        "type": [
+            "Bug"
+        ]
     },
     {
         "base": [
             60,
             70,
             50,
-            90,
+            100,
             50,
             65
         ],
-        "name": "Silcoon"
+        "name": "Beautifly",
+        "type": [
+            "Bug",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -2937,7 +3864,10 @@
             25,
             15
         ],
-        "name": "Beautifly"
+        "name": "Cascoon",
+        "type": [
+            "Bug"
+        ]
     },
     {
         "base": [
@@ -2948,7 +3878,11 @@
             90,
             65
         ],
-        "name": "Cascoon"
+        "name": "Dustox",
+        "type": [
+            "Bug",
+            "Poison"
+        ]
     },
     {
         "base": [
@@ -2959,7 +3893,11 @@
             50,
             30
         ],
-        "name": "Dustox"
+        "name": "Lotad",
+        "type": [
+            "Water",
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -2970,7 +3908,11 @@
             70,
             50
         ],
-        "name": "Lotad"
+        "name": "Lombre",
+        "type": [
+            "Water",
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -2981,7 +3923,11 @@
             100,
             70
         ],
-        "name": "Lombre"
+        "name": "Ludicolo",
+        "type": [
+            "Water",
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -2992,7 +3938,10 @@
             30,
             30
         ],
-        "name": "Ludicolo"
+        "name": "Seedot",
+        "type": [
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -3003,7 +3952,11 @@
             40,
             60
         ],
-        "name": "Seedot"
+        "name": "Nuzleaf",
+        "type": [
+            "Grass",
+            "Dark"
+        ]
     },
     {
         "base": [
@@ -3014,7 +3967,11 @@
             60,
             80
         ],
-        "name": "Nuzleaf"
+        "name": "Shiftry",
+        "type": [
+            "Grass",
+            "Dark"
+        ]
     },
     {
         "base": [
@@ -3025,18 +3982,26 @@
             30,
             85
         ],
-        "name": "Shiftry"
+        "name": "Taillow",
+        "type": [
+            "Normal",
+            "Flying"
+        ]
     },
     {
         "base": [
             60,
             85,
             60,
-            50,
+            75,
             50,
             125
         ],
-        "name": "Taillow"
+        "name": "Swellow",
+        "type": [
+            "Normal",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -3047,18 +4012,26 @@
             30,
             85
         ],
-        "name": "Swellow"
+        "name": "Wingull",
+        "type": [
+            "Water",
+            "Flying"
+        ]
     },
     {
         "base": [
             60,
             50,
             100,
-            85,
+            95,
             70,
             65
         ],
-        "name": "Wingull"
+        "name": "Pelipper",
+        "type": [
+            "Water",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -3069,7 +4042,10 @@
             35,
             40
         ],
-        "name": "Pelipper"
+        "name": "Ralts",
+        "type": [
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -3080,7 +4056,10 @@
             55,
             50
         ],
-        "name": "Ralts"
+        "name": "Kirlia",
+        "type": [
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -3091,7 +4070,10 @@
             115,
             80
         ],
-        "name": "Kirlia"
+        "name": "Gardevoir",
+        "type": [
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -3102,18 +4084,26 @@
             52,
             65
         ],
-        "name": "Gardevoir"
+        "name": "Surskit",
+        "type": [
+            "Bug",
+            "Water"
+        ]
     },
     {
         "base": [
             70,
             60,
             62,
-            80,
+            100,
             82,
             80
         ],
-        "name": "Surskit"
+        "name": "Masquerain",
+        "type": [
+            "Bug",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -3124,7 +4114,10 @@
             60,
             35
         ],
-        "name": "Masquerain"
+        "name": "Shroomish",
+        "type": [
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -3135,7 +4128,11 @@
             60,
             70
         ],
-        "name": "Shroomish"
+        "name": "Breloom",
+        "type": [
+            "Grass",
+            "Fighting"
+        ]
     },
     {
         "base": [
@@ -3146,7 +4143,10 @@
             35,
             30
         ],
-        "name": "Breloom"
+        "name": "Slakoth",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -3157,7 +4157,10 @@
             55,
             90
         ],
-        "name": "Slakoth"
+        "name": "Vigoroth",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -3168,7 +4171,10 @@
             65,
             100
         ],
-        "name": "Vigoroth"
+        "name": "Slaking",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -3179,7 +4185,11 @@
             30,
             40
         ],
-        "name": "Slaking"
+        "name": "Nincada",
+        "type": [
+            "Bug",
+            "Ground"
+        ]
     },
     {
         "base": [
@@ -3190,7 +4200,11 @@
             50,
             160
         ],
-        "name": "Nincada"
+        "name": "Ninjask",
+        "type": [
+            "Bug",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -3201,7 +4215,11 @@
             30,
             40
         ],
-        "name": "Ninjask"
+        "name": "Shedinja",
+        "type": [
+            "Bug",
+            "Ghost"
+        ]
     },
     {
         "base": [
@@ -3212,7 +4230,10 @@
             23,
             28
         ],
-        "name": "Shedinja"
+        "name": "Whismur",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -3223,7 +4244,10 @@
             43,
             48
         ],
-        "name": "Whismur"
+        "name": "Loudred",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -3231,10 +4255,13 @@
             91,
             63,
             91,
-            63,
+            73,
             68
         ],
-        "name": "Loudred"
+        "name": "Exploud",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -3245,7 +4272,10 @@
             30,
             25
         ],
-        "name": "Exploud"
+        "name": "Makuhita",
+        "type": [
+            "Fighting"
+        ]
     },
     {
         "base": [
@@ -3256,7 +4286,10 @@
             60,
             50
         ],
-        "name": "Makuhita"
+        "name": "Hariyama",
+        "type": [
+            "Fighting"
+        ]
     },
     {
         "base": [
@@ -3267,7 +4300,10 @@
             40,
             20
         ],
-        "name": "Hariyama"
+        "name": "Azurill",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -3278,7 +4314,10 @@
             90,
             30
         ],
-        "name": "Azurill"
+        "name": "Nosepass",
+        "type": [
+            "Rock"
+        ]
     },
     {
         "base": [
@@ -3289,7 +4328,10 @@
             35,
             50
         ],
-        "name": "Nosepass"
+        "name": "Skitty",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -3298,9 +4340,12 @@
             65,
             55,
             55,
-            70
+            90
         ],
-        "name": "Skitty"
+        "name": "Delcatty",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -3311,7 +4356,11 @@
             65,
             50
         ],
-        "name": "Delcatty"
+        "name": "Sableye",
+        "type": [
+            "Dark",
+            "Ghost"
+        ]
     },
     {
         "base": [
@@ -3322,7 +4371,10 @@
             55,
             50
         ],
-        "name": "Sableye"
+        "name": "Mawile",
+        "type": [
+            "Steel"
+        ]
     },
     {
         "base": [
@@ -3333,7 +4385,11 @@
             40,
             30
         ],
-        "name": "Mawile"
+        "name": "Aron",
+        "type": [
+            "Steel",
+            "Rock"
+        ]
     },
     {
         "base": [
@@ -3344,7 +4400,11 @@
             50,
             40
         ],
-        "name": "Aron"
+        "name": "Lairon",
+        "type": [
+            "Steel",
+            "Rock"
+        ]
     },
     {
         "base": [
@@ -3355,7 +4415,11 @@
             60,
             50
         ],
-        "name": "Lairon"
+        "name": "Aggron",
+        "type": [
+            "Steel",
+            "Rock"
+        ]
     },
     {
         "base": [
@@ -3366,7 +4430,11 @@
             55,
             60
         ],
-        "name": "Aggron"
+        "name": "Meditite",
+        "type": [
+            "Fighting",
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -3377,7 +4445,11 @@
             75,
             80
         ],
-        "name": "Meditite"
+        "name": "Medicham",
+        "type": [
+            "Fighting",
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -3388,7 +4460,10 @@
             40,
             65
         ],
-        "name": "Medicham"
+        "name": "Electrike",
+        "type": [
+            "Electric"
+        ]
     },
     {
         "base": [
@@ -3399,7 +4474,10 @@
             60,
             105
         ],
-        "name": "Electrike"
+        "name": "Manectric",
+        "type": [
+            "Electric"
+        ]
     },
     {
         "base": [
@@ -3410,7 +4488,10 @@
             75,
             95
         ],
-        "name": "Manectric"
+        "name": "Plusle",
+        "type": [
+            "Electric"
+        ]
     },
     {
         "base": [
@@ -3421,18 +4502,24 @@
             85,
             95
         ],
-        "name": "Plusle"
+        "name": "Minun",
+        "type": [
+            "Electric"
+        ]
     },
     {
         "base": [
             65,
             73,
-            55,
-            47,
             75,
+            47,
+            85,
             85
         ],
-        "name": "Minun"
+        "name": "Volbeat",
+        "type": [
+            "Bug"
+        ]
     },
     {
         "base": [
@@ -3443,7 +4530,10 @@
             85,
             85
         ],
-        "name": "Volbeat"
+        "name": "Illumise",
+        "type": [
+            "Bug"
+        ]
     },
     {
         "base": [
@@ -3454,7 +4544,11 @@
             80,
             65
         ],
-        "name": "Illumise"
+        "name": "Roselia",
+        "type": [
+            "Grass",
+            "Poison"
+        ]
     },
     {
         "base": [
@@ -3465,7 +4559,10 @@
             53,
             40
         ],
-        "name": "Roselia"
+        "name": "Gulpin",
+        "type": [
+            "Poison"
+        ]
     },
     {
         "base": [
@@ -3476,7 +4573,10 @@
             83,
             55
         ],
-        "name": "Gulpin"
+        "name": "Swalot",
+        "type": [
+            "Poison"
+        ]
     },
     {
         "base": [
@@ -3487,7 +4587,11 @@
             20,
             65
         ],
-        "name": "Swalot"
+        "name": "Carvanha",
+        "type": [
+            "Water",
+            "Dark"
+        ]
     },
     {
         "base": [
@@ -3498,7 +4602,11 @@
             40,
             95
         ],
-        "name": "Carvanha"
+        "name": "Sharpedo",
+        "type": [
+            "Water",
+            "Dark"
+        ]
     },
     {
         "base": [
@@ -3509,7 +4617,10 @@
             35,
             60
         ],
-        "name": "Sharpedo"
+        "name": "Wailmer",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -3520,7 +4631,10 @@
             45,
             60
         ],
-        "name": "Wailmer"
+        "name": "Wailord",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -3531,7 +4645,11 @@
             45,
             35
         ],
-        "name": "Wailord"
+        "name": "Numel",
+        "type": [
+            "Fire",
+            "Ground"
+        ]
     },
     {
         "base": [
@@ -3542,7 +4660,11 @@
             75,
             40
         ],
-        "name": "Numel"
+        "name": "Camerupt",
+        "type": [
+            "Fire",
+            "Ground"
+        ]
     },
     {
         "base": [
@@ -3553,7 +4675,10 @@
             70,
             20
         ],
-        "name": "Camerupt"
+        "name": "Torkoal",
+        "type": [
+            "Fire"
+        ]
     },
     {
         "base": [
@@ -3564,7 +4689,10 @@
             80,
             60
         ],
-        "name": "Torkoal"
+        "name": "Spoink",
+        "type": [
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -3575,7 +4703,10 @@
             110,
             80
         ],
-        "name": "Spoink"
+        "name": "Grumpig",
+        "type": [
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -3586,7 +4717,10 @@
             60,
             60
         ],
-        "name": "Grumpig"
+        "name": "Spinda",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -3597,7 +4731,10 @@
             45,
             10
         ],
-        "name": "Spinda"
+        "name": "Trapinch",
+        "type": [
+            "Ground"
+        ]
     },
     {
         "base": [
@@ -3608,7 +4745,11 @@
             50,
             70
         ],
-        "name": "Trapinch"
+        "name": "Vibrava",
+        "type": [
+            "Ground",
+            "Dragon"
+        ]
     },
     {
         "base": [
@@ -3619,7 +4760,11 @@
             80,
             100
         ],
-        "name": "Vibrava"
+        "name": "Flygon",
+        "type": [
+            "Ground",
+            "Dragon"
+        ]
     },
     {
         "base": [
@@ -3630,7 +4775,10 @@
             40,
             35
         ],
-        "name": "Flygon"
+        "name": "Cacnea",
+        "type": [
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -3641,7 +4789,11 @@
             60,
             55
         ],
-        "name": "Cacnea"
+        "name": "Cacturne",
+        "type": [
+            "Grass",
+            "Dark"
+        ]
     },
     {
         "base": [
@@ -3652,7 +4804,11 @@
             75,
             50
         ],
-        "name": "Cacturne"
+        "name": "Swablu",
+        "type": [
+            "Normal",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -3663,7 +4819,11 @@
             105,
             80
         ],
-        "name": "Swablu"
+        "name": "Altaria",
+        "type": [
+            "Dragon",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -3674,7 +4834,10 @@
             60,
             90
         ],
-        "name": "Altaria"
+        "name": "Zangoose",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -3685,29 +4848,40 @@
             60,
             65
         ],
-        "name": "Zangoose"
+        "name": "Seviper",
+        "type": [
+            "Poison"
+        ]
     },
     {
         "base": [
-            70,
+            90,
             55,
             65,
             95,
             85,
             70
         ],
-        "name": "Seviper"
+        "name": "Lunatone",
+        "type": [
+            "Rock",
+            "Psychic"
+        ]
     },
     {
         "base": [
-            70,
+            90,
             95,
             85,
             55,
             65,
             70
         ],
-        "name": "Lunatone"
+        "name": "Solrock",
+        "type": [
+            "Rock",
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -3718,7 +4892,11 @@
             41,
             60
         ],
-        "name": "Solrock"
+        "name": "Barboach",
+        "type": [
+            "Water",
+            "Ground"
+        ]
     },
     {
         "base": [
@@ -3729,7 +4907,11 @@
             71,
             60
         ],
-        "name": "Barboach"
+        "name": "Whiscash",
+        "type": [
+            "Water",
+            "Ground"
+        ]
     },
     {
         "base": [
@@ -3740,7 +4922,10 @@
             35,
             35
         ],
-        "name": "Whiscash"
+        "name": "Corphish",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -3751,7 +4936,11 @@
             55,
             55
         ],
-        "name": "Corphish"
+        "name": "Crawdaunt",
+        "type": [
+            "Water",
+            "Dark"
+        ]
     },
     {
         "base": [
@@ -3762,7 +4951,11 @@
             70,
             55
         ],
-        "name": "Crawdaunt"
+        "name": "Baltoy",
+        "type": [
+            "Ground",
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -3773,7 +4966,11 @@
             120,
             75
         ],
-        "name": "Baltoy"
+        "name": "Claydol",
+        "type": [
+            "Ground",
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -3784,7 +4981,11 @@
             87,
             23
         ],
-        "name": "Claydol"
+        "name": "Lileep",
+        "type": [
+            "Rock",
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -3795,7 +4996,11 @@
             107,
             43
         ],
-        "name": "Lileep"
+        "name": "Cradily",
+        "type": [
+            "Rock",
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -3806,7 +5011,11 @@
             50,
             75
         ],
-        "name": "Cradily"
+        "name": "Anorith",
+        "type": [
+            "Rock",
+            "Bug"
+        ]
     },
     {
         "base": [
@@ -3817,7 +5026,11 @@
             80,
             45
         ],
-        "name": "Anorith"
+        "name": "Armaldo",
+        "type": [
+            "Rock",
+            "Bug"
+        ]
     },
     {
         "base": [
@@ -3828,7 +5041,10 @@
             55,
             80
         ],
-        "name": "Armaldo"
+        "name": "Feebas",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -3839,7 +5055,10 @@
             125,
             81
         ],
-        "name": "Feebas"
+        "name": "Milotic",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -3850,7 +5069,10 @@
             70,
             70
         ],
-        "name": "Milotic"
+        "name": "Castform",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -3861,7 +5083,10 @@
             120,
             40
         ],
-        "name": "Castform"
+        "name": "Kecleon",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -3872,7 +5097,10 @@
             33,
             45
         ],
-        "name": "Kecleon"
+        "name": "Shuppet",
+        "type": [
+            "Ghost"
+        ]
     },
     {
         "base": [
@@ -3883,7 +5111,10 @@
             63,
             65
         ],
-        "name": "Shuppet"
+        "name": "Banette",
+        "type": [
+            "Ghost"
+        ]
     },
     {
         "base": [
@@ -3894,7 +5125,10 @@
             90,
             25
         ],
-        "name": "Banette"
+        "name": "Duskull",
+        "type": [
+            "Ghost"
+        ]
     },
     {
         "base": [
@@ -3905,7 +5139,10 @@
             130,
             25
         ],
-        "name": "Duskull"
+        "name": "Dusclops",
+        "type": [
+            "Ghost"
+        ]
     },
     {
         "base": [
@@ -3916,18 +5153,25 @@
             87,
             51
         ],
-        "name": "Dusclops"
+        "name": "Tropius",
+        "type": [
+            "Grass",
+            "Flying"
+        ]
     },
     {
         "base": [
-            65,
+            75,
             50,
-            70,
-            95,
             80,
+            95,
+            90,
             65
         ],
-        "name": "Tropius"
+        "name": "Chimecho",
+        "type": [
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -3938,7 +5182,10 @@
             60,
             75
         ],
-        "name": "Chimecho"
+        "name": "Absol",
+        "type": [
+            "Dark"
+        ]
     },
     {
         "base": [
@@ -3949,7 +5196,10 @@
             48,
             23
         ],
-        "name": "Absol"
+        "name": "Wynaut",
+        "type": [
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -3960,7 +5210,10 @@
             50,
             50
         ],
-        "name": "Wynaut"
+        "name": "Snorunt",
+        "type": [
+            "Ice"
+        ]
     },
     {
         "base": [
@@ -3971,7 +5224,10 @@
             80,
             80
         ],
-        "name": "Snorunt"
+        "name": "Glalie",
+        "type": [
+            "Ice"
+        ]
     },
     {
         "base": [
@@ -3982,7 +5238,11 @@
             50,
             25
         ],
-        "name": "Glalie"
+        "name": "Spheal",
+        "type": [
+            "Ice",
+            "Water"
+        ]
     },
     {
         "base": [
@@ -3993,7 +5253,11 @@
             70,
             45
         ],
-        "name": "Spheal"
+        "name": "Sealeo",
+        "type": [
+            "Ice",
+            "Water"
+        ]
     },
     {
         "base": [
@@ -4004,7 +5268,11 @@
             90,
             65
         ],
-        "name": "Sealeo"
+        "name": "Walrein",
+        "type": [
+            "Ice",
+            "Water"
+        ]
     },
     {
         "base": [
@@ -4015,7 +5283,10 @@
             55,
             32
         ],
-        "name": "Walrein"
+        "name": "Clamperl",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -4026,7 +5297,10 @@
             75,
             52
         ],
-        "name": "Clamperl"
+        "name": "Huntail",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -4037,7 +5311,10 @@
             75,
             52
         ],
-        "name": "Huntail"
+        "name": "Gorebyss",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -4048,7 +5325,11 @@
             65,
             55
         ],
-        "name": "Gorebyss"
+        "name": "Relicanth",
+        "type": [
+            "Water",
+            "Rock"
+        ]
     },
     {
         "base": [
@@ -4059,7 +5340,10 @@
             65,
             97
         ],
-        "name": "Relicanth"
+        "name": "Luvdisc",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -4070,7 +5354,10 @@
             30,
             50
         ],
-        "name": "Luvdisc"
+        "name": "Bagon",
+        "type": [
+            "Dragon"
+        ]
     },
     {
         "base": [
@@ -4081,7 +5368,10 @@
             50,
             50
         ],
-        "name": "Bagon"
+        "name": "Shelgon",
+        "type": [
+            "Dragon"
+        ]
     },
     {
         "base": [
@@ -4092,7 +5382,11 @@
             80,
             100
         ],
-        "name": "Shelgon"
+        "name": "Salamence",
+        "type": [
+            "Dragon",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -4103,7 +5397,11 @@
             60,
             30
         ],
-        "name": "Salamence"
+        "name": "Beldum",
+        "type": [
+            "Steel",
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -4114,7 +5412,11 @@
             80,
             50
         ],
-        "name": "Beldum"
+        "name": "Metang",
+        "type": [
+            "Steel",
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -4125,7 +5427,11 @@
             90,
             70
         ],
-        "name": "Metang"
+        "name": "Metagross",
+        "type": [
+            "Steel",
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -4136,7 +5442,10 @@
             100,
             50
         ],
-        "name": "Metagross"
+        "name": "Regirock",
+        "type": [
+            "Rock"
+        ]
     },
     {
         "base": [
@@ -4147,7 +5456,10 @@
             200,
             50
         ],
-        "name": "Regirock"
+        "name": "Regice",
+        "type": [
+            "Ice"
+        ]
     },
     {
         "base": [
@@ -4158,7 +5470,10 @@
             150,
             50
         ],
-        "name": "Regice"
+        "name": "Registeel",
+        "type": [
+            "Steel"
+        ]
     },
     {
         "base": [
@@ -4169,7 +5484,11 @@
             130,
             110
         ],
-        "name": "Registeel"
+        "name": "Latias",
+        "type": [
+            "Dragon",
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -4180,7 +5499,11 @@
             110,
             110
         ],
-        "name": "Latias"
+        "name": "Latios",
+        "type": [
+            "Dragon",
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -4191,7 +5514,10 @@
             140,
             90
         ],
-        "name": "Latios"
+        "name": "Kyogre",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -4202,7 +5528,10 @@
             90,
             90
         ],
-        "name": "Kyogre"
+        "name": "Groudon",
+        "type": [
+            "Ground"
+        ]
     },
     {
         "base": [
@@ -4213,7 +5542,11 @@
             90,
             95
         ],
-        "name": "Groudon"
+        "name": "Rayquaza",
+        "type": [
+            "Dragon",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -4224,7 +5557,11 @@
             100,
             100
         ],
-        "name": "Rayquaza"
+        "name": "Jirachi",
+        "type": [
+            "Steel",
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -4235,7 +5572,10 @@
             50,
             150
         ],
-        "name": "Jirachi"
+        "name": "Deoxys",
+        "type": [
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -4246,7 +5586,10 @@
             55,
             31
         ],
-        "name": "Deoxys"
+        "name": "Turtwig",
+        "type": [
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -4257,7 +5600,10 @@
             65,
             36
         ],
-        "name": "Turtwig"
+        "name": "Grotle",
+        "type": [
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -4268,7 +5614,11 @@
             85,
             56
         ],
-        "name": "Grotle"
+        "name": "Torterra",
+        "type": [
+            "Grass",
+            "Ground"
+        ]
     },
     {
         "base": [
@@ -4279,7 +5629,10 @@
             44,
             61
         ],
-        "name": "Torterra"
+        "name": "Chimchar",
+        "type": [
+            "Fire"
+        ]
     },
     {
         "base": [
@@ -4290,7 +5643,11 @@
             52,
             81
         ],
-        "name": "Chimchar"
+        "name": "Monferno",
+        "type": [
+            "Fire",
+            "Fighting"
+        ]
     },
     {
         "base": [
@@ -4301,7 +5658,11 @@
             71,
             108
         ],
-        "name": "Monferno"
+        "name": "Infernape",
+        "type": [
+            "Fire",
+            "Fighting"
+        ]
     },
     {
         "base": [
@@ -4312,7 +5673,10 @@
             56,
             40
         ],
-        "name": "Infernape"
+        "name": "Piplup",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -4323,7 +5687,10 @@
             76,
             50
         ],
-        "name": "Piplup"
+        "name": "Prinplup",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -4334,7 +5701,11 @@
             101,
             60
         ],
-        "name": "Prinplup"
+        "name": "Empoleon",
+        "type": [
+            "Water",
+            "Steel"
+        ]
     },
     {
         "base": [
@@ -4345,7 +5716,11 @@
             30,
             60
         ],
-        "name": "Empoleon"
+        "name": "Starly",
+        "type": [
+            "Normal",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -4356,7 +5731,11 @@
             40,
             80
         ],
-        "name": "Starly"
+        "name": "Staravia",
+        "type": [
+            "Normal",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -4364,10 +5743,14 @@
             120,
             70,
             50,
-            50,
+            60,
             100
         ],
-        "name": "Staravia"
+        "name": "Staraptor",
+        "type": [
+            "Normal",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -4378,7 +5761,10 @@
             40,
             31
         ],
-        "name": "Staraptor"
+        "name": "Bidoof",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -4389,7 +5775,11 @@
             60,
             71
         ],
-        "name": "Bidoof"
+        "name": "Bibarel",
+        "type": [
+            "Normal",
+            "Water"
+        ]
     },
     {
         "base": [
@@ -4400,7 +5790,10 @@
             41,
             25
         ],
-        "name": "Bibarel"
+        "name": "Kricketot",
+        "type": [
+            "Bug"
+        ]
     },
     {
         "base": [
@@ -4411,7 +5804,10 @@
             51,
             65
         ],
-        "name": "Kricketot"
+        "name": "Kricketune",
+        "type": [
+            "Bug"
+        ]
     },
     {
         "base": [
@@ -4422,7 +5818,10 @@
             34,
             45
         ],
-        "name": "Kricketune"
+        "name": "Shinx",
+        "type": [
+            "Electric"
+        ]
     },
     {
         "base": [
@@ -4433,7 +5832,10 @@
             49,
             60
         ],
-        "name": "Shinx"
+        "name": "Luxio",
+        "type": [
+            "Electric"
+        ]
     },
     {
         "base": [
@@ -4444,7 +5846,10 @@
             79,
             70
         ],
-        "name": "Luxio"
+        "name": "Luxray",
+        "type": [
+            "Electric"
+        ]
     },
     {
         "base": [
@@ -4455,18 +5860,26 @@
             70,
             55
         ],
-        "name": "Luxray"
+        "name": "Budew",
+        "type": [
+            "Grass",
+            "Poison"
+        ]
     },
     {
         "base": [
             60,
             70,
-            55,
+            65,
             125,
             105,
             90
         ],
-        "name": "Budew"
+        "name": "Roserade",
+        "type": [
+            "Grass",
+            "Poison"
+        ]
     },
     {
         "base": [
@@ -4477,7 +5890,10 @@
             30,
             58
         ],
-        "name": "Roserade"
+        "name": "Cranidos",
+        "type": [
+            "Rock"
+        ]
     },
     {
         "base": [
@@ -4488,7 +5904,10 @@
             50,
             58
         ],
-        "name": "Cranidos"
+        "name": "Rampardos",
+        "type": [
+            "Rock"
+        ]
     },
     {
         "base": [
@@ -4499,7 +5918,11 @@
             88,
             30
         ],
-        "name": "Rampardos"
+        "name": "Shieldon",
+        "type": [
+            "Rock",
+            "Steel"
+        ]
     },
     {
         "base": [
@@ -4510,7 +5933,11 @@
             138,
             30
         ],
-        "name": "Shieldon"
+        "name": "Bastiodon",
+        "type": [
+            "Rock",
+            "Steel"
+        ]
     },
     {
         "base": [
@@ -4521,7 +5948,10 @@
             45,
             36
         ],
-        "name": "Bastiodon"
+        "name": "Burmy",
+        "type": [
+            "Bug"
+        ]
     },
     {
         "base": [
@@ -4532,7 +5962,11 @@
             105,
             36
         ],
-        "name": "Burmy"
+        "name": "Wormadam",
+        "type": [
+            "Bug",
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -4543,7 +5977,11 @@
             50,
             66
         ],
-        "name": "Wormadam"
+        "name": "Mothim",
+        "type": [
+            "Bug",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -4554,7 +5992,11 @@
             42,
             70
         ],
-        "name": "Mothim"
+        "name": "Combee",
+        "type": [
+            "Bug",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -4565,7 +6007,11 @@
             102,
             40
         ],
-        "name": "Combee"
+        "name": "Vespiquen",
+        "type": [
+            "Bug",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -4576,7 +6022,10 @@
             90,
             95
         ],
-        "name": "Vespiquen"
+        "name": "Pachirisu",
+        "type": [
+            "Electric"
+        ]
     },
     {
         "base": [
@@ -4587,7 +6036,10 @@
             30,
             85
         ],
-        "name": "Pachirisu"
+        "name": "Buizel",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -4598,7 +6050,10 @@
             50,
             115
         ],
-        "name": "Buizel"
+        "name": "Floatzel",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -4609,7 +6064,10 @@
             53,
             35
         ],
-        "name": "Floatzel"
+        "name": "Cherubi",
+        "type": [
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -4620,7 +6078,10 @@
             78,
             85
         ],
-        "name": "Cherubi"
+        "name": "Cherrim",
+        "type": [
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -4631,7 +6092,10 @@
             62,
             34
         ],
-        "name": "Cherrim"
+        "name": "Shellos",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -4642,7 +6106,11 @@
             82,
             39
         ],
-        "name": "Shellos"
+        "name": "Gastrodon",
+        "type": [
+            "Water",
+            "Ground"
+        ]
     },
     {
         "base": [
@@ -4653,7 +6121,10 @@
             66,
             115
         ],
-        "name": "Gastrodon"
+        "name": "Ambipom",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -4664,7 +6135,11 @@
             44,
             70
         ],
-        "name": "Ambipom"
+        "name": "Drifloon",
+        "type": [
+            "Ghost",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -4675,7 +6150,11 @@
             54,
             80
         ],
-        "name": "Drifloon"
+        "name": "Drifblim",
+        "type": [
+            "Ghost",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -4686,7 +6165,10 @@
             56,
             85
         ],
-        "name": "Drifblim"
+        "name": "Buneary",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -4697,7 +6179,10 @@
             96,
             105
         ],
-        "name": "Buneary"
+        "name": "Lopunny",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -4708,7 +6193,10 @@
             105,
             105
         ],
-        "name": "Lopunny"
+        "name": "Mismagius",
+        "type": [
+            "Ghost"
+        ]
     },
     {
         "base": [
@@ -4719,7 +6207,11 @@
             52,
             71
         ],
-        "name": "Mismagius"
+        "name": "Honchkrow",
+        "type": [
+            "Dark",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -4730,7 +6222,10 @@
             37,
             85
         ],
-        "name": "Honchkrow"
+        "name": "Glameow",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -4741,7 +6236,10 @@
             59,
             112
         ],
-        "name": "Glameow"
+        "name": "Purugly",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -4752,7 +6250,10 @@
             50,
             45
         ],
-        "name": "Purugly"
+        "name": "Chingling",
+        "type": [
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -4763,7 +6264,11 @@
             41,
             74
         ],
-        "name": "Chingling"
+        "name": "Stunky",
+        "type": [
+            "Poison",
+            "Dark"
+        ]
     },
     {
         "base": [
@@ -4774,7 +6279,11 @@
             61,
             84
         ],
-        "name": "Stunky"
+        "name": "Skuntank",
+        "type": [
+            "Poison",
+            "Dark"
+        ]
     },
     {
         "base": [
@@ -4785,7 +6294,11 @@
             86,
             23
         ],
-        "name": "Skuntank"
+        "name": "Bronzor",
+        "type": [
+            "Steel",
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -4796,7 +6309,11 @@
             116,
             33
         ],
-        "name": "Bronzor"
+        "name": "Bronzong",
+        "type": [
+            "Steel",
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -4807,7 +6324,10 @@
             45,
             10
         ],
-        "name": "Bronzong"
+        "name": "Bonsly",
+        "type": [
+            "Rock"
+        ]
     },
     {
         "base": [
@@ -4818,7 +6338,10 @@
             90,
             60
         ],
-        "name": "Bonsly"
+        "name": "Mime Jr.",
+        "type": [
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -4829,7 +6352,10 @@
             65,
             30
         ],
-        "name": "Mime Jr."
+        "name": "Happiny",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -4840,7 +6366,11 @@
             42,
             91
         ],
-        "name": "Happiny"
+        "name": "Chatot",
+        "type": [
+            "Normal",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -4851,7 +6381,11 @@
             108,
             35
         ],
-        "name": "Chatot"
+        "name": "Spiritomb",
+        "type": [
+            "Ghost",
+            "Dark"
+        ]
     },
     {
         "base": [
@@ -4862,7 +6396,11 @@
             45,
             42
         ],
-        "name": "Spiritomb"
+        "name": "Gible",
+        "type": [
+            "Dragon",
+            "Ground"
+        ]
     },
     {
         "base": [
@@ -4873,7 +6411,11 @@
             55,
             82
         ],
-        "name": "Gible"
+        "name": "Gabite",
+        "type": [
+            "Dragon",
+            "Ground"
+        ]
     },
     {
         "base": [
@@ -4884,7 +6426,11 @@
             85,
             102
         ],
-        "name": "Gabite"
+        "name": "Garchomp",
+        "type": [
+            "Dragon",
+            "Ground"
+        ]
     },
     {
         "base": [
@@ -4895,7 +6441,10 @@
             85,
             5
         ],
-        "name": "Garchomp"
+        "name": "Munchlax",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -4906,7 +6455,10 @@
             40,
             60
         ],
-        "name": "Munchlax"
+        "name": "Riolu",
+        "type": [
+            "Fighting"
+        ]
     },
     {
         "base": [
@@ -4917,7 +6469,11 @@
             70,
             90
         ],
-        "name": "Riolu"
+        "name": "Lucario",
+        "type": [
+            "Fighting",
+            "Steel"
+        ]
     },
     {
         "base": [
@@ -4928,7 +6484,10 @@
             42,
             32
         ],
-        "name": "Lucario"
+        "name": "Hippopotas",
+        "type": [
+            "Ground"
+        ]
     },
     {
         "base": [
@@ -4939,7 +6498,10 @@
             72,
             47
         ],
-        "name": "Hippopotas"
+        "name": "Hippowdon",
+        "type": [
+            "Ground"
+        ]
     },
     {
         "base": [
@@ -4950,7 +6512,11 @@
             55,
             65
         ],
-        "name": "Hippowdon"
+        "name": "Skorupi",
+        "type": [
+            "Poison",
+            "Bug"
+        ]
     },
     {
         "base": [
@@ -4961,7 +6527,11 @@
             75,
             95
         ],
-        "name": "Skorupi"
+        "name": "Drapion",
+        "type": [
+            "Poison",
+            "Dark"
+        ]
     },
     {
         "base": [
@@ -4972,7 +6542,11 @@
             40,
             50
         ],
-        "name": "Drapion"
+        "name": "Croagunk",
+        "type": [
+            "Poison",
+            "Fighting"
+        ]
     },
     {
         "base": [
@@ -4983,7 +6557,11 @@
             65,
             85
         ],
-        "name": "Croagunk"
+        "name": "Toxicroak",
+        "type": [
+            "Poison",
+            "Fighting"
+        ]
     },
     {
         "base": [
@@ -4994,7 +6572,10 @@
             72,
             46
         ],
-        "name": "Toxicroak"
+        "name": "Carnivine",
+        "type": [
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -5005,7 +6586,10 @@
             61,
             66
         ],
-        "name": "Carnivine"
+        "name": "Finneon",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -5016,7 +6600,10 @@
             86,
             91
         ],
-        "name": "Finneon"
+        "name": "Lumineon",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -5027,7 +6614,11 @@
             120,
             50
         ],
-        "name": "Lumineon"
+        "name": "Mantyke",
+        "type": [
+            "Water",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -5038,7 +6629,11 @@
             60,
             40
         ],
-        "name": "Mantyke"
+        "name": "Snover",
+        "type": [
+            "Grass",
+            "Ice"
+        ]
     },
     {
         "base": [
@@ -5049,7 +6644,11 @@
             85,
             60
         ],
-        "name": "Snover"
+        "name": "Abomasnow",
+        "type": [
+            "Grass",
+            "Ice"
+        ]
     },
     {
         "base": [
@@ -5060,7 +6659,11 @@
             85,
             125
         ],
-        "name": "Abomasnow"
+        "name": "Weavile",
+        "type": [
+            "Dark",
+            "Ice"
+        ]
     },
     {
         "base": [
@@ -5071,7 +6674,11 @@
             90,
             60
         ],
-        "name": "Weavile"
+        "name": "Magnezone",
+        "type": [
+            "Electric",
+            "Steel"
+        ]
     },
     {
         "base": [
@@ -5082,7 +6689,10 @@
             95,
             50
         ],
-        "name": "Magnezone"
+        "name": "Lickilicky",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -5093,7 +6703,11 @@
             55,
             40
         ],
-        "name": "Lickilicky"
+        "name": "Rhyperior",
+        "type": [
+            "Ground",
+            "Rock"
+        ]
     },
     {
         "base": [
@@ -5104,7 +6718,10 @@
             50,
             50
         ],
-        "name": "Rhyperior"
+        "name": "Tangrowth",
+        "type": [
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -5115,7 +6732,10 @@
             85,
             95
         ],
-        "name": "Tangrowth"
+        "name": "Electivire",
+        "type": [
+            "Electric"
+        ]
     },
     {
         "base": [
@@ -5126,7 +6746,10 @@
             95,
             83
         ],
-        "name": "Electivire"
+        "name": "Magmortar",
+        "type": [
+            "Fire"
+        ]
     },
     {
         "base": [
@@ -5137,7 +6760,11 @@
             115,
             80
         ],
-        "name": "Magmortar"
+        "name": "Togekiss",
+        "type": [
+            "Normal",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -5148,7 +6775,11 @@
             56,
             95
         ],
-        "name": "Togekiss"
+        "name": "Yanmega",
+        "type": [
+            "Bug",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -5159,7 +6790,10 @@
             65,
             95
         ],
-        "name": "Yanmega"
+        "name": "Leafeon",
+        "type": [
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -5170,7 +6804,10 @@
             95,
             65
         ],
-        "name": "Leafeon"
+        "name": "Glaceon",
+        "type": [
+            "Ice"
+        ]
     },
     {
         "base": [
@@ -5181,7 +6818,11 @@
             75,
             95
         ],
-        "name": "Glaceon"
+        "name": "Gliscor",
+        "type": [
+            "Ground",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -5192,7 +6833,11 @@
             60,
             80
         ],
-        "name": "Gliscor"
+        "name": "Mamoswine",
+        "type": [
+            "Ice",
+            "Ground"
+        ]
     },
     {
         "base": [
@@ -5203,7 +6848,10 @@
             75,
             90
         ],
-        "name": "Mamoswine"
+        "name": "Porygon-Z",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -5214,7 +6862,11 @@
             115,
             80
         ],
-        "name": "Porygon-Z"
+        "name": "Gallade",
+        "type": [
+            "Psychic",
+            "Fighting"
+        ]
     },
     {
         "base": [
@@ -5225,7 +6877,11 @@
             150,
             40
         ],
-        "name": "Gallade"
+        "name": "Probopass",
+        "type": [
+            "Rock",
+            "Steel"
+        ]
     },
     {
         "base": [
@@ -5236,7 +6892,10 @@
             135,
             45
         ],
-        "name": "Probopass"
+        "name": "Dusknoir",
+        "type": [
+            "Ghost"
+        ]
     },
     {
         "base": [
@@ -5247,7 +6906,11 @@
             70,
             110
         ],
-        "name": "Dusknoir"
+        "name": "Froslass",
+        "type": [
+            "Ice",
+            "Ghost"
+        ]
     },
     {
         "base": [
@@ -5258,7 +6921,11 @@
             77,
             91
         ],
-        "name": "Froslass"
+        "name": "Rotom",
+        "type": [
+            "Electric",
+            "Ghost"
+        ]
     },
     {
         "base": [
@@ -5269,7 +6936,10 @@
             130,
             95
         ],
-        "name": "Rotom"
+        "name": "Uxie",
+        "type": [
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -5280,7 +6950,10 @@
             105,
             80
         ],
-        "name": "Uxie"
+        "name": "Mesprit",
+        "type": [
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -5291,7 +6964,10 @@
             70,
             115
         ],
-        "name": "Mesprit"
+        "name": "Azelf",
+        "type": [
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -5302,7 +6978,11 @@
             100,
             90
         ],
-        "name": "Azelf"
+        "name": "Dialga",
+        "type": [
+            "Steel",
+            "Dragon"
+        ]
     },
     {
         "base": [
@@ -5313,7 +6993,11 @@
             120,
             100
         ],
-        "name": "Dialga"
+        "name": "Palkia",
+        "type": [
+            "Water",
+            "Dragon"
+        ]
     },
     {
         "base": [
@@ -5324,7 +7008,11 @@
             106,
             77
         ],
-        "name": "Palkia"
+        "name": "Heatran",
+        "type": [
+            "Fire",
+            "Steel"
+        ]
     },
     {
         "base": [
@@ -5335,7 +7023,10 @@
             110,
             100
         ],
-        "name": "Heatran"
+        "name": "Regigigas",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -5346,7 +7037,11 @@
             120,
             90
         ],
-        "name": "Regigigas"
+        "name": "Giratina",
+        "type": [
+            "Ghost",
+            "Dragon"
+        ]
     },
     {
         "base": [
@@ -5357,7 +7052,10 @@
             130,
             85
         ],
-        "name": "Giratina"
+        "name": "Cresselia",
+        "type": [
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -5368,7 +7066,10 @@
             80,
             80
         ],
-        "name": "Cresselia"
+        "name": "Phione",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -5379,7 +7080,10 @@
             100,
             100
         ],
-        "name": "Phione"
+        "name": "Manaphy",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -5390,7 +7094,10 @@
             90,
             125
         ],
-        "name": "Manaphy"
+        "name": "Darkrai",
+        "type": [
+            "Dark"
+        ]
     },
     {
         "base": [
@@ -5401,7 +7108,10 @@
             100,
             100
         ],
-        "name": "Darkrai"
+        "name": "Shaymin",
+        "type": [
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -5412,7 +7122,10 @@
             120,
             120
         ],
-        "name": "Shaymin"
+        "name": "Arceus",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -5423,7 +7136,11 @@
             100,
             100
         ],
-        "name": "Arceus"
+        "name": "Victini",
+        "type": [
+            "Psychic",
+            "Fire"
+        ]
     },
     {
         "base": [
@@ -5434,7 +7151,10 @@
             55,
             63
         ],
-        "name": "Victini"
+        "name": "Snivy",
+        "type": [
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -5445,7 +7165,10 @@
             75,
             83
         ],
-        "name": "Snivy"
+        "name": "Servine",
+        "type": [
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -5456,7 +7179,10 @@
             95,
             113
         ],
-        "name": "Servine"
+        "name": "Serperior",
+        "type": [
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -5467,7 +7193,10 @@
             45,
             45
         ],
-        "name": "Serperior"
+        "name": "Tepig",
+        "type": [
+            "Fire"
+        ]
     },
     {
         "base": [
@@ -5478,7 +7207,11 @@
             55,
             55
         ],
-        "name": "Tepig"
+        "name": "Pignite",
+        "type": [
+            "Fire",
+            "Fighting"
+        ]
     },
     {
         "base": [
@@ -5489,7 +7222,11 @@
             65,
             65
         ],
-        "name": "Pignite"
+        "name": "Emboar",
+        "type": [
+            "Fire",
+            "Fighting"
+        ]
     },
     {
         "base": [
@@ -5500,7 +7237,10 @@
             45,
             45
         ],
-        "name": "Emboar"
+        "name": "Oshawott",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -5511,7 +7251,10 @@
             60,
             60
         ],
-        "name": "Oshawott"
+        "name": "Dewott",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -5522,7 +7265,10 @@
             70,
             70
         ],
-        "name": "Dewott"
+        "name": "Samurott",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -5533,7 +7279,10 @@
             39,
             42
         ],
-        "name": "Samurott"
+        "name": "Patrat",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -5544,7 +7293,10 @@
             69,
             77
         ],
-        "name": "Patrat"
+        "name": "Watchog",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -5555,7 +7307,10 @@
             45,
             55
         ],
-        "name": "Watchog"
+        "name": "Lillipup",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -5566,18 +7321,24 @@
             65,
             60
         ],
-        "name": "Lillipup"
+        "name": "Herdier",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
             85,
-            100,
+            110,
             90,
             45,
             90,
             80
         ],
-        "name": "Herdier"
+        "name": "Stoutland",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -5588,7 +7349,10 @@
             37,
             66
         ],
-        "name": "Stoutland"
+        "name": "Purrloin",
+        "type": [
+            "Dark"
+        ]
     },
     {
         "base": [
@@ -5599,7 +7363,10 @@
             50,
             106
         ],
-        "name": "Purrloin"
+        "name": "Liepard",
+        "type": [
+            "Dark"
+        ]
     },
     {
         "base": [
@@ -5610,7 +7377,10 @@
             48,
             64
         ],
-        "name": "Liepard"
+        "name": "Pansage",
+        "type": [
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -5621,7 +7391,10 @@
             63,
             101
         ],
-        "name": "Pansage"
+        "name": "Simisage",
+        "type": [
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -5632,7 +7405,10 @@
             48,
             64
         ],
-        "name": "Simisage"
+        "name": "Pansear",
+        "type": [
+            "Fire"
+        ]
     },
     {
         "base": [
@@ -5643,7 +7419,10 @@
             63,
             101
         ],
-        "name": "Pansear"
+        "name": "Simisear",
+        "type": [
+            "Fire"
+        ]
     },
     {
         "base": [
@@ -5654,7 +7433,10 @@
             48,
             64
         ],
-        "name": "Simisear"
+        "name": "Panpour",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -5665,7 +7447,10 @@
             63,
             101
         ],
-        "name": "Panpour"
+        "name": "Simipour",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -5676,7 +7461,10 @@
             55,
             24
         ],
-        "name": "Simipour"
+        "name": "Munna",
+        "type": [
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -5687,7 +7475,10 @@
             95,
             29
         ],
-        "name": "Munna"
+        "name": "Musharna",
+        "type": [
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -5698,7 +7489,11 @@
             30,
             43
         ],
-        "name": "Musharna"
+        "name": "Pidove",
+        "type": [
+            "Normal",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -5709,18 +7504,26 @@
             42,
             65
         ],
-        "name": "Pidove"
+        "name": "Tranquill",
+        "type": [
+            "Normal",
+            "Flying"
+        ]
     },
     {
         "base": [
             80,
-            105,
+            115,
             80,
             65,
             55,
             93
         ],
-        "name": "Tranquill"
+        "name": "Unfezant",
+        "type": [
+            "Normal",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -5731,7 +7534,10 @@
             32,
             76
         ],
-        "name": "Unfezant"
+        "name": "Blitzle",
+        "type": [
+            "Electric"
+        ]
     },
     {
         "base": [
@@ -5742,7 +7548,10 @@
             63,
             116
         ],
-        "name": "Blitzle"
+        "name": "Zebstrika",
+        "type": [
+            "Electric"
+        ]
     },
     {
         "base": [
@@ -5753,7 +7562,10 @@
             25,
             15
         ],
-        "name": "Zebstrika"
+        "name": "Roggenrola",
+        "type": [
+            "Rock"
+        ]
     },
     {
         "base": [
@@ -5764,7 +7576,10 @@
             40,
             20
         ],
-        "name": "Roggenrola"
+        "name": "Boldore",
+        "type": [
+            "Rock"
+        ]
     },
     {
         "base": [
@@ -5772,21 +7587,28 @@
             135,
             130,
             60,
-            70,
+            80,
             25
         ],
-        "name": "Boldore"
+        "name": "Gigalith",
+        "type": [
+            "Rock"
+        ]
     },
     {
         "base": [
-            55,
+            65,
             45,
             43,
             55,
             43,
             72
         ],
-        "name": "Gigalith"
+        "name": "Woobat",
+        "type": [
+            "Psychic",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -5797,7 +7619,11 @@
             55,
             114
         ],
-        "name": "Woobat"
+        "name": "Swoobat",
+        "type": [
+            "Psychic",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -5808,7 +7634,10 @@
             45,
             68
         ],
-        "name": "Swoobat"
+        "name": "Drilbur",
+        "type": [
+            "Ground"
+        ]
     },
     {
         "base": [
@@ -5819,7 +7648,11 @@
             65,
             88
         ],
-        "name": "Drilbur"
+        "name": "Excadrill",
+        "type": [
+            "Ground",
+            "Steel"
+        ]
     },
     {
         "base": [
@@ -5830,7 +7663,10 @@
             86,
             50
         ],
-        "name": "Excadrill"
+        "name": "Audino",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -5841,7 +7677,10 @@
             35,
             35
         ],
-        "name": "Audino"
+        "name": "Timburr",
+        "type": [
+            "Fighting"
+        ]
     },
     {
         "base": [
@@ -5852,7 +7691,10 @@
             50,
             40
         ],
-        "name": "Timburr"
+        "name": "Gurdurr",
+        "type": [
+            "Fighting"
+        ]
     },
     {
         "base": [
@@ -5863,7 +7705,10 @@
             65,
             45
         ],
-        "name": "Gurdurr"
+        "name": "Conkeldurr",
+        "type": [
+            "Fighting"
+        ]
     },
     {
         "base": [
@@ -5874,7 +7719,10 @@
             40,
             64
         ],
-        "name": "Conkeldurr"
+        "name": "Tympole",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -5885,18 +7733,26 @@
             55,
             69
         ],
-        "name": "Tympole"
+        "name": "Palpitoad",
+        "type": [
+            "Water",
+            "Ground"
+        ]
     },
     {
         "base": [
             105,
-            85,
+            95,
             75,
             85,
             75,
             74
         ],
-        "name": "Palpitoad"
+        "name": "Seismitoad",
+        "type": [
+            "Water",
+            "Ground"
+        ]
     },
     {
         "base": [
@@ -5907,7 +7763,10 @@
             85,
             45
         ],
-        "name": "Seismitoad"
+        "name": "Throh",
+        "type": [
+            "Fighting"
+        ]
     },
     {
         "base": [
@@ -5918,7 +7777,10 @@
             75,
             85
         ],
-        "name": "Throh"
+        "name": "Sawk",
+        "type": [
+            "Fighting"
+        ]
     },
     {
         "base": [
@@ -5929,7 +7791,11 @@
             60,
             42
         ],
-        "name": "Sawk"
+        "name": "Sewaddle",
+        "type": [
+            "Bug",
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -5940,7 +7806,11 @@
             80,
             42
         ],
-        "name": "Sewaddle"
+        "name": "Swadloon",
+        "type": [
+            "Bug",
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -5948,10 +7818,14 @@
             103,
             80,
             70,
-            70,
+            80,
             92
         ],
-        "name": "Swadloon"
+        "name": "Leavanny",
+        "type": [
+            "Bug",
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -5962,7 +7836,11 @@
             39,
             57
         ],
-        "name": "Leavanny"
+        "name": "Venipede",
+        "type": [
+            "Bug",
+            "Poison"
+        ]
     },
     {
         "base": [
@@ -5973,18 +7851,26 @@
             79,
             47
         ],
-        "name": "Venipede"
+        "name": "Whirlipede",
+        "type": [
+            "Bug",
+            "Poison"
+        ]
     },
     {
         "base": [
             60,
-            90,
+            100,
             89,
             55,
             69,
             112
         ],
-        "name": "Whirlipede"
+        "name": "Scolipede",
+        "type": [
+            "Bug",
+            "Poison"
+        ]
     },
     {
         "base": [
@@ -5995,7 +7881,10 @@
             50,
             66
         ],
-        "name": "Scolipede"
+        "name": "Cottonee",
+        "type": [
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -6006,7 +7895,10 @@
             75,
             116
         ],
-        "name": "Cottonee"
+        "name": "Whimsicott",
+        "type": [
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -6017,7 +7909,10 @@
             50,
             30
         ],
-        "name": "Whimsicott"
+        "name": "Petilil",
+        "type": [
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -6028,7 +7923,10 @@
             75,
             90
         ],
-        "name": "Petilil"
+        "name": "Lilligant",
+        "type": [
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -6039,7 +7937,10 @@
             55,
             98
         ],
-        "name": "Lilligant"
+        "name": "Basculin",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -6050,7 +7951,11 @@
             35,
             65
         ],
-        "name": "Basculin"
+        "name": "Sandile",
+        "type": [
+            "Ground",
+            "Dark"
+        ]
     },
     {
         "base": [
@@ -6061,18 +7966,26 @@
             45,
             74
         ],
-        "name": "Sandile"
+        "name": "Krokorok",
+        "type": [
+            "Ground",
+            "Dark"
+        ]
     },
     {
         "base": [
             95,
             117,
-            70,
+            80,
             65,
             70,
             92
         ],
-        "name": "Krokorok"
+        "name": "Krookodile",
+        "type": [
+            "Ground",
+            "Dark"
+        ]
     },
     {
         "base": [
@@ -6083,7 +7996,10 @@
             45,
             50
         ],
-        "name": "Krookodile"
+        "name": "Darumaka",
+        "type": [
+            "Fire"
+        ]
     },
     {
         "base": [
@@ -6094,7 +8010,10 @@
             55,
             95
         ],
-        "name": "Darumaka"
+        "name": "Darmanitan",
+        "type": [
+            "Fire"
+        ]
     },
     {
         "base": [
@@ -6105,7 +8024,10 @@
             67,
             60
         ],
-        "name": "Darmanitan"
+        "name": "Maractus",
+        "type": [
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -6116,18 +8038,26 @@
             35,
             55
         ],
-        "name": "Maractus"
+        "name": "Dwebble",
+        "type": [
+            "Bug",
+            "Rock"
+        ]
     },
     {
         "base": [
             70,
-            95,
+            105,
             125,
             65,
             75,
             45
         ],
-        "name": "Dwebble"
+        "name": "Crustle",
+        "type": [
+            "Bug",
+            "Rock"
+        ]
     },
     {
         "base": [
@@ -6138,7 +8068,11 @@
             70,
             48
         ],
-        "name": "Crustle"
+        "name": "Scraggy",
+        "type": [
+            "Dark",
+            "Fighting"
+        ]
     },
     {
         "base": [
@@ -6149,7 +8083,11 @@
             115,
             58
         ],
-        "name": "Scraggy"
+        "name": "Scrafty",
+        "type": [
+            "Dark",
+            "Fighting"
+        ]
     },
     {
         "base": [
@@ -6160,7 +8098,11 @@
             80,
             97
         ],
-        "name": "Scrafty"
+        "name": "Sigilyph",
+        "type": [
+            "Psychic",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -6171,7 +8113,10 @@
             65,
             30
         ],
-        "name": "Sigilyph"
+        "name": "Yamask",
+        "type": [
+            "Ghost"
+        ]
     },
     {
         "base": [
@@ -6182,7 +8127,10 @@
             105,
             30
         ],
-        "name": "Yamask"
+        "name": "Cofagrigus",
+        "type": [
+            "Ghost"
+        ]
     },
     {
         "base": [
@@ -6193,7 +8141,11 @@
             45,
             22
         ],
-        "name": "Cofagrigus"
+        "name": "Tirtouga",
+        "type": [
+            "Water",
+            "Rock"
+        ]
     },
     {
         "base": [
@@ -6204,7 +8156,11 @@
             65,
             32
         ],
-        "name": "Tirtouga"
+        "name": "Carracosta",
+        "type": [
+            "Water",
+            "Rock"
+        ]
     },
     {
         "base": [
@@ -6215,7 +8171,11 @@
             45,
             70
         ],
-        "name": "Carracosta"
+        "name": "Archen",
+        "type": [
+            "Rock",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -6226,7 +8186,11 @@
             65,
             110
         ],
-        "name": "Archen"
+        "name": "Archeops",
+        "type": [
+            "Rock",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -6237,7 +8201,10 @@
             62,
             65
         ],
-        "name": "Archeops"
+        "name": "Trubbish",
+        "type": [
+            "Poison"
+        ]
     },
     {
         "base": [
@@ -6248,7 +8215,10 @@
             82,
             75
         ],
-        "name": "Trubbish"
+        "name": "Garbodor",
+        "type": [
+            "Poison"
+        ]
     },
     {
         "base": [
@@ -6259,7 +8229,10 @@
             40,
             65
         ],
-        "name": "Garbodor"
+        "name": "Zorua",
+        "type": [
+            "Dark"
+        ]
     },
     {
         "base": [
@@ -6270,7 +8243,10 @@
             60,
             105
         ],
-        "name": "Zorua"
+        "name": "Zoroark",
+        "type": [
+            "Dark"
+        ]
     },
     {
         "base": [
@@ -6281,7 +8257,10 @@
             40,
             75
         ],
-        "name": "Zoroark"
+        "name": "Minccino",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -6292,7 +8271,10 @@
             60,
             115
         ],
-        "name": "Minccino"
+        "name": "Cinccino",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -6303,7 +8285,10 @@
             65,
             45
         ],
-        "name": "Cinccino"
+        "name": "Gothita",
+        "type": [
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -6314,7 +8299,10 @@
             85,
             55
         ],
-        "name": "Gothita"
+        "name": "Gothorita",
+        "type": [
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -6325,7 +8313,10 @@
             110,
             65
         ],
-        "name": "Gothorita"
+        "name": "Gothitelle",
+        "type": [
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -6336,7 +8327,10 @@
             50,
             20
         ],
-        "name": "Gothitelle"
+        "name": "Solosis",
+        "type": [
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -6347,7 +8341,10 @@
             60,
             30
         ],
-        "name": "Solosis"
+        "name": "Duosion",
+        "type": [
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -6358,7 +8355,10 @@
             85,
             30
         ],
-        "name": "Duosion"
+        "name": "Reuniclus",
+        "type": [
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -6369,7 +8369,11 @@
             50,
             55
         ],
-        "name": "Reuniclus"
+        "name": "Ducklett",
+        "type": [
+            "Water",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -6380,7 +8384,11 @@
             63,
             98
         ],
-        "name": "Ducklett"
+        "name": "Swanna",
+        "type": [
+            "Water",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -6391,7 +8399,10 @@
             60,
             44
         ],
-        "name": "Swanna"
+        "name": "Vanillite",
+        "type": [
+            "Ice"
+        ]
     },
     {
         "base": [
@@ -6402,7 +8413,10 @@
             75,
             59
         ],
-        "name": "Vanillite"
+        "name": "Vanillish",
+        "type": [
+            "Ice"
+        ]
     },
     {
         "base": [
@@ -6413,7 +8427,10 @@
             95,
             79
         ],
-        "name": "Vanillish"
+        "name": "Vanilluxe",
+        "type": [
+            "Ice"
+        ]
     },
     {
         "base": [
@@ -6424,7 +8441,11 @@
             50,
             75
         ],
-        "name": "Vanilluxe"
+        "name": "Deerling",
+        "type": [
+            "Normal",
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -6435,7 +8456,11 @@
             70,
             95
         ],
-        "name": "Deerling"
+        "name": "Sawsbuck",
+        "type": [
+            "Normal",
+            "Grass"
+        ]
     },
     {
         "base": [
@@ -6446,7 +8471,11 @@
             60,
             103
         ],
-        "name": "Sawsbuck"
+        "name": "Emolga",
+        "type": [
+            "Electric",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -6457,7 +8486,10 @@
             45,
             60
         ],
-        "name": "Emolga"
+        "name": "Karrablast",
+        "type": [
+            "Bug"
+        ]
     },
     {
         "base": [
@@ -6468,7 +8500,11 @@
             105,
             20
         ],
-        "name": "Karrablast"
+        "name": "Escavalier",
+        "type": [
+            "Bug",
+            "Steel"
+        ]
     },
     {
         "base": [
@@ -6479,7 +8515,11 @@
             55,
             15
         ],
-        "name": "Escavalier"
+        "name": "Foongus",
+        "type": [
+            "Grass",
+            "Poison"
+        ]
     },
     {
         "base": [
@@ -6490,7 +8530,11 @@
             80,
             30
         ],
-        "name": "Foongus"
+        "name": "Amoonguss",
+        "type": [
+            "Grass",
+            "Poison"
+        ]
     },
     {
         "base": [
@@ -6501,7 +8545,11 @@
             85,
             40
         ],
-        "name": "Amoonguss"
+        "name": "Frillish",
+        "type": [
+            "Water",
+            "Ghost"
+        ]
     },
     {
         "base": [
@@ -6512,7 +8560,11 @@
             105,
             60
         ],
-        "name": "Frillish"
+        "name": "Jellicent",
+        "type": [
+            "Water",
+            "Ghost"
+        ]
     },
     {
         "base": [
@@ -6523,7 +8575,10 @@
             45,
             65
         ],
-        "name": "Jellicent"
+        "name": "Alomomola",
+        "type": [
+            "Water"
+        ]
     },
     {
         "base": [
@@ -6534,7 +8589,11 @@
             50,
             65
         ],
-        "name": "Alomomola"
+        "name": "Joltik",
+        "type": [
+            "Bug",
+            "Electric"
+        ]
     },
     {
         "base": [
@@ -6545,7 +8604,11 @@
             60,
             108
         ],
-        "name": "Joltik"
+        "name": "Galvantula",
+        "type": [
+            "Bug",
+            "Electric"
+        ]
     },
     {
         "base": [
@@ -6556,7 +8619,11 @@
             86,
             10
         ],
-        "name": "Galvantula"
+        "name": "Ferroseed",
+        "type": [
+            "Grass",
+            "Steel"
+        ]
     },
     {
         "base": [
@@ -6567,7 +8634,11 @@
             116,
             20
         ],
-        "name": "Ferroseed"
+        "name": "Ferrothorn",
+        "type": [
+            "Grass",
+            "Steel"
+        ]
     },
     {
         "base": [
@@ -6578,7 +8649,10 @@
             60,
             30
         ],
-        "name": "Ferrothorn"
+        "name": "Klink",
+        "type": [
+            "Steel"
+        ]
     },
     {
         "base": [
@@ -6589,7 +8663,10 @@
             85,
             50
         ],
-        "name": "Klink"
+        "name": "Klang",
+        "type": [
+            "Steel"
+        ]
     },
     {
         "base": [
@@ -6600,7 +8677,10 @@
             85,
             90
         ],
-        "name": "Klang"
+        "name": "Klinklang",
+        "type": [
+            "Steel"
+        ]
     },
     {
         "base": [
@@ -6611,7 +8691,10 @@
             40,
             60
         ],
-        "name": "Klinklang"
+        "name": "Tynamo",
+        "type": [
+            "Electric"
+        ]
     },
     {
         "base": [
@@ -6622,7 +8705,10 @@
             70,
             40
         ],
-        "name": "Tynamo"
+        "name": "Eelektrik",
+        "type": [
+            "Electric"
+        ]
     },
     {
         "base": [
@@ -6633,7 +8719,10 @@
             80,
             50
         ],
-        "name": "Eelektrik"
+        "name": "Eelektross",
+        "type": [
+            "Electric"
+        ]
     },
     {
         "base": [
@@ -6644,7 +8733,10 @@
             55,
             30
         ],
-        "name": "Eelektross"
+        "name": "Elgyem",
+        "type": [
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -6655,7 +8747,10 @@
             95,
             40
         ],
-        "name": "Elgyem"
+        "name": "Beheeyem",
+        "type": [
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -6666,7 +8761,11 @@
             55,
             20
         ],
-        "name": "Beheeyem"
+        "name": "Litwick",
+        "type": [
+            "Ghost",
+            "Fire"
+        ]
     },
     {
         "base": [
@@ -6677,7 +8776,11 @@
             60,
             55
         ],
-        "name": "Litwick"
+        "name": "Lampent",
+        "type": [
+            "Ghost",
+            "Fire"
+        ]
     },
     {
         "base": [
@@ -6688,7 +8791,11 @@
             90,
             80
         ],
-        "name": "Lampent"
+        "name": "Chandelure",
+        "type": [
+            "Ghost",
+            "Fire"
+        ]
     },
     {
         "base": [
@@ -6699,7 +8806,10 @@
             40,
             57
         ],
-        "name": "Chandelure"
+        "name": "Axew",
+        "type": [
+            "Dragon"
+        ]
     },
     {
         "base": [
@@ -6710,7 +8820,10 @@
             50,
             67
         ],
-        "name": "Axew"
+        "name": "Fraxure",
+        "type": [
+            "Dragon"
+        ]
     },
     {
         "base": [
@@ -6721,7 +8834,10 @@
             70,
             97
         ],
-        "name": "Fraxure"
+        "name": "Haxorus",
+        "type": [
+            "Dragon"
+        ]
     },
     {
         "base": [
@@ -6732,29 +8848,38 @@
             40,
             40
         ],
-        "name": "Haxorus"
+        "name": "Cubchoo",
+        "type": [
+            "Ice"
+        ]
     },
     {
         "base": [
             95,
-            110,
+            130,
             80,
             70,
             80,
             50
         ],
-        "name": "Cubchoo"
+        "name": "Beartic",
+        "type": [
+            "Ice"
+        ]
     },
     {
         "base": [
-            70,
+            80,
             50,
-            30,
+            50,
             95,
             135,
             105
         ],
-        "name": "Beartic"
+        "name": "Cryogonal",
+        "type": [
+            "Ice"
+        ]
     },
     {
         "base": [
@@ -6765,7 +8890,10 @@
             65,
             25
         ],
-        "name": "Cryogonal"
+        "name": "Shelmet",
+        "type": [
+            "Bug"
+        ]
     },
     {
         "base": [
@@ -6776,7 +8904,10 @@
             60,
             145
         ],
-        "name": "Shelmet"
+        "name": "Accelgor",
+        "type": [
+            "Bug"
+        ]
     },
     {
         "base": [
@@ -6787,7 +8918,11 @@
             99,
             32
         ],
-        "name": "Accelgor"
+        "name": "Stunfisk",
+        "type": [
+            "Ground",
+            "Electric"
+        ]
     },
     {
         "base": [
@@ -6798,7 +8933,10 @@
             50,
             65
         ],
-        "name": "Stunfisk"
+        "name": "Mienfoo",
+        "type": [
+            "Fighting"
+        ]
     },
     {
         "base": [
@@ -6809,7 +8947,10 @@
             60,
             105
         ],
-        "name": "Mienfoo"
+        "name": "Mienshao",
+        "type": [
+            "Fighting"
+        ]
     },
     {
         "base": [
@@ -6820,7 +8961,10 @@
             90,
             48
         ],
-        "name": "Mienshao"
+        "name": "Druddigon",
+        "type": [
+            "Dragon"
+        ]
     },
     {
         "base": [
@@ -6831,7 +8975,11 @@
             50,
             35
         ],
-        "name": "Druddigon"
+        "name": "Golett",
+        "type": [
+            "Ground",
+            "Ghost"
+        ]
     },
     {
         "base": [
@@ -6842,7 +8990,11 @@
             80,
             55
         ],
-        "name": "Golett"
+        "name": "Golurk",
+        "type": [
+            "Ground",
+            "Ghost"
+        ]
     },
     {
         "base": [
@@ -6853,7 +9005,11 @@
             40,
             60
         ],
-        "name": "Golurk"
+        "name": "Pawniard",
+        "type": [
+            "Dark",
+            "Steel"
+        ]
     },
     {
         "base": [
@@ -6864,7 +9020,11 @@
             70,
             70
         ],
-        "name": "Pawniard"
+        "name": "Bisharp",
+        "type": [
+            "Dark",
+            "Steel"
+        ]
     },
     {
         "base": [
@@ -6875,7 +9035,10 @@
             95,
             55
         ],
-        "name": "Bisharp"
+        "name": "Bouffalant",
+        "type": [
+            "Normal"
+        ]
     },
     {
         "base": [
@@ -6886,7 +9049,11 @@
             50,
             60
         ],
-        "name": "Bouffalant"
+        "name": "Rufflet",
+        "type": [
+            "Normal",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -6897,7 +9064,11 @@
             75,
             80
         ],
-        "name": "Rufflet"
+        "name": "Braviary",
+        "type": [
+            "Normal",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -6908,7 +9079,11 @@
             65,
             60
         ],
-        "name": "Braviary"
+        "name": "Vullaby",
+        "type": [
+            "Dark",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -6919,7 +9094,11 @@
             95,
             80
         ],
-        "name": "Vullaby"
+        "name": "Mandibuzz",
+        "type": [
+            "Dark",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -6930,7 +9109,10 @@
             66,
             65
         ],
-        "name": "Mandibuzz"
+        "name": "Heatmor",
+        "type": [
+            "Fire"
+        ]
     },
     {
         "base": [
@@ -6941,7 +9123,11 @@
             48,
             109
         ],
-        "name": "Heatmor"
+        "name": "Durant",
+        "type": [
+            "Bug",
+            "Steel"
+        ]
     },
     {
         "base": [
@@ -6952,7 +9138,11 @@
             50,
             38
         ],
-        "name": "Durant"
+        "name": "Deino",
+        "type": [
+            "Dark",
+            "Dragon"
+        ]
     },
     {
         "base": [
@@ -6963,7 +9153,11 @@
             70,
             58
         ],
-        "name": "Deino"
+        "name": "Zweilous",
+        "type": [
+            "Dark",
+            "Dragon"
+        ]
     },
     {
         "base": [
@@ -6974,7 +9168,11 @@
             90,
             98
         ],
-        "name": "Zweilous"
+        "name": "Hydreigon",
+        "type": [
+            "Dark",
+            "Dragon"
+        ]
     },
     {
         "base": [
@@ -6985,7 +9183,11 @@
             55,
             60
         ],
-        "name": "Hydreigon"
+        "name": "Larvesta",
+        "type": [
+            "Bug",
+            "Fire"
+        ]
     },
     {
         "base": [
@@ -6996,7 +9198,11 @@
             105,
             100
         ],
-        "name": "Larvesta"
+        "name": "Volcarona",
+        "type": [
+            "Bug",
+            "Fire"
+        ]
     },
     {
         "base": [
@@ -7007,7 +9213,11 @@
             72,
             108
         ],
-        "name": "Volcarona"
+        "name": "Cobalion",
+        "type": [
+            "Steel",
+            "Fighting"
+        ]
     },
     {
         "base": [
@@ -7018,7 +9228,11 @@
             90,
             108
         ],
-        "name": "Cobalion"
+        "name": "Terrakion",
+        "type": [
+            "Rock",
+            "Fighting"
+        ]
     },
     {
         "base": [
@@ -7029,7 +9243,11 @@
             129,
             108
         ],
-        "name": "Terrakion"
+        "name": "Virizion",
+        "type": [
+            "Grass",
+            "Fighting"
+        ]
     },
     {
         "base": [
@@ -7040,7 +9258,10 @@
             80,
             111
         ],
-        "name": "Virizion"
+        "name": "Tornadus",
+        "type": [
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -7051,7 +9272,11 @@
             80,
             111
         ],
-        "name": "Tornadus"
+        "name": "Thundurus",
+        "type": [
+            "Electric",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -7062,7 +9287,11 @@
             120,
             90
         ],
-        "name": "Thundurus"
+        "name": "Reshiram",
+        "type": [
+            "Dragon",
+            "Fire"
+        ]
     },
     {
         "base": [
@@ -7073,7 +9302,11 @@
             100,
             90
         ],
-        "name": "Reshiram"
+        "name": "Zekrom",
+        "type": [
+            "Dragon",
+            "Electric"
+        ]
     },
     {
         "base": [
@@ -7084,7 +9317,11 @@
             80,
             101
         ],
-        "name": "Zekrom"
+        "name": "Landorus",
+        "type": [
+            "Ground",
+            "Flying"
+        ]
     },
     {
         "base": [
@@ -7095,7 +9332,11 @@
             90,
             95
         ],
-        "name": "Landorus"
+        "name": "Kyurem",
+        "type": [
+            "Dragon",
+            "Ice"
+        ]
     },
     {
         "base": [
@@ -7106,7 +9347,11 @@
             90,
             108
         ],
-        "name": "Kyurem"
+        "name": "Keldeo",
+        "type": [
+            "Water",
+            "Fighting"
+        ]
     },
     {
         "base": [
@@ -7117,7 +9362,11 @@
             128,
             90
         ],
-        "name": "Keldeo"
+        "name": "Meloetta",
+        "type": [
+            "Normal",
+            "Psychic"
+        ]
     },
     {
         "base": [
@@ -7128,15 +9377,13 @@
             95,
             99
         ],
-        "name": "Meloetta"
-    },
-    {
-        "name": "Genesect"
+        "name": "Genesect",
+        "type": [
+            "Bug",
+            "Steel"
+        ]
     },
     {
         "name": "Pokemon Egg"
-    },
-    {
-        "name": "Manaphy Egg"
     }
 ]

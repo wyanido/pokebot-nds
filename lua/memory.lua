@@ -82,6 +82,7 @@ offset = {
 
 	-- Misc testing
 	starter_box_open 	= 0x2B0C40 + wt, -- 0 when opening gift, 1 at starter select
+	battle_menu_state	= 0x2D6B04 + wt, -- 1 on FIGHT menu, 2 on move select, 4 on switch/run after faint, 0 otherwise
 	selected_starter 	= 0x269994 + wt, -- Unconfirmed selection in gift box; 0 Snivy, 1 Tepig, 2 Oshawott, 4 Nothing
 }
 
