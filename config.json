@@ -6,5 +6,5 @@
 	"pickup": true,
 	"pickup_threshold": 2,
 	"battle_non_targets": true,
-	"do_earliest_reset": false
+	"hax": false
 }

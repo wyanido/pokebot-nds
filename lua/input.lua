@@ -33,25 +33,25 @@ function hold_button(button)
 	end
 
 	joypad.set(input)
+	wait_frames(1)
 end
 
 function release_button(button)
 	held_input[button] = false
 	input[button] = false
 	joypad.set(input)
+	clearUnheldInputs()
 end
 
-function press_combo(...)
-  local args = {...}
-  
-  for _, arg in ipairs(args) do
-    if type(arg) == "number" then
-      wait_frames(arg)
+function press_sequence(...)
+  for _, k in ipairs({...}) do
+    if type(k) == "number" then
+      wait_frames(k)
     else
-      input[arg] = true
+      input[k] = true
       joypad.set(input)
   		wait_frames(1)
-  		input[arg] = false
+  		input[k] = false
     end
   end
 end

@@ -16,6 +16,7 @@ The dashboard relies on net sockets which aren't enabled in BizHawk by default, 
 ## To-do list
 - [x] Dashboard with stats
 - [ ] Config page on dashboard
+- [ ] Customisable target traits
 
 ### Game specific
 #### Black/White
@@ -27,12 +28,13 @@ The dashboard relies on net sockets which aren't enabled in BizHawk by default, 
 - [ ] Phenomenon encounters
 - [ ] Wild held item farming (Thief)
 - [ ] Dust cloud item farming
-- [ ] Gift Pokemon resets (Dreamyard monkeys, Fossils)
-- [ ] Egg collecting and hatching
+- [x] Gift Pokemon resets (Dreamyard monkeys, Fossils)
+- [x] Egg collecting and hatching
 - [ ] Route 18 Larvesta hatch & resets
 - [ ] Thundurus/Tornadus dex resets
 - [ ] Swords of Justice resets
 - [ ] Kyurem resets
+- [ ] Fishing
 
 #### Black 2/White 2
 - [ ] Starter resets
@@ -45,12 +47,13 @@ The dashboard relies on net sockets which aren't enabled in BizHawk by default, 
 - [ ] Dust cloud item farming
 - [ ] Static Pokemon resets (Braviary, Mandibuzz, Volcarona, Crustle, Jellicent)
 - [ ] Hidden Grotto farming
-- [ ] Gift Pokemon resets (Eevee, Deerling, Fossils, Magikarp)
+- [ ] Gift Pokemon resets (Fossils, Magikarp)
 - [ ] Egg collecting and hatching
 - [ ] Swords of Justice resets
 - [ ] Kyurem resets
-- [ ] Lati@s resets
+- [ ] Latias/Latios resets
 - [ ] Lake guardian resets
 - [ ] Regi trio (and Regigigas) resets
 - [ ] Cresselia resets
 - [ ] Heatran resets
+- [ ] Fishing

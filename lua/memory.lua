@@ -47,6 +47,9 @@ offset = {
 	party_count			= 0x2349B0 + wt, -- 4 bytes before first index
 	party_data			= 0x2349B4 + wt, -- PID of first party member
 	
+	step_counter 		= 0x235125 + wt,
+	step_cycle	 		= 0x235126 + wt,
+
 	-- Location
 	map_header 			= 0x24F90C + wt,
 	trainer_name		= 0x24FC00 + wt,
@@ -61,6 +64,8 @@ offset = {
 
 	phenomenon_x		= 0x257018 + wt,
 	phenomenon_z		= 0x25701C + wt,
+
+	egg_hatching		= 0x26DF68 + wt,
 	
 	-- Map tile data
 	-- 0x2000 bytes, 8 32x32 layers that can be in any order

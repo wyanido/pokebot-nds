@@ -14,10 +14,17 @@ ipcRenderer.on('party', (event, party) => {
             var partyID = "#party-" + (i + 1).toString()
 
             mon = party[i]
-            mon.folder = mon.shiny ? "shiny/" : ""
+
+            if (mon.isEgg) {
+                template = $("#party-egg-template")
+            } else {
+                mon.folder = mon.shiny ? "shiny/" : "";
+                mon.shiny = mon.shiny ? "✨" : "";
+            }
+
             mon.gender = mon.gender.toLowerCase()
             mon.name = "(" + mon.name + ")"
-            mon.pid = hex_reverse(mon.pid.toString(16).toUpperCase())
+            // mon.pid = hex_reverse(mon.pid.toString(16).toUpperCase())
             // mon.rating = rating_stars(mon.rating)
 
             var newTableRow = template.tmpl(mon);
@@ -35,6 +42,9 @@ ipcRenderer.on('encounters', (event, encounters) => {
         mon.gender = mon.gender.toLowerCase()
         mon.pid = hex_reverse(mon.pid.toString(16).toUpperCase())
         mon.shiny = (mon.shiny ? "✨ " : "➖ ") + mon.shinyValue
+        
+        var s = "00" + mon.species.toString()
+        mon.species = s.substr(s.length-3)
         
         encounter_log.push(mon)
     }

@@ -21,6 +21,7 @@
             <div style="position: relative; display: inline-block;">
                 <img style="position:absolute" src="images/items/${pokeball}.png"></td>
                 <img style="position:absolute;bottom:0;right:0" src="images/items/${heldItem}.png"></td>
+                <div style="position:absolute;top:0;right:0">${shiny}</div>
                 <img src="images/pokemon/${folder}${species}.png">
             </div>
             <br>
@@ -43,6 +44,28 @@
                 <tr>
                   <th>IVs</th>
                   <td style="white-space: nowrap;">${hpIV} ${attackIV} ${defenseIV} ${spAttackIV} ${spDefenseIV} ${speedIV}</td>
+                </tr>
+            </tbody>
+        </table>
+    </script>
+    <script id="party-egg-template" type="text/x-jQuery-tmpl">
+        <div class="text-center">
+            <div style="position: relative; display: inline-block;">
+                <img style="position:absolute" src="images/items/${pokeball}.png"></td>
+                <img src="images/pokemon/egg.png">
+            </div>
+            <br>
+            ${nickname}
+            <img src="images/${gender}.png">
+            Lv ${level}
+            <br>
+            ${name}
+        </div>
+        <table class="table" style="white-space: nowrap;">
+            <tbody>
+                <tr>
+                  <th>Hatch Steps</th>
+                  <td><${friendship}</td>
                 </tr>
             </tbody>
         </table>

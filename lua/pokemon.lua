@@ -293,6 +293,9 @@ function pokemon.log(mon)
 	  mon[key] = nil
 	end
   
+  -- Convert PID to standard hex format
+  mon.pid = string.format("%08X", mon.pid)
+
 	table.insert(encounters, mon)
 
 	write_file("logs/encounters.json", json.encode(encounters))
