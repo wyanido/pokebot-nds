@@ -321,6 +321,7 @@ function catch_pokemon()
         [0] = "none",
         [1] = "Master Ball",
         [2] = "Ultra Ball",
+        [3] = "Great Ball",
         [4] = "Poke Ball",
         [5] = "Safari Ball",
         [6] = "Net Ball",
@@ -953,12 +954,16 @@ function mode_daycare_eggs()
                 if party_eggs[i] == 1 and party[i].isEgg == 0 then
                     local was_target = pokemon.log(party[i])
                     update_dashboard_recents()
-
-                    if was_target then
-                        pause_bot("Hatched a target Pokemon")
-                    end
                     break
                 end
+            end
+
+            if was_target then
+                if config.save_game_after_catch then
+                    save_game()
+                end
+                
+                pause_bot("Hatched a target Pokemon")
             end
 
             console.log("Egg finished hatching.")
