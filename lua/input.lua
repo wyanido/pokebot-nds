@@ -1,3 +1,9 @@
+-- Restore manual touch screen input when the script is stopped
+event.onexit(
+	function () 
+		client.clearautohold() 
+	end
+)
 
 function touch_screen_at(x, y)
 	joypad.setanalog({['Touch X'] = x, ['Touch Y'] = y})
@@ -40,7 +46,7 @@ function release_button(button)
 	held_input[button] = false
 	input[button] = false
 	joypad.set(input)
-	clearUnheldInputs()
+	clear_unheld_inputs()
 end
 
 function press_sequence(...)
@@ -62,13 +68,14 @@ function wait_frames(frames)
 	for _ = 1, frames do
 		joypad.set(input)
 		emu.frameadvance()
-		updateGameInfo()
+		update_game_info()
+		poll_dashboard_response()
 	end
 
-	clearUnheldInputs()
+	clear_unheld_inputs()
 end
 
-function clearUnheldInputs()
+function clear_unheld_inputs()
 	for k, _ in pairs(input) do
 		if k ~= "Touch X" and k ~= "Touch Y" and not held_input[k] then
 	  	input[k] = false
@@ -76,4 +83,39 @@ function clearUnheldInputs()
 	end
 
 	joypad.set(input)
+end
+
+function clear_all_inputs()
+	for k, _ in pairs(input) do
+		if k ~= "Touch X" and k ~= "Touch Y" then
+	  	input[k] = false
+		held_input[k] = false
+	  end
+	end
+
+	joypad.set(input)
+end
+
+function input_init()
+	input = joypad.get()
+
+	-- Initialise with no held inputs
+	held_input = input
+	for k, _ in pairs(held_input) do
+		held_input[k] = false
+	end
+
+	clear_unheld_inputs()
+
+	return input
+end
+
+-- Holds B to speed up text and A to progress text boxes
+function skip_dialogue()
+	hold_button("B")
+
+	press_sequence(12, "A")
+
+	release_button("B")
+	wait_frames(1)
 end

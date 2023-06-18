@@ -1,8 +1,8 @@
 {
-  "name": "pokebot-v-dashboard",
+  "name": "pokebot-nds",
   "version": "1.0.0",
   "description": "",
-  "main": "main.js",
+  "main": "js/main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "electron .",
@@ -16,7 +16,7 @@
   },
   "build": {
     "appId": "com.wyanido.app",
-    "productName": "Pokebot V Dashboard",
+    "productName": "Pokebot NDS Dashboard",
     "target": "NSIS",
     "directories": {
       "output": "build"
@@ -40,5 +40,8 @@
       "allowToChangeInstallationDirectory": true,
       "oneClick": false
     }
+  },
+  "dependencies": {
+    "yaml": "^2.3.1"
   }
 }

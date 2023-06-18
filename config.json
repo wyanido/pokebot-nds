@@ -1,10 +1,1 @@
-{
-	"mode": "random encounters",
-	"starter": 0,
-	"cycle_starters": true,
-	"cycle_lead_pokemon": true,
-	"pickup": true,
-	"pickup_threshold": 2,
-	"battle_non_targets": true,
-	"hax": false
-}
+{"battle_non_targets":true,"save_game_on_start":false,"starter1":true,"hax":false,"save_game_after_catch":false,"auto_catch":false,"move_direction":"Horizontal","mode":"manual","pokeball_priority":["Premier Ball","Ultra Ball","Great Ball","Poke Ball"],"thief_wild_items":false,"cycle_lead_pokemon":true,"target_traits":{"iv_sum":186,"shiny":true},"encounter_log_limit":"30","pickup_threshold":"2","starter2":true,"starter0":true,"pickup":false,"pokeball_override":{"Repeat Ball":{"species":["Lillipup","Patrat"]},"Net Ball":{"type":["Bug","Water"]}}}

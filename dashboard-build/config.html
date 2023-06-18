@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en" class="auto-scaling-disabled">
+
+<head>
+    <!-- Meta tags -->
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Pokébot NDS</title>
+    <!-- Halfmoon CSS -->
+    <link href="js/halfmoon-variables.min.css" rel="stylesheet" />
+    <script>if (typeof module === 'object') { window.module = module; module = undefined; }</script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://ajax.aspnetcdn.com/ajax/jquery.templates/beta1/jquery.tmpl.min.js"></script>
+    <script src="js/main.js"></script>
+    <script>if (window.module) module = window.module;</script>
+</head>
+
+<body class="with-custom-webkit-scrollbars with-custom-css-scrollbars" data-dm-shortcut-enabled="true"
+    data-set-preferred-mode-onload="true">
+    <!-- Page wrapper start -->
+    <div class="page-wrapper with-navbar">
+        <!-- Navbar start -->
+        <nav class="navbar">
+            <!-- Navbar brand -->
+            <div class="navbar-brand">
+                <img src="images/pokemon-icon/201QU.png" class="icon" id="icon">
+                Pokébot NDS
+            </div>
+            <span class="navbar-text text-monospace">v0.2-alpha</span> 
+            <!-- Navbar nav -->
+            <ul class="navbar-nav d-flex d-md-flex">
+                <li class="nav-item">
+                    <a href="dashboard.html" class="nav-link">Dashboard</a>
+                </li>
+                <li class="nav-item active">
+                    <a class="nav-link">Config</a>
+                </li>
+            </ul>
+            <span class="badge text-monospace ml-auto" id="nav-game">No game detected!</span>
+        </nav>
+        <!-- Navbar end -->
+        <div class="sticky-alerts"></div>
+        <!-- Content wrapper start -->
+        <div class="content-wrapper">
+            <!-- Container-fluid -->
+            <div class="container-fluid">
+                <!-- Row (equally spaced on large screens and up) -->
+                <div class="col" style="padding:50px">
+                    <fieldset id="config-form" disabled="disabled">
+                        <button style="width: 100%" class="btn btn-primary" id="post-config" onclick="sendConfig()">Save
+                            Changes</button>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="card">
+                                    <h2 class="content-title">Bot Behaviour</h2>
+                                    <div class="custom-switch">
+                                        <input type="checkbox" id="save_game_on_start">
+                                        <label for="save_game_on_start">Save game on start</label>
+                                    </div>
+                                    <br>
+                                    <label for="mode">Bot Mode</label>
+                                    <select class="form-control" id="mode">
+                                        <option value="manual">Manual</option>
+                                        <option disabled="disabled">-- Soft Resets</option>
+                                        <option value="starters">Starters</option>
+                                        <option value="gift">Gift Pokemon</option>
+                                        <option disabled="disabled">-- Standard</option>
+                                        <option value="random encounters">Random Encounters</option>
+                                        <option value="daycare eggs">Collect & Hatch Eggs</option>
+                                    </select>
+                                    <br>
+                                    <label for="move_direction">Move Direction</label>
+                                    <select class="form-control" id="move_direction">
+                                        <option value="Horizontal">Horizontal</option>
+                                        <option value="Vertical">Vertical</option>
+                                    </select>
+                                    <br>
+                                    <label for="starters">Starters to cycle between</label>
+                                    <br>
+                                    <div id="starters">
+                                        <div class="custom-switch">
+                                            <input type="checkbox" id="starter0" value="">
+                                            <label for="starter0">Snivy</label>
+                                        </div>
+                                        <br>
+                                        <div class="custom-switch">
+                                            <input type="checkbox" id="starter1" value="">
+                                            <label for="starter1">Tepig</label>
+                                        </div>
+                                        <br>
+                                        <div class="custom-switch">
+                                            <input type="checkbox" id="starter2" value="">
+                                            <label for="starter2">Oshawott</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card">
+                                    <h2 class="content-title">Pickup</h2>
+                                    <div class="custom-switch">
+                                        <input type="checkbox" id="pickup" value="">
+                                        <label for="pickup">Collect pickup items after successful battle</label>
+                                    </div>
+                                    <br>
+                                    <label for="pickup_threshold">Pickup threshold</label>
+                                    <input id="pickup_threshold" style="width:100px" min="1" max="6" type="number"
+                                        class="form-control">
+                                </div>
+                                <div class="card">
+                                    <h2 class="content-title">Logging</h2>
+                                    <label for="encounter_log_limit">Encounter Log Limit</label>
+                                    <input id="encounter_log_limit" min="1" type="number" class="form-control"
+                                        placeholder="">
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="card">
+                                    <h2 class="content-title">Wild Battles</h2>
+                                    <div class="custom-switch">
+                                        <input type="checkbox" id="cycle_lead_pokemon" value="">
+                                        <label for="cycle_lead_pokemon">Cycle exhausted lead Pokemon</label>
+                                    </div>
+                                    <br>
+                                    <div class="custom-switch">
+                                        <input type="checkbox" id="battle_non_targets" value="">
+                                        <label for="battle_non_targets">Battle non-targets</label>
+                                    </div>
+                                    <br>
+                                    <div class="custom-switch">
+                                        <input type="checkbox" id="thief_wild_items" value="">
+                                        <label for="thief_wild_items">Use Thief to steal wild items</label>
+                                    </div>
+                                    <br>
+                                    <div class="custom-switch">
+                                        <input type="checkbox" id="auto_catch" value="">
+                                        <label for="auto_catch">Auto-catch targets</label>
+                                    </div>
+                                    <br>
+                                    <div class="custom-switch">
+                                        <input type="checkbox" id="save_game_after_catch" value="">
+                                        <label for="save_game_after_catch">Save game after catch</label>
+                                    </div>
+                                    <br>
+                                    <label for="catch">Target traits</label>
+                                    <textarea class="form-control" spellcheck="false"
+                                        style="min-width:100px; max-width:95%; height: 120px;" id="target_traits"
+                                        placeholder=""></textarea>
+                                    <br>
+                                    <label for="pokeball_priority">Pokeball priority</label>
+                                    <textarea class="form-control" spellcheck="false"
+                                        style="min-width:100px; max-width:95%; height: 120px;" id="pokeball_priority"
+                                        placeholder=""></textarea>
+                                    <br>
+                                    <label for="pokeball_override">Pokeball override</label>
+                                    <textarea class="form-control" spellcheck="false"
+                                        style="min-width:100px; max-width:95%; height: 260px;" id="pokeball_override"
+                                        placeholder=""></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+        </div>
+        <!-- Content wrapper end -->
+    </div>
+    <!-- Page wrapper end -->
+    <script src="js/config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/halfmoon@1.1.1/js/halfmoon.min.js"></script>
+</body>
+
+</html>
