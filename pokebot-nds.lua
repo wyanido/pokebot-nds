@@ -1,7 +1,7 @@
 -----------------------
 -- INITIALIZATION
 -----------------------
-local BOT_VERSION = "0.2-alpha"
+local BOT_VERSION = "0.2.2-alpha"
 
 console.clear()
 console.log("Running Lua " .. _VERSION)
