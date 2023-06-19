@@ -279,7 +279,7 @@ function save_game()
 
     wait_frames(60)
 
-    while mbyte(0x21F0100) ~= 0 do -- 1 while save menu is open
+    while mbyte(offset.save_indicator) ~= 0 do -- 1 while save menu is open
         press_sequence("A", 12)
     end
 
@@ -415,7 +415,7 @@ function catch_pokemon()
     -- TODO scroll page
     local button = (ball_index - 1) % 6 + 1
     local page = math.floor((ball_index - 1) / 6)
-    local current_page = mbyte(0x22962C8)
+    local current_page = mbyte(offset.battle_bag_page)
 
     while current_page ~= page do -- Scroll to page with ball
         if current_page < page then

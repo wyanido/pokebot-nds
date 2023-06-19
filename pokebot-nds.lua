@@ -1,7 +1,7 @@
 -----------------------
 -- INITIALIZATION
 -----------------------
-local BOT_VERSION = "0.2.2-alpha"
+local BOT_VERSION = "0.2.3-alpha"
 
 console.clear()
 console.log("Running Lua " .. _VERSION)
@@ -302,7 +302,7 @@ local starter = -1
 while true do
     if mode == "starters" then
         -- Alternate between starters specified in config and reset until one is a target
-        if not config.starter1 and not config.starter2 and not config.starter3 then
+        if not config.starter0 and not config.starter1 and not config.starter2 then
             console.log("### At least one starter selection must be enabled in config for this bot mode ###")
             return
         end

@@ -123,8 +123,10 @@ local function get_offset_bw(game)
 		current_foe			= 0x0226ACF4 + wt, -- PID of foe, set immediately after the battle transition ends
 
 		-- Misc testing
+		save_indicator		= 0x021F0100 + wt,
 		starter_box_open 	= 0x022B0C40 + wt, -- 0 when opening gift, 1 at starter select
 		battle_menu_state	= 0x022D6B04 + wt, -- 1 on FIGHT menu, 2 on move select, 4 on switch/run after faint, 0 otherwise
+		battle_bag_page		= 0x022962C8 + wt,
 		selected_starter 	= 0x02269994 + wt, -- Unconfirmed selection in gift box; 0 Snivy, 1 Tepig, 2 Oshawott, 4 Nothing
 	}
 end
