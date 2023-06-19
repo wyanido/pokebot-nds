@@ -314,7 +314,7 @@ function catch_pokemon()
                 return v2
             end
         end
-        return 0
+        return -1
     end
 
     local mon_ball = {
@@ -366,7 +366,7 @@ function catch_pokemon()
     end
 
     console.log("Finding usable Ball...")
-    local ball_index = 0
+    local ball_index = -1
 
     -- Compare with pokeball override
     if config.pokeball_override then
@@ -378,7 +378,7 @@ function catch_pokemon()
                 
                 ball_index = find_ball(balls, k)
 
-                if ball_index ~= 0 then
+                if ball_index ~= -1 then
                     break
                 end
             end
@@ -386,18 +386,18 @@ function catch_pokemon()
     end
 
     -- If no override rules were matched, default to priority
-    if ball_index == 0 then
+    if ball_index == -1 and config.pokeball_priority then
         for _, key in ipairs(config.pokeball_priority) do
             ball_index = find_ball(balls, key)
 
-            if ball_index ~= 0 then
+            if ball_index ~= -1 then
                 break
             end
         end
     end
 
-    if ball_index == 0 then
-        pause_bot("Nothing to catch the target with")
+    if ball_index == -1 then
+        pause_bot("Nothing to catch the target with allowed by config")
     end
 
     while mbyte(offset.battle_menu_state) ~= 1 do
@@ -443,15 +443,16 @@ function catch_pokemon()
     end
 
     if not game_state.in_battle then
+        console.log("Skipping through all post-battle dialogue... (This may take a few seconds)")
         for i = 0, 118, 1 do
             press_button("B")
             clear_unheld_inputs()
             wait_frames(5)
         end
-    end
 
-    if config.save_game_after_catch then
-        save_game()
+        if config.save_game_after_catch then
+            save_game()
+        end
     end
 end
 
@@ -609,8 +610,12 @@ function mode_random_encounters()
             wait_frames(120)
             pause_bot("Wild Pokemon meets target specs! There are multiple opponents, so pausing for manual catch")
         else
-            while game_state.in_battle do
-                catch_pokemon()
+            if config.auto_catch then
+                while game_state.in_battle do
+                    catch_pokemon()
+                end
+            else
+                pause_bot("Wild Pokemon meets target specs, but auto_catch is disabled")
             end
         end
     else

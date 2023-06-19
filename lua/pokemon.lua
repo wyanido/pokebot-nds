@@ -286,7 +286,7 @@ end
 
 function pokemon.log(mon)
     -- Create a watered down copy of the Pokemon data for logging only
-    console.log("## Logging Pokemon ##")
+    -- console.log("## Logging Pokemon ##")
     local mon_new = shallowcopy(mon)
 
     if type(mon_new.pid) == "number" then
@@ -436,6 +436,11 @@ function pokemon.find_best_move(ally, foe)
 end
 
 function pokemon.matches_ruleset(mon, target)
+    if not target then
+        console.log("Mon was not a target, because no target was specified.")
+        return false
+    end
+
     -- If shiny Pokemon are specific as a target, ignore other
     -- config and always catch it
     if target.shiny then
@@ -516,10 +521,13 @@ function pokemon.matches_ruleset(mon, target)
         end
     end
 
-    if target.iv_sum and sum < target.iv_sum then
+    if target.iv_sum then
         has_other_specs = true
-        console.log("Mon IV sum of " .. sum .. " does not meet threshold " .. target.iv_sum)
-        return false
+
+        if sum < target.iv_sum then
+            console.log("Mon IV sum of " .. sum .. " does not meet threshold " .. target.iv_sum)
+            return false
+        end
     end
 
     -- Check moveset for target moves
@@ -562,7 +570,7 @@ function pokemon.matches_ruleset(mon, target)
         end
     end
 
-    if has_other_specs then 
+    if has_other_specs and not target.shiny then
         console.log("Mon is a target!")
         return true
     else

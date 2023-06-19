@@ -10,6 +10,8 @@ comm.socketServerSetTimeout(5)
 
 config = json.load("config.json")
 
+local disconnected = false
+
 function poll_dashboard_response()
 	-- Check for server packets frequently
 	if emu.framecount() % 20 ~= 0 then
@@ -17,6 +19,18 @@ function poll_dashboard_response()
 	end
 	
 	local response = comm.socketServerResponse()
+
+	-- If the dashboard couldn't be detected, poll it less often
+	if not comm.socketServerSuccessful() then
+		if not disconnected then
+			console.log("### Dashboard disconnected! ### ")
+			disconnected = true
+		end
+
+		comm.socketServerSetTimeout(1000)
+		emu.frameadvance() -- Prevents freeze
+		return
+	end
 
 	-- Ignore blank responses
 	if response == nil or response == "" then
