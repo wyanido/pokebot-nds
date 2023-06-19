@@ -154,7 +154,7 @@ function do_battle()
 end
 
 function check_party_status()
-    if #party == 0 then
+    if #party == 0 or game_state.in_battle then -- Don't check party status if bot was started during a battle
         return nil
     end
 
@@ -529,39 +529,8 @@ function mode_starters(starter)
     local was_target = pokemon.log(mon)
     update_dashboard_recents()
 
-    -- Check both cases because I can't trust it on just one
     if was_target then
-        if not config.save_game_after_catch then
-            pause_bot("Starter meets target specs")
-        else
-            console.log("Starter meets target specs! Skipping battles until next save opportunity...")
-
-            -- Button mash through two battles until bot can save
-            if config.hax then
-                while not game_state.in_battle do
-                    press_sequence("A", 5)
-                end
-            end
-
-            while game_state.in_battle do
-                press_sequence("A", 5)
-            end
-
-            while not game_state.in_battle do
-                skip_dialogue()
-            end
-
-            while game_state.in_battle do
-                press_sequence("A", 5)
-            end
-
-            for i = 0, 40, 1 do
-                skip_dialogue()
-            end
-
-            save_game()
-            client.pause()
-        end
+        pause_bot("Starter meets target specs")
     else
         console.log("Starter was not a target, resetting...")
         press_button("Power")
@@ -694,20 +663,18 @@ function mode_gift()
     local was_target = pokemon.log(mon)
     update_dashboard_recents()
 
-    -- Check both cases because I can't trust it on just one
     if was_target then
-        if not config.save_game_after_catch then
-            pause_bot("Gift Pokemon meets target specs, pausing")
-        else
-            console.log("Gift Pokemon meets target specs!")
+        if config.save_game_after_catch then 
+            console.log("Gift Pokemon meets target specs! Saving...")
 
             if not config.hax then
                 press_sequence("B", 120, "B", 120, "B", 60) -- Exit out of menu
             end
 
             save_game()
-            client.pause()
         end
+
+        pause_bot("Gift Pokemon meets target specs")
     else
         console.log("Gift Pokemon was not a target, resetting...")
         press_button("Power")

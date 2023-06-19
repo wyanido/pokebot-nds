@@ -270,12 +270,16 @@ function update_game_info(force)
 end
 
 function pause_bot(reason)
-    clear_unheld_inputs()
+    clear_all_inputs()
     client.clearautohold()
 
     console.log("###################################")
-    console.log(reason .. ". Pausing emulation! (Make sure to disable the lua script before intervening)")
-    client.pause()
+    console.log(reason .. ". Pausing bot! (Make sure to disable the lua script before intervening)")
+    
+    -- Do nothing ever again
+    while true do
+        emu.frameadvance()
+    end
 end
 
 -----------------------

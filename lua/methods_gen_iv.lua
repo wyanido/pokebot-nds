@@ -46,7 +46,6 @@ function mode_starters(starter)
 	local was_target = pokemon.log(mon)
 	update_dashboard_recents()
 
-	-- Check both cases because I can't trust it on just one
 	if was_target then
 		pause_bot("Starter meets target specs!")
 	else

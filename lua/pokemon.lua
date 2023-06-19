@@ -311,6 +311,7 @@ function pokemon.log(mon)
     write_file("logs/encounters.json", json.encode(encounters))
 
     -- Stats
+    -- Check both cases because I can't trust it on just one
     if mon.shiny or mon.shinyValue < 8 then
         -- Reset phase and update total
         stats.phase.max_iv_sum = 0
