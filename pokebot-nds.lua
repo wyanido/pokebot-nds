@@ -1,11 +1,11 @@
 -----------------------
 -- INITIALIZATION
 -----------------------
-local BOT_VERSION = "0.2.3-alpha"
+local BOT_VERSION = "0.3.0-alpha"
 
 console.clear()
 console.log("Running Lua " .. _VERSION)
-console.log("Pokebot NDS version " .. BOT_VERSION)
+console.log("Pokebot NDS version " .. BOT_VERSION .. " by NIDO (wyanido)")
 
 mbyte = memory.read_u8
 mword = memory.read_u16_le
@@ -199,7 +199,7 @@ function get_game_state()
         else
             state = {
                 selected_starter = mbyte(offset.selected_starter),
-                starter_box_open = mbyte(offset.starter_box_open),
+                starter_selection_is_open = mbyte(offset.starter_selection_is_open),
                 map_matrix = mdword(offset.map_matrix),
                 map_header = map,
                 map_name = map_names[map + 1],

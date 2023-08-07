@@ -485,13 +485,13 @@ function mode_starters(starter)
 
     console.log("Opening Gift Box...")
 
-    while game_state.starter_box_open ~= 1 do
+    while game_state.starter_selection_is_open ~= 1 do
         press_sequence("A", 5, "Down", 1)
     end
 
     console.log("Choosing Starter...")
 
-    while game_state.starter_box_open ~= 0 do
+    while game_state.starter_selection_is_open ~= 0 do
         if game_state.selected_starter ~= 4 then
             touch_screen_at(120, 180) -- Pick this one!
             wait_frames(5)

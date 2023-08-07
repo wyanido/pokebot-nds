@@ -124,10 +124,61 @@ local function get_offset_bw(game)
 
 		-- Misc testing
 		save_indicator		= 0x021F0100 + wt,
-		starter_box_open 	= 0x022B0C40 + wt, -- 0 when opening gift, 1 at starter select
+		starter_selection_is_open 	= 0x022B0C40 + wt, -- 0 when opening gift, 1 at starter select
 		battle_menu_state	= 0x022D6B04 + wt, -- 1 on FIGHT menu, 2 on move select, 4 on switch/run after faint, 0 otherwise
 		battle_bag_page		= 0x022962C8 + wt,
 		selected_starter 	= 0x02269994 + wt, -- Unconfirmed selection in gift box; 0 Snivy, 1 Tepig, 2 Oshawott, 4 Nothing
+	}
+end
+
+local function get_offset_b2w2(game)
+	local wt = 0x40 * game -- White version is offset slightly, moreso than original BW
+
+	return {
+		-- Bag pouches, 4 byte pairs | 0001 0004 = 4x Master Ball
+		items_pouch			= 0x0221D9E4 + wt, -- 1240 bytes long
+		key_items_pouch		= 0x0221DEBC + wt, -- 332 bytes long
+		tms_hms_case		= 0x0221E008 + wt, -- 436 bytes long
+		medicine_pouch		= 0x0221E1BC + wt, -- 192 bytes long
+		berries_pouch		= 0x0221E27C + wt, -- 234 bytes long
+		
+		running_shoes		= 0x0224CE07 + wt, -- 14 after receiving 
+
+		-- Party
+		party_count			= 0x0221E3E8 + wt, -- 4 bytes before first index
+		party_data			= 0x0221E3EC + wt, -- PID of first party member
+		
+		step_counter 		= 0x0221EB5D + wt,
+		step_cycle	 		= 0x0221EB5E + wt,
+
+		-- Location
+		map_header 			= 0x0223B444 + wt,
+		-- trainer_name		= 0x2 + wt,
+		-- Read the lower word for map-local coordinates
+		trainer_x			= 0x0223B448 + wt,
+		trainer_y			= 0x0223B44C + wt,
+		trainer_z			= 0x0223B450 + wt,
+		trainer_direction	= 0x0223B462 + wt, -- 0, 4, 8, 12 -> Up, Left, Down, Right
+		on_bike				= 0x02 + wt,
+		encounter_table		= 0x02 + wt,
+		map_matrix			= 0x02 + wt,
+
+		phenomenon_x		= 0x02 + wt,
+		phenomenon_z		= 0x02 + wt,
+
+		egg_hatching		= 0x02 + wt,
+		
+		-- Battle
+		battle_indicator	= 0x02258D86 + wt, -- 0x41 if during a battle
+		foe_count			= 0x02258D90 + wt, -- 4 bytes before the first index
+		current_foe			= 0x02258D94 + wt, -- PID of foe, set immediately after the battle transition ends
+
+		-- Misc testing
+		save_indicator		= 0x02 + wt,
+		starter_selection_is_open 	= 0x022B4C20 + wt, -- 0 when opening gift, 1 at starter select
+		battle_menu_state	= 0x022C2EC4 + wt, -- 1 on FIGHT menu, 2 on move select, 4 on switch/run after faint, 0 otherwise
+		battle_bag_page		= 0x022845FC + wt,
+		selected_starter 	= 0x022574C4 + wt, -- Unconfirmed selection in gift box; 0 Snivy, 1 Tepig, 2 Oshawott, 4 Nothing
 	}
 end
 
@@ -237,6 +288,12 @@ if gen == 4 then
 	end
 
 	MON_DATA_SIZE = 236 -- Gen 4 has 16 extra trailing bytes of ball seals data
+
+	-- Unsupported warning
+	console.log("------------------")
+	console.log("This game is currently not supported by pokebot-nds!\nYou will undoubtedly encounter issues when trying to run it.")
+	console.log("------------------")
+
 elseif gen == 5 then
 	dofile("lua\\methods_gen_v.lua") -- Define Gen V functions
 
@@ -251,10 +308,13 @@ elseif gen == 5 then
 		map_names[194] = "Cold Storage"
 		map_names[415] = "Undella Town"
 
-		MAP_HEADER_COUNT = 427 -- BW
+		MAP_HEADER_COUNT = 427
+		offset = get_offset_bw(game_version)
+	else
+		-- B2W2 uses BW methods with a few overrides to match game changes
+		dofile("lua\\methods_b2w2.lua")
+		offset = get_offset_b2w2(game_version)
 	end
 
 	MON_DATA_SIZE = 220
-
-	offset = get_offset_bw(game_version)
 end
