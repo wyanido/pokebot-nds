@@ -70,8 +70,7 @@ function mode_starters(starter)
 
     mon = party[1]
     local was_target = pokemon.log(mon)
-    update_dashboard_recents()
-
+    
     if was_target then
         pause_bot("Starter meets target specs")
     else

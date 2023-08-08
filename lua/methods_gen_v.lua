@@ -527,8 +527,7 @@ function mode_starters(starter)
 
     mon = party[1]
     local was_target = pokemon.log(mon)
-    update_dashboard_recents()
-
+    
     if was_target then
         pause_bot("Starter meets target specs")
     else
@@ -565,7 +564,6 @@ function mode_random_encounters()
 
     for i = 1, #foe, 1 do
         foe_is_target = pokemon.log(foe[i]) or foe_is_target
-        update_dashboard_recents() -- Only sends the latest encounter to the dashboard, so it needs to be called for every log
 
         if foe[i].heldItem ~= "none" then
             foe_item = true
@@ -661,8 +659,7 @@ function mode_gift()
 
     local mon = party[#party]
     local was_target = pokemon.log(mon)
-    update_dashboard_recents()
-
+    
     if was_target then
         if config.save_game_after_catch then 
             console.log("Gift Pokemon meets target specs! Saving...")

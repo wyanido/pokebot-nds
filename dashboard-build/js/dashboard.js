@@ -47,44 +47,37 @@ ipcRenderer.on('party', (event, party) => {
     }
 });
 
-encounter_log = []
-
-ipcRenderer.on('encounters', (_event, encounters) => {
-    // Modify data and add new encounters to the log
-    for (var i = 0; i < encounters.length; i ++ ) {
-        mon = encounters[i]
-
-        mon.gender = mon.gender.toLowerCase()
-        if (mon.gender == "genderless") {
-            mon.gender = "none" // Blank image filename
-        }
-
-        mon.pid = hex_reverse(mon.pid.toString(16).toUpperCase())
-        mon.shiny = (mon.shiny ? "✨ " : "➖ ") + mon.shinyValue
-        
-        var s = "00" + mon.species.toString()
-        mon.species = s.substr(s.length-3)
-        
-        encounter_log.push(mon)
-    }
-
-    encounter_log = encounter_log.slice(-7) // Only keep the latest 7 entries
-    
+ipcRenderer.on('set_recents', (_event, encounters) => {
     // Refresh log display
     var template = $("#row-template");
-    var recents = $("#recents")
+    var log = $("#recents")
     
     $("#recents").empty();
-
-    for (var i = encounter_log.length; i >= 0; i--) {
-        if (encounter_log[i]) {
-            var row = template.tmpl(encounter_log[i]);
-            recents.append(row)
+    
+    for (var i = encounters.length; i >= encounters.length - 7; i--) {
+        if (encounters[i]) {
+            var row = template.tmpl(encounters[i]);
+            log.append(row)
         }
     }
 });
 
-ipcRenderer.on('stats', (_event, stats) => {
+ipcRenderer.on('set_targets', (_event, encounters) => {
+    // Refresh log display
+    var template = $("#row-template");
+    var log = $("#targets")
+    
+    $("#targets").empty();
+    
+    for (var i = encounters.length; i >= encounters.length - 7; i--) {
+        if (encounters[i]) {
+            var row = template.tmpl(encounters[i]);
+            log.append(row)
+        }
+    }
+});
+
+ipcRenderer.on('set_stats', (_event, stats) => {
     document.getElementById("total-seen").innerHTML = stats.total.seen
     document.getElementById("total-shiny").innerHTML = stats.total.shiny
     document.getElementById("total-max-iv").innerHTML = stats.total.max_iv_sum

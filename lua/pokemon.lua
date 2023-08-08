@@ -302,40 +302,21 @@ function pokemon.log(mon)
         mon_new[key] = nil
     end
 
-    table.insert(encounters, mon_new)
-
-    while #encounters > tonumber(config.encounter_log_limit) do
-        table.remove(encounters, 1)
-    end
-
-    write_file("logs/encounters.json", json.encode(encounters))
-
-    -- Stats
-    -- Check both cases because I can't trust it on just one
-    if mon.shiny or mon.shinyValue < 8 then
-        -- Reset phase and update total
-        stats.phase.max_iv_sum = 0
-        stats.phase.seen = 0
-        stats.phase.lowest_sv = 65535
-        stats.total.shiny = stats.total.shiny + 1
-    end
-
     local was_target = pokemon.matches_ruleset(mon, config.target_traits)
 
+    -- Send encounter to dashboard
     if was_target then
-        table.insert(target_log, mon_new)
-        write_file("logs/target_log.json", json.encode(target_log))
+        comm.socketServerSend(json.encode({
+            type = "seen_target",
+            data = mon_new
+        }) .. "\x00")
     else
-        -- Update phase and total
-        stats.phase.seen = stats.phase.seen + 1
-        stats.phase.lowest_sv = math.min(mon.shinyValue, stats.phase.lowest_sv)
+        comm.socketServerSend(json.encode({
+            type = "seen",
+            data = mon_new
+        }) .. "\x00")
     end
 
-    local iv_sum = mon.hp_iv + mon.attack_iv + mon.defense_iv + mon.sp_attack_iv + mon.sp_defense_iv + mon.speed_iv
-    stats.total.max_iv_sum = math.max(iv_sum, stats.total.max_iv_sum)
-    stats.total.seen = stats.total.seen + 1
-
-    write_file("logs/stats.json", json.encode(stats))
     return was_target
 end
 

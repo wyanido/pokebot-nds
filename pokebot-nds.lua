@@ -21,48 +21,10 @@ pokemon = require("lua\\pokemon")
 dofile("lua\\dashboard.lua")
 
 -----------------------
--- LOGGING
+-- GAME INFO POLLING
 -----------------------
 
-os.execute("mkdir logs")
-
-encounters = json.load("logs/encounters.json")
-if not encounters then
-    encounters = {}
-else
-    -- Send full encounter list to the dashboard to initialize
-    comm.socketServerSend(json.encode({
-        type = "encounters",
-        data = encounters
-    }) .. "\x00")
-end
-
-stats = json.load("logs/stats.json")
-if not stats then
-    stats = {
-        total = {
-            max_iv_sum = 0,
-            shiny = 0,
-            seen = 0
-        },
-        phase = {
-            lowest_sv = 65535,
-            seen = 0
-        }
-    }
-end
-
-target_log = json.load("logs/target_log.json")
-if not target_log then
-    target_log = {}
-end
-
--- Also send stats and game info to the dashboard
-comm.socketServerSend(json.encode({
-    type = "stats",
-    data = stats
-}) .. "\x00")
-
+-- Send game info to the dashboard
 comm.socketServerSend(json.encode({
     type = "init",
     data = {
@@ -70,10 +32,6 @@ comm.socketServerSend(json.encode({
         game = game_name
     }
 }) .. "\x00")
-
------------------------
--- GAME INFO POLLING
------------------------
 
 last_party_checksums = {}
 party = {}
@@ -126,7 +84,7 @@ function get_party(force)
             table.insert(new_party, mon)
         else
             -- If any party checksums fail, wait a frame and try again
-            console.log("### Party checksum failed at slot " .. i .. ", retrying ###")
+            -- console.log("### Party checksum failed at slot " .. i .. ", retrying ###")
             emu.frameadvance()
             return get_party(true)
         end
@@ -158,7 +116,7 @@ function get_current_foes()
 
                 table.insert(foe_table, mon)
             else 
-                console.log("### Foe checksum failed at slot " .. i .. ", retrying ### ")
+                -- console.log("### Foe checksum failed at slot " .. i .. ", retrying ### ")
                 emu.frameadvance()
                 goto retry
             end
@@ -217,19 +175,6 @@ function get_game_state()
     state.in_game = in_game
 
     return state
-end
-
-function update_dashboard_recents()
-    -- Send the latest encounter and updated bot stats to the dashboard
-    comm.socketServerSend(json.encode({
-        type = "encounters",
-        data = {encounters[#encounters]}
-    }) .. "\x00")
-
-    comm.socketServerSend(json.encode({
-        type = "stats",
-        data = stats
-    }) .. "\x00")
 end
 
 function frames_per_move()
@@ -348,7 +293,6 @@ while true do
 
             for i = 1, #foe, 1 do
                 pokemon.log(foe[i])
-                update_dashboard_recents()
             end
 
             while game_state.in_battle do

@@ -18,7 +18,6 @@ ipcRenderer.on('init', (_event, info) => {
 
     var num = Math.floor(Math.random() * (maxValue - minValue)) + minValue
     document.getElementById("icon").src = "images/pokemon-icon/" + num.toString().padStart(3, '0') + ".png";
-    document.getElementById("nav-game").innerHTML = info.game;
 });
 
 ipcRenderer.on('set_config', (_event, config) => {
@@ -88,8 +87,7 @@ function sendConfig() {
     }
 
     ipcRenderer.send('apply_config', config);
-
-    // Built-in function
+    
     halfmoon.initStickyAlert({
         content: "You may need to restart pokebot-nds.lua for the bot mode to update immediately. Other changes will take effect now.",
         title: "Changes saved!",

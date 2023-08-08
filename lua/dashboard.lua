@@ -74,8 +74,6 @@ function poll_dashboard_response()
 		end
 	elseif response.type == "apply_config" then
 		config = response.data.config
-
-		write_file("config.json", json.encode(config))
 	end
 end
 

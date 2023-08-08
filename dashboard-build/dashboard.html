@@ -11,8 +11,8 @@
     <!-- Halfmoon CSS -->
     <link href="js/halfmoon-variables.min.css" rel="stylesheet" />
     <script>if (typeof module === 'object') { window.module = module; module = undefined; }</script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://ajax.aspnetcdn.com/ajax/jquery.templates/beta1/jquery.tmpl.min.js"></script>
+    <script src="js/jquery-3.6.0.min.js"></script>
+    <script src="js/jquery.tmpl.min.js"></script>
     <script src="js/main.js"></script>
     <script id="party-template" type="text/x-jQuery-tmpl">
         <div class="text-center">
@@ -56,7 +56,6 @@
             <br>
             ${name}
         </div>
-        <br>
     </script>
     <script id="party-egg-template" type="text/x-jQuery-tmpl">
         <div class="text-center">
@@ -96,7 +95,6 @@
         <br>
         <center>
         <b>Hatch Steps</b>
-        <br>
         <${friendship}
         </center>
     </script>
@@ -140,45 +138,53 @@
                 <li class="nav-item">
                     <a href="config.html" class="nav-link">Config</a>
                 </li>
+                <li class="nav-item">
+                    <s>
+                        <span class="nav-link">Tools</span>
+                    </s>
+                </li>
             </ul>
-            <span class="badge text-monospace ml-auto" id="nav-game">No game detected!</span>
         </nav>
         <!-- Navbar end -->
         <!-- Content wrapper start -->
         <div class="content-wrapper">
             <div class="row">
                 <div class="col-6">
-                    <div class="card">
-                        <h2 class="card-title text-center">Party</h2>
-                        <div class="row" id="party">
-                            <div class="col-4" id="party-1"></div>
-                            <div class="col-4" id="party-2"></div>
-                            <div class="col-4" id="party-3"></div>
-                            <br>
-                            <div class="col-4" id="party-4"></div>
-                            <div class="col-4" id="party-5"></div>
-                            <div class="col-4" id="party-6"></div>
+                    <div class="card p-0">
+                        <div class="row">
+                            <button class="btn btn-primary col text-truncate" id="nav-game">No game detected!</button>
+                        </div>
+                        <div class="card m-0 border-0">
+                            <div class="row" id="party">
+                                <div class="col-4" id="party-1"></div>
+                                <div class="col-4" id="party-2"></div>
+                                <div class="col-4" id="party-3"></div>
+                                <br>
+                                <div class="col-4" id="party-4"></div>
+                                <div class="col-4" id="party-5"></div>
+                                <div class="col-4" id="party-6"></div>
+                            </div>
+                        </div>
+                        <div class="m-20 mt-0">
+                            <table class="table">
+                                <tr>
+                                    <th>Map</th>
+                                    <td id="map-header"></td>
+                                </tr>
+                                <tr>
+                                    <th>Position</th>
+                                    <td id="position"></td>
+                                </tr>
+                                <tr>
+                                    <th>Phenomenon</th>
+                                    <td id="phenomenon"></td>
+                                </tr>
+                            </table>
                         </div>
                     </div>
                 </div>
                 <div class="col-6">
                     <div class="card">
-                        <h2 class="card-title text-center">Game Info</h2>
-                        <table class="table">
-                            <tr>
-                                <th>Map</th>
-                                <td id="map-header"></td>
-                            </tr>
-                            <tr>
-                                <th>Position</th>
-                                <td id="position"></td>
-                            </tr>
-                            <tr>
-                                <th>Phenomenon</th>
-                                <td id="phenomenon"></td>
-                            </tr>
-                        </table>
-                        <br>
                         <div class="row">
                             <div class="col-6">
                                 <h2 class="card-title text-center">Totals</h2>
@@ -198,7 +204,7 @@
                                 </table>
                             </div>
                             <div class="col-6">
-                                <h2 class="card-title text-center">Phase</h2>
+                                <h2 class="card-title text-center">Target Phase</h2>
                                 <table class="table">
                                     <tr>
                                         <th>Seen</th>
@@ -235,12 +241,33 @@
                     </tbody>
                 </table>
             </div>
+            <div class="card row-eq-spacing-lg">
+                <h2 class="card-title text-center">Recent Targets</h2>
+                <!-- No outer padding -->
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th class="text-center">Item</th>
+                            <th class="text-center">Ability</th>
+                            <th class="text-center">Nature</th>
+                            <th class="text-center">PID</th>
+                            <th class="text-center">IVs</th>
+                            <th class="text-center">Shiny Value (SV)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="targets">
+                    </tbody>
+                </table>
+            </div>
         </div>
         <!-- Content wrapper end -->
     </div>
     <!-- Page wrapper end -->
     <script src="js/dashboard.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/halfmoon@1.1.1/js/halfmoon.min.js"></script>
+    <script src="js/halfmoon.min.js"></script>
 </body>
 
 </html>

@@ -11,8 +11,8 @@
     <!-- Halfmoon CSS -->
     <link href="js/halfmoon-variables.min.css" rel="stylesheet" />
     <script>if (typeof module === 'object') { window.module = module; module = undefined; }</script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://ajax.aspnetcdn.com/ajax/jquery.templates/beta1/jquery.tmpl.min.js"></script>
+    <script src="js/jquery-3.6.0.min.js"></script>
+    <script src="js/jquery.tmpl.min.js"></script>
     <script src="js/main.js"></script>
     <script>if (window.module) module = window.module;</script>
 </head>
@@ -37,8 +37,12 @@
                 <li class="nav-item active">
                     <a class="nav-link">Config</a>
                 </li>
+                <li class="nav-item">
+                    <s>
+                        <span class="nav-link">Tools</span>
+                    </s>
+                </li>
             </ul>
-            <span class="badge text-monospace ml-auto" id="nav-game">No game detected!</span>
         </nav>
         <!-- Navbar end -->
         <div class="sticky-alerts"></div>
@@ -167,7 +171,7 @@
     </div>
     <!-- Page wrapper end -->
     <script src="js/config.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/halfmoon@1.1.1/js/halfmoon.min.js"></script>
+    <script src="js/halfmoon.min.js"></script>
 </body>
 
 </html>
