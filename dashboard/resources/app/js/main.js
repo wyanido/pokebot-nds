@@ -284,5 +284,5 @@ function socketSetTimeout(socket) {
         
         socket.destroy()
         console.log("Removed inactive client %d", index)
-    }, 1000)
+    }, 5000)
 }

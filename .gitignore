@@ -1,6 +1,12 @@
 __pycache__
 stream
+dashboard/pokebot-nds.exe
+dashboard/ffmpeg.dll
+dashboard/debug.log
+dashboard/icudtl.dat
+dashboard/resources.pak
+dashboard/v8_context_snapshot.bin
+dashboard/locales
 logs/*
-dashboard
 node_modules
 out
