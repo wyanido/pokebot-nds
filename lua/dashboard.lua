@@ -74,6 +74,7 @@ function poll_dashboard_response()
 		end
 	elseif response.type == "apply_config" then
 		config = response.data.config
+		console.log("### Config Updated ###")
 	end
 end
 

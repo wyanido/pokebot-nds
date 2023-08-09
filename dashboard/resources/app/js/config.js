@@ -32,7 +32,7 @@ ipcRenderer.on('set_config', (_event, config) => {
     }
 
     // Fields
-    fields = ["mode", "move_direction", "pickup_threshold", "encounter_log_limit"]
+    fields = ["mode", "move_direction", "pickup_threshold", "encounter_log_limit", "target_log_limit"]
 
     for (var i = 0; i < fields.length; i++) {
         field = fields[i]
@@ -40,7 +40,7 @@ ipcRenderer.on('set_config', (_event, config) => {
     }
 
     // Checkboxes
-    checkboxes = ["starter0", "starter1", "starter2", "battle_non_targets", "cycle_lead_pokemon", "auto_catch", "save_game_after_catch", "save_game_on_start", "thief_wild_items", "pickup"]
+    checkboxes = ["starter0", "starter1", "starter2", "battle_non_targets", "cycle_lead_pokemon", "auto_catch", "save_game_after_catch", "save_game_on_start", "thief_wild_items", "pickup", "hax"]
 
     for (var i = 0; i < checkboxes.length; i++) {
         field = checkboxes[i]
@@ -72,14 +72,14 @@ function sendConfig() {
         return
     }
 
-    fields = ["mode", "move_direction", "pickup_threshold", "encounter_log_limit"]
+    fields = ["mode", "move_direction", "pickup_threshold", "encounter_log_limit", "target_log_limit"]
 
     for (var i = 0; i < fields.length; i++) {
         field = fields[i]
         config[field] = $("#" + field).val()
     }
 
-    checkboxes = ["starter0", "starter1", "starter2", "battle_non_targets", "cycle_lead_pokemon", "save_game_after_catch", "save_game_on_start", "auto_catch", "thief_wild_items", "pickup"]
+    checkboxes = ["starter0", "starter1", "starter2", "battle_non_targets", "cycle_lead_pokemon", "save_game_after_catch", "save_game_on_start", "auto_catch", "thief_wild_items", "pickup", "hax"]
 
     for (var i = 0; i < checkboxes.length; i++) {
         field = checkboxes[i]

@@ -59,13 +59,7 @@ fs.readFile('../logs/target_log.json', 'utf8', (err, data) => {
 
 fs.readFile('../logs/stats.json', 'utf8', (err, data) => {
     if (err) {
-        fs.writeFile('../logs/stats.json', "[]", (err) => {
-            if (err) {
-                console.error(err);
-                return;
-            }
-        });
-        return;
+        writeJsonToFile('../logs/stats.json', stats)
     }
 
     stats = JSON.parse(data);
@@ -93,7 +87,8 @@ function format_mon_data(mon) {
 
 function update_encounter_log(mon) {
     recents.push(format_mon_data(mon))
-    
+    recents = recents.slice(-30) // Temporary, default value
+
     stats.phase.seen += 1
     stats.phase.lowest_sv = Math.min(mon.shinyValue, stats.phase.lowest_sv)
 
@@ -114,6 +109,7 @@ function update_encounter_log(mon) {
 
 function update_target_log(mon) {
     targets.push(format_mon_data(mon))
+    targets = targets.slice(-30) // Temporary, default value
 
     var iv_sum = mon.hp_iv + mon.attack_iv + mon.defense_iv + mon.sp_attack_iv + mon.sp_defense_iv + mon.speed_iv
     stats.total.max_iv_sum = Math.max(iv_sum, stats.total.max_iv_sum)

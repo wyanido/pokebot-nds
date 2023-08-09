@@ -1,8 +1,8 @@
 {
-	"thief_wild_items": false,
-	"pickup_threshold": "2",
-	"starter1": true,
-	"hax": false,
+	"target_traits": {
+		"shiny": true,
+		"iv_sum": 186
+	},
 	"pokeball_override": {
 		"Repeat Ball": {
 			"species": [
@@ -17,25 +17,26 @@
 			]
 		}
 	},
-	"save_game_after_catch": false,
-	"encounter_log_limit": "30",
+	"starter2": true,
+	"move_direction": "Horizontal",
+	"thief_wild_items": false,
+	"starter0": true,
+	"pickup": false,
 	"pokeball_priority": [
 		"Premier Ball",
 		"Ultra Ball",
 		"Great Ball",
 		"Poke Ball"
 	],
-	"cycle_lead_pokemon": true,
 	"save_game_on_start": false,
-	"mode": "manual",
-	"starter0": true,
+	"save_game_after_catch": false,
+	"pickup_threshold": "2",
+	"hax": false,
+	"cycle_lead_pokemon": true,
+	"encounter_log_limit": "30",
 	"battle_non_targets": false,
 	"auto_catch": false,
-	"pickup": false,
-	"starter2": true,
-	"target_traits": {
-		"shiny": true,
-		"iv_sum": 186
-	},
-	"move_direction": "Horizontal"
+	"starter1": true,
+	"mode": "manual",
+	"target_log_limit": ""
 }
