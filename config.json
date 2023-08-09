@@ -38,5 +38,5 @@
 	"auto_catch": false,
 	"starter1": true,
 	"mode": "manual",
-	"target_log_limit": ""
+	"target_log_limit": "30"
 }

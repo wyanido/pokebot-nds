@@ -4,7 +4,7 @@
 local BOT_VERSION = "0.3.0-alpha"
 
 console.clear()
-console.log("Running Lua " .. _VERSION)
+console.log("Running " .. _VERSION)
 console.log("Pokebot NDS version " .. BOT_VERSION .. " by NIDO (wyanido)")
 
 mbyte = memory.read_u8
@@ -225,6 +225,19 @@ function pause_bot(reason)
     while true do
         emu.frameadvance()
     end
+end
+
+-----------------------
+-- PREPARATION
+-----------------------
+console.log("Waiting for dashboard to relay bot configuration...")
+::poll_config::
+
+emu.frameadvance()
+poll_dashboard_response()
+
+if config == nil then
+    goto poll_config
 end
 
 -----------------------

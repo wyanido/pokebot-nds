@@ -5,10 +5,9 @@ comm.socketServerSetIp("127.0.0.1") -- Refreshes the connection, the dashboard s
 comm.socketServerSend('{ "type": "comm_check" }' .. "\x00")
 
 console.log("Dashboard connected at server " .. comm.socketServerGetInfo())
-console.log("---------------------------")
 comm.socketServerSetTimeout(5)
 
-config = json.load("config.json")
+config = nil
 
 local disconnected = false
 
@@ -52,34 +51,18 @@ function poll_dashboard_response()
 		if response.data.page == "dashboard" then
 			-- Show game data and stats on page load
 			comm.socketServerSend(json.encode({
-				type = "encounters",
-				data = encounters,
-			}) .. "\x00")
-			
-			comm.socketServerSend(json.encode({
-				type = "stats",
-				data = stats,
-			}) .. "\x00")
-
-			comm.socketServerSend(json.encode({
 				type = "party",
 				data = party,
 			}) .. "\x00")
-		elseif response.data.page == "config" then
-			-- Show current config on page load
-			comm.socketServerSend(json.encode({
-				type = "set_config",
-				data = config,
-			}) .. "\x00")
 		end
 	elseif response.type == "apply_config" then
+		if config == nil then
+			console.log("Config initialised!")
+			console.log("---------------------------")
+		else
+			console.log("### Config Updated ###")
+		end
+
 		config = response.data.config
-		console.log("### Config Updated ###")
 	end
 end
-
--- Initialise Dashboard config page
-comm.socketServerSend(json.encode({
-	type = "set_config",
-	data = config,
-}) .. "\x00")

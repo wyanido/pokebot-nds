@@ -60,6 +60,7 @@ fs.readFile('../logs/target_log.json', 'utf8', (err, data) => {
 fs.readFile('../logs/stats.json', 'utf8', (err, data) => {
     if (err) {
         writeJsonToFile('../logs/stats.json', stats)
+        return;
     }
 
     stats = JSON.parse(data);
@@ -207,6 +208,25 @@ app.whenReady().then(() => {
         console.log('Client %d connected', clients.length);
         socketSetTimeout(socket)
 
+        fs.readFile('../config.json', 'utf8', (err, data) => {
+            if (err) {
+                console.error(err);
+                return;
+            }
+
+            var config = JSON.parse(data)
+
+             // Send config to client
+            var data = JSON.stringify({
+                "type": "apply_config",
+                "data": {
+                    "config": config
+                }
+            })
+
+            socket.write(data.length + " " + data);
+        })
+        
         let buffer = '';
         socket.on('data', (data) => {
             buffer += data.toString();
@@ -225,21 +245,23 @@ app.whenReady().then(() => {
                         var message = JSON.parse(body);
                         
                         // Snoop message sent to the page in order to handle encounters
-                        if (message.type == "seen") {
-                            message.data = update_encounter_log(message.data)
-                            message.type = "set_recents"
+                        switch (message.type) {
+                            case "seen":
+                                message.data = update_encounter_log(message.data)
+                                message.type = "set_recents"
 
-                            mainWindow.webContents.send('set_stats', stats);
-                            writeJsonToFile("../logs/stats.json", stats)
-                        } else if (message.type == "seen_target") {
-                            // Update regular encounter log first
-                            mainWindow.webContents.send("set_recents", update_encounter_log(message.data));
+                                mainWindow.webContents.send('set_stats', stats);
+                                writeJsonToFile("../logs/stats.json", stats)
+                                break;
+                            case "seen_target":
+                                mainWindow.webContents.send("set_recents", update_encounter_log(message.data));
                             
-                            message.data = update_target_log(message.data)
-                            message.type = "set_targets"
+                                message.data = update_target_log(message.data)
+                                message.type = "set_targets"
 
-                            mainWindow.webContents.send('set_stats', stats);
-                            writeJsonToFile("../logs/stats.json", stats)
+                                mainWindow.webContents.send('set_stats', stats);
+                                writeJsonToFile("../logs/stats.json", stats)
+                                break;
                         }
 
                         mainWindow.webContents.send(message.type, message.data);
