@@ -454,6 +454,19 @@ function pokemon.matches_ruleset(mon, target)
         end
     end
 
+    -- Check if gender matches target
+    if target.gender then
+        has_other_specs = true
+
+        local mon_gender = string.lower(mon.gender)
+        local target_gender = string.lower(target.gender)
+
+        if mon_gender ~= target_gender then
+            console.log("Mon gender " .. mon_gender .. " does not match target of " .. target_gender)
+            return false
+        end
+    end
+    
     -- Check if ability is in list
     if target.ability then
         has_other_specs = true
@@ -556,8 +569,8 @@ function pokemon.matches_ruleset(mon, target)
         console.log("Mon is a target!")
         return true
     else
-        -- If the only specified trait is shiny: true, return false, because the only
-        -- Other property check failed
+        -- If the only specified trait is shiny: true, return false
+        -- because the only single property check failed
         console.log("Mon was not a target")
         return false
     end

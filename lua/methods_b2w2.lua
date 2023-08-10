@@ -1,10 +1,15 @@
 
 function on_battle_begin()
-    local anchor = find_dword_anchor(0x00000388, offset.battle_menu_state_begin)
-    
-    offset.battle_menu_state = anchor + 0x7C
+    if mdword(offset.battle_menu_state - 0x80) ~= 0x0388 then
+        console.log("# Battle menu state offset has changed! Please wait... #")
+        
+        local anchor = find_dword_anchor(0x0388, offset.battle_menu_state_begin)
+        
+        offset.battle_menu_state = anchor + 0x7C
 
-    -- console.log("Found battle menu offset at 0x" .. string.format("%08X", anchor + 0x7C))
+        local byte_distance = offset.battle_menu_state - offset.battle_menu_state_begin
+        console.log("# Found battle menu offset at 0x" .. string.format("%08X", offset.battle_menu_state) .. "(" .. byte_distance .. " bytes beyond starting point) #")
+    end
 end
 
 function mode_starters(starter)

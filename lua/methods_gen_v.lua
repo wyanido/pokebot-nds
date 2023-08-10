@@ -302,6 +302,8 @@ function flee_battle()
                 press_sequence("B", 5)
             end
             return
+        elseif battle_state ~= 1 then
+            press_sequence("B", 1)
         else
             touch_screen_at(125, 175) -- Run
             wait_frames(5)
@@ -584,6 +586,7 @@ function mode_random_encounters()
 
     local double = #foe == 2
 
+    wait_frames(30)
     on_battle_begin()
     
     if foe_is_target then

@@ -90,6 +90,7 @@ function update_encounter_log(mon) {
     recents.push(format_mon_data(mon))
     recents = recents.slice(-30) // Temporary, default value
 
+    stats.total.seen += 1
     stats.phase.seen += 1
     stats.phase.lowest_sv = Math.min(mon.shinyValue, stats.phase.lowest_sv)
 
@@ -114,7 +115,6 @@ function update_target_log(mon) {
 
     var iv_sum = mon.hp_iv + mon.attack_iv + mon.defense_iv + mon.sp_attack_iv + mon.sp_defense_iv + mon.speed_iv
     stats.total.max_iv_sum = Math.max(iv_sum, stats.total.max_iv_sum)
-    stats.total.seen += 1
 
     // Reset target phase stats
     stats.phase.max_iv_sum = 0
@@ -302,5 +302,5 @@ function socketSetTimeout(socket) {
         
         socket.destroy()
         console.log("Removed inactive client %d", index)
-    }, 5000)
+    }, 10000)
 }

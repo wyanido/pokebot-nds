@@ -192,8 +192,8 @@ local function get_offset_b2w2(game)
 		save_indicator				= 0x0223B4F0 + wt, -- 1 while save menu is open
 		starter_selection_is_open 	= 0x0219CFE2 + wt, -- 0 when opening gift, 1 at starter select
 		
-		battle_menu_state_begin		= 0x022C2A00 + wt,
-		-- battle_menu_state			= 0x02 + wt, -- 1 on FIGHT menu, 2 on move select, 4 on switch/run after faint, 0 otherwise
+		battle_menu_state_begin		= 0x022C2D00 + wt,
+		battle_menu_state			= 0x022C2D00 + wt, -- 1 on FIGHT menu, 2 on move select, 4 on switch/run after faint, 0 otherwise
 
 		battle_bag_page				= 0x022845FC + wt,
 		selected_starter 			= 0x022574C4 + wt, -- Unconfirmed selection in gift box; 0 Snivy, 1 Tepig, 2 Oshawott, 4 Nothing
