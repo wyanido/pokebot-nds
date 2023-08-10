@@ -15,14 +15,14 @@ _Currently only English (USA, Europe) copies are supported._
 | Auto-catching			| ➖ | ➖ | ✅ | ✅ |
 | Auto-battling			| ➖ | ➖ | ✅ | ✅ |
 | Pickup farming		| ➖ | ➖ | ✅ | ❔ |
-| Gift resets 			| ➖ | ➖ | ✅ | ❔ |
+| Gift resets 			| ➖ | ➖ | ✅ | ✅ |
 | Egg hatching			| ➖ | ➖ | ✅ | ✅ |
 | Static encounters 	| ➖ | ➖ | ➖ | ➖ |
 | Thief farming			| ➖ | ➖ | ✅ | ❔ |
-| Dust cloud farming	| ➖ | ➖ | ➖ | ➖ |
-| Phenomenon encounters	| ➖ | ➖ | ➖ | ➖ |
 | Fishing			   	| ➖ | ➖ | ➖ | ➖ |
 | PokéRadar			   	| ➖ | n/a | n/a | n/a |
 | Headbutt encounters			   	| n/a | ➖ | n/a | n/a |
+| Dust cloud farming	| n/a | n/a | ➖ | ➖ |
+| Phenomenon encounters	| n/a | n/a | ➖ | ➖ |
 | Thundurus/Tornadus dex resets	| n/a | n/a | ➖ | n/a |
 | Hidden Grotto farming	| n/a | n/a | n/a | ➖ |
