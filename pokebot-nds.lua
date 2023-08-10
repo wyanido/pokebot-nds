@@ -184,7 +184,7 @@ function frames_per_move()
 
     if mbyte(offset.on_bike) == 1 then
         return 4
-    elseif mbyte(offset.running_shoes) == 0xE then
+    elseif mbyte(offset.running_shoes) > 0 then
         return 8
     end
 

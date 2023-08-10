@@ -1,4 +1,12 @@
 
+function on_battle_begin()
+    local anchor = find_dword_anchor(0x00000388, offset.battle_menu_state_begin)
+    
+    offset.battle_menu_state = anchor + 0x7C
+
+    -- console.log("Found battle menu offset at 0x" .. string.format("%08X", anchor + 0x7C))
+end
+
 function mode_starters(starter)
     local ball_x
     local ball_y

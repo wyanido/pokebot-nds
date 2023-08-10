@@ -33,6 +33,21 @@ function update_key_offsets(offset)
 	return offset
 end
 
+-- Returns the address in memory of a specific dword
+-- by searching searching from a starting offset
+function find_dword_anchor(dword_pattern, seek_start)
+	local seek = seek_start
+	local dword = 0
+	
+	while dword ~= dword_pattern do
+		dword = mdword(seek)
+		seek = seek + 0x4
+		emu.frameadvance()
+	end
+
+	return seek
+end
+
 local function get_offset_dp(game)
 	-- Configured for Diamond
 
@@ -72,23 +87,23 @@ local function get_offset_bw(game)
 
 	return {
 		-- Bag pouches, 4 byte pairs | 0001 0004 = 4x Master Ball
-		items_pouch			= 0x02233FAC + wt, -- 1240 bytes long
-		key_items_pouch		= 0x02234484 + wt, -- 332 bytes long
-		tms_hms_case		= 0x022345D0 + wt, -- 436 bytes long
-		medicine_pouch		= 0x02234784 + wt, -- 192 bytes long
-		berries_pouch		= 0x02234844 + wt, -- 234 bytes long
+		items_pouch		= 0x02233FAC + wt, -- 1240 bytes long
+		key_items_pouch	= 0x02234484 + wt, -- 332 bytes long
+		tms_hms_case	= 0x022345D0 + wt, -- 436 bytes long
+		medicine_pouch	= 0x02234784 + wt, -- 192 bytes long
+		berries_pouch	= 0x02234844 + wt, -- 234 bytes long
 		
-		running_shoes		= 0x0223C054 + wt, -- 14 after receiving 
+		running_shoes	= 0x0223C054 + wt, -- 0 before receiving
 
 		-- Party
-		party_count			= 0x022349B0 + wt, -- 4 bytes before first index
-		party_data			= 0x022349B4 + wt, -- PID of first party member
+		party_count	= 0x022349B0 + wt, -- 4 bytes before first index
+		party_data	= 0x022349B4 + wt, -- PID of first party member
 		
-		step_counter 		= 0x02235125 + wt,
-		step_cycle	 		= 0x02235126 + wt,
+		step_counter = 0x02235125 + wt,
+		step_cycle	 = 0x02235126 + wt,
 
 		-- Location
-		map_header 			= 0x0224F90C + wt,
+		map_header 	= 0x0224F90C + wt,
 		-- trainer_name		= 0x24FC00 + wt,
 		-- Read the lower word for map-local coordinates
 		trainer_x			= 0x0224F910 + wt,
@@ -99,10 +114,10 @@ local function get_offset_bw(game)
 		encounter_table		= 0x0224FFE0 + wt,
 		map_matrix			= 0x02250C1C + wt,
 
-		phenomenon_x		= 0x02257018 + wt,
-		phenomenon_z		= 0x0225701C + wt,
+		phenomenon_x	= 0x02257018 + wt,
+		phenomenon_z	= 0x0225701C + wt,
 
-		egg_hatching		= 0x0226DF68 + wt,
+		egg_hatching	= 0x0226DF68 + wt,
 		
 		-- Map tile data
 		-- 0x2000 bytes, 8 32x32 layers that can be in any order
@@ -123,11 +138,11 @@ local function get_offset_bw(game)
 		current_foe			= 0x0226ACF4 + wt, -- PID of foe, set immediately after the battle transition ends
 
 		-- Misc testing
-		save_indicator		= 0x021F0100 + wt,
+		save_indicator				= 0x021F0100 + wt, -- 1 while save menu is open
 		starter_selection_is_open 	= 0x022B0C40 + wt, -- 0 when opening gift, 1 at starter select
-		battle_menu_state	= 0x022D6B04 + wt, -- 1 on FIGHT menu, 2 on move select, 4 on switch/run after faint, 0 otherwise
-		battle_bag_page		= 0x022962C8 + wt,
-		selected_starter 	= 0x02269994 + wt, -- Unconfirmed selection in gift box; 0 Snivy, 1 Tepig, 2 Oshawott, 4 Nothing
+		battle_menu_state			= 0x022D6B04 + wt, -- 1 on FIGHT menu, 2 on move select, 4 on switch/run after faint, 0 otherwise
+		battle_bag_page				= 0x022962C8 + wt,
+		selected_starter 			= 0x02269994 + wt, -- Unconfirmed selection in gift box; 0 Snivy, 1 Tepig, 2 Oshawott, 4 Nothing
 	}
 end
 
@@ -142,14 +157,14 @@ local function get_offset_b2w2(game)
 		medicine_pouch		= 0x0221E1BC + wt, -- 192 bytes long
 		berries_pouch		= 0x0221E27C + wt, -- 234 bytes long
 		
-		running_shoes		= 0x0224CE07 + wt, -- 14 after receiving 
+		running_shoes	= 0x0221DEC5 + wt, -- 0 before receiving
 
 		-- Party
-		party_count			= 0x0221E3E8 + wt, -- 4 bytes before first index
-		party_data			= 0x0221E3EC + wt, -- PID of first party member
+		party_count	= 0x0221E3E8 + wt, -- 4 bytes before first index
+		party_data	= 0x0221E3EC + wt, -- PID of first party member
 		
-		step_counter 		= 0x0221EB5D + wt,
-		step_cycle	 		= 0x0221EB5E + wt,
+		step_counter = 0x0221EB5D + wt,
+		step_cycle	 = 0x0221EB5E + wt,
 
 		-- Location
 		map_header 			= 0x0223B444 + wt,
@@ -159,14 +174,14 @@ local function get_offset_b2w2(game)
 		trainer_y			= 0x0223B44C + wt,
 		trainer_z			= 0x0223B450 + wt,
 		trainer_direction	= 0x0223B462 + wt, -- 0, 4, 8, 12 -> Up, Left, Down, Right
-		on_bike				= 0x02 + wt,
-		encounter_table		= 0x02 + wt,
-		map_matrix			= 0x02 + wt,
+		on_bike				= 0x0223B484 + wt,
+		encounter_table		= 0x0223B7B8 + wt,
+		map_matrix			= 0x0223C3D4 + wt,
 
-		phenomenon_x		= 0x02 + wt,
-		phenomenon_z		= 0x02 + wt,
+		phenomenon_x	= 0x022427E8 + wt,
+		phenomenon_z	= 0x022427EC + wt,
 
-		egg_hatching		= 0x02 + wt,
+		egg_hatching	= 0x0225BB50 + wt,
 		
 		-- Battle
 		battle_indicator	= 0x02258D86 + wt, -- 0x41 if during a battle
@@ -174,11 +189,14 @@ local function get_offset_b2w2(game)
 		current_foe			= 0x02258D94 + wt, -- PID of foe, set immediately after the battle transition ends
 
 		-- Misc testing
-		save_indicator		= 0x02 + wt,
+		save_indicator				= 0x0223B4F0 + wt, -- 1 while save menu is open
 		starter_selection_is_open 	= 0x0219CFE2 + wt, -- 0 when opening gift, 1 at starter select
-		battle_menu_state	= 0x022C2EC4 + wt, -- 1 on FIGHT menu, 2 on move select, 4 on switch/run after faint, 0 otherwise
-		battle_bag_page		= 0x022845FC + wt,
-		selected_starter 	= 0x022574C4 + wt, -- Unconfirmed selection in gift box; 0 Snivy, 1 Tepig, 2 Oshawott, 4 Nothing
+		
+		battle_menu_state_begin		= 0x022C2A00 + wt,
+		-- battle_menu_state			= 0x02 + wt, -- 1 on FIGHT menu, 2 on move select, 4 on switch/run after faint, 0 otherwise
+
+		battle_bag_page				= 0x022845FC + wt,
+		selected_starter 			= 0x022574C4 + wt, -- Unconfirmed selection in gift box; 0 Snivy, 1 Tepig, 2 Oshawott, 4 Nothing
 	}
 end
 

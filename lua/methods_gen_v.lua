@@ -277,9 +277,12 @@ function save_game()
         touch_screen_at(60, 143)
     end
 
-    wait_frames(60)
+    wait_frames(90)
 
-    while mbyte(offset.save_indicator) ~= 0 do -- 1 while save menu is open
+    touch_screen_at(218, 60)
+    wait_frames(120)
+
+    while mbyte(offset.save_indicator) ~= 0 do
         press_sequence("A", 12)
     end
 
@@ -456,6 +459,10 @@ function catch_pokemon()
     end
 end
 
+function on_battle_begin()
+    -- Nothing here in BW!
+end
+
 -----------------------
 -- BOT MODES
 -----------------------
@@ -542,21 +549,23 @@ function mode_random_encounters()
 
     console.log("Attempting to start a battle...")
 
-    local tile_frames = frames_per_move() - 1
+    local tile_frames = frames_per_move() - 2
     local dir1 = config.move_direction == "Horizontal" and "Left" or "Up"
     local dir2 = config.move_direction == "Horizontal" and "Right" or "Down"
 
     while not foe and not game_state.in_battle do
         hold_button("B")
-        wait_frames(1)
         hold_button(dir1)
         wait_frames(tile_frames)
+        release_button(dir1)
+        release_button("B")
+
+        hold_button("B")
         hold_button(dir2)
         wait_frames(tile_frames)
         release_button(dir2)
-        wait_frames(1)
         release_button("B")
-        wait_frames(1)
+
     end
     
     release_button(dir2)
@@ -575,6 +584,8 @@ function mode_random_encounters()
 
     local double = #foe == 2
 
+    on_battle_begin()
+    
     if foe_is_target then
         if double then
             wait_frames(120)
@@ -925,7 +936,6 @@ function mode_daycare_eggs()
             for i = 1, #party, 1 do
                 if party_eggs[i] == 1 and party[i].isEgg == 0 then
                     local was_target = pokemon.log(party[i])
-                    update_dashboard_recents()
                     break
                 end
             end
