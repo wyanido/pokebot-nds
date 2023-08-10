@@ -1,3 +1,9 @@
+
+function validate_offsets()
+	offset.party_count = mdword(0x021C489C) + 14
+	offset.party_data = offset.party_count + 4
+end
+
 -----------------------
 -- BOT MODES
 -----------------------
@@ -51,7 +57,5 @@ function mode_starters(starter)
 		console.log("Starter was not a target, resetting...")
 		press_button("Power")
 		wait_frames(180)
-
-		offset = update_key_offsets(offset) -- ALWAYS do this after pressing power in Gen IV
 	end
 end

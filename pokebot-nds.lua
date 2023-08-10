@@ -37,6 +37,15 @@ last_party_checksums = {}
 party = {}
 
 function get_party(force)
+    -- Prevent reading out of bounds in gen IV games
+    -- by pretending that the party is empty
+    if offset.party_count < 0x02000000 then
+        party_changed = true
+        last_party_checksums = {}
+        party = {}
+        return true
+    end
+    
     local party_size = mbyte(offset.party_count)
 
     -- Get the checksums of all party members
@@ -227,6 +236,13 @@ function pause_bot(reason)
     end
 end
 
+function process_frame()
+    emu.frameadvance()
+    validate_offsets() -- Gen 4 only
+    poll_dashboard_response()
+    update_game_info()
+end
+
 -----------------------
 -- PREPARATION
 -----------------------
@@ -294,9 +310,7 @@ while true do
         -- No bot logic, just manual gameplay with a dashboard
         while true do
             while not game_state.in_battle do
-                update_game_info()
-                emu.frameadvance()
-                poll_dashboard_response()
+                process_frame()
 
                 -- Restart if config changed
                 if mode_real ~= config.mode then
@@ -309,9 +323,7 @@ while true do
             end
 
             while game_state.in_battle do
-                update_game_info()
-                emu.frameadvance()
-                poll_dashboard_response()
+                process_frame()
 
                 -- Restart if config changed
                 if mode_real ~= config.mode then
@@ -330,8 +342,6 @@ while true do
     end
 
     joypad.set(input)
-    emu.frameadvance()
-    poll_dashboard_response()
+    process_frame()
     clear_unheld_inputs()
-    update_game_info()
 end

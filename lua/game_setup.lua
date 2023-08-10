@@ -1,36 +1,6 @@
 
-function update_key_offsets(offset)
-	-- -- Map Header
-	-- local dword = 0
-	-- local seek = 0x0226D420
-
-	-- while dword ~= 0x5E744E55 do
-	-- 	dword = mdword(seek)
-	-- 	seek = seek + 0x4
-	-- 	emu.frameadvance()
-	-- end
-
-	-- seek = seek + 156
-	-- console.log("Found party offset at " .. string.format("%08X", seek) .. "!!")
-
-	-- Party Data
-	local dword = 0
-	local seek = 0x0226D420
-
-	while dword ~= 0x5E744E55 do
-		dword = mdword(seek)
-		seek = seek + 0x4
-		emu.frameadvance()
-	end
-
-	seek = seek + 156
-
-	offset.party_count = seek
-	offset.party_data = seek + 4
-
-	console.log("### Updated RAM offsets ###")
-
-	return offset
+function validate_offsets()
+	-- Nothing here by default!
 end
 
 -- Returns the address in memory of a specific dword
@@ -52,16 +22,6 @@ local function get_offset_dp(game)
 	-- Configured for Diamond
 
 	local offset = { 
-		-- Bag pockets
-		-- items_pocket		= 0x0,
-		-- medicine_pocket		= 0x0, 
-		-- poke_balls_pocket	= 0x0, 
-		-- tms_hms_pocket		= 0x0, 
-		-- berries_pocket		= 0x0, 
-		-- mail_pocket			= 0x0,
-		-- battle_items_pocket = 0x0,
-		-- key_items_pocket	= 0x0,
-		
 		-- Location
 		trainer_x			= 0x0226E7A2,
 		trainer_y			= 0x0226E7B0,
@@ -71,13 +31,39 @@ local function get_offset_dp(game)
 		map_header 			= 0x0226E79C,
 		map_matrix			= 0x0228FE26,
 
+		battle_indicator	= 0x02,
+		foe_count			= 0x02,
+
+		party_count			= 0x02,
+		party_data			= 0x02,
+
 		-- Misc testing
 		starters_ready		= 0x022AFE14, -- 0 before hand appears, random number afterwards
 		selected_starter	= 0x022AFD90, -- 0: Turtwig, 1: Chimchar, 2: Piplup
 	}
+	
+	return offset
+end
 
-	-- The party data offset isn't consistent, so find it manually
-	offset = update_key_offsets(offset)
+local function get_offset_hgss(game)
+	-- Configured for Diamond
+
+	local offset = { 
+		-- Location
+		trainer_x			= 0x02,
+		trainer_y			= 0x02,
+		trainer_z			= 0x02,
+		trainer_direction	= 0x02, -- 0: Up, 1: Down, 2: Left, 3: Right
+
+		map_header 			= 0x02,
+		map_matrix			= 0x02,
+
+		battle_indicator	= 0x02,
+		foe_count			= 0x02,
+
+		party_count			= 0x02,
+		party_data			= 0x02,
+	}
 	
 	return offset
 end
@@ -285,6 +271,9 @@ if gen == 4 then
 		-- HG/SS have no differences in map headers
 		map_names = json.load("lua\\data\\maps_hgss.json")
 		MAP_HEADER_COUNT = 540 -- HGSS
+
+		offset = get_offset_hgss()
+		dofile("lua\\methods_hgss.lua")
 	else
 		map_names = json.load("lua\\data\\maps_dppt.json")
 		MAP_HEADER_COUNT = 593 -- Pt
@@ -300,6 +289,8 @@ if gen == 4 then
 			map_names[76] = "Eterna City"
 			map_names[455] = "Survival Area"
 			map_names[465] = "Resort Area"
+		else
+			dofile("lua\\methods_platinum.lua")
 		end
 
 		offset = get_offset_dp()
