@@ -7,18 +7,31 @@ let mainWindow;
 let server;
 let stats = {
     total: {
-        max_iv_sum: 0,
+        max_iv_sum: "--",
+        min_iv_sum: "--",
         shiny: 0,
         seen: 0
     },
     phase: {
-        lowest_sv: 65535,
+        lowest_sv: "--",
         seen: 0
     }
 };
 let recents = [];
 let targets = [];
 let clients = [];
+
+function recursiveSubstitute(src, sub) {
+    for (var key in sub) {
+        if (sub.hasOwnProperty(key)) {
+            if (src[key] === undefined) {
+                src[key] = sub[key];
+            } else if (typeof src[key] === 'object' && typeof sub[key] === 'object') {
+                recursiveSubstitute(src[key], sub[key]);
+            }
+        }
+    }
+}
 
 function writeJsonToFile(path, data) {
     fs.writeFile(path, JSON.stringify(data, null, '\t'), (err) => {
@@ -63,7 +76,12 @@ fs.readFile('../logs/stats.json', 'utf8', (err, data) => {
         return;
     }
 
+    var template_stats = stats
     stats = JSON.parse(data);
+    
+    // Update stats to track values not included in older versions
+    recursiveSubstitute(stats, template_stats)
+    writeJsonToFile('../logs/stats.json', stats)
 });
 
 function hex_reverse(hex) {
@@ -92,8 +110,13 @@ function update_encounter_log(mon) {
 
     stats.total.seen += 1
     stats.phase.seen += 1
-    stats.phase.lowest_sv = Math.min(mon.shinyValue, stats.phase.lowest_sv)
 
+    stats.phase.lowest_sv = typeof(stats.phase.lowest_sv) != "number" ? mon.shinyValue : Math.min(mon.shinyValue, stats.phase.lowest_sv)
+    
+    var iv_sum = mon.hp_iv + mon.attack_iv + mon.defense_iv + mon.sp_attack_iv + mon.sp_defense_iv + mon.speed_iv
+    stats.total.max_iv_sum = typeof(stats.total.max_iv_sum) != "number" ? iv_sum : Math.max(iv_sum, stats.total.max_iv_sum)
+    stats.total.min_iv_sum = typeof(stats.total.min_iv_sum) != "number" ? iv_sum : Math.min(iv_sum, stats.total.min_iv_sum)
+    
     if (mon.shiny == true || mon.shinyValue < 8) {
         stats.total.shiny = stats.total.shiny + 1
     }
@@ -113,13 +136,9 @@ function update_target_log(mon) {
     targets.push(format_mon_data(mon))
     targets = targets.slice(-30) // Temporary, default value
 
-    var iv_sum = mon.hp_iv + mon.attack_iv + mon.defense_iv + mon.sp_attack_iv + mon.sp_defense_iv + mon.speed_iv
-    stats.total.max_iv_sum = Math.max(iv_sum, stats.total.max_iv_sum)
-
     // Reset target phase stats
-    stats.phase.max_iv_sum = 0
     stats.phase.seen = 0
-    stats.phase.lowest_sv = 65535
+    stats.phase.lowest_sv = "--"
 
     writeJsonToFile("../logs/target_log.json", targets)
 

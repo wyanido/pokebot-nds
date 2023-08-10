@@ -81,6 +81,7 @@ ipcRenderer.on('set_stats', (_event, stats) => {
     document.getElementById("total-seen").innerHTML = stats.total.seen
     document.getElementById("total-shiny").innerHTML = stats.total.shiny
     document.getElementById("total-max-iv").innerHTML = stats.total.max_iv_sum
+    document.getElementById("total-min-iv").innerHTML = stats.total.min_iv_sum
 
     document.getElementById("phase-seen").innerHTML = stats.phase.seen
     document.getElementById("phase-lowest-sv").innerHTML = stats.phase.lowest_sv
