@@ -235,7 +235,7 @@ end
 
 function process_frame()
     emu.frameadvance()
-    validate_offsets() -- Gen 4 only
+    update_pointers()
     poll_dashboard_response()
     update_game_info()
 end

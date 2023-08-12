@@ -1,21 +1,6 @@
 
-function validate_offsets()
+function update_pointers()
 	-- Nothing here by default!
-end
-
--- Returns the address in memory of a specific dword
--- by searching searching from a starting offset
-function find_dword_anchor(dword_pattern, seek_start)
-	local seek = seek_start
-	local dword = 0
-	
-	while dword ~= dword_pattern do
-		dword = mdword(seek)
-		seek = seek + 0x4
-		emu.frameadvance()
-	end
-
-	return seek
 end
 
 local function get_offset_dp(game)
@@ -206,8 +191,7 @@ local function get_offset_b2w2(game)
 		save_indicator				= 0x0223B4F0 + wt, -- 1 while save menu is open
 		starter_selection_is_open 	= 0x0219CFE2 + wt, -- 0 when opening gift, 1 at starter select
 		
-		battle_menu_state_begin		= 0x022C2D00 + wt,
-		battle_menu_state			= 0x022C2D00 + wt, -- 1 on FIGHT menu, 2 on move select, 4 on switch/run after faint, 0 otherwise
+		battle_menu_state			= 0x2 + wt, -- 1 on FIGHT menu, 2 on move select, 4 on switch/run after faint, 0 otherwise
 
 		battle_bag_page				= 0x022845FC + wt,
 		selected_starter 			= 0x022574C4 + wt, -- Unconfirmed selection in gift box; 0 Snivy, 1 Tepig, 2 Oshawott, 4 Nothing

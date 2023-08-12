@@ -461,10 +461,6 @@ function catch_pokemon()
     end
 end
 
-function on_battle_begin()
-    -- Nothing here in BW!
-end
-
 -----------------------
 -- BOT MODES
 -----------------------
@@ -587,7 +583,6 @@ function mode_random_encounters()
     local double = #foe == 2
 
     wait_frames(30)
-    on_battle_begin()
     
     if foe_is_target then
         if double then
@@ -604,6 +599,8 @@ function mode_random_encounters()
         end
     else
         console.log("Wild Pokemon was not a target, attempting next action...")
+
+        update_pointers()
 
         while game_state.in_battle do
             if config.thief_wild_items and foe_item and not double then
