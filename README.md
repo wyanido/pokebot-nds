@@ -9,16 +9,16 @@ Check out the [wiki](https://github.com/wyanido/pokebot-nds/wiki) for more infor
 _Currently only English (USA, Europe) copies are supported._
 |  						| DPPt | HGSS | BW | B2W2 | 
 |--						| :-: | :-: | :-: | :-: |
-| Manual (Assisted)     | ❔ | ➖ | ✅ | ✅ |
-| Starter resets 		| ➖ | ➖ | ✅ | ✅ |
+| Manual (Assisted)     | ✅ | ✅ | ✅ | ✅ |
+| Starter resets 		| ❔ | ➖ | ✅ | ✅ |
 | Random encounters		| ➖ | ➖ | ✅ | ✅ |
 | Auto-catching			| ➖ | ➖ | ✅ | ✅ |
 | Auto-battling			| ➖ | ➖ | ✅ | ✅ |
-| Pickup farming		| ➖ | ➖ | ✅ | ❔ |
+| Pickup farming		| ➖ | ➖ | ✅ | ✅ |
 | Gift resets 			| ➖ | ➖ | ✅ | ✅ |
 | Egg hatching			| ➖ | ➖ | ✅ | ✅ |
 | Static encounters 	| ➖ | ➖ | ➖ | ➖ |
-| Thief farming			| ➖ | ➖ | ✅ | ❔ |
+| Thief farming			| ➖ | ➖ | ✅ | ✅ |
 | Fishing			   	| ➖ | ➖ | ➖ | ➖ |
 | PokéRadar			   	| ➖ | n/a | n/a | n/a |
 | Headbutt encounters			   	| n/a | ➖ | n/a | n/a |

@@ -191,7 +191,10 @@ local function get_offset_b2w2(game)
 		save_indicator				= 0x0223B4F0 + wt, -- 1 while save menu is open
 		starter_selection_is_open 	= 0x0219CFE2 + wt, -- 0 when opening gift, 1 at starter select
 		
-		battle_menu_state			= 0x2 + wt, -- 1 on FIGHT menu, 2 on move select, 4 on switch/run after faint, 0 otherwise
+		-- NON STATIC ADDRESS
+		-- this gets overwritten by update_pointers() to
+		-- ensure it stays correct during gameplay
+		battle_menu_state			= 0x02 + wt, -- 1 on FIGHT menu, 2 on move select, 4 on switch/run after faint, 0 otherwise
 
 		battle_bag_page				= 0x022845FC + wt,
 		selected_starter 			= 0x022574C4 + wt, -- Unconfirmed selection in gift box; 0 Snivy, 1 Tepig, 2 Oshawott, 4 Nothing
@@ -275,6 +278,16 @@ end
 
 console.log("Detected Game: " .. game_name)
 
+local game_status = gameinfo.getstatus()
+
+if game_status == "BadDump" then
+	console.log("\nIMPORTANT, PLEASE READ!\nYour copy of this game is a bad dump, and as such, pokebot-nds may not function correctly.")
+	console.log("It is heavily recommended that you replace it with a better copy.")
+elseif game_status == "Hack" then
+	console.log("\nIMPORTANT, PLEASE READ!\nYou are playing a modified version of this game.")
+	console.log("The memory addresses of ROM hacks will not always line up with the base game, and will likely cause issues while running pokebot-nds.")
+end
+
 -- Index game-specific map headers
 if gen == 4 then
 	dofile("lua\\methods_gen_iv.lua") -- Define Gen IV functions
@@ -313,7 +326,7 @@ if gen == 4 then
 
 	-- Unsupported warning
 	console.log("------------------")
-	console.log("This game is currently not supported by pokebot-nds!\nYou will undoubtedly encounter issues when trying to run it.")
+	console.log("Support for this game is heavily WIP, so you may encounter issues when trying to run it!")
 	console.log("------------------")
 
 elseif gen == 5 then

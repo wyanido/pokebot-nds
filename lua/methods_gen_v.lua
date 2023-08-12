@@ -1,6 +1,18 @@
 -----------------------
+-- MODE VARIABLES
+-----------------------
+
+starter_gift_direction = "Down"
+snivy_ball = { x = 60, y = 100 }
+tepig_ball = { x = 128, y = 75 }
+oshawott_ball = { x = 185, y = 100 }
+
+take_button = { x = 200, y = 155 }
+
+-----------------------
 -- MISC. BOT ACTIONS
 -----------------------
+
 function do_thief()
     local checked_mons = 0
     local thief_slot = {0, 0}
@@ -81,7 +93,7 @@ function do_pickup()
                     wait_frames(30)
                     touch_screen_at(200, 155) -- Item
                     wait_frames(30)
-                    touch_screen_at(200, 155) -- Take
+                    touch_screen_at(take_button.x, take_button.y) -- Take
                     press_sequence(120, "B", 30)
                 end
             end
@@ -255,7 +267,7 @@ function check_party_status()
                 wait_frames(30)
                 touch_screen_at(200, 155) -- Item
                 wait_frames(30)
-                touch_screen_at(200, 155) -- Take
+                touch_screen_at(take_button.x, take_button.y) -- Take
                 press_sequence(120, "B", 30)
             end
 
@@ -465,19 +477,21 @@ end
 -- BOT MODES
 -----------------------
 
+function mode_starters_advance_until_battle()
+    while not game_state.in_battle do
+        press_sequence("A", 5)
+    end
+end
+
 function mode_starters(starter)
-    local ball_x
-    local ball_y
+    local ball
 
     if starter == 0 then
-        ball_x = 60
-        ball_y = 100
+        ball = snivy_ball
     elseif starter == 1 then
-        ball_x = 128
-        ball_y = 75
+        ball = tepig_ball
     elseif starter == 2 then
-        ball_x = 185
-        ball_y = 100
+        ball = oshawott_ball
     end
 
     if not game_state.in_game then
@@ -488,22 +502,22 @@ function mode_starters(starter)
         end
     end
 
-    console.log("Opening Gift Box...")
+    console.log("Opening Starter Selection...")
 
-    while game_state.starter_selection_is_open ~= 1 do
-        press_sequence("A", 5, "Down", 1)
+    while mbyte(offset.starter_selection_is_open) ~= 1 do
+        press_sequence("A", 5, starter_gift_direction, 1)
     end
 
     console.log("Choosing Starter...")
 
-    while game_state.starter_selection_is_open ~= 0 do
+    while mbyte(offset.starter_selection_is_open) ~= 0 do
         if game_state.selected_starter ~= 4 then
             touch_screen_at(120, 180) -- Pick this one!
             wait_frames(5)
             touch_screen_at(240, 100) -- Yes
             wait_frames(5)
         else
-            touch_screen_at(ball_x, ball_y) -- Starter
+            touch_screen_at(ball.x, ball.y) -- Starter
             wait_frames(5)
         end
     end
@@ -515,9 +529,7 @@ function mode_starters(starter)
     if not config.hax then
         console.log("Waiting to start battle...")
 
-        while not game_state.in_battle do
-            press_sequence("A", 5)
-        end
+        mode_starters_advance_until_battle()
 
         console.log("Waiting to see starter...")
 

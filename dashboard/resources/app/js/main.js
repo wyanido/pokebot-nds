@@ -84,10 +84,6 @@ fs.readFile('../logs/stats.json', 'utf8', (err, data) => {
     writeJsonToFile('../logs/stats.json', stats)
 });
 
-function hex_reverse(hex) {
-    return hex.match(/[a-fA-F0-9]{2}/g).reverse().join('').padEnd(8, '0');
-}
-
 function format_mon_data(mon) {
     mon.gender = mon.gender.toLowerCase()
     
@@ -95,7 +91,7 @@ function format_mon_data(mon) {
         mon.gender = "none" // Blank image filename
     }
 
-    mon.pid = hex_reverse(mon.pid.toString(16).toUpperCase())
+    mon.pid = mon.pid.toString(16).toUpperCase().padEnd(8, '0');
     mon.shiny = (mon.shinyValue < 8 ? "✨ " : "➖ ") + mon.shinyValue
 
     var s = "00" + mon.species.toString()

@@ -163,7 +163,6 @@ function get_game_state()
         else
             state = {
                 selected_starter = mbyte(offset.selected_starter),
-                starter_selection_is_open = mbyte(offset.starter_selection_is_open),
                 map_matrix = mdword(offset.map_matrix),
                 map_header = map,
                 map_name = map_names[map + 1],

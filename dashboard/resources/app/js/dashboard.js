@@ -1,9 +1,5 @@
 const { ipcRenderer } = require('electron')
 
-function hex_reverse(hex) {
-    return hex.match(/[a-fA-F0-9]{2}/g).reverse().join('').padEnd(8, '0');
-}
-
 ipcRenderer.on('party', (event, party) => {
     var template = $("#party-template");
 
@@ -22,9 +18,11 @@ ipcRenderer.on('party', (event, party) => {
                 mon.shiny = mon.shiny ? "✨" : "";
             }
             
+            mon.fainted = mon.currentHP == 0 ? "opacity: 0.5" : "";
             mon.gender = mon.gender.toLowerCase()
             mon.name = "(" + mon.name + ")"
-            mon.pid = hex_reverse(mon.pid.toString(16).toUpperCase())
+            mon.pid = mon.pid.toString(16).toUpperCase().padEnd(8, '0');
+
             // mon.rating = rating_stars(mon.rating)
 
             // Get Pokerus strain
