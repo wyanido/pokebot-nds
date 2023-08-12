@@ -19,8 +19,6 @@ function find_dword_anchor(dword_pattern, seek_start)
 end
 
 local function get_offset_dp(game)
-	-- Configured for Diamond
-
 	local offset = { 
 		-- Location
 		trainer_x			= 0x0226E7A2,
@@ -31,8 +29,9 @@ local function get_offset_dp(game)
 		map_header 			= 0x0226E79C,
 		map_matrix			= 0x0228FE26,
 
-		battle_indicator	= 0x02,
+		battle_indicator	= 0x021A1B2A,
 		foe_count			= 0x02,
+		current_foe			= 0x02,
 
 		party_count			= 0x02,
 		party_data			= 0x02,
@@ -58,11 +57,40 @@ local function get_offset_hgss(game)
 		map_header 			= 0x02,
 		map_matrix			= 0x02,
 
-		battle_indicator	= 0x02,
+		battle_indicator	= 0x021E76D2,
 		foe_count			= 0x02,
+		current_foe			= 0x02,
 
 		party_count			= 0x02,
 		party_data			= 0x02,
+	}
+	
+	return offset
+end
+
+local function get_offset_pt(game)
+	-- Configured for Diamond
+
+	local offset = { 
+		-- Location
+		trainer_x			= 0x0226E7A2,
+		trainer_y			= 0x0226E7B0,
+		trainer_z			= 0x0226E7A6,
+		trainer_direction	= 0x02291DB4, -- 0: Up, 1: Down, 2: Left, 3: Right
+
+		map_header 			= 0x0226E79C,
+		map_matrix			= 0x0228FE26,
+
+		battle_indicator	= 0x021D18F2,
+		foe_count			= 0x02,
+		current_foe			= 0x02,
+
+		party_count			= 0x02,
+		party_data			= 0x02,
+
+		-- Misc testing
+		starters_ready		= 0x022AFE14, -- 0 before hand appears, random number afterwards
+		selected_starter	= 0x022AFD90, -- 0: Turtwig, 1: Chimchar, 2: Piplup
 	}
 	
 	return offset
@@ -289,11 +317,12 @@ if gen == 4 then
 			map_names[76] = "Eterna City"
 			map_names[455] = "Survival Area"
 			map_names[465] = "Resort Area"
+
+			offset = get_offset_dp()
 		else
 			dofile("lua\\methods_platinum.lua")
+			offset = get_offset_pt()
 		end
-
-		offset = get_offset_dp()
 	end
 
 	MON_DATA_SIZE = 236 -- Gen 4 has 16 extra trailing bytes of ball seals data

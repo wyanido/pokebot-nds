@@ -105,10 +105,6 @@ function get_party(force)
 end
 
 function get_current_foes()
-    if gen == 4 then
-        foe = nil
-    end
-
     -- Make sure it's not reading garbage non-battle data
     if mbyte(offset.battle_indicator) ~= 0x41 or mbyte(offset.foe_count) == 0 then
         foe = nil
@@ -138,7 +134,7 @@ end
 function get_game_state()
     local state = {}
     local map = mword(offset.map_header)
-    local in_game = map ~= 0x0 and map <= MAP_HEADER_COUNT
+    local in_game = (map ~= 0x0 and map <= MAP_HEADER_COUNT) or gen == 4
 
     -- Set default values for the dashboard
     state = {
@@ -161,7 +157,8 @@ function get_game_state()
                 map_name = map_names[map + 1],
                 trainer_x = mword(offset.trainer_x + 2),
                 trainer_y = mword(offset.trainer_y + 2),
-                trainer_z = mword(offset.trainer_z + 2)
+                trainer_z = mword(offset.trainer_z + 2),
+                in_battle = mbyte(offset.battle_indicator) == 0x41 and mbyte(offset.foe_count) > 0
             }
         else
             state = {
