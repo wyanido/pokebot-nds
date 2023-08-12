@@ -1,9 +1,12 @@
 
 
 function update_pointers()
-    offset.battle_menu_state = mdword(0x2141950) + 0x135FC + 0x80
-
-    console.log(string.format("%08X", offset.battle_menu_state))
+    if game_version == 0 then
+        offset.battle_menu_state = mdword(0x2141950) + 0x135FC + 0x80
+    else
+        offset.battle_menu_state = mdword(0x213B2F4) + 0x13588 + 0x80 
+    end
+    -- console.log(string.format("%08X", offset.battle_menu_state))
 end
 
 function mode_starters(starter)
