@@ -28,7 +28,7 @@
                 <img src="images/pokemon-icon/201QU.png" class="icon" id="icon">
                 Pokébot NDS
             </div>
-            <span class="navbar-text text-monospace">v0.3.0-alpha</span> 
+            <span class="navbar-text text-monospace">v0.3.0-alpha</span>
             <!-- Navbar nav -->
             <ul class="navbar-nav d-flex d-md-flex">
                 <li class="nav-item">
@@ -117,7 +117,7 @@
                                     <input id="encounter_log_limit" min="1" type="number" class="form-control"
                                         placeholder="">
                                     <br>
-                                        <label for="target_log_limit">Target Log Limit</label>
+                                    <label for="target_log_limit">Target Log Limit</label>
                                     <input id="target_log_limit" min="1" type="number" class="form-control"
                                         placeholder="">
                                 </div>
@@ -127,6 +127,14 @@
                                         <input type="checkbox" id="hax" value="">
                                         <label for="hax">Use hax for faster resets</label>
                                     </div>
+                                    <br>
+                                    <label for="inactive_client_timeout">Inactive client timeout (ms)</label>
+                                    <input id="inactive_client_timeout" min="1000" type="number" class="form-control"
+                                        placeholder="">
+                                    <br>
+                                    <label for="game_refresh_cooldown">Game info refresh cooldown (ms)</label>
+                                    <input id="game_refresh_cooldown" min="1000" type="number" class="form-control"
+                                        placeholder="">
                                 </div>
                             </div>
                             <div class="col-6">

@@ -1,57 +1,100 @@
 const { ipcRenderer } = require('electron')
 
-ipcRenderer.on('party', (event, party) => {
-    var template = $("#party-template");
+var game_tab = 0
 
-    $("#party div").empty();
+function displayClientInfo(clients) {
+    $('#party div').empty();
 
-    for (var i = 0; i < party.length; i++) {
-        if (party[i]) {
-            var partyID = "#party-" + (i + 1).toString()
+    for (var j = 0; j < clients.length; j++) {
+        var client = clients[j]
+        var game = $('#game-template').tmpl(client)
+        var button = $('#button-template').tmpl({ 'game': client.game })
 
-            mon = party[i]
+        $('#top-row').append(game)
+        $('#game-buttons').append(button)
 
-            if (mon.isEgg) {
-                template = $("#party-egg-template")
-            } else {
-                mon.folder = mon.shiny ? "shiny/" : "";
-                mon.shiny = mon.shiny ? "✨" : "";
-            }
-            
-            mon.fainted = mon.currentHP == 0 ? "opacity: 0.5" : "";
-            mon.gender = mon.gender.toLowerCase()
-            mon.name = "(" + mon.name + ")"
-            mon.pid = mon.pid.toString(16).toUpperCase().padEnd(8, '0');
+        var template = $('#party-template');
+        
+        var party = client.party
+        if (party) {
+            for (var i = 0; i < 6; i++) {
+                var partyID = '#party-' + (i + 1).toString()
+                var mon = party[i]
 
-            // mon.rating = rating_stars(mon.rating)
+                if (mon) {
+                    if (mon.isEgg) {
+                        template = $('#party-egg-template')
+                    } else {
+                        mon.folder = mon.shiny ? 'shiny/' : '';
+                        mon.shiny = mon.shiny ? '✨' : '';
+                    }
 
-            // Get Pokerus strain
-            var x = mon.pokerus << 8;
-            var y = mon.pokerus & 0xF;
+                    mon.fainted = mon.currentHP == 0 ? 'opacity: 0.5' : '';
+                    mon.gender = mon.gender == 'Genderless' ? 'none' : mon.gender.toLowerCase()
+                    mon.name = '(' + mon.name + ')'
+                    mon.pid = mon.pid.toString(16).toUpperCase().padEnd(8, '0');
+                    // mon.rating = rating_stars(mon.rating)
 
-            if (x > 0) {
-                if (y == 0) {
-                    mon.pokerus = "cured"
-                } else {
-                    mon.pokerus = "infected"
+                    // Get Pokerus strain
+                    var x = mon.pokerus << 8;
+                    var y = mon.pokerus & 0xF;
+
+                    if (x > 0) {
+                        if (y == 0) {
+                            mon.pokerus = 'cured'
+                        } else {
+                            mon.pokerus = 'infected'
+                        }
+                    } else {
+                        mon.pokerus = 'none'
+                    }
+
+                    var newTableRow = template.tmpl(mon);
+                    $(partyID).append(newTableRow)
                 }
-            } else {
-                mon.pokerus = "none"
-            }
 
-            var newTableRow = template.tmpl(mon);
-            $(partyID).append(newTableRow)
+                /* 
+                    Remove the id attribute from this template to ensure Pokemon
+                    from other parties are not appended to it
+                */
+                $(partyID).removeAttr('id')
+            }
+        }
+
+        button.attr('id', 'button-template-' + j.toString())
+        game.hide()
+        game.attr('id', 'game-template-' + j.toString())
+    }
+
+    game_tab = Math.min(game_tab, clients.length - 1)
+
+    $('#button-template-' + game_tab.toString()).attr('class', 'btn btn-primary col text-truncate')
+    $('#game-template-' + game_tab.toString()).show()
+}
+
+function selectTab(ele) {
+    game_tab = ele.id.replace('button-template-','');
+
+    for (var i = 0; i <= $('#top-row').children.length + 1; i++) {
+        var idx = i.toString()
+
+        if (i == game_tab) {
+            $('#game-template-' + idx).show()
+            $('#button-template-' + idx).attr('class', 'btn btn-primary col text-truncate')
+        } else {
+            $('#game-template-' + idx).hide()
+            $('#button-template-' + idx).attr('class', 'btn col text-truncate')
         }
     }
-});
+}
 
 ipcRenderer.on('set_recents', (_event, encounters) => {
     // Refresh log display
-    var template = $("#row-template");
-    var log = $("#recents")
-    
-    $("#recents").empty();
-    
+    var template = $('#row-template');
+    var log = $('#recents')
+
+    $('#recents').empty();
+
     for (var i = encounters.length; i >= encounters.length - 7; i--) {
         if (encounters[i]) {
             var row = template.tmpl(encounters[i]);
@@ -62,11 +105,11 @@ ipcRenderer.on('set_recents', (_event, encounters) => {
 
 ipcRenderer.on('set_targets', (_event, encounters) => {
     // Refresh log display
-    var template = $("#row-template");
-    var log = $("#targets")
-    
-    $("#targets").empty();
-    
+    var template = $('#row-template');
+    var log = $('#targets')
+
+    $('#targets').empty();
+
     for (var i = encounters.length; i >= encounters.length - 7; i--) {
         if (encounters[i]) {
             var row = template.tmpl(encounters[i]);
@@ -76,37 +119,47 @@ ipcRenderer.on('set_targets', (_event, encounters) => {
 });
 
 ipcRenderer.on('set_stats', (_event, stats) => {
-    document.getElementById("total-seen").innerHTML = stats.total.seen
-    document.getElementById("total-shiny").innerHTML = stats.total.shiny
-    document.getElementById("total-max-iv").innerHTML = stats.total.max_iv_sum
-    document.getElementById("total-min-iv").innerHTML = stats.total.min_iv_sum
+    document.getElementById('total-seen').innerHTML = stats.total.seen
+    document.getElementById('total-shiny').innerHTML = stats.total.shiny
+    document.getElementById('total-max-iv').innerHTML = stats.total.max_iv_sum
+    document.getElementById('total-min-iv').innerHTML = stats.total.min_iv_sum
 
-    document.getElementById("phase-seen").innerHTML = stats.phase.seen
-    document.getElementById("phase-lowest-sv").innerHTML = stats.phase.lowest_sv
+    document.getElementById('phase-seen').innerHTML = stats.phase.seen
+    document.getElementById('phase-lowest-sv').innerHTML = stats.phase.lowest_sv
 });
 
-ipcRenderer.on('game', (_event, game) => {
-    document.getElementById("map-header").innerHTML = game.map_name + " (" + game.map_header.toString() + ")"
-    document.getElementById("position").innerHTML = game.trainer_x.toString() + ", " + game.trainer_y.toString() + ", " + game.trainer_z.toString()
-    document.getElementById("phenomenon").innerHTML = game.phenomenon_x.toString() + ", --, " + game.phenomenon_z.toString()
+ipcRenderer.on('set_clients', (_event, clients) => {
+    $('#top-row').empty()
+    $('#game-buttons').empty()
+
+    if (clients.length == 0) {
+        $('#top-row').append($('#game-template').tmpl())
+
+        var button = $('#button-template').tmpl({ 'game': 'No game detected!'})
+        button.attr('class', 'btn btn-primary col text-truncate')
+        $('#game-buttons').append(button)
+        return
+    }
+
+    displayClientInfo(clients)
 });
 
-ipcRenderer.on('init', (_event, info) => {
+ipcRenderer.on('set_page_icon', (_event, gen) => {
     // Set the page icon to match the current loaded game generation
+    page_icon_set = true
     var minValue, maxValue
 
-    switch (info.gen) {
+    switch (gen) {
         case 4:
             minValue = 387
             maxValue = 493
-        break;
+            break;
         case 5:
             minValue = 494
             maxValue = 649
-        break;
+            break;
     }
 
     var num = Math.floor(Math.random() * (maxValue - minValue)) + minValue
-    document.getElementById("icon").src = "images/pokemon-icon/" + num.toString().padStart(3, '0') + ".png";
-    document.getElementById("nav-game").innerHTML = info.game;
+    document.getElementById('icon').src = 'images/pokemon-icon/' + num.toString().padStart(3, '0') + '.png';
 });

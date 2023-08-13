@@ -1,25 +1,13 @@
+// === INITIALISATION ===
 const { app, BrowserWindow, ipcMain } = require('electron')
-const path = require('path')
 const net = require('net');
 const fs = require('fs');
+const home = 'dashboard.html'
+const port = 51055;
 
 let mainWindow;
-let server;
-let stats = {
-    total: {
-        max_iv_sum: "--",
-        min_iv_sum: "--",
-        shiny: 0,
-        seen: 0
-    },
-    phase: {
-        lowest_sv: "--",
-        seen: 0
-    }
-};
-let recents = [];
-let targets = [];
-let clients = [];
+let clientCooldown = false;
+let refreshTimeout;
 
 function recursiveSubstitute(src, sub) {
     for (var key in sub) {
@@ -33,113 +21,180 @@ function recursiveSubstitute(src, sub) {
     }
 }
 
-function writeJsonToFile(path, data) {
-    fs.writeFile(path, JSON.stringify(data, null, '\t'), (err) => {
-        if (err) {
-            console.error(err);
-            return;
-        }
-        console.log("File %s saved successfully!", path)
-    });
+function writeJSONToFile(filePath, data) {
+    const jsonData = JSON.stringify(data, null, '\t');
+    fs.writeFileSync(filePath, jsonData, 'utf8');
 }
 
-// Create logs folder if it doesn't exist
-if (!fs.existsSync('../logs')) {
-    fs.mkdir('../logs', (err) => {
-        if (err) {
-            return;
-        }
-    });
+function readJSONFromFile(filePath, defaultValue) {
+    try {
+        const data = fs.readFileSync(filePath, 'utf8');
+        return JSON.parse(data);
+    } catch (err) {
+        console.error(`Error reading ${filePath}: ${err.message}`);
+        writeJSONToFile(filePath, defaultValue);
+        return defaultValue;
+    }
 }
 
-fs.readFile('../logs/encounters.json', 'utf8', (err, data) => {
-    if (err) {
-        writeJsonToFile('../logs/encounters.json', recents)
-        return;
-    }
-    
-    recents = JSON.parse(data);
-});
-
-fs.readFile('../logs/target_log.json', 'utf8', (err, data) => {
-    if (err) {
-        writeJsonToFile("../logs/target_log.json", targets)
-        return;
-    }
-
-    targets = JSON.parse(data);
-});
-
-fs.readFile('../logs/stats.json', 'utf8', (err, data) => {
-    if (err) {
-        writeJsonToFile('../logs/stats.json', stats)
-        return;
-    }
-
-    var template_stats = stats
-    stats = JSON.parse(data);
-    
-    // Update stats to track values not included in older versions
-    recursiveSubstitute(stats, template_stats)
-    writeJsonToFile('../logs/stats.json', stats)
-});
-
-function format_mon_data(mon) {
+function formatMonData(mon) {
     mon.gender = mon.gender.toLowerCase()
-    
-    if (mon.gender == "genderless") {
-        mon.gender = "none" // Blank image filename
+
+    if (mon.gender == 'genderless') {
+        mon.gender = 'none' // Blank image filename
     }
 
     mon.pid = mon.pid.toString(16).toUpperCase().padEnd(8, '0');
-    mon.shiny = (mon.shinyValue < 8 ? "✨ " : "➖ ") + mon.shinyValue
+    mon.shiny = (mon.shinyValue < 8 ? '✨ ' : '➖ ') + mon.shinyValue
 
-    var s = "00" + mon.species.toString()
+    var s = '00' + mon.species.toString()
     mon.species = s.substr(s.length - 3)
 
     return mon
 }
 
-function update_encounter_log(mon) {
-    recents.push(format_mon_data(mon))
-    recents = recents.slice(-30) // Temporary, default value
+function updateEncounterLog(mon) {
+    recents.push(formatMonData(mon))
+    recents = recents.slice(-config.encounter_log_limit)
 
     stats.total.seen += 1
     stats.phase.seen += 1
 
-    stats.phase.lowest_sv = typeof(stats.phase.lowest_sv) != "number" ? mon.shinyValue : Math.min(mon.shinyValue, stats.phase.lowest_sv)
-    
+    stats.phase.lowest_sv = typeof (stats.phase.lowest_sv) != 'number' ? mon.shinyValue : Math.min(mon.shinyValue, stats.phase.lowest_sv)
+
     var iv_sum = mon.hp_iv + mon.attack_iv + mon.defense_iv + mon.sp_attack_iv + mon.sp_defense_iv + mon.speed_iv
-    stats.total.max_iv_sum = typeof(stats.total.max_iv_sum) != "number" ? iv_sum : Math.max(iv_sum, stats.total.max_iv_sum)
-    stats.total.min_iv_sum = typeof(stats.total.min_iv_sum) != "number" ? iv_sum : Math.min(iv_sum, stats.total.min_iv_sum)
-    
+    stats.total.max_iv_sum = typeof (stats.total.max_iv_sum) != 'number' ? iv_sum : Math.max(iv_sum, stats.total.max_iv_sum)
+    stats.total.min_iv_sum = typeof (stats.total.min_iv_sum) != 'number' ? iv_sum : Math.min(iv_sum, stats.total.min_iv_sum)
+
     if (mon.shiny == true || mon.shinyValue < 8) {
         stats.total.shiny = stats.total.shiny + 1
     }
 
-    fs.writeFile('../logs/encounters.json', JSON.stringify(recents, null, '\t'), (err) => {
-        if (err) {
-            console.error(err);
-            return;
-        }
-        console.log('Encounter log saved successfully!');
-    });
+    writeJSONToFile('../logs/encounters.json', recents)
 
     return recents
 }
 
-function update_target_log(mon) {
-    targets.push(format_mon_data(mon))
-    targets = targets.slice(-30) // Temporary, default value
+function updateTargetLog(mon) {
+    targets.push(formatMonData(mon))
+    targets = targets.slice(-config.target_log_limit)
 
     // Reset target phase stats
     stats.phase.seen = 0
-    stats.phase.lowest_sv = "--"
+    stats.phase.lowest_sv = '--'
 
-    writeJsonToFile("../logs/target_log.json", targets)
+    writeJSONToFile('../logs/target_log.json', targets)
 
     return targets
 }
+
+function socketSetTimeout(socket) {
+    socket.inactivityTimeout = setTimeout(() => {
+        const index = clients.indexOf(socket);
+        if (index > -1) {
+            clients.splice(index, 1);
+            clientData.splice(index, 1);
+        }
+
+        socket.destroy()
+        console.log('Removed inactive client %d', index)
+
+        mainWindow.webContents.send('set_clients', clientData);
+    }, config.inactive_client_timeout)
+}
+
+function interpretClientMessage(socket, message) {
+    var index = clients.indexOf(socket);
+    var client = clientData[index];
+    var data = message.data;
+
+    switch (message.type) {
+        case 'seen':
+            mainWindow.webContents.send('set_stats', stats);
+            mainWindow.webContents.send('set_recents', updateEncounterLog(data));
+
+            writeJSONToFile('../logs/stats.json', stats);
+            return;
+        case 'seen_target':
+            mainWindow.webContents.send('set_recents', updateEncounterLog(data));
+            mainWindow.webContents.send('set_targets', updateTargetLog(data));
+            mainWindow.webContents.send('set_stats', stats);
+
+            writeJSONToFile('../logs/stats.json', stats);
+            return;
+        case 'party':
+            client.party = data;
+
+            mainWindow.webContents.send('set_clients', clientData);
+            return;
+        case 'init':
+            client.gen = data.gen;
+            client.game = data.game;
+            
+            mainWindow.webContents.send('set_clients', clientData);
+            return;
+        case 'game':
+            client.map = data.map_name + " (" + data.map_header.toString() + ")";
+            client.position = data.trainer_x.toString() + ", " + data.trainer_y.toString() + ", " + data.trainer_z.toString();
+            client.phenomenon = data.phenomenon_x.toString() + ", --, " + data.phenomenon_z.toString();
+
+            // Add a minimum update interval
+            if (!clientCooldown) {
+                mainWindow.webContents.send('set_clients', clientData);
+                clientCooldown = true;
+
+                refreshTimeout = setTimeout(() => {
+                    clientCooldown = false;
+                }, config.game_refresh_cooldown);
+            }
+            return;
+    }
+
+    mainWindow.webContents.send(message.type, message.data);
+}
+
+// === FILE SETUP ===
+var statsTemplate = {
+    total: {
+        max_iv_sum: '--',
+        min_iv_sum: '--',
+        shiny: 0,
+        seen: 0
+    },
+    phase: {
+        lowest_sv: '--',
+        seen: 0
+    }
+};
+var clients = [];
+var clientData = [];
+
+// Create logs folder if it doesn't exist
+if (!fs.existsSync('../logs')) {
+    fs.mkdir('../logs', (err) => {
+        if (err) {
+            console.log(err)
+            return;
+        }
+    });
+}
+
+var recents = readJSONFromFile('../logs/encounters.json', []);
+var targets = readJSONFromFile('../logs/target_log.json', []);
+var config = readJSONFromFile('../config.json', {});
+var stats = readJSONFromFile('../logs/stats.json',);
+
+// Update stats to track values not included in older versions
+recursiveSubstitute(stats, statsTemplate)
+writeJSONToFile('../logs/stats.json', stats)
+
+app.on('activate', function () {
+    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+})
+
+app.on('window-all-closed', function () {
+    if (process.platform !== 'darwin') app.quit()
+})
 
 app.whenReady().then(() => {
     mainWindow = new BrowserWindow({
@@ -154,94 +209,66 @@ app.whenReady().then(() => {
     })
 
     // mainWindow.setMenuBarVisibility(false)
-    mainWindow.loadFile('dashboard.html')
+    mainWindow.loadFile(home)
 
     mainWindow.webContents.on('did-finish-load', () => {
         var page = mainWindow.webContents.getURL().match(/\/([^/]+)\.html$/)[1]
-        console.log(page)
 
         if (clients.length > 0) {
+            mainWindow.webContents.send('set_page_icon', clientData[0].gen);
+        }
+
+        switch (page) {
+            case 'config':
+                mainWindow.webContents.send('set_config', config);
+                break;
+            case 'dashboard':
+                mainWindow.webContents.send('set_recents', recents);
+                mainWindow.webContents.send('set_targets', targets);
+                mainWindow.webContents.send('set_stats', stats);
+                mainWindow.webContents.send('set_clients', clientData);
+                break;
+        }
+    });
+
+    ipcMain.on('apply_config', (_event, new_config) => {
+        // Send updated config to all clients
+        if (clients.length > 0) {
             var data = JSON.stringify({
-                "type": "init",
-                "data": {
-                    "page": page
+                'type': 'apply_config',
+                'data': {
+                    'config': new_config
                 }
             })
 
+            var msg = data.length + ' ' + data;
+
             clients.forEach((client) => {
-                client.write(data.length + " " + data);
+                client.write(msg);
             });
         }
 
-        if (page == "config") {
-            fs.readFile('../config.json', 'utf8', (err, data) => {
-                if (err) {
-                    console.error(err);
-                    return;
-                }
-
-                mainWindow.webContents.send('set_config', JSON.parse(data));
-            });
-        } else if (page == "dashboard") {
-            mainWindow.webContents.send('set_recents', recents);
-            mainWindow.webContents.send('set_targets', targets);
-            mainWindow.webContents.send('set_stats', stats);
-        }
+        // Save to file and update main.js reference of config
+        config = new_config
+        writeJSONToFile('../config.json', new_config)
     });
 
-    ipcMain.on('apply_config', (_event, config) => {
-        // Send updated config to client
-        var data = JSON.stringify({
-            "type": "apply_config",
-            "data": {
-                "config": config
-            }
-        })
-
-        if (clients.length > 0) {
-            clients.forEach((client) => {
-                client.write(data.length + " " + data);
-            });
-        }
-
-        // Save to file
-        fs.writeFile('../config.json', JSON.stringify(config, null, '\t'), (err) => {
-            if (err) {
-                console.error(err);
-                return;
-            }
-            console.log('File saved successfully!');
-        });
-    });
-
-    ipcMain.on('update_encounter_log', (_event, log) => {
-        recents = log
-    });
-
-    const server = net.createServer((socket) => {  
-        clients.push(socket)
+    const server = net.createServer((socket) => {
         console.log('Client %d connected', clients.length);
-        socketSetTimeout(socket)
+        clients.push(socket);
+        clientData.push({})
+        socketSetTimeout(socket);
 
-        fs.readFile('../config.json', 'utf8', (err, data) => {
-            if (err) {
-                console.error(err);
-                return;
+        // Send config to newly connected lient
+        var data = JSON.stringify({
+            'type': 'apply_config',
+            'data': {
+                'config': config
             }
-
-            var config = JSON.parse(data)
-
-             // Send config to client
-            var data = JSON.stringify({
-                "type": "apply_config",
-                "data": {
-                    "config": config
-                }
-            })
-
-            socket.write(data.length + " " + data);
         })
-        
+
+        socket.write(data.length + ' ' + data);
+
         let buffer = '';
         socket.on('data', (data) => {
             buffer += data.toString();
@@ -252,36 +279,14 @@ app.whenReady().then(() => {
 
                 if (response.length > 0) {
                     clearTimeout(socket.inactivityTimeout);
-                    socketSetTimeout(socket)
-                    
+                    socketSetTimeout(socket);
+
                     var body = response.slice(response.indexOf(' ') + 1);
 
                     try {
                         var message = JSON.parse(body);
-                        
-                        // Snoop message sent to the page in order to handle encounters
-                        switch (message.type) {
-                            case "seen":
-                                message.data = update_encounter_log(message.data)
-                                message.type = "set_recents"
-
-                                mainWindow.webContents.send('set_stats', stats);
-                                writeJsonToFile("../logs/stats.json", stats)
-                                break;
-                            case "seen_target":
-                                mainWindow.webContents.send("set_recents", update_encounter_log(message.data));
-                            
-                                message.data = update_target_log(message.data)
-                                message.type = "set_targets"
-
-                                mainWindow.webContents.send('set_stats', stats);
-                                writeJsonToFile("../logs/stats.json", stats)
-                                break;
-                        }
-
-                        mainWindow.webContents.send(message.type, message.data);
+                        interpretClientMessage(socket, message);
                     } catch (error) {
-                        // console.error('Failed to parse JSON:', body);
                         console.error(error);
                     }
                 }
@@ -296,26 +301,7 @@ app.whenReady().then(() => {
         });
     });
 
-    const port = 51055;
     server.listen(port, () => {
         console.log(`Server listening on port ${port}`);
     });
 })
-
-app.on('activate', function () {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow()
-})
-
-app.on('window-all-closed', function () {
-    if (process.platform !== 'darwin') app.quit()
-})
-
-function socketSetTimeout(socket) {
-    socket.inactivityTimeout = setTimeout(() => {
-        const index = clients.indexOf(socket);
-        if (index > -1) clients.splice(index, 1);
-        
-        socket.destroy()
-        console.log("Removed inactive client %d", index)
-    }, 10000)
-}

@@ -511,7 +511,7 @@ function mode_starters(starter)
     console.log("Choosing Starter...")
 
     while mbyte(offset.starter_selection_is_open) ~= 0 do
-        if game_state.selected_starter ~= 4 then
+        if mbyte(offset.selected_starter) ~= 4 then
             touch_screen_at(120, 180) -- Pick this one!
             wait_frames(5)
             touch_screen_at(240, 100) -- Yes

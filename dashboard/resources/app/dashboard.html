@@ -115,6 +115,40 @@
             <td class="text-center">${shiny}</td>
         </tr>
     </script>
+    <script id="game-template" type="text/x-jQuery-tmpl">
+        <div id="game-template">
+            <div class="card m-0 border-0">
+                <div class="row" id="party">
+                    <div class="col-4" id="party-1"></div>
+                    <div class="col-4" id="party-2"></div>
+                    <div class="col-4" id="party-3"></div>
+                    <br>
+                    <div class="col-4" id="party-4"></div>
+                    <div class="col-4" id="party-5"></div>
+                    <div class="col-4" id="party-6"></div>
+                </div>
+            </div>
+            <div class="m-20 mt-0">
+                <table class="table">
+                    <tr>
+                        <th>Map</th>
+                        <td>${map}</td>
+                    </tr>
+                    <tr>
+                        <th>Position</th>
+                        <td>${position}</td>
+                    </tr>
+                    <tr>
+                        <th>Phenomenon</th>
+                        <td>${phenomenon}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </script>
+    <script id="button-template" type="text/x-jQuery-tmpl">
+        <button onclick="selectTab(this)" class="btn col text-truncate" id="nav-game">${game}</button>
+    </script>
     <script>if (window.module) module = window.module;</script>
 </head>
 
@@ -129,7 +163,7 @@
                 <img src="images/pokemon-icon/201QU.png" class="icon" id="icon">
                 Pokébot NDS
             </div>
-            <span class="navbar-text text-monospace">v0.3.0-alpha</span> 
+            <span class="navbar-text text-monospace">v0.3.0-alpha</span>
             <!-- Navbar nav -->
             <ul class="navbar-nav d-flex d-md-flex">
                 <li class="nav-item active">
@@ -151,35 +185,11 @@
             <div class="row">
                 <div class="col-6">
                     <div class="card p-0">
-                        <div class="row">
-                            <button class="btn btn-primary col text-truncate" id="nav-game">No game detected!</button>
+                        <div id="game-buttons" class="row">
+
                         </div>
-                        <div class="card m-0 border-0">
-                            <div class="row" id="party">
-                                <div class="col-4" id="party-1"></div>
-                                <div class="col-4" id="party-2"></div>
-                                <div class="col-4" id="party-3"></div>
-                                <br>
-                                <div class="col-4" id="party-4"></div>
-                                <div class="col-4" id="party-5"></div>
-                                <div class="col-4" id="party-6"></div>
-                            </div>
-                        </div>
-                        <div class="m-20 mt-0">
-                            <table class="table">
-                                <tr>
-                                    <th>Map</th>
-                                    <td id="map-header"></td>
-                                </tr>
-                                <tr>
-                                    <th>Position</th>
-                                    <td id="position"></td>
-                                </tr>
-                                <tr>
-                                    <th>Phenomenon</th>
-                                    <td id="phenomenon"></td>
-                                </tr>
-                            </table>
+                        <div id="top-row">
+
                         </div>
                     </div>
                 </div>
