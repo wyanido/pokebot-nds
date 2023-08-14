@@ -154,17 +154,13 @@
 
 <body class="with-custom-webkit-scrollbars with-custom-css-scrollbars" data-dm-shortcut-enabled="true"
     data-set-preferred-mode-onload="true">
-    <!-- Page wrapper start -->
     <div class="page-wrapper with-navbar">
-        <!-- Navbar start -->
         <nav class="navbar">
-            <!-- Navbar brand -->
             <div class="navbar-brand">
                 <img src="images/pokemon-icon/201QU.png" class="icon" id="icon">
                 Pokébot NDS
             </div>
             <span class="navbar-text text-monospace">v0.3.0-alpha</span>
-            <!-- Navbar nav -->
             <ul class="navbar-nav d-flex d-md-flex">
                 <li class="nav-item active">
                     <a class="nav-link">Dashboard</a>
@@ -179,22 +175,16 @@
                 </li>
             </ul>
         </nav>
-        <!-- Navbar end -->
-        <!-- Content wrapper start -->
         <div class="content-wrapper">
-            <div class="row">
+            <div class="row row-eq-spacing">
                 <div class="col-6">
-                    <div class="card p-0">
-                        <div id="game-buttons" class="row">
-
-                        </div>
-                        <div id="top-row">
-
-                        </div>
+                    <div class="card p-0 m-0">
+                        <div id="game-buttons" class="row"></div>
+                        <div id="top-row"></div>
                     </div>
                 </div>
                 <div class="col-6">
-                    <div class="card">
+                    <div class="card m-0">
                         <div class="row">
                             <div class="col-6">
                                 <h2 class="card-title text-center">Totals</h2>
@@ -234,9 +224,8 @@
                     </div>
                 </div>
             </div>
-            <div class="card row-eq-spacing-lg">
+            <div class="card row-eq-spacing">
                 <h2 class="card-title text-center">Recently Seen</h2>
-                <!-- No outer padding -->
                 <table class="table">
                     <thead>
                         <tr>
@@ -255,9 +244,8 @@
                     </tbody>
                 </table>
             </div>
-            <div class="card row-eq-spacing-lg">
+            <div class="card row-eq-spacing">
                 <h2 class="card-title text-center">Recent Targets</h2>
-                <!-- No outer padding -->
                 <table class="table">
                     <thead>
                         <tr>
@@ -277,9 +265,7 @@
                 </table>
             </div>
         </div>
-        <!-- Content wrapper end -->
     </div>
-    <!-- Page wrapper end -->
     <script src="js/dashboard.js"></script>
     <script src="js/halfmoon.min.js"></script>
 </body>

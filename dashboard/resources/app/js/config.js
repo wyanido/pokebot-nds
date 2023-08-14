@@ -5,27 +5,7 @@ const text_areas = ['target_traits', 'pokeball_priority', 'pokeball_override']
 const fields = ['mode', 'move_direction', 'pickup_threshold', 'encounter_log_limit', 'target_log_limit', 'inactive_client_timeout', 'game_refresh_cooldown']
 const checkboxes = ['starter0', 'starter1', 'starter2', 'battle_non_targets', 'cycle_lead_pokemon', 'save_game_after_catch', 'save_game_on_start', 'auto_catch', 'thief_wild_items', 'pickup', 'hax']
 
-
-ipcRenderer.on('set_config', (_event, config) => {
-    original_config = config
-
-    for (var i = 0; i < text_areas.length; i++) {
-        var key = text_areas[i]
-        $('#' + key).val(YAML.stringify(config[key]))
-    }
-
-    for (var i = 0; i < fields.length; i++) {
-        field = fields[i]
-        $('#' + field).val(config[field])
-    }
-
-    for (var i = 0; i < checkboxes.length; i++) {
-        field = checkboxes[i]
-        $('#' + field).prop('checked', config[field]);
-    }
-
-    $('#config-form').removeAttr('disabled')
-});
+var original_config = ''
 
 function sendConfig() {
     config = original_config
@@ -65,11 +45,30 @@ function sendConfig() {
 
 }
 
-original_config = ''
+function updateOptionVisibility() {
+    $('#option_starters').hide()
+    $('#option_move_direction').hide()
+
+    var mode = $('#mode').val()
+    switch (mode) {
+        case 'starters':
+            $('#option_starters').show()
+            break;
+        case 'random encounters':
+            $('#option_move_direction').show()
+            break;
+    }
+}
+
+// Hide values not relevant to the current bot mode
+const form = document.querySelector('fieldset');
+form.addEventListener('change', function() {
+    updateOptionVisibility()
+});
 
 // Allow tab indentation in textareas
-var textareas = document.getElementsByTagName('textarea');
-var count = textareas.length;
+const textareas = document.getElementsByTagName('textarea');
+const count = textareas.length;
 for (var i = 0; i < count; i++) {
     textareas[i].onkeydown = function (e) {
         if (e.key == 'Tab') {
@@ -88,6 +87,29 @@ document.addEventListener('keydown', function (event) {
         sendConfig();
     }
 });
+
+ipcRenderer.on('set_config', (_event, config) => {
+    original_config = config
+
+    for (var i = 0; i < text_areas.length; i++) {
+        var key = text_areas[i]
+        $('#' + key).val(YAML.stringify(config[key]))
+    }
+
+    for (var i = 0; i < fields.length; i++) {
+        field = fields[i]
+        $('#' + field).val(config[field])
+    }
+
+    for (var i = 0; i < checkboxes.length; i++) {
+        field = checkboxes[i]
+        $('#' + field).prop('checked', config[field]);
+    }
+
+    $('#config-form').removeAttr('disabled')
+    updateOptionVisibility()
+});
+
 
 ipcRenderer.on('set_page_icon', (_event, gen) => {
     // Set the page icon to match the current loaded game generation
