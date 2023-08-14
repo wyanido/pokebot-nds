@@ -1,3 +1,9 @@
+function update_pointers()
+    offset.battle_menu_state = mdword(0x2146A88) + 0x1367C + 0x21D720 * game_version
+    
+    console.log(string.format("%08X", offset.battle_menu_state))
+end
+
 -----------------------
 -- MODE VARIABLES
 -----------------------
@@ -417,6 +423,8 @@ function catch_pokemon()
         pause_bot("Nothing to catch the target with allowed by config")
     end
 
+    update_pointers()
+    
     while mbyte(offset.battle_menu_state) ~= 1 do
         press_sequence("B", 5)
     end
@@ -429,7 +437,6 @@ function catch_pokemon()
     touch_screen_at(192, 36)
     wait_frames(90)
 
-    -- TODO scroll page
     local button = (ball_index - 1) % 6 + 1
     local page = math.floor((ball_index - 1) / 6)
     local current_page = mbyte(offset.battle_bag_page)
