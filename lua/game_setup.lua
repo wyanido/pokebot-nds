@@ -226,11 +226,11 @@ console.log("Detected Game: " .. game_name)
 local game_status = gameinfo.getstatus()
 
 if game_status == "BadDump" then
-	console.log("\nIMPORTANT, PLEASE READ!\nYour copy of this game is a bad dump, and as such, pokebot-nds may not function correctly.")
-	console.log("It is heavily recommended that you replace it with a better copy.")
+	console.log("")
+	console.warning("Your copy of this game is a bad dump, and as such, pokebot-nds may not function correctly. It is heavily recommended that you replace it with a better copy.")
 elseif game_status == "Hack" then
-	console.log("\nIMPORTANT, PLEASE READ!\nYou are playing a modified version of this game.")
-	console.log("The memory addresses of ROM hacks will not always line up with the base game, and will likely cause issues while running pokebot-nds.")
+	console.log("")
+	console.warning("You are playing a modified version of this game. The memory addresses of ROM hacks will not always line up with the base game, and will likely cause issues.")
 end
 
 -- Index game-specific map headers
@@ -270,10 +270,8 @@ if gen == 4 then
 	MON_DATA_SIZE = 236 -- Gen 4 has 16 extra trailing bytes of ball seals data
 
 	-- Unsupported warning
-	console.log("------------------")
-	console.log("Support for this game is heavily WIP, so you may encounter issues when trying to run it!")
-	console.log("------------------")
-
+	console.warning("Support for this game is heavily WIP, so you may encounter issues when trying to run it!")
+	
 elseif gen == 5 then
 	dofile("lua\\methods_gen_v.lua") -- Define Gen V functions
 

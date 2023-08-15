@@ -7,7 +7,7 @@ const checkboxes = [
     'starter0', 'starter1', 'starter2', 'battle_non_targets', 
     'cycle_lead_pokemon', 'save_game_after_catch', 'save_game_on_start', 
     'auto_catch', 'thief_wild_items', 'pickup', 'hax',
-    'inflict_status', 'false_swipe'
+    'inflict_status', 'false_swipe', 'debug'
 ]
 
 var original_config = ''

@@ -41,6 +41,7 @@
 	"target_log_limit": "30",
 	"inactive_client_timeout": "2500",
 	"game_refresh_cooldown": "200",
-	"inflict_status": true,
-	"false_swipe": true
+	"inflict_status": false,
+	"false_swipe": false,
+	"debug": false
 }

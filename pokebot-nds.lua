@@ -10,6 +10,14 @@ console.log("Pokebot NDS version " .. BOT_VERSION .. " by NIDO (wyanido)")
 mbyte = memory.read_u8
 mword = memory.read_u16_le
 mdword = memory.read_u32_le
+console.debug = function (message)
+    if config.debug then
+        console.log("- " .. message)
+    end
+end
+console.warning = function (message)
+    console.log("# " .. message .. " #")
+end
 
 -- Requirements
 json = require("lua\\json")
@@ -72,7 +80,7 @@ function get_party(force)
     end
 
     -- Party changed, update info
-    console.log("- Party updated ")
+    console.debug("Party updated")
     last_party_checksums = checksums
     local new_party = {}
 
@@ -93,7 +101,7 @@ function get_party(force)
             table.insert(new_party, mon)
         else
             -- If any party checksums fail, wait a frame and try again
-            -- console.log("### Party checksum failed at slot " .. i .. ", retrying ###")
+            console.debug("Party checksum failed at slot " .. i .. ", retrying")
             emu.frameadvance()
             return get_party(true)
         end
@@ -121,7 +129,7 @@ function get_current_foes()
 
                 table.insert(foe_table, mon)
             else 
-                -- console.log("### Foe checksum failed at slot " .. i .. ", retrying ### ")
+                console.debug("Foe checksum failed at slot " .. i .. ", retrying")
                 emu.frameadvance()
                 goto retry
             end

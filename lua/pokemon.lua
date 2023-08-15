@@ -286,7 +286,6 @@ end
 
 function pokemon.log(mon)
     -- Create a watered down copy of the Pokemon data for logging only
-    -- console.log("## Logging Pokemon ##")
     local mon_new = shallowcopy(mon)
 
     if type(mon_new.pid) == "number" then
@@ -419,7 +418,7 @@ end
 
 function pokemon.matches_ruleset(mon, target)
     if not target then
-        console.log("Mon was not a target, because no target was specified.")
+        console.warning("Mon was not a target, because no target was specified.")
         return false
     end
 
@@ -427,10 +426,9 @@ function pokemon.matches_ruleset(mon, target)
     -- config and always catch it
     if target.shiny then
         if mon.shiny or mon.shinyValue < 8 then
-            -- console.log("Mon is shiny")
             return true
         else
-            console.log("Mon was not shiny, checking other traits...")
+            console.debug("Mon was not shiny, checking other traits...")
         end
     end
 
@@ -442,14 +440,13 @@ function pokemon.matches_ruleset(mon, target)
         local is_species = false
         for i = 1, #target.species, 1 do
             if string.lower(mon.name) == string.lower(target.species[i]) then
-                -- console.log("Mon is correct species")
                 is_species = true
                 break
             end
         end
 
         if not is_species then
-            console.log("Mon species " .. mon.name .. " is not in ruleset")
+            console.debug("Mon species " .. mon.name .. " is not in ruleset")
             return false
         end
     end
@@ -462,7 +459,7 @@ function pokemon.matches_ruleset(mon, target)
         local target_gender = string.lower(target.gender)
 
         if mon_gender ~= target_gender then
-            console.log("Mon gender " .. mon_gender .. " does not match target of " .. target_gender)
+            console.debug("Mon gender " .. mon_gender .. " does not match target of " .. target_gender)
             return false
         end
     end
@@ -473,14 +470,13 @@ function pokemon.matches_ruleset(mon, target)
         local meets_ability = false
         for i = 1, #target.ability, 1 do
             if string.lower(mon.ability) == string.lower(target.ability[i]) then
-                -- console.log("Mon has ability")
                 meets_ability = true
                 break
             end
         end
 
         if not meets_ability then
-            console.log("Mon ability " .. mon.ability .. " is not in ruleset")
+            console.debug("Mon ability " .. mon.ability .. " is not in ruleset")
             return false
         end
     end
@@ -491,14 +487,13 @@ function pokemon.matches_ruleset(mon, target)
         local is_nature = false
         for i = 1, #target.nature, 1 do
             if string.lower(mon.nature) == string.lower(target.nature[i]) then
-                -- console.log("Mon is nature")
                 is_nature = true
                 break
             end
         end
 
         if not is_nature then
-            console.log("Mon nature " .. mon.nature .. " is not in ruleset")
+            console.debug("Mon nature " .. mon.nature .. " is not in ruleset")
             return false
         end
     end
@@ -511,7 +506,7 @@ function pokemon.matches_ruleset(mon, target)
         sum = sum + mon[key]
         if target[key] and mon[key] < target[key] then
             has_other_specs = true
-            console.log("Mon " .. key .. " " .. mon.hp_iv .. " does not meet ruleset " .. target.hp_iv)
+            console.debug("Mon " .. key .. " " .. mon.hp_iv .. " does not meet ruleset " .. target.hp_iv)
             return false
         end
     end
@@ -520,7 +515,7 @@ function pokemon.matches_ruleset(mon, target)
         has_other_specs = true
 
         if sum < target.iv_sum then
-            console.log("Mon IV sum of " .. sum .. " does not meet threshold " .. target.iv_sum)
+            console.debug("Mon IV sum of " .. sum .. " does not meet threshold " .. target.iv_sum)
             return false
         end
     end
@@ -532,7 +527,6 @@ function pokemon.matches_ruleset(mon, target)
         for i = 1, #target.move, 1 do
             for j = 1, #mon.moves, 1 do
                 if string.lower(mon.move[j].name) == string.lower(target.move[i]) then
-                    -- console.log("Mon has move")
                     has_move = true
                     break
                 end
@@ -540,7 +534,7 @@ function pokemon.matches_ruleset(mon, target)
         end
 
         if not has_move then
-            console.log("Mon moveset does not contain ruleset")
+            console.debug("Mon moveset does not contain ruleset")
             return false
         end
     end
@@ -552,7 +546,6 @@ function pokemon.matches_ruleset(mon, target)
         for i = 1, #target.type, 1 do
             for j = 1, #mon.type, 1 do
                 if string.lower(mon.type[j]) == string.lower(target.type[i]) then
-                    -- console.log("Mon has type")
                     has_type = true
                     break
                 end
@@ -560,18 +553,17 @@ function pokemon.matches_ruleset(mon, target)
         end
 
         if not has_type then
-            console.log("Mon type is not in ruleset")
+            console.debug("Mon type is not in ruleset")
             return false
         end
     end
 
     if has_other_specs and not target.shiny then
-        console.log("Mon is a target!")
+        console.log("Wild " .. mon.name .. " is a target!")
         return true
     else
         -- If the only specified trait is shiny: true, return false
         -- because the only single property check failed
-        console.log("Mon was not a target")
         return false
     end
 end

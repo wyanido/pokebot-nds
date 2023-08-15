@@ -55,7 +55,7 @@ function do_thief()
     local thief_slot = get_mon_move_slot(party[get_lead_mon_index()], "Thief")
 
     if thief_slot == 0 then
-        console.log("### Thief was enabled in config, but no lead Pokemon can use the move ### ")
+        console.warning("Thief was enabled in config, but the lead Pokemon can't use the move")
         return false
     end
 
@@ -89,7 +89,7 @@ function do_pickup()
 
     if pickup_count > 0 then
         if item_count < tonumber(config.pickup_threshold) then
-            console.log("Pickup items in party: " .. item_count .. ". Collecting at threshold: " ..
+            console.debug("Pickup items in party: " .. item_count .. ". Collecting at threshold: " ..
                             config.pickup_threshold)
         else
             press_sequence(60, "X", 30)
@@ -113,7 +113,7 @@ function do_pickup()
             press_sequence(30, "B", 120, "B", 60)
         end
     else
-        console.log("### Pickup is enabled in config, but no party Pokemon have the Pickup ability. Was this a mistake? ###")
+        console.warning("Pickup is enabled in config, but no party Pokemon have the Pickup ability.")
     end
 end
 
@@ -153,8 +153,7 @@ function do_battle()
 
             party[1].pp[best_move.index] = party[1].pp[best_move.index] - pp_dec
 
-            console.log(
-                "Best move against foe is " .. best_move.name .. " (Effective base power is " .. best_move.power .. ")")
+            console.debug("Best move against foe is " .. best_move.name .. " (Effective base power is " .. best_move.power .. ")")
             wait_frames(30)
             touch_screen_at(128, 90) -- FIGHT
             wait_frames(30)
@@ -221,7 +220,7 @@ function check_party_status()
             if most_usable_pp == 0 then
                 pause_bot("No suitable Pokemon left to battle")
             else
-                console.log("Best replacement was " .. party[best_index].name .. " (Slot " .. best_index .. ")")
+                console.debug("Best replacement was " .. party[best_index].name .. " (Slot " .. best_index .. ")")
                 -- Party menu
                 press_sequence(60, "X", 30)
                 touch_screen_at(65, 45)
@@ -322,7 +321,7 @@ function find_usable_ball()
     local function find_ball(balls, ball)
         for k2, v2 in pairs(balls) do
             if string.lower(k2) == string.lower(ball) then
-                console.log("Bot will use ball " .. k2 .. " from slot " .. ((v2 - 1) % 6) .. ", page " .. math.floor(v2 / 6))
+                console.debug("Bot will use ball " .. k2 .. " from slot " .. ((v2 - 1) % 6) .. ", page " .. math.floor(v2 / 6))
                 return v2
             end
         end
@@ -375,16 +374,15 @@ function find_usable_ball()
         return -1
     end
 
-    console.log("Finding usable Ball...")
     local ball_index = -1
 
     -- Compare with pokeball override
     if config.pokeball_override then
         for k, v in pairs(config.pokeball_override) do
-            console.log("Checking rule " .. k .. "...")
+            console.debug("Checking rule " .. k .. "...")
             -- If config states this ball should be used
             if pokemon.matches_ruleset(foe[1], config.pokeball_override[k]) then
-                console.log(k .. " is a valid match!")
+                console.debug(k .. " is a valid match!")
                 
                 ball_index = find_ball(balls, k)
 
@@ -422,7 +420,7 @@ function subdue_pokemon()
             recoil_slot = get_mon_move_slot(foe[1], v)
             
             if recoil_slot ~= 0 then
-                console.log("False Swipe is enabled in config, but the target has a recoil move. False Swipe won't be used.")
+                console.warning("The target has a recoil move. False Swipe won't be used.")
                 break
             end
         end
@@ -432,7 +430,7 @@ function subdue_pokemon()
             local false_swipe_slot = get_mon_move_slot(party[get_lead_mon_index()], "False Swipe")
 
             if false_swipe_slot == 0 then
-                console.log("### False Swipe is enabled in config, but no lead Pokemon have False Swipe. ###")
+                console.warning("The lead Pokemon can't use False Swipe.")
             else
                 use_move_at_slot(false_swipe_slot)
             end
@@ -449,12 +447,26 @@ function subdue_pokemon()
 
         for i = 1, #foe[1].type, 1 do
             if foe[1].type[i] == "Ground" then
-                console.log("Foe is Ground-type. Thunder Wave can't be used.")
+                console.debug("Foe is Ground-type. Thunder Wave can't be used.")
                 table.remove(status_moves, 8) -- Remove Thunder Wave from viable options if target is Ground type
                 break
             end
         end
 
+        -- Remove Grass type status moves if target has Sap Sipper
+        if foe[1].ability == "Sap Sipper" then
+            local grass_moves = {"Spore", "Sleep Powder", "Grass Whistle", "Stun Spore"}
+
+            for i, k in ipairs(grass_moves) do
+                for i2, k2 in pairs(status_moves) do
+                    if k == k2 then
+                        table.remove(status_moves, i2)
+                        break
+                    end
+                end
+            end
+        end
+        
         for _, v in ipairs(status_moves) do
             status_slot = get_mon_move_slot(party[get_lead_mon_index()], v)
             
@@ -467,7 +479,7 @@ function subdue_pokemon()
             -- Bot will blindly use the status move once and hope it lands
             use_move_at_slot(status_slot)
         else
-            console.log("### Inflict sleep/paralysis is enabled in config, but no lead Pokemon have a status move. ###")
+            console.warning("The lead Pokemon has no usable status moves.")
         end
     end
 end
@@ -511,7 +523,7 @@ function catch_pokemon()
         end
 
         wait_frames(30)
-        console.log("Page is " .. current_page .. ", scrolling to " .. page)
+        console.debug("Page is " .. current_page .. ", scrolling to " .. page)
     end
 
     touch_screen_at(80 * ((button - 1) % 2 + 1), 30 + 50 * ((button - 1) // 2)) -- Select Ball
@@ -676,7 +688,7 @@ function mode_random_encounters()
             end
         end
     else
-        console.log("Wild Pokemon was not a target, attempting next action...")
+        console.log("Wild " .. foe[1].name .. " was not a target, attempting next action...")
 
         update_pointers()
 
@@ -794,7 +806,7 @@ end
 
 function mode_daycare_eggs()
     local function collect_daycare_egg()
-        console.log("That's an egg!")
+        console.debug("That's an egg!")
 
         release_button("Right")
         press_sequence(60, "B")
@@ -1026,7 +1038,7 @@ function mode_daycare_eggs()
                 pause_bot("Hatched a target Pokemon")
             end
 
-            console.log("Egg finished hatching.")
+            console.debug("Egg finished hatching.")
         elseif game_state.trainer_x == 748 then -- Interrupted by daycare man
             collect_daycare_egg()
         end

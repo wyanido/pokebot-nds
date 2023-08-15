@@ -22,7 +22,7 @@ function poll_dashboard_response()
 	-- If the dashboard couldn't be detected, poll it less often
 	if not comm.socketServerSuccessful() then
 		if not disconnected then
-			console.log("### Dashboard disconnected! ### ")
+			console.warning("Dashboard disconnected!")
 			disconnected = true
 		end
 
@@ -60,7 +60,7 @@ function poll_dashboard_response()
 			console.log("Config initialised!")
 			console.log("---------------------------")
 		else
-			console.log("### Config Updated ###")
+			console.debug("Config Updated")
 		end
 
 		config = response.data.config
