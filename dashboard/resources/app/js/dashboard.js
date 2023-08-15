@@ -2,90 +2,117 @@ const { ipcRenderer } = require('electron')
 
 var game_tab = 0
 
-function displayClientInfo(clients) {
-    $('#party div').empty();
+function displayClientParty(index, party) {
+    var ele = 'party-template-' + index.toString();
+    $('#' + ele).remove()
+
+    if (!party) return
+
+    var party_mon_template = $('#party-mon-template');
+    var party_template = $('#party-template').tmpl();
+    $('#game-party').append(party_template)
+
+    for (var i = 0; i < 6; i++) {
+        var mon = party[i]
+
+        if (!mon) break
+
+        if (mon.isEgg) {
+            template = $('#party-egg-template')
+        } else {
+            mon.folder = mon.shiny ? 'shiny/' : '';
+            mon.shiny = mon.shiny ? '✨' : '';
+        }
+
+        mon.fainted = mon.currentHP == 0 ? 'opacity: 0.5' : '';
+        mon.gender = mon.gender == 'Genderless' ? 'none' : mon.gender.toLowerCase()
+        mon.name = '(' + mon.name + ')'
+        mon.pid = mon.pid.toString(16).toUpperCase().padEnd(8, '0');
+        // mon.rating = rating_stars(mon.rating)
+
+        // Get Pokerus strain
+        var x = mon.pokerus << 8;
+        var y = mon.pokerus & 0xF;
+
+        if (x > 0) {
+            if (y == 0) {
+                mon.pokerus = 'cured'
+            } else {
+                mon.pokerus = 'infected'
+            }
+        } else {
+            mon.pokerus = 'none'
+        }
+
+        party_template.append(party_mon_template.tmpl(mon))
+    }
+
+    if (game_tab != index) party_template.hide()
+    party_template.attr('id', ele)
+}
+
+function displayClientTabs(clients) {
+    $('#game-buttons').empty();
+
+    if (clients.length == 0) {
+        $('#top-row').append($('#game-template').tmpl())
+
+        var button = $('#button-template').tmpl({ 'game': 'No game detected!' })
+        button.attr('class', 'btn btn-primary col text-truncate')
+        $('#game-buttons').append(button)
+        return
+    }
 
     for (var j = 0; j < clients.length; j++) {
         var client = clients[j]
-        var game = $('#game-template').tmpl(client)
-        var button = $('#button-template').tmpl({ 'game': client.game })
 
-        $('#top-row').append(game)
+        if (!client.game) continue;
+
+        var button = $('#button-template').tmpl({ 'game': client.game })
         $('#game-buttons').append(button)
 
-        var template = $('#party-template');
-        
-        var party = client.party
-        if (party) {
-            for (var i = 0; i < 6; i++) {
-                var partyID = '#party-' + (i + 1).toString()
-                var mon = party[i]
-
-                if (mon) {
-                    if (mon.isEgg) {
-                        template = $('#party-egg-template')
-                    } else {
-                        mon.folder = mon.shiny ? 'shiny/' : '';
-                        mon.shiny = mon.shiny ? '✨' : '';
-                    }
-
-                    mon.fainted = mon.currentHP == 0 ? 'opacity: 0.5' : '';
-                    mon.gender = mon.gender == 'Genderless' ? 'none' : mon.gender.toLowerCase()
-                    mon.name = '(' + mon.name + ')'
-                    mon.pid = mon.pid.toString(16).toUpperCase().padEnd(8, '0');
-                    // mon.rating = rating_stars(mon.rating)
-
-                    // Get Pokerus strain
-                    var x = mon.pokerus << 8;
-                    var y = mon.pokerus & 0xF;
-
-                    if (x > 0) {
-                        if (y == 0) {
-                            mon.pokerus = 'cured'
-                        } else {
-                            mon.pokerus = 'infected'
-                        }
-                    } else {
-                        mon.pokerus = 'none'
-                    }
-
-                    var newTableRow = template.tmpl(mon);
-                    $(partyID).append(newTableRow)
-                }
-
-                /* 
-                    Remove the id attribute from this template to ensure Pokemon
-                    from other parties are not appended to it
-                */
-                $(partyID).removeAttr('id')
-            }
-        }
-
         button.attr('id', 'button-template-' + j.toString())
-        game.hide()
-        game.attr('id', 'game-template-' + j.toString())
     }
 
     game_tab = Math.min(game_tab, clients.length - 1)
-
+    updateTabVisibility()
     $('#button-template-' + game_tab.toString()).attr('class', 'btn btn-primary col text-truncate')
-    $('#game-template-' + game_tab.toString()).show()
 }
 
-function selectTab(ele) {
-    game_tab = ele.id.replace('button-template-','');
+function displayClientGameInfo(index, client) {
+    var ele = 'game-template-' + index.toString();
+    $('#' + ele).remove()
 
-    for (var i = 0; i <= $('#top-row').children.length + 1; i++) {
+    var game_template = $('#game-template').tmpl(client)
+    $('#game-info').append(game_template)
+
+    if (game_tab != index) {
+        game_template.hide();
+    }
+
+    game_template.attr('id', ele);
+}
+
+function updateTabVisibility() {
+    for (var i = 0; i <= $('#client-container').children.length + 1; i++) {
         var idx = i.toString()
 
         if (i == game_tab) {
             $('#game-template-' + idx).show()
+            $('#party-template-' + idx).show()
             $('#button-template-' + idx).attr('class', 'btn btn-primary col text-truncate')
         } else {
             $('#game-template-' + idx).hide()
+            $('#party-template-' + idx).hide()
             $('#button-template-' + idx).attr('class', 'btn col text-truncate')
         }
     }
+}
+
+function selectTab(ele) {
+    game_tab = ele.id.replace('button-template-', '');
+
+    updateTabVisibility()
 }
 
 ipcRenderer.on('set_recents', (_event, encounters) => {
@@ -129,19 +156,28 @@ ipcRenderer.on('set_stats', (_event, stats) => {
 });
 
 ipcRenderer.on('set_clients', (_event, clients) => {
-    $('#top-row').empty()
-    $('#game-buttons').empty()
+    displayClientTabs(clients);
 
-    if (clients.length == 0) {
-        $('#top-row').append($('#game-template').tmpl())
+    for (var i = 0; i < clients.length; i++) {
+        var client = clients[i];
 
-        var button = $('#button-template').tmpl({ 'game': 'No game detected!'})
-        button.attr('class', 'btn btn-primary col text-truncate')
-        $('#game-buttons').append(button)
-        return
+        displayClientParty(i, client.party);
+        displayClientGameInfo(i, client);
     }
+    
+    last_client_count = clients.length
+});
 
-    displayClientInfo(clients)
+ipcRenderer.on('set_client_party', (_event, index, party) => {
+    displayClientParty(index, party);
+});
+
+ipcRenderer.on('set_client_tabs', (_event, clients) => {
+    displayClientTabs(clients);
+});
+
+ipcRenderer.on('set_client_game_info', (_event, index, client) => {
+    displayClientGameInfo(index, client);
 });
 
 ipcRenderer.on('set_page_icon', (_event, gen) => {

@@ -124,14 +124,13 @@ function interpretClientMessage(socket, message) {
             return;
         case 'party':
             client.party = data;
-
-            mainWindow.webContents.send('set_clients', clientData);
+            mainWindow.webContents.send('set_client_party', index, client.party);
             return;
         case 'init':
             client.gen = data.gen;
             client.game = data.game;
             
-            mainWindow.webContents.send('set_clients', clientData);
+            mainWindow.webContents.send('set_client_tabs', clientData);
             return;
         case 'game':
             client.map = data.map_name + " (" + data.map_header.toString() + ")";
@@ -140,7 +139,7 @@ function interpretClientMessage(socket, message) {
 
             // Add a minimum update interval
             if (!clientCooldown) {
-                mainWindow.webContents.send('set_clients', clientData);
+                mainWindow.webContents.send('set_client_game_info', index, client);
                 clientCooldown = true;
 
                 refreshTimeout = setTimeout(() => {
