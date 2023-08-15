@@ -60,6 +60,9 @@ function displayClientTabs(clients) {
         var button = $('#button-template').tmpl({ 'game': 'No game detected!' })
         button.attr('class', 'btn btn-primary col text-truncate')
         $('#game-buttons').append(button)
+
+        displayClientParty(0, {});
+        displayClientGameInfo(0, {});
         return
     }
 
