@@ -1,7 +1,7 @@
 function update_pointers()
-    offset.battle_menu_state = mdword(0x2146A88) + 0x1367C + 0x21D720 * game_version
+    offset.battle_menu_state = mdword(0x2146A88 + 0x20 * game_version) + 0x1367C
     
-    console.log(string.format("%08X", offset.battle_menu_state))
+    -- console.log(string.format("%08X", offset.battle_menu_state))
 end
 
 -----------------------
