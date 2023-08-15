@@ -54,14 +54,14 @@ end
 function do_thief()
     local thief_slot = get_mon_move_slot(party[get_lead_mon_index()], "Thief")
 
-    if thief_slot[1] == 0 then
+    if thief_slot == 0 then
         console.log("### Thief was enabled in config, but no lead Pokemon can use the move ### ")
         return false
     end
 
     if #foe == 1 then -- Single battle
         while game_state.in_battle do
-            use_move_at_slot(thief_slot[2])
+            use_move_at_slot(thief_slot)
 
             -- Assume the item was stolen and flee
             flee_battle()
@@ -246,23 +246,10 @@ function check_party_status()
     if config.thief_wild_items then
         -- Check leading Pokemon for held items
         local item_leads = {}
-        local i, checked_mons = 1, 0
+        local lead_mon = get_lead_mon_index()
 
-        while i < 6 and checked_mons < 2 do
-            if party[i].currentHP > 0 and party[i].heldItem ~= "none" then
-                for j = 1, #party[i].moves, 1 do
-                    if party[i].moves[j].name == "Thief" and party[i].pp[j] > 0 then
-                        table.insert(item_leads, i)
-                        break
-                    end
-                end
-                checked_mons = checked_mons + 1
-            end
-            i = i + 1
-        end
-
-        if #item_leads > 0 then
-            console.log(#item_leads .. " lead Thief Pokemon already holds an item. Removing...")
+        if party[lead_mon].heldItem ~= "none" then
+            console.log("Thief Pokemon already holds an item. Removing...")
             clear_all_inputs()
 
             -- Open party menu
@@ -270,16 +257,14 @@ function check_party_status()
             touch_screen_at(65, 45)
             wait_frames(90)
 
-            -- Collect items from each lead
-            for i = 1, #item_leads, 1 do
-                touch_screen_at(80 * ((item_leads[i] - 1) % 2 + 1), 30 + 50 * ((item_leads[i] - 1) // 2)) -- Select Pokemon
+            -- Collect item from lead
+            touch_screen_at(80, 30) -- Select Pokemon
 
-                wait_frames(30)
-                touch_screen_at(200, 155) -- Item
-                wait_frames(30)
-                touch_screen_at(take_button.x, take_button.y) -- Take
-                press_sequence(120, "B", 30)
-            end
+            wait_frames(30)
+            touch_screen_at(200, 155) -- Item
+            wait_frames(30)
+            touch_screen_at(take_button.x, take_button.y) -- Take
+            press_sequence(120, "B", 30)
 
             press_sequence(30, "B", 120, "B", 60) -- Exit out of menu
         end
@@ -464,7 +449,8 @@ function subdue_pokemon()
 
         for i = 1, #foe[1].type, 1 do
             if foe[1].type[i] == "Ground" then
-                status_moves.remove(8) -- Remove Thunder Wave from viable options if target is Ground type
+                console.log("Foe is Ground-type. Thunder Wave can't be used.")
+                table.remove(status_moves, 8) -- Remove Thunder Wave from viable options if target is Ground type
                 break
             end
         end
