@@ -53,6 +53,11 @@
                             <label for="save_game_on_start">Save game on start</label>
                         </div>
                         <br>
+                        <div class="custom-switch">
+                            <input type="checkbox" id="cycle_lead_pokemon" value="">
+                            <label for="cycle_lead_pokemon">Replace lead Pokémon when exhausted</label>
+                        </div>
+                        <br>
                         <label for="mode">Bot Mode</label>
                         <select class="form-control" id="mode">
                             <option value="manual">Manual</option>
@@ -96,7 +101,7 @@
                         <h2 class="content-title">Target Pokémon</h2>
                         <label for="catch">Target traits</label>
                         <textarea class="form-control" spellcheck="false"
-                            style="min-width:100px; max-width:95%; height: 120px;" id="target_traits"
+                            style="min-width:120px; max-width:100%; height: 120px;" id="target_traits"
                             placeholder=""></textarea>
                         <br>
                         <div class="custom-switch">
@@ -128,11 +133,6 @@
                     <div class="card">
                         <h2 class="content-title">Wild Battles</h2>
                         <div class="custom-switch">
-                            <input type="checkbox" id="cycle_lead_pokemon" value="">
-                            <label for="cycle_lead_pokemon">Cycle exhausted lead Pokémon</label>
-                        </div>
-                        <br>
-                        <div class="custom-switch">
                             <input type="checkbox" id="battle_non_targets" value="">
                             <label for="battle_non_targets">Defeat non-targets</label>
                         </div>
@@ -142,20 +142,33 @@
                             <label for="thief_wild_items">Use Thief to steal held items</label>
                         </div>
                         <br>
+                        <h2 class="content-title">Auto-Catch</h2>
                         <div class="custom-switch">
                             <input type="checkbox" id="auto_catch" value="">
                             <label for="auto_catch">Auto-catch wild targets</label>
                         </div>
-                        <br>
-                        <label for="pokeball_priority">Pokéball priority</label>
-                        <textarea class="form-control" spellcheck="false"
-                            style="min-width:100px; max-width:95%; height: 120px;" id="pokeball_priority"
-                            placeholder=""></textarea>
-                        <br>
-                        <label for="pokeball_override">Pokéball override</label>
-                        <textarea class="form-control" spellcheck="false"
-                            style="min-width:100px; max-width:95%; height: 260px;" id="pokeball_override"
-                            placeholder=""></textarea>
+                        <div id="option_auto_catch">
+                            <br>
+                            <div class="custom-switch">
+                                <input type="checkbox" id="false_swipe" value="">
+                                <label for="false_swipe">Use False Swipe</label>
+                            </div>
+                            <br>
+                            <div class="custom-switch">
+                                <input type="checkbox" id="inflict_status" value="">
+                                <label for="inflict_status">Inflict sleep/paralysis</label>
+                            </div>
+                            <br>
+                            <label for="pokeball_priority">Poké Ball priority</label>
+                            <textarea class="form-control" spellcheck="false"
+                                style="min-width:120px; max-width:100%; height: 120px;" id="pokeball_priority"
+                                placeholder=""></textarea>
+                            <br>
+                            <label for="pokeball_override">Poké Ball override</label>
+                            <textarea class="form-control" spellcheck="false"
+                                style="min-width:120px; max-width:100%; height: 260px;" id="pokeball_override"
+                                placeholder=""></textarea>
+                        </div>
                     </div>
                     <div class="card">
                         <h2 class="content-title">Other</h2>
@@ -164,7 +177,7 @@
                             <label for="hax">Use hax for faster resets</label>
                         </div>
                         <br>
-                        <label for="inactive_client_timeout">Inactive client timeout (ms)</label>
+                        <label for="inactive_client_timeout">Inactive game timeout (ms)</label>
                         <input id="inactive_client_timeout" min="1000" type="number" class="form-control"
                             placeholder="">
                         <br>

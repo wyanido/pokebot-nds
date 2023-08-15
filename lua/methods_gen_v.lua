@@ -19,26 +19,40 @@ take_button = { x = 200, y = 155 }
 -- MISC. BOT ACTIONS
 -----------------------
 
-function do_thief()
-    local checked_mons = 0
-    local thief_slot = {0, 0}
-
-    -- Check leading Pokemon for Thief move
-    local i, j = 1, 1
-    while i < 6 and checked_mons < #foe and thief_slot[1] == 0 do
-        -- Iterate through first 1 (or 2 in a double battle) healthy party members
-        if party[i].currentHP ~= 0 then
-            -- Check moveset for Thief with more than 0 PP
-            for j = 1, #party[i].moves, 1 do
-                if party[i].moves[j].name == "Thief" and party[i].pp[j] > 0 then
-                    thief_slot = {i, j}
-                    break
-                end
-            end
-            checked_mons = checked_mons + 1
+function get_mon_move_slot(mon, move_name)
+    for i, v in ipairs(mon.moves) do
+        if v.name == move_name and mon.pp[i] > 0 then
+            return i
         end
-        i = i + 1
     end
+    return 0
+end
+
+function get_lead_mon_index()
+    -- Returns the first non-fainted Pokémon in the party
+    local i = 1
+    while i < 6 do
+        if party[i].currentHP ~= 0 then
+            return i
+        end
+    end
+end
+
+function use_move_at_slot(slot)
+    -- Skip text to FIGHT menu
+    while game_state.in_battle and mbyte(offset.battle_menu_state) == 0 do
+        press_sequence("B", 5)
+    end
+
+    wait_frames(30)
+    touch_screen_at(128, 90) -- FIGHT
+    wait_frames(30)
+    touch_screen_at(80 * ((slot - 1) % 2 + 1), 50 * (((slot - 1) // 2) + 1)) -- Select move slot
+    wait_frames(60)
+end
+
+function do_thief()
+    local thief_slot = get_mon_move_slot(party[get_lead_mon_index()], "Thief")
 
     if thief_slot[1] == 0 then
         console.log("### Thief was enabled in config, but no lead Pokemon can use the move ### ")
@@ -47,16 +61,7 @@ function do_thief()
 
     if #foe == 1 then -- Single battle
         while game_state.in_battle do
-            -- Skip text to FIGHT menu
-            while game_state.in_battle and mbyte(offset.battle_menu_state) == 0 do
-                press_sequence("B", 5)
-            end
-
-            wait_frames(30)
-            touch_screen_at(128, 90) -- FIGHT
-            wait_frames(30)
-            touch_screen_at(80 * ((thief_slot[2] - 1) % 2 + 1), 50 * (((thief_slot[2] - 1) // 2) + 1)) -- Select move slot
-            wait_frames(60)
+            use_move_at_slot(thief_slot[2])
 
             -- Assume the item was stolen and flee
             flee_battle()
@@ -108,8 +113,7 @@ function do_pickup()
             press_sequence(30, "B", 120, "B", 60)
         end
     else
-        console.log(
-            "### Pickup is enabled in config, but no party Pokemon have the Pickup ability. Was this a mistake? ###")
+        console.log("### Pickup is enabled in config, but no party Pokemon have the Pickup ability. Was this a mistake? ###")
     end
 end
 
@@ -329,7 +333,7 @@ function flee_battle()
     end
 end
 
-function catch_pokemon()
+function find_usable_ball()
     local function find_ball(balls, ball)
         for k2, v2 in pairs(balls) do
             if string.lower(k2) == string.lower(ball) then
@@ -360,8 +364,6 @@ function catch_pokemon()
         [16] = "Cherish Ball"
     }
 
-    clear_all_inputs()
-
     -- Check bag for Pokeballs
     local balls = {}
     local ball_count = 0
@@ -379,13 +381,13 @@ function catch_pokemon()
             end
 
             slot = slot + 1
-        elseif item == 0x0 then -- No items beyond this offset
+        elseif item == 0x0 then -- No more items beyond this byte
             break
         end
     end
 
     if ball_count == 0 then
-        pause_bot("Nothing to catch the target with")
+        return -1
     end
 
     console.log("Finding usable Ball...")
@@ -419,11 +421,83 @@ function catch_pokemon()
         end
     end
 
-    if ball_index == -1 then
-        pause_bot("Nothing to catch the target with allowed by config")
+    return ball_index
+end
+
+function subdue_pokemon()
+    if config.false_swipe then
+        -- Ensure target has no recoil moves before attempting to weaken it
+        local recoil_moves = {
+            "Brave Bird", "Double-Edge", "Flare Blitz", "Head Charge", 
+            "Head Smash", "Self-Destruct", "Take Down", "Volt Tackle", 
+            "Wild Charge", "Wood Hammer"}
+        local recoil_slot = 0
+        
+        for _, v in ipairs(recoil_moves) do
+            recoil_slot = get_mon_move_slot(foe[1], v)
+            
+            if recoil_slot ~= 0 then
+                console.log("False Swipe is enabled in config, but the target has a recoil move. False Swipe won't be used.")
+                break
+            end
+        end
+
+        if recoil_slot == 0 then
+            -- Check whether the lead actually has False Swipe
+            local false_swipe_slot = get_mon_move_slot(party[get_lead_mon_index()], "False Swipe")
+
+            if false_swipe_slot == 0 then
+                console.log("### False Swipe is enabled in config, but no lead Pokemon have False Swipe. ###")
+            else
+                use_move_at_slot(false_swipe_slot)
+            end
+        end
     end
 
+    if config.inflict_status then
+        -- Status moves in order of usefulness
+        local status_moves = {
+            "Spore", "Sleep Powder", "Lovely Kiss", "Dark Void", "Hypnosis", "Sing", "Grass Whistle", 
+            "Thunder Wave", "Glare", "Stun Spore"
+        }
+        local status_slot = 0
+
+        for i = 1, #foe[1].type, 1 do
+            if foe[1].type[i] == "Ground" then
+                status_moves.remove(8) -- Remove Thunder Wave from viable options if target is Ground type
+                break
+            end
+        end
+
+        for _, v in ipairs(status_moves) do
+            status_slot = get_mon_move_slot(party[get_lead_mon_index()], v)
+            
+            if status_slot ~= 0 then
+                break
+            end
+        end
+
+        if status_slot > 0 then
+            -- Bot will blindly use the status move once and hope it lands
+            use_move_at_slot(status_slot)
+        else
+            console.log("### Inflict sleep/paralysis is enabled in config, but no lead Pokemon have a status move. ###")
+        end
+    end
+end
+
+function catch_pokemon()
+    clear_all_inputs()
     update_pointers()
+
+    if config.false_swipe or config.inflict_status then
+        subdue_pokemon()
+    end
+
+    local ball_index = find_usable_ball()
+    if ball_index == -1 then
+        pause_bot("No valid Poké Balls to catch the target with")
+    end
     
     while mbyte(offset.battle_menu_state) ~= 1 do
         press_sequence("B", 5)
@@ -569,7 +643,7 @@ function mode_random_encounters()
     local tile_frames = frames_per_move() - 2
     local dir1 = config.move_direction == "Horizontal" and "Left" or "Up"
     local dir2 = config.move_direction == "Horizontal" and "Right" or "Down"
-
+    
     while not foe and not game_state.in_battle do
         hold_button("B")
         hold_button(dir1)
@@ -582,7 +656,6 @@ function mode_random_encounters()
         wait_frames(tile_frames)
         release_button(dir2)
         release_button("B")
-
     end
     
     release_button(dir2)
@@ -613,7 +686,7 @@ function mode_random_encounters()
                     catch_pokemon()
                 end
             else
-                pause_bot("Wild Pokemon meets target specs, but auto_catch is disabled")
+                pause_bot("Wild Pokemon meets target specs, but Auto-catch is disabled")
             end
         end
     else

@@ -294,7 +294,7 @@ function pokemon.log(mon)
     end
 
     -- Values not relevant to the encounter log, gets removed
-    local excess_keys = {"type", "nickname", "moves", "hpEV", "attackEV", "defenseEV", "spAttackEV", "spDefenseEV",
+    local excess_keys = {"type", "nickname", "hpEV", "attackEV", "defenseEV", "spAttackEV", "spDefenseEV",
                          "speedEV", "dreamWorldAbility", "friendship", "isEgg", "isNicknamed", "otLanguage", "otName",
                          "pokeball", "pokerus", "ppUps", "status", "isNsPokemon", "pp", "experience"}
 

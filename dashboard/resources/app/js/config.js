@@ -3,7 +3,12 @@ const YAML = require('yaml');
 
 const text_areas = ['target_traits', 'pokeball_priority', 'pokeball_override']
 const fields = ['mode', 'move_direction', 'pickup_threshold', 'encounter_log_limit', 'target_log_limit', 'inactive_client_timeout', 'game_refresh_cooldown']
-const checkboxes = ['starter0', 'starter1', 'starter2', 'battle_non_targets', 'cycle_lead_pokemon', 'save_game_after_catch', 'save_game_on_start', 'auto_catch', 'thief_wild_items', 'pickup', 'hax']
+const checkboxes = [
+    'starter0', 'starter1', 'starter2', 'battle_non_targets', 
+    'cycle_lead_pokemon', 'save_game_after_catch', 'save_game_on_start', 
+    'auto_catch', 'thief_wild_items', 'pickup', 'hax',
+    'inflict_status', 'false_swipe'
+]
 
 var original_config = ''
 
@@ -48,6 +53,7 @@ function sendConfig() {
 function updateOptionVisibility() {
     $('#option_starters').hide()
     $('#option_move_direction').hide()
+    $('#option_auto_catch').hide()
 
     var mode = $('#mode').val()
     switch (mode) {
@@ -58,11 +64,15 @@ function updateOptionVisibility() {
             $('#option_move_direction').show()
             break;
     }
+
+    if ($('#auto_catch').prop('checked')) {
+        $('#option_auto_catch').show()
+    }
 }
 
 // Hide values not relevant to the current bot mode
 const form = document.querySelector('fieldset');
-form.addEventListener('change', function() {
+form.addEventListener('change', function () {
     updateOptionVisibility()
 });
 

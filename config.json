@@ -40,5 +40,7 @@
 	"mode": "manual",
 	"target_log_limit": "30",
 	"inactive_client_timeout": "2500",
-	"game_refresh_cooldown": "200"
+	"game_refresh_cooldown": "200",
+	"inflict_status": true,
+	"false_swipe": true
 }

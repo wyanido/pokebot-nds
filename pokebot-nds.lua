@@ -256,6 +256,8 @@ end
 -----------------------
 
 input = input_init()
+foe = nil -- Prevents logging old Pokemon when re-enabling the script in a different battle than the one it was disabled in
+update_pointers()
 update_game_info(true)
 
 ::begin::
