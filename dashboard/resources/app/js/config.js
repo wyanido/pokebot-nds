@@ -1,14 +1,9 @@
 const { ipcRenderer } = require('electron')
 const YAML = require('yaml');
 
-const text_areas = ['target_traits', 'pokeball_priority', 'pokeball_override']
-const fields = ['mode', 'move_direction', 'pickup_threshold', 'encounter_log_limit', 'target_log_limit', 'inactive_client_timeout', 'game_refresh_cooldown']
-const checkboxes = [
-    'starter0', 'starter1', 'starter2', 'battle_non_targets', 
-    'cycle_lead_pokemon', 'save_game_after_catch', 'save_game_on_start', 
-    'auto_catch', 'thief_wild_items', 'pickup', 'hax',
-    'inflict_status', 'false_swipe', 'debug'
-]
+const text_areas = [...document.getElementsByTagName('textarea')].map(ele => ele.id);
+const fields = [...document.querySelectorAll('input[type="number"], select')].map(ele => ele.id);
+const checkboxes = [...document.querySelectorAll('input[type="checkbox"]')].map(ele => ele.id);
 
 var original_config = ''
 

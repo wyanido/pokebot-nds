@@ -286,7 +286,7 @@ while true do
     if mode == "starters" then
         -- Alternate between starters specified in config and reset until one is a target
         if not config.starter0 and not config.starter1 and not config.starter2 then
-            console.log("### At least one starter selection must be enabled in config for this bot mode ###")
+            console.warning("At least one starter selection must be enabled in config for this bot mode")
             return
         end
 
