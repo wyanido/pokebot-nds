@@ -18,13 +18,15 @@ function displayClientParty(index, party) {
         if (!mon) break
 
         if (mon.isEgg) {
-            template = $('#party-egg-template')
+            party_mon_template = $('#party-egg-template')
         } else {
             mon.folder = mon.shiny ? 'shiny/' : '';
             mon.shiny = mon.shiny ? '✨' : '';
+            
+            if (mon.altForm > 0) mon.species = mon.species + '-' + mon.altForm.toString()
+            mon.fainted = mon.currentHP == 0 ? 'opacity: 0.5' : '';
         }
-
-        mon.fainted = mon.currentHP == 0 ? 'opacity: 0.5' : '';
+        
         mon.gender = mon.gender == 'Genderless' ? 'none' : mon.gender.toLowerCase()
         mon.name = '(' + mon.name + ')'
         mon.pid = mon.pid.toString(16).toUpperCase().padEnd(8, '0');
@@ -126,10 +128,12 @@ ipcRenderer.on('set_recents', (_event, encounters) => {
     $('#recents').empty();
 
     for (var i = encounters.length; i >= encounters.length - 7; i--) {
-        if (encounters[i]) {
-            var row = template.tmpl(encounters[i]);
-            log.append(row)
-        }
+        var mon = encounters[i]
+        if (!mon) continue;
+        
+        if (mon.altForm > 0) mon.species = mon.species + '-' + mon.altForm.toString()
+        var row = template.tmpl(mon);
+        log.append(row)
     }
 });
 
@@ -141,10 +145,12 @@ ipcRenderer.on('set_targets', (_event, encounters) => {
     $('#targets').empty();
 
     for (var i = encounters.length; i >= encounters.length - 7; i--) {
-        if (encounters[i]) {
-            var row = template.tmpl(encounters[i]);
-            log.append(row)
-        }
+        var mon = encounters[i]
+        if (!mon) continue;
+
+        if (mon.altForm > 0) mon.species = mon.species + '-' + mon.altForm.toString()
+        var row = template.tmpl(mon);
+        log.append(row)
     }
 });
 

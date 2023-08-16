@@ -59,9 +59,9 @@
     </script>
     <script id="party-egg-template" type="text/x-jQuery-tmpl">
         <div class="col-4 text-center">
-            <div style="position: relative; display: inline-block;">
-                <div style="position:absolute;" class="dropdown with-arrow">
-                    <button style="background: transparent;border:none;cursor:pointer;" data-toggle="dropdown" type="button" id="..." aria-haspopup="true" aria-expanded="false">
+            <div style="position:relative; display: inline-block;">
+                <div style="position:absolute;left:-20px" class="dropdown with-arrow">
+                    <button style="background:transparent;border:none;cursor:pointer;" data-toggle="dropdown" type="button" id="..." aria-haspopup="true" aria-expanded="false">
                     <img style="display: block; margin: auto;" src="images/items/${pokeball}.png">
                     </button>
                     <div class="dropdown-menu" aria-labelledby="...">
@@ -91,12 +91,12 @@
             Lv ${level}
             <br>
             ${name}
+            <br>
+            <center>
+            <b>Hatch Steps</b>
+            <${friendship}
+            </center>
         </div>
-        <br>
-        <center>
-        <b>Hatch Steps</b>
-        <${friendship}
-        </center>
     </script>
     <script id="row-template" type="text/x-jQuery-tmpl">
         <tr>
@@ -148,7 +148,7 @@
     <div class="page-wrapper with-navbar">
         <nav class="navbar">
             <div class="navbar-brand">
-                <img src="images/pokemon-icon/201QU.png" class="icon" id="icon">
+                <img src="images/pokemon-icon/201-27.png" class="icon" id="icon">
                 Pokébot NDS
             </div>
             <span class="navbar-text text-monospace">v0.3.0-alpha</span>

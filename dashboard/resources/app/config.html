@@ -22,7 +22,7 @@
     <div class="page-wrapper with-navbar">
         <nav class="navbar">
             <div class="navbar-brand">
-                <img src="images/pokemon-icon/201QU.png" class="icon" id="icon">
+                <img src="images/pokemon-icon/201-27.png" class="icon" id="icon">
                 Pokébot NDS
             </div>
             <span class="navbar-text text-monospace">v0.3.0-alpha</span>
@@ -110,23 +110,31 @@
                         </div>
                     </div>
                     <div class="card">
-                        <h2 class="content-title">Pickup</h2>
-                        <div class="custom-switch">
-                            <input type="checkbox" id="pickup" value="">
-                            <label for="pickup">Collect Pickup items from party</label>
-                        </div>
-                        <br>
-                        <label for="pickup_threshold">Pickup threshold</label>
-                        <input id="pickup_threshold" style="width:100px" min="1" max="6" type="number"
-                            class="form-control">
-                    </div>
-                    <div class="card">
                         <h2 class="content-title">Logging</h2>
                         <label for="encounter_log_limit">Encounter Log Limit</label>
                         <input id="encounter_log_limit" min="1" type="number" class="form-control" placeholder="">
                         <br>
                         <label for="target_log_limit">Target Log Limit</label>
                         <input id="target_log_limit" min="1" type="number" class="form-control" placeholder="">
+                    </div>
+                    <div class="card">
+                        <h2 class="content-title">Other</h2>
+                        <div class="custom-switch">
+                            <input type="checkbox" id="hax" value="">
+                            <label for="hax">Use hax for faster resets</label>
+                        </div>
+                        <br>
+                        <div class="custom-switch">
+                            <input type="checkbox" id="debug" value="">
+                            <label for="debug">Debug mode</label>
+                        </div>
+                        <br>
+                        <label for="inactive_client_timeout">Inactive game timeout (ms)</label>
+                        <input id="inactive_client_timeout" min="1000" type="number" class="form-control"
+                            placeholder="">
+                        <br>
+                        <label for="game_refresh_cooldown">Game info refresh cooldown (ms)</label>
+                        <input id="game_refresh_cooldown" min="1" type="number" class="form-control" placeholder="">
                     </div>
                 </div>
                 <div class="col-6">
@@ -171,23 +179,15 @@
                         </div>
                     </div>
                     <div class="card">
-                        <h2 class="content-title">Other</h2>
+                        <h2 class="content-title">Pickup</h2>
                         <div class="custom-switch">
-                            <input type="checkbox" id="hax" value="">
-                            <label for="hax">Use hax for faster resets</label>
+                            <input type="checkbox" id="pickup" value="">
+                            <label for="pickup">Collect Pickup items from party</label>
                         </div>
                         <br>
-                        <div class="custom-switch">
-                            <input type="checkbox" id="debug" value="">
-                            <label for="debug">Debug mode</label>
-                        </div>
-                        <br>
-                        <label for="inactive_client_timeout">Inactive game timeout (ms)</label>
-                        <input id="inactive_client_timeout" min="1000" type="number" class="form-control"
-                            placeholder="">
-                        <br>
-                        <label for="game_refresh_cooldown">Game info refresh cooldown (ms)</label>
-                        <input id="game_refresh_cooldown" min="1" type="number" class="form-control" placeholder="">
+                        <label for="pickup_threshold">Pickup threshold</label>
+                        <input id="pickup_threshold" style="width:100px" min="1" max="6" type="number"
+                            class="form-control">
                     </div>
                 </div>
             </fieldset>

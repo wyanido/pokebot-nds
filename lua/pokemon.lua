@@ -185,7 +185,7 @@ function pokemon.read_data(address)
     local data = blockData(0x40, 1)
     -- mon.fatefulEncounter 	= (data >> 0) & 0x01
     mon.gender = (data >> 1) & 0x03
-    -- mon.altForm				= (data >> 3) & 0x1F
+    mon.altForm	= (data >> 3) & 0x1F
 
     if gen == 4 then
         -- mon.leaf_crown				= blockData(0x41, 1)
