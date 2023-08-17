@@ -181,7 +181,7 @@ if (!fs.existsSync('../logs')) {
 var recents = readJSONFromFile('../logs/encounters.json', []);
 var targets = readJSONFromFile('../logs/target_log.json', []);
 var config = readJSONFromFile('../config.json', {});
-var stats = readJSONFromFile('../logs/stats.json',);
+var stats = readJSONFromFile('../logs/stats.json', statsTemplate);
 
 // Update stats to track values not included in older versions
 recursiveSubstitute(stats, statsTemplate)
