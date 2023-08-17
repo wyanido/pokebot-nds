@@ -1,12 +1,18 @@
-
 function update_pointers()
-	offset.party_count = mdword(0x021C489C) + 14
-	offset.party_data = offset.party_count + 4
+    offset.party_count = mdword(0x021C489C) + 14
+    offset.party_data = offset.party_count + 4
 
-	offset.foe_count = mdword(0x21C5A08) + 0x729C
-	offset.current_foe = offset.foe_count + 4
-	
-	-- console.log(string.format("%08X", offset.foe_count))
+    offset.foe_count = mdword(0x21C5A08) + 0x729C
+    offset.current_foe = offset.foe_count + 4
+
+    offset.map_header = mdword(0x21C489C) + 0x11B2
+    offset.trainer_x = offset.map_header + 4 + 2
+    offset.trainer_y = offset.map_header + 12 + 2
+    offset.trainer_z = offset.map_header + 8 + 2
+    -- console.log()
+    -- offset.trainer_x = 
+
+    -- console.log(string.format("%08X", offset.map_header))
 end
 
 -----------------------
@@ -14,53 +20,53 @@ end
 -----------------------
 
 function mode_starters(starter)
-	if not game_state.in_game then 
-		console.log("Waiting to reach overworld...")
+    if not game_state.in_game then
+        console.log("Waiting to reach overworld...")
 
-		while not game_state.in_game do
-			skip_dialogue()
-		end
-	end
+        while not game_state.in_game do
+            skip_dialogue()
+        end
+    end
 
-	hold_button("Up") -- Enter Lake Verity
-	console.log("Waiting to reach briefcase...")
+    hold_button("Up") -- Enter Lake Verity
+    console.log("Waiting to reach briefcase...")
 
-	-- Skip through dialogue until starter select
-	while not (mdword(offset.starters_ready) > 0) do
-		skip_dialogue()
-	end
+    -- Skip through dialogue until starter select
+    while not (mdword(offset.starters_ready) > 0) do
+        skip_dialogue()
+    end
 
-	release_button("Up")
+    release_button("Up")
 
-	-- Highlight and select target
-	console.log("Selecting starter...")
+    -- Highlight and select target
+    console.log("Selecting starter...")
 
-	while mdword(offset.selected_starter) < starter do
-		press_sequence("Right", 5)
-	end
+    while mdword(offset.selected_starter) < starter do
+        press_sequence("Right", 5)
+    end
 
-	while #party == 0 do 
-		press_sequence("A", 6)
-	end
+    while #party == 0 do
+        press_sequence("A", 6)
+    end
 
-	if not config.hax then
-		console.log("Waiting to see starter...")
-		
-		for i = 0, 86, 1 do
-		  press_button("A")
-		  clear_unheld_inputs()
-		  wait_frames(6)
-		end
-	end
+    if not config.hax then
+        console.log("Waiting to see starter...")
 
-	mon = party[1]
-	local was_target = pokemon.log(mon)
-	
-	if was_target then
-		pause_bot("Starter meets target specs!")
-	else
-		console.log("Starter was not a target, resetting...")
-		press_button("Power")
-		wait_frames(180)
-	end
+        for i = 0, 86, 1 do
+            press_button("A")
+            clear_unheld_inputs()
+            wait_frames(6)
+        end
+    end
+
+    mon = party[1]
+    local was_target = pokemon.log(mon)
+
+    if was_target then
+        pause_bot("Starter meets target specs!")
+    else
+        console.log("Starter was not a target, resetting...")
+        press_button("Power")
+        wait_frames(180)
+    end
 end
