@@ -105,7 +105,7 @@ function displayClientGameInfo(index, client) {
 }
 
 function updateTabVisibility() {
-    for (var i = 0; i <= $('#client-container').children.length + 1; i++) {
+    for (var i = 0; i <= $('#game-buttons').children().length; i++) {
         var idx = i.toString()
 
         if (i == game_tab) {
