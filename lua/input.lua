@@ -68,6 +68,7 @@ function wait_frames(frames)
 	for _ = 1, frames do
 		joypad.set(input)
 		emu.frameadvance()
+		update_pointers()
 		update_game_info()
 		poll_dashboard_response()
 	end

@@ -110,8 +110,8 @@ function interpretClientMessage(socket, message) {
 
     switch (message.type) {
         case 'seen':
-            mainWindow.webContents.send('set_stats', stats);
             mainWindow.webContents.send('set_recents', updateEncounterLog(data));
+            mainWindow.webContents.send('set_stats', stats);
 
             writeJSONToFile('../logs/stats.json', stats);
             return;

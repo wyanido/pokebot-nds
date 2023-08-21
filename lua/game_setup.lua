@@ -105,12 +105,15 @@ local function get_offset_bw(game)
         foe_count = 0x0226ACF0 + wt, -- 4 bytes before the first index
         current_foe = 0x0226ACF4 + wt, -- PID of foe, set immediately after the battle transition ends
 
-        -- Misc testing
+        -- Misc
         save_indicator = 0x021F0100 + wt, -- 1 while save menu is open
         starter_selection_is_open = 0x022B0C40 + wt, -- 0 when opening gift, 1 at starter select
         battle_menu_state = 0x022D6B04 + wt, -- 1 on FIGHT menu, 2 on move select, 4 on switch/run after faint, 0 otherwise
         battle_bag_page = 0x022962C8 + wt,
-        selected_starter = 0x02269994 + wt -- Unconfirmed selection in gift box; 0 Snivy, 1 Tepig, 2 Oshawott, 4 Nothing
+        selected_starter = 0x02269994 + wt, -- Unconfirmed selection in gift box; 0 Snivy, 1 Tepig, 2 Oshawott, 4 Nothing
+        
+        fishing_bite_indicator = 0x20A8362 + wt,
+        fishing_no_bite = 0x21509DB + wt,
     }
 end
 
@@ -156,17 +159,19 @@ local function get_offset_b2w2(game)
         foe_count = 0x02258D90 + wt, -- 4 bytes before the first index
         current_foe = 0x02258D94 + wt, -- PID of foe, set immediately after the battle transition ends
 
-        -- Misc testing
+        -- Misc
         save_indicator = 0x0223B4F0 + wt, -- 1 while save menu is open
         starter_selection_is_open = 0x0219CFE2 + wt, -- 0 when opening gift, 1 at starter select
+        battle_bag_page = 0x022845FC + wt,
+        selected_starter = 0x022574C4 + wt, -- Unconfirmed selection in gift box; 0 Snivy, 1 Tepig, 2 Oshawott, 4 Nothing
+        
+        fishing_bite_indicator = 0x209B3CA + wt,
+        fishing_no_bite = 0x214BC62 + wt,
 
         -- NON STATIC ADDRESS
         -- this gets overwritten by update_pointers() to
         -- ensure it stays correct during gameplay
         battle_menu_state = 0x02 + wt, -- 1 on FIGHT menu, 2 on move select, 4 on switch/run after faint, 0 otherwise
-
-        battle_bag_page = 0x022845FC + wt,
-        selected_starter = 0x022574C4 + wt -- Unconfirmed selection in gift box; 0 Snivy, 1 Tepig, 2 Oshawott, 4 Nothing
     }
 end
 
