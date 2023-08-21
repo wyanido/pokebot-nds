@@ -10,12 +10,12 @@ console.log("Pokebot NDS version " .. BOT_VERSION .. " by NIDO (wyanido)")
 mbyte = memory.read_u8
 mword = memory.read_u16_le
 mdword = memory.read_u32_le
-console.debug = function (message)
+console.debug = function(message)
     if config.debug then
         console.log("- " .. message)
     end
 end
-console.warning = function (message)
+console.warning = function(message)
     console.log("# " .. message .. " #")
 end
 
@@ -53,7 +53,7 @@ function get_party(force)
         party = {}
         return true
     end
-    
+
     local party_size = mbyte(offset.party_count)
 
     -- Get the checksums of all party members
@@ -128,7 +128,7 @@ function get_current_foes()
                 mon = pokemon.enrich_data(mon)
 
                 table.insert(foe_table, mon)
-            else 
+            else
                 console.debug("Foe checksum failed at slot " .. i .. ", retrying")
                 emu.frameadvance()
                 goto retry
@@ -140,53 +140,48 @@ function get_current_foes()
 end
 
 function get_game_state()
-    local state = {}
     local map = mword(offset.map_header)
-    local in_game = (map ~= 0x0 and map <= MAP_HEADER_COUNT) or gen == 4
-
-    -- Set default values for the dashboard
-    state = {
-        map_matrix = 0,
-        map_header = 0,
-        map_name = "--",
-        trainer_x = 0,
-        trainer_y = 0,
-        trainer_z = 0,
-        phenomenon_x = 0,
-        phenomenon_z = 0
-    }
 
     -- Update in-game values
-    if in_game then
-        if gen == 4 then
-            state = {
-                map_matrix = mdword(offset.map_matrix),
+    if gen == 4 then -- gen 4 is always considered "in game" even before the title screen, so it always returns real data
+        return {
+            map_header = map,
+            map_name = map_names[map + 1],
+            trainer_x = mword(offset.trainer_x + 2),
+            trainer_y = to_signed(mword(offset.trainer_y + 2)),
+            trainer_z = mword(offset.trainer_z + 2),
+            in_battle = mbyte(offset.battle_indicator) == 0x41 and mbyte(offset.foe_count) > 0
+        }
+    else
+        local in_game = (map ~= 0x0 and map <= MAP_HEADER_COUNT)
+        if in_game then
+            return {
+                -- map_matrix = mdword(offset.map_matrix),
                 map_header = map,
                 map_name = map_names[map + 1],
                 trainer_x = mword(offset.trainer_x + 2),
-                trainer_y = mword(offset.trainer_y + 2),
-                trainer_z = mword(offset.trainer_z + 2),
-                in_battle = mbyte(offset.battle_indicator) == 0x41 and mbyte(offset.foe_count) > 0
-            }
-        else
-            state = {
-                map_matrix = mdword(offset.map_matrix),
-                map_header = map,
-                map_name = map_names[map + 1],
-                trainer_x = mword(offset.trainer_x + 2),
-                trainer_y = mword(offset.trainer_y + 2),
+                trainer_y = to_signed(mword(offset.trainer_y + 2)),
                 trainer_z = mword(offset.trainer_z + 2),
                 phenomenon_x = mword(offset.phenomenon_x + 2),
                 phenomenon_z = mword(offset.phenomenon_z + 2),
-                trainer_dir = mdword(offset.trainer_direction),
-                in_battle = mbyte(offset.battle_indicator) == 0x41 and mbyte(offset.foe_count) > 0
+                -- trainer_dir = mdword(offset.trainer_direction),
+                in_battle = mbyte(offset.battle_indicator) == 0x41 and mbyte(offset.foe_count) > 0,
+                in_game = true
+            }
+        else
+            -- Set minimum required values for the dashboard
+            return {
+                map_header = 0,
+                map_name = "--",
+                trainer_x = 0,
+                trainer_y = 0,
+                trainer_z = 0,
+                phenomenon_x = 0,
+                phenomenon_z = 0,
+                in_game = false,
             }
         end
     end
-
-    state.in_game = in_game
-
-    return state
 end
 
 function frames_per_move()
@@ -213,7 +208,7 @@ function update_game_info(force)
             type = "game",
             data = game_state
         }) .. "\x00")
-        
+
         get_current_foes()
     end
 
@@ -232,7 +227,7 @@ function pause_bot(reason)
 
     console.log("###################################")
     console.log(reason .. ". Pausing bot! (Make sure to disable the lua script before intervening)")
-    
+
     -- Do nothing ever again
     while true do
         emu.frameadvance()

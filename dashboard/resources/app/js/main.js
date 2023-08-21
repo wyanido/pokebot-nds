@@ -135,7 +135,24 @@ function interpretClientMessage(socket, message) {
         case 'game':
             client.map = data.map_name + " (" + data.map_header.toString() + ")";
             client.position = data.trainer_x.toString() + ", " + data.trainer_y.toString() + ", " + data.trainer_z.toString();
-            client.phenomenon = data.phenomenon_x.toString() + ", --, " + data.phenomenon_z.toString();
+
+            // Parse additional data as a special category
+            delete data['map_name'];
+            delete data['map_header'];
+            delete data['trainer_x'];
+            delete data['trainer_y'];
+            delete data['trainer_z'];
+            delete data['in_game'];
+            delete data['in_battle'];
+
+            // Reformat phenomenon if present
+            if ('phenomenon_x' in data) {
+                data.Phenomenon = data.phenomenon_x.toString() + ", --, " + data.phenomenon_z.toString();
+                delete data['phenomenon_x'];
+                delete data['phenomenon_z'];
+            }
+
+            client.other = data;
 
             // Add a minimum update interval
             if (!clientCooldown) {

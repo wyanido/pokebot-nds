@@ -91,11 +91,17 @@ function displayClientGameInfo(index, client) {
     var game_template = $('#game-template').tmpl(client)
     $('#game-info').append(game_template)
 
+    for (const key in client.other) {
+        $('#field-table').append(`<tr><th>${key}</th><td>${client.other[key]}</td></tr>`);
+    }
+
+    // console.log(client.other)
     if (game_tab != index) {
         game_template.hide();
     }
 
     game_template.attr('id', ele);
+    $('#field-table').attr('id', '')
 }
 
 function updateTabVisibility() {

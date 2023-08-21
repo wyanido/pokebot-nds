@@ -2,10 +2,14 @@ function update_pointers()
     -- Nothing here by default!
 end
 
+function to_signed(unsigned)
+    return (unsigned + 32768) % 65536 - 32768
+end
+
 local function get_blank_offsets()
     return {
-        party_count = 0x0, -- 4 bytes before first index
-        party_data = 0x0, -- PID of first party member
+        party_count = 0x0,
+        party_data = 0x0,
         map_header = 0x0,
         trainer_x = 0x0,
         trainer_y = 0x0,
@@ -293,9 +297,6 @@ if gen == 4 then
     end
 
     MON_DATA_SIZE = 236 -- Gen 4 has 16 extra trailing bytes of ball seals data
-
-    -- Unsupported warning
-    console.warning("Support for this game is heavily WIP, so you may encounter issues when trying to run it!")
 
 elseif gen == 5 then
     dofile("lua\\methods_gen_v.lua") -- Define Gen V functions
