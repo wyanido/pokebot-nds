@@ -9,6 +9,31 @@ function update_pointers()
 	-- console.log(string.format("%08X", offset.foe_count))
 end
 
+function flee_battle()
+    while game_state.in_battle do
+		touch_screen_at(125, 175) -- Run
+		wait_frames(20)
+    end
+end
+
+function process_wild_encounter()
+    -- Check all foes in case of a double battle in Eterna Forest
+    local foe_is_target = false
+    for i = 1, #foe, 1 do
+        foe_is_target = pokemon.log(foe[i]) or foe_is_target
+    end
+	
+    wait_frames(30)
+    
+    if foe_is_target then
+        pause_bot("Wild Pokemon meets target specs!")
+    else
+        console.log("Wild " .. foe[1].name .. " was not a target, fleeing!")
+
+        flee_battle()
+    end
+end
+
 -----------------------
 -- BOT MODES
 -----------------------
@@ -63,4 +88,30 @@ function mode_starters(starter)
 		press_button("Power")
 		wait_frames(180)
 	end
+end
+
+function mode_random_encounters()
+    console.log("Attempting to start a battle...")
+
+    local tile_frames = frames_per_move() - 2
+    local dir1 = config.move_direction == "Horizontal" and "Left" or "Up"
+    local dir2 = config.move_direction == "Horizontal" and "Right" or "Down"
+    
+    while not foe and not game_state.in_battle do
+        hold_button("B")
+        hold_button(dir1)
+        wait_frames(tile_frames)
+        release_button(dir1)
+        release_button("B")
+
+        hold_button("B")
+        hold_button(dir2)
+        wait_frames(tile_frames)
+        release_button(dir2)
+        release_button("B")
+    end
+    
+    release_button(dir2)
+
+    process_wild_encounter()
 end

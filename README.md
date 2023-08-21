@@ -13,15 +13,15 @@ _Currently only English (USA, Europe) copies are supported._
 |--						| :-: | :-: | :-: | :-: |
 | Manual (Assisted)     | ✅ | ✅ | ✅ | ✅ |
 | Starter resets 		| ❔ | ➖ | ✅ | ✅ |
-| Random encounters		| ➖ | ➖ | ✅ | ✅ |
+| Random encounters		| ✅ | ✅ | ✅ | ✅ |
 | Auto-catching			| ➖ | ➖ | ✅ | ✅ |
 | Auto-battling			| ➖ | ➖ | ✅ | ✅ |
 | Pickup farming		| ➖ | ➖ | ✅ | ✅ |
 | Gift resets 			| ➖ | ➖ | ✅ | ✅ |
 | Egg hatching			| ➖ | ➖ | ✅ | ✅ |
-| Static encounters 	| ➖ | ➖ | ➖ | ➖ |
+| Static encounters 	| ➖ | ➖ | ✅ | ✅ |
 | Thief farming			| ➖ | ➖ | ✅ | ✅ |
-| Fishing			   	| ➖ | ➖ | ➖ | ➖ |
+| Fishing			   	| ➖ | ➖ | ✅ | ✅ |
 | Dust cloud farming	|  |  | ➖ | ➖ |
 | Phenomenon encounters	|  |  | ➖ | ➖ |
 | PokéRadar			   	| ➖ |  |  |  |

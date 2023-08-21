@@ -1,7 +1,7 @@
 -----------------------
 -- INITIALIZATION
 -----------------------
-local BOT_VERSION = "0.3.0-alpha"
+local BOT_VERSION = "0.3.1-alpha"
 
 console.clear()
 console.log("Running " .. _VERSION)
@@ -311,6 +311,10 @@ while true do
     elseif mode == "daycare eggs" then
         -- Cycle to hatch and collect eggs until party is full, then release and repeat until a target is found
         mode_daycare_eggs()
+    elseif mode == "static" then
+        mode_static_encounters()
+    elseif mode == "fishing" then
+        mode_fishing()
     elseif mode == "manual" then
         -- No bot logic, just manual gameplay with a dashboard
         while true do

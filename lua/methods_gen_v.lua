@@ -293,6 +293,8 @@ function save_game()
     end
 
     client.saveram() -- Flush save ram to the disk	
+
+    press_sequence("B", 10)
 end
 
 function flee_battle()
@@ -552,6 +554,68 @@ function catch_pokemon()
     end
 end
 
+function process_wild_encounter()
+    -- Check all foes in case of a double battle
+    local foe_is_target = false
+    local foe_item = false
+
+    for i = 1, #foe, 1 do
+        foe_is_target = pokemon.log(foe[i]) or foe_is_target
+
+        if foe[i].heldItem ~= "none" then
+            foe_item = true
+        end
+    end
+
+    local double = #foe == 2
+
+    wait_frames(30)
+    
+    if foe_is_target then
+        if double then
+            wait_frames(120)
+            pause_bot("Wild Pokemon meets target specs! There are multiple opponents, so pausing for manual catch")
+        else
+            if config.auto_catch then
+                while game_state.in_battle do
+                    catch_pokemon()
+                end
+            else
+                pause_bot("Wild Pokemon meets target specs, but Auto-catch is disabled")
+            end
+        end
+    else
+        console.log("Wild " .. foe[1].name .. " was not a target, attempting next action...")
+
+        update_pointers()
+
+        while game_state.in_battle do
+            if config.thief_wild_items and foe_item and not double then
+                console.log("Wild Pokemon has a held item, trying to use Thief...")
+                local success = do_thief()
+
+                if not success then
+                    flee_battle()
+                end
+            elseif config.battle_non_targets and not double then
+                do_battle()
+            else
+                if not double and config.thief_wild_items and not foe_item then
+                    console.log("Wild Pokemon had no held item. Fleeing!")
+                elseif double then
+                    console.log("Won't battle two targets at once. Fleeing!")
+                end
+
+                flee_battle()
+            end
+        end
+
+        if config.pickup then
+            do_pickup()
+        end
+    end
+end
+
 -----------------------
 -- BOT MODES
 -----------------------
@@ -612,12 +676,8 @@ function mode_starters(starter)
 
         console.log("Waiting to see starter...")
 
-        -- For whatever reason, press_button("A", 5)
-        -- does not work on its own within this specific loop
         for i = 0, 118, 1 do
-            press_button("A")
-            clear_unheld_inputs()
-            wait_frames(5)
+            press_sequence("A", 5)
         end
     end
 
@@ -658,65 +718,7 @@ function mode_random_encounters()
     
     release_button(dir2)
 
-    -- Check all foes in case of a double battle
-    local foe_is_target = false
-    local foe_item = false
-
-    for i = 1, #foe, 1 do
-        foe_is_target = pokemon.log(foe[i]) or foe_is_target
-
-        if foe[i].heldItem ~= "none" then
-            foe_item = true
-        end
-    end
-
-    local double = #foe == 2
-
-    wait_frames(30)
-    
-    if foe_is_target then
-        if double then
-            wait_frames(120)
-            pause_bot("Wild Pokemon meets target specs! There are multiple opponents, so pausing for manual catch")
-        else
-            if config.auto_catch then
-                while game_state.in_battle do
-                    catch_pokemon()
-                end
-            else
-                pause_bot("Wild Pokemon meets target specs, but Auto-catch is disabled")
-            end
-        end
-    else
-        console.log("Wild " .. foe[1].name .. " was not a target, attempting next action...")
-
-        update_pointers()
-
-        while game_state.in_battle do
-            if config.thief_wild_items and foe_item and not double then
-                console.log("Wild Pokemon has a held item, trying to use Thief...")
-                local success = do_thief()
-
-                if not success then
-                    flee_battle()
-                end
-            elseif config.battle_non_targets and not double then
-                do_battle()
-            else
-                if not double and config.thief_wild_items and not foe_item then
-                    console.log("Wild Pokemon had no held item. Fleeing!")
-                elseif double then
-                    console.log("Won't battle two targets at once. Fleeing!")
-                end
-
-                flee_battle()
-            end
-        end
-
-        if config.pickup then
-            do_pickup()
-        end
-    end
+    process_wild_encounter()
 end
 
 function mode_gift()
@@ -1043,4 +1045,66 @@ function mode_daycare_eggs()
             collect_daycare_egg()
         end
     end
+end
+
+function mode_static_encounters()
+    while not foe and not game_state.in_battle do
+        press_sequence("A", 5)
+    end
+    
+    foe_is_target = pokemon.log(foe[1])
+    
+    if not config.hax then
+        for i = 0, 22, 1 do
+            press_sequence("A", 5)
+        end
+    end
+    
+    if foe_is_target then
+        if config.auto_catch then
+            while game_state.in_battle do
+                catch_pokemon()
+            end
+
+            if config.save_game_after_catch then
+                console.log("Target Pokémon was caught! Saving...")
+                save_game()
+            end
+
+            pause_bot("Target Pokémon was caught!")
+        else
+            pause_bot("Pokemon meets target specs, but Auto-catch is disabled")
+        end
+    else
+        console.log("Wild " .. foe[1].name .. " was not a target, resetting...")
+        press_button("Power")
+        wait_frames(60)
+    end
+end
+
+function mode_fishing()
+    while not foe and not game_state.in_battle do
+        press_button("Y")
+        wait_frames(60)
+
+        while mword(offset.fishing_bite_indicator) ~= 0xFFF1 and mbyte(offset.fishing_no_bite) == 0 do
+            wait_frames(1)
+        end
+
+        if mword(offset.fishing_bite_indicator) == 0xFFF1 then
+            console.log("Landed a Pokémon!")
+            break
+        else
+            console.log("Not even a nibble...")
+            press_sequence(30, "A", 20)
+        end
+    end
+
+    while not foe and not game_state.in_battle do
+        press_sequence("A", 5)
+    end
+
+    process_wild_encounter()
+
+    wait_frames(90)
 end
