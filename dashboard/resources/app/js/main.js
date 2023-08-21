@@ -9,6 +9,25 @@ let mainWindow;
 let clientCooldown = false;
 let refreshTimeout;
 
+function randomRange(minValue, maxValue) {
+    return minValue + Math.floor(Math.random() * (maxValue - minValue))
+}
+
+function getPageIcon(game) {
+    // Set an icon that matches the first loaded game
+    var icon = 0;
+
+    if (game.includes("Gold") || game.includes("Silver")) {
+        icon = randomRange(152, 251)
+    } else if (game.includes("Diamond") || game.includes("Pearl") || game.includes("Platinum")) {
+        icon = randomRange(387, 493)
+    } else if (game.includes("Black") || game.includes("White")) {
+        icon = randomRange(494, 649)
+    }
+    
+    return 'images/pokemon-icon/' + icon.toString().padStart(3, '0') + '.png'
+}
+
 function recursiveSubstitute(src, sub) {
     for (var key in sub) {
         if (sub.hasOwnProperty(key)) {
@@ -131,6 +150,8 @@ function interpretClientMessage(socket, message) {
             client.game = data.game;
             
             mainWindow.webContents.send('set_client_tabs', clientData);
+
+            if (clients.length == 1) mainWindow.webContents.send('set_page_icon', getPageIcon(clientData[0].game));
             return;
         case 'game':
             client.map = data.map_name + " (" + data.map_header.toString() + ")";
@@ -231,7 +252,7 @@ app.whenReady().then(() => {
         var page = mainWindow.webContents.getURL().match(/\/([^/]+)\.html$/)[1]
 
         if (clients.length > 0) {
-            mainWindow.webContents.send('set_page_icon', clientData[0].gen);
+            mainWindow.webContents.send('set_page_icon', getPageIcon(clientData[0].game));
         }
 
         switch (page) {

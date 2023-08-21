@@ -195,22 +195,6 @@ ipcRenderer.on('set_client_game_info', (_event, index, client) => {
     displayClientGameInfo(index, client);
 });
 
-ipcRenderer.on('set_page_icon', (_event, gen) => {
-    // Set the page icon to match the current loaded game generation
-    page_icon_set = true
-    var minValue, maxValue
-
-    switch (gen) {
-        case 4:
-            minValue = 387
-            maxValue = 493
-            break;
-        case 5:
-            minValue = 494
-            maxValue = 649
-            break;
-    }
-
-    var num = Math.floor(Math.random() * (maxValue - minValue)) + minValue
-    document.getElementById('icon').src = 'images/pokemon-icon/' + num.toString().padStart(3, '0') + '.png';
+ipcRenderer.on('set_page_icon', (_event, icon_src) => {
+    document.getElementById('icon').src = icon_src
 });
