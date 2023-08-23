@@ -1,6 +1,13 @@
 const { ipcRenderer } = require('electron')
 
-var game_tab = 0
+const historySampleLength = 15;
+let history = [];
+
+let elapsedInterval;
+var gameTab = 0;
+
+let recentEncounters;
+let recentTargets;
 
 function displayClientParty(index, party) {
     var ele = 'party-template-' + index.toString();
@@ -22,11 +29,11 @@ function displayClientParty(index, party) {
         } else {
             mon.folder = mon.shiny ? 'shiny/' : '';
             mon.shiny = mon.shiny ? '✨' : '';
-            
+
             if (mon.altForm > 0) mon.species = mon.species + '-' + mon.altForm.toString()
             mon.fainted = mon.currentHP == 0 ? 'opacity: 0.5' : '';
         }
-        
+
         mon.gender = mon.gender == 'Genderless' ? 'none' : mon.gender.toLowerCase()
         mon.name = '(' + mon.name + ')'
         mon.pid = mon.pid.toString(16).toUpperCase().padEnd(8, '0');
@@ -49,7 +56,7 @@ function displayClientParty(index, party) {
         party_template.append(party_mon_template.tmpl(mon))
     }
 
-    if (game_tab != index) party_template.hide()
+    if (gameTab != index) party_template.hide()
     party_template.attr('id', ele)
 }
 
@@ -73,15 +80,15 @@ function displayClientTabs(clients) {
 
         if (!client.game) continue;
 
-        var button = $('#button-template').tmpl({ 'game': client.game })
+        var button = $('#button-template').tmpl({ 'game': client.game.replace('Pokemon', '') })
         $('#game-buttons').append(button)
 
         button.attr('id', 'button-template-' + j.toString())
     }
 
-    game_tab = Math.min(game_tab, clients.length - 1)
+    gameTab = Math.min(gameTab, clients.length - 1)
     updateTabVisibility()
-    $('#button-template-' + game_tab.toString()).attr('class', 'btn btn-primary col text-truncate')
+    $('#button-template-' + gameTab.toString()).attr('class', 'btn btn-primary col text-truncate')
 }
 
 function displayClientGameInfo(index, client) {
@@ -96,7 +103,7 @@ function displayClientGameInfo(index, client) {
     }
 
     // console.log(client.other)
-    if (game_tab != index) {
+    if (gameTab != index) {
         game_template.hide();
     }
 
@@ -108,7 +115,7 @@ function updateTabVisibility() {
     for (var i = 0; i <= $('#game-buttons').children().length; i++) {
         var idx = i.toString()
 
-        if (i == game_tab) {
+        if (i == gameTab) {
             $('#game-template-' + idx).show()
             $('#party-template-' + idx).show()
             $('#button-template-' + idx).attr('class', 'btn btn-primary col text-truncate')
@@ -121,43 +128,89 @@ function updateTabVisibility() {
 }
 
 function selectTab(ele) {
-    game_tab = ele.id.replace('button-template-', '');
+    gameTab = ele.id.replace('button-template-', '');
 
     updateTabVisibility()
 }
 
-ipcRenderer.on('set_recents', (_event, encounters) => {
-    // Refresh log display
+function setRecentlySeen(encounters, reformat=true) {
     var template = $('#row-template');
     var log = $('#recents')
 
+    var recentsLength = $('#recents-limit').val()
+    if (isNaN(recentsLength)) recentsLength = 7
+
+    console.log(recentsLength)
+    console.log(isNaN(recentsLength))
+
     $('#recents').empty();
 
-    for (var i = encounters.length; i >= encounters.length - 7; i--) {
+    for (var i = encounters.length; i >= encounters.length - recentsLength; i--) {
         var mon = encounters[i]
         if (!mon) continue;
-        
-        if (mon.altForm > 0) mon.species = mon.species + '-' + mon.altForm.toString()
+
+        if (reformat && mon.altForm > 0) mon.species = mon.species + '-' + mon.altForm.toString()
         var row = template.tmpl(mon);
         log.append(row)
     }
-});
+}
 
-ipcRenderer.on('set_targets', (_event, encounters) => {
-    // Refresh log display
+function setRecentTargets(encounters, reformat=true) {
     var template = $('#row-template');
     var log = $('#targets')
 
+    var targetsLength = $('#targets-limit').val()
+    if (isNaN(targetsLength)) targetsLength = 7
+
     $('#targets').empty();
 
-    for (var i = encounters.length; i >= encounters.length - 7; i--) {
+    for (var i = encounters.length; i >= encounters.length - targetsLength; i--) {
         var mon = encounters[i]
         if (!mon) continue;
 
-        if (mon.altForm > 0) mon.species = mon.species + '-' + mon.altForm.toString()
+        if (reformat && mon.altForm > 0) mon.species = mon.species + '-' + mon.altForm.toString()
         var row = template.tmpl(mon);
         log.append(row)
     }
+}
+
+function setElapsedTime() {
+    var elapsed = Math.floor((Date.now() - elapsedStart) / 1000);
+
+    var s = elapsed % 60
+    var m = Math.floor(elapsed / 60) % 60
+    var h = Math.floor(m / 60)
+
+    $('#elapsed-time').empty()
+    $('#elapsed-time').append(h + "h " + m + "m " + s + 's');
+}
+
+function setBadgeClientCount(clients) {
+    $('#home-button').empty()
+
+    if (clients > 0) {
+        $('#home-button').append('<span style="bottom:16px; right:-10px; font-size:10px" class="badge badge-primary position-absolute translate-middle text-bg-primary px-5">' + clients.toString() + '</span>')
+    }
+}
+
+var recentEncountersEle = document.getElementById('recents-limit');
+recentEncountersEle.addEventListener('change', () => {
+    setRecentlySeen(recentEncounters, false)
+})
+
+var recentTargetsEle = document.getElementById('targets-limit');
+recentTargetsEle.addEventListener('change', () => {
+    setRecentTargets(recentTargets, false)
+})
+
+ipcRenderer.on('set_recents', (_event, encounters) => {
+    recentEncounters = encounters;
+    setRecentlySeen(encounters);
+});
+
+ipcRenderer.on('set_targets', (_event, encounters) => {
+    recentTargets = encounters;
+    setRecentTargets(encounters);
 });
 
 ipcRenderer.on('set_stats', (_event, stats) => {
@@ -171,6 +224,7 @@ ipcRenderer.on('set_stats', (_event, stats) => {
 });
 
 ipcRenderer.on('set_clients', (_event, clients) => {
+    setBadgeClientCount(clients.length)
     displayClientTabs(clients);
 
     for (var i = 0; i < clients.length; i++) {
@@ -179,8 +233,12 @@ ipcRenderer.on('set_clients', (_event, clients) => {
         displayClientParty(i, client.party);
         displayClientGameInfo(i, client);
     }
-    
-    last_client_count = clients.length
+
+    if (clients.length == 0) {
+        clearInterval(elapsedInterval)
+        $('#elapsed-time').empty()
+        $('#elapsed-time').append('0s')
+    }
 });
 
 ipcRenderer.on('set_client_party', (_event, index, party) => {
@@ -188,6 +246,7 @@ ipcRenderer.on('set_client_party', (_event, index, party) => {
 });
 
 ipcRenderer.on('set_client_tabs', (_event, clients) => {
+    setBadgeClientCount(clients.length)
     displayClientTabs(clients);
 });
 
@@ -197,4 +256,32 @@ ipcRenderer.on('set_client_game_info', (_event, index, client) => {
 
 ipcRenderer.on('set_page_icon', (_event, icon_src) => {
     document.getElementById('icon').src = icon_src
+});
+
+ipcRenderer.on('set_elapsed_start', (_event, time) => {
+    elapsedStart = time;
+
+    setElapsedTime()
+    elapsedInterval = setInterval(setElapsedTime, 1000);
+});
+
+ipcRenderer.on('set_latest_encounter', (_event, elapsed) => {
+    history.push(elapsed);
+
+    if (history.length > historySampleLength) {
+        history.shift();
+    }
+
+    var sum = 0;
+    for (var i = 0; i < history.length; i++) {
+        sum += history[i];
+    }
+
+    console.log(history)
+
+    var rate = sum / history.length; // Average out the most recent x encounters
+    rate = Math.floor(1 / (rate / 3600)); // convert average encounter time to encounters/h
+
+    $('#encounter-rate').empty()
+    $('#encounter-rate').append(rate + '/h');
 });

@@ -14,6 +14,7 @@
     <script src="js/jquery-3.6.0.min.js"></script>
     <script src="js/jquery.tmpl.min.js"></script>
     <script src="js/main.js"></script>
+    <link href="font-awesome-4.7.0/css/font-awesome.min.css" rel="stylesheet" />
     <script>if (window.module) module = window.module;</script>
 </head>
 
@@ -25,18 +26,28 @@
                 <img src="images/pokemon-icon/201-27.png" class="icon" id="icon">
                 Pokébot NDS
             </div>
-            <span class="navbar-text text-monospace">v0.3.1-alpha</span>
+            <span class="navbar-text text-monospace font-size-12">v0.3.2-alpha</span>
             <ul class="navbar-nav d-flex d-md-flex">
-                <li class="nav-item">
-                    <a href="dashboard.html" class="nav-link">Dashboard</a>
+                <li class="nav-item nav-link px-10">
+                    <a href="dashboard.html">
+                        <button type="button" class="btn position-relative px-10">
+                            <i class="fa fa-user-circle mr-5"></i>
+                            Dashboard
+                            <div id="home-button"></div>
+                        </button>
+                    </a>
                 </li>
-                <li class="nav-item active">
-                    <a class="nav-link">Config</a>
+                <li class="nav-item nav-link px-10" style="cursor: default;">
+                    <button type="button" class="btn position-relative px-10 active">
+                        <i class="fa fa-gear mr-5"></i>
+                        Config
+                    </button>
                 </li>
-                <li class="nav-item">
-                    <s>
-                        <span class="nav-link">Tools</span>
-                    </s>
+                <li class="nav-item nav-link px-10">
+                    <button type="button" class="btn position-relative px-10 disabled">
+                        <i class="fa fa-wrench mr-5"></i>
+                        Tools
+                    </button>
                 </li>
             </ul>
             <button class="btn btn-primary ml-auto" id="post-config" onclick="sendConfig()">Save
@@ -114,10 +125,10 @@
                     <div class="card">
                         <h2 class="content-title">Logging</h2>
                         <label for="encounter_log_limit">Encounter Log Limit</label>
-                        <input id="encounter_log_limit" min="1" type="number" class="form-control" placeholder="">
+                        <input id="encounter_log_limit" min="1" type="number" class="form-control" placeholder="30">
                         <br>
                         <label for="target_log_limit">Target Log Limit</label>
-                        <input id="target_log_limit" min="1" type="number" class="form-control" placeholder="">
+                        <input id="target_log_limit" min="1" type="number" class="form-control" placeholder="30">
                     </div>
                     <div class="card">
                         <h2 class="content-title">Other</h2>
@@ -133,10 +144,10 @@
                         <br>
                         <label for="inactive_client_timeout">Inactive game timeout (ms)</label>
                         <input id="inactive_client_timeout" min="1000" type="number" class="form-control"
-                            placeholder="">
+                            placeholder="2500">
                         <br>
                         <label for="game_refresh_cooldown">Game info refresh cooldown (ms)</label>
-                        <input id="game_refresh_cooldown" min="1" type="number" class="form-control" placeholder="">
+                        <input id="game_refresh_cooldown" min="1" type="number" class="form-control" placeholder="200">
                     </div>
                 </div>
                 <div class="col-6">

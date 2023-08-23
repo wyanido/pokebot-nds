@@ -118,3 +118,15 @@ ipcRenderer.on('set_config', (_event, config) => {
 ipcRenderer.on('set_page_icon', (_event, icon_src) => {
     document.getElementById('icon').src = icon_src
 });
+
+ipcRenderer.on('set_badge_client_count', (_event, client_count) => {
+    setBadgeClientCount(client_count);
+});
+
+function setBadgeClientCount(clients) {
+    $('#home-button').empty()
+
+    if (clients > 0) {
+        $('#home-button').append('<span style="bottom:16px; right:-10px; font-size:10px" class="badge badge-primary position-absolute translate-middle text-bg-primary px-5">' + clients.toString() + '</span>')
+    }
+}

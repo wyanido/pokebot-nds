@@ -8,6 +8,9 @@ const port = 51055;
 let mainWindow;
 let clientCooldown = false;
 let refreshTimeout;
+var elapsedStart;
+var lastEncounter;
+var sinceLastEncounter;
 
 function randomRange(minValue, maxValue) {
     return minValue + Math.floor(Math.random() * (maxValue - minValue))
@@ -24,7 +27,7 @@ function getPageIcon(game) {
     } else if (game.includes("Black") || game.includes("White")) {
         icon = randomRange(494, 649)
     }
-    
+
     return 'images/pokemon-icon/' + icon.toString().padStart(3, '0') + '.png'
 }
 
@@ -57,41 +60,45 @@ function readJSONFromFile(filePath, defaultValue) {
 }
 
 function formatMonData(mon) {
-    mon.gender = mon.gender.toLowerCase()
+    mon.gender = mon.gender.toLowerCase();
 
     if (mon.gender == 'genderless') {
         mon.gender = 'none' // Blank image filename
     }
 
     mon.pid = mon.pid.toString(16).toUpperCase().padEnd(8, '0');
-    mon.shiny = (mon.shinyValue < 8 ? '✨ ' : '➖ ') + mon.shinyValue
+    mon.shiny = (mon.shinyValue < 8 ? '✨ ' : '➖ ') + mon.shinyValue;
 
-    var s = '00' + mon.species.toString()
-    mon.species = s.substr(s.length - 3)
+    var s = '00' + mon.species.toString();
+    mon.species = s.substr(s.length - 3);
 
     return mon
 }
 
 function updateEncounterLog(mon) {
-    recents.push(formatMonData(mon))
-    recents = recents.slice(-config.encounter_log_limit)
+    recents.push(formatMonData(mon));
+    recents = recents.slice(-config.encounter_log_limit);
 
-    stats.total.seen += 1
-    stats.phase.seen += 1
+    sinceLastEncounter = Date.now() / 1000 - lastEncounter
+    if (!isNaN(lastEncounter) && !isNaN(sinceLastEncounter)) mainWindow.webContents.send('set_latest_encounter', sinceLastEncounter)
+    lastEncounter = Date.now() / 1000
 
-    stats.phase.lowest_sv = typeof (stats.phase.lowest_sv) != 'number' ? mon.shinyValue : Math.min(mon.shinyValue, stats.phase.lowest_sv)
+    stats.total.seen += 1;
+    stats.phase.seen += 1;
 
-    var iv_sum = mon.hp_iv + mon.attack_iv + mon.defense_iv + mon.sp_attack_iv + mon.sp_defense_iv + mon.speed_iv
-    stats.total.max_iv_sum = typeof (stats.total.max_iv_sum) != 'number' ? iv_sum : Math.max(iv_sum, stats.total.max_iv_sum)
-    stats.total.min_iv_sum = typeof (stats.total.min_iv_sum) != 'number' ? iv_sum : Math.min(iv_sum, stats.total.min_iv_sum)
+    stats.phase.lowest_sv = typeof (stats.phase.lowest_sv) != 'number' ? mon.shinyValue : Math.min(mon.shinyValue, stats.phase.lowest_sv);
+
+    var iv_sum = mon.hp_iv + mon.attack_iv + mon.defense_iv + mon.sp_attack_iv + mon.sp_defense_iv + mon.speed_iv;
+    stats.total.max_iv_sum = typeof (stats.total.max_iv_sum) != 'number' ? iv_sum : Math.max(iv_sum, stats.total.max_iv_sum);
+    stats.total.min_iv_sum = typeof (stats.total.min_iv_sum) != 'number' ? iv_sum : Math.min(iv_sum, stats.total.min_iv_sum);
 
     if (mon.shiny == true || mon.shinyValue < 8) {
-        stats.total.shiny = stats.total.shiny + 1
+        stats.total.shiny = stats.total.shiny + 1;
     }
 
-    writeJSONToFile('../logs/encounters.json', recents)
+    writeJSONToFile('../logs/encounters.json', recents);
 
-    return recents
+    return recents;
 }
 
 function updateTargetLog(mon) {
@@ -148,7 +155,7 @@ function interpretClientMessage(socket, message) {
         case 'init':
             client.gen = data.gen;
             client.game = data.game;
-            
+
             mainWindow.webContents.send('set_client_tabs', clientData);
 
             if (clients.length == 1) mainWindow.webContents.send('set_page_icon', getPageIcon(clientData[0].game));
@@ -258,12 +265,18 @@ app.whenReady().then(() => {
         switch (page) {
             case 'config':
                 mainWindow.webContents.send('set_config', config);
+                mainWindow.webContents.send('set_badge_client_count', clientData.length);
                 break;
             case 'dashboard':
                 mainWindow.webContents.send('set_recents', recents);
                 mainWindow.webContents.send('set_targets', targets);
                 mainWindow.webContents.send('set_stats', stats);
                 mainWindow.webContents.send('set_clients', clientData);
+                
+                if (clients.length > 0) {
+                    mainWindow.webContents.send('set_elapsed_start', elapsedStart);
+                    if (!isNaN(lastEncounter) && !isNaN(sinceLastEncounter)) mainWindow.webContents.send('set_latest_encounter', sinceLastEncounter)
+                }
                 break;
         }
     });
@@ -296,6 +309,11 @@ app.whenReady().then(() => {
         clientData.push({})
         socketSetTimeout(socket);
 
+        if (clients.length == 1) {
+            elapsedStart = Date.now();
+            mainWindow.webContents.send('set_elapsed_start', elapsedStart)
+        }
+        
         // Send config to newly connected lient
         var data = JSON.stringify({
             'type': 'apply_config',
