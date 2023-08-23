@@ -22,8 +22,8 @@ _Currently only English (USA, Europe) copies are supported._
 | Static encounters 	| ➖ | ➖ | ✅ | ✅ |
 | Thief farming			| ➖ | ➖ | ✅ | ✅ |
 | Fishing			   	| ➖ | ➖ | ✅ | ✅ |
-| Dust cloud farming	|  |  | ➖ | ➖ |
-| Phenomenon encounters	|  |  | ➖ | ➖ |
+| Dust cloud farming	|  |  | ✅ | ✅ |
+| Phenomenon encounters	|  |  | ✅ | ✅ |
 | PokéRadar			   	| ➖ |  |  |  |
 | Headbutt encounters			   	|  | ➖ |  |  |
 | Thundurus/Tornadus dex resets	|  |  | ➖ |  |

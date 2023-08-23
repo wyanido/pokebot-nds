@@ -164,7 +164,7 @@ local function get_offset_b2w2(game)
         starter_selection_is_open = 0x0219CFE2 + wt, -- 0 when opening gift, 1 at starter select
         battle_bag_page = 0x022845FC + wt,
         selected_starter = 0x022574C4 + wt, -- Unconfirmed selection in gift box; 0 Snivy, 1 Tepig, 2 Oshawott, 4 Nothing
-        
+        text_interrupt = 0x216E640, -- 2 when a repel/fishing dialogue box is open, 0 otherwise
         fishing_bite_indicator = 0x209B3CA + wt,
         fishing_no_bite = 0x214BC62 + wt,
 

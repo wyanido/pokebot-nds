@@ -75,7 +75,7 @@
                         </div>
                         <br>
                         <div class="custom-switch">
-                            <input type="checkbox" id="cycle_lead_pokemon" value="">
+                            <input type="checkbox" id="cycle_lead_pokemon">
                             <label for="cycle_lead_pokemon">Replace lead Pokémon when exhausted</label>
                         </div>
                         <br>
@@ -88,10 +88,11 @@
                             <option value="static">Static Encounters</option>
                             <option disabled="disabled">-- Standard</option>
                             <option value="random encounters">Random Encounters</option>
+                            <option value="phenomenon encounters">Phenomenon Encounters</option>
                             <option value="fishing">Fishing</option>
                             <option value="daycare eggs">Collect & Hatch Eggs</option>
                         </select>
-                        <div id="option_move_direction">
+                        <div id="option_moving_encounters">
                             <br>
                             <label for="move_direction">Move Direction</label>
                             <select class="form-control" id="move_direction">
@@ -104,17 +105,17 @@
                             <label for="starters">Starters to cycle between</label>
                             <div id="starters">
                                 <div class="custom-switch">
-                                    <input type="checkbox" id="starter0" value="">
+                                    <input type="checkbox" id="starter0">
                                     <label for="starter0">Snivy</label>
                                 </div>
                                 <br>
                                 <div class="custom-switch">
-                                    <input type="checkbox" id="starter1" value="">
+                                    <input type="checkbox" id="starter1">
                                     <label for="starter1">Tepig</label>
                                 </div>
                                 <br>
                                 <div class="custom-switch">
-                                    <input type="checkbox" id="starter2" value="">
+                                    <input type="checkbox" id="starter2">
                                     <label for="starter2">Oshawott</label>
                                 </div>
                             </div>
@@ -128,7 +129,7 @@
                             placeholder=""></textarea>
                         <br>
                         <div class="custom-switch">
-                            <input type="checkbox" id="save_game_after_catch" value="">
+                            <input type="checkbox" id="save_game_after_catch">
                             <label for="save_game_after_catch">Save game after obtaining a target</label>
                         </div>
                     </div>
@@ -143,12 +144,12 @@
                     <div class="card">
                         <h2 class="content-title">Other</h2>
                         <div class="custom-switch">
-                            <input type="checkbox" id="hax" value="">
+                            <input type="checkbox" id="hax">
                             <label for="hax">Use hax for faster resets</label>
                         </div>
                         <br>
                         <div class="custom-switch">
-                            <input type="checkbox" id="debug" value="">
+                            <input type="checkbox" id="debug">
                             <label for="debug">Debug mode</label>
                         </div>
                         <br>
@@ -164,29 +165,29 @@
                     <div class="card">
                         <h2 class="content-title">Wild Battles</h2>
                         <div class="custom-switch">
-                            <input type="checkbox" id="battle_non_targets" value="">
+                            <input type="checkbox" id="battle_non_targets">
                             <label for="battle_non_targets">Defeat non-targets</label>
                         </div>
                         <br>
                         <div class="custom-switch">
-                            <input type="checkbox" id="thief_wild_items" value="">
+                            <input type="checkbox" id="thief_wild_items">
                             <label for="thief_wild_items">Use Thief to steal held items</label>
                         </div>
                         <br>
                         <h2 class="content-title">Auto-Catch</h2>
                         <div class="custom-switch">
-                            <input type="checkbox" id="auto_catch" value="">
+                            <input type="checkbox" id="auto_catch">
                             <label for="auto_catch">Auto-catch wild targets</label>
                         </div>
                         <div id="option_auto_catch">
                             <br>
                             <div class="custom-switch">
-                                <input type="checkbox" id="false_swipe" value="">
+                                <input type="checkbox" id="false_swipe">
                                 <label for="false_swipe">Use False Swipe</label>
                             </div>
                             <br>
                             <div class="custom-switch">
-                                <input type="checkbox" id="inflict_status" value="">
+                                <input type="checkbox" id="inflict_status">
                                 <label for="inflict_status">Inflict sleep/paralysis</label>
                             </div>
                             <br>
@@ -204,7 +205,7 @@
                     <div class="card">
                         <h2 class="content-title">Pickup</h2>
                         <div class="custom-switch">
-                            <input type="checkbox" id="pickup" value="">
+                            <input type="checkbox" id="pickup">
                             <label for="pickup">Collect Pickup items from party</label>
                         </div>
                         <br>

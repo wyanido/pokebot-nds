@@ -1,11 +1,13 @@
 const { ipcRenderer } = require('electron')
 const YAML = require('yaml');
 
-const text_areas = [...document.getElementsByTagName('textarea')].map(ele => ele.id);
-const fields = [...document.querySelectorAll('input[type="number"], select')].map(ele => ele.id);
-const checkboxes = [...document.querySelectorAll('input[type="checkbox"]')].map(ele => ele.id);
+const configForm = document.getElementById('config-form');
 
-var original_config = ''
+const textAreas = [...configForm.getElementsByTagName('textarea')].map(ele => ele.id);
+const fields = [...configForm.querySelectorAll('input[type="number"], select')].map(ele => ele.id);
+const checkboxes = [...configForm.querySelectorAll('input[type="checkbox"]')].map(ele => ele.id);
+
+var originalConfig = ''
 
 
 function setBadgeClientCount(clients) {
@@ -17,11 +19,11 @@ function setBadgeClientCount(clients) {
 }
 
 function sendConfig() {
-    config = original_config
+    config = originalConfig
 
     try {
-        for (var i = 0; i < text_areas.length; i++) {
-            var key = text_areas[i]
+        for (var i = 0; i < textAreas.length; i++) {
+            var key = textAreas[i]
             config[key] = YAML.parse($('#' + key).val())
         }
     }
@@ -55,22 +57,25 @@ function sendConfig() {
 }
 
 function updateOptionVisibility() {
-    $('#option_starters').hide()
-    $('#option_move_direction').hide()
-    $('#option_auto_catch').hide()
+    $('#option_starters').hide();
+    $('#option_moving_encounters').hide();
+    $('#option_auto_catch').hide();
 
-    var mode = $('#mode').val()
+    var mode = $('#mode').val();
     switch (mode) {
         case 'starters':
-            $('#option_starters').show()
+            $('#option_starters').show();
             break;
         case 'random encounters':
-            $('#option_move_direction').show()
+            $('#option_moving_encounters').show();
+            break;
+        case 'phenomenon encounters':
+            $('#option_moving_encounters').show();
             break;
     }
 
     if ($('#auto_catch').prop('checked')) {
-        $('#option_auto_catch').show()
+        $('#option_auto_catch').show();
     }
 }
 
@@ -116,10 +121,10 @@ document.addEventListener('keydown', function (event) {
 });
 
 ipcRenderer.on('set_config', (_event, config) => {
-    original_config = config
+    originalConfig = config
 
-    for (var i = 0; i < text_areas.length; i++) {
-        var key = text_areas[i]
+    for (var i = 0; i < textAreas.length; i++) {
+        var key = textAreas[i]
         $('#' + key).val(YAML.stringify(config[key]))
     }
 

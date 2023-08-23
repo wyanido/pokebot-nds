@@ -231,6 +231,9 @@ ipcRenderer.on('set_clients', (_event, clients) => {
         clearInterval(elapsedInterval)
         $('#elapsed-time').empty()
         $('#elapsed-time').append('0s')
+        
+        $('#encounter-rate').empty()
+        $('#encounter-rate').append('0/h')
     }
 });
 
