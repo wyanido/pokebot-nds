@@ -1,7 +1,7 @@
 -----------------------
 -- INITIALIZATION
 -----------------------
-local BOT_VERSION = "0.3.1-alpha"
+local BOT_VERSION = "0.4.0-alpha"
 
 console.clear()
 console.log("Running " .. _VERSION)

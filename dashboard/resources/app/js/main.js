@@ -9,8 +9,13 @@ let mainWindow;
 let clientCooldown = false;
 let refreshTimeout;
 var elapsedStart;
+
 var lastEncounter;
 var sinceLastEncounter;
+
+const rateHistorySample = 20;
+let rateHistory = [];
+let encounterRate = 0;
 
 function randomRange(minValue, maxValue) {
     return minValue + Math.floor(Math.random() * (maxValue - minValue))
@@ -75,13 +80,34 @@ function formatMonData(mon) {
     return mon
 }
 
+function updateEncounterRate() {
+    var now = Date.now() / 1000
+    sinceLastEncounter = now - lastEncounter
+
+    if (!isNaN(lastEncounter) && !isNaN(sinceLastEncounter)) {
+        rateHistory.push(sinceLastEncounter);
+
+        if (rateHistory.length > rateHistorySample) rateHistory.shift();
+
+        var sum = 0;
+        for (var i = 0; i < rateHistory.length; i++) {
+            sum += rateHistory[i];
+        }
+
+        encounterRate = sum / rateHistory.length; // Average out the most recent x encounters
+        encounterRate = Math.floor(1 / (encounterRate / 3600)); // Convert average encounter time to encounters/h
+        
+        mainWindow.webContents.send('set_encounter_rate', encounterRate)
+    }
+
+    lastEncounter = now
+}
+
 function updateEncounterLog(mon) {
     recents.push(formatMonData(mon));
     recents = recents.slice(-config.encounter_log_limit);
 
-    sinceLastEncounter = Date.now() / 1000 - lastEncounter
-    if (!isNaN(lastEncounter) && !isNaN(sinceLastEncounter)) mainWindow.webContents.send('set_latest_encounter', sinceLastEncounter)
-    lastEncounter = Date.now() / 1000
+    updateEncounterRate()
 
     stats.total.seen += 1;
     stats.phase.seen += 1;
@@ -125,7 +151,9 @@ function socketSetTimeout(socket) {
         socket.destroy()
         console.log('Removed inactive client %d', index)
 
+        mainWindow.webContents.send('clients_updated', clientData);
         mainWindow.webContents.send('set_clients', clientData);
+        
     }, config.inactive_client_timeout)
 }
 
@@ -156,7 +184,7 @@ function interpretClientMessage(socket, message) {
             client.gen = data.gen;
             client.game = data.game;
 
-            mainWindow.webContents.send('set_client_tabs', clientData);
+            mainWindow.webContents.send('clients_updated', clientData);
 
             if (clients.length == 1) mainWindow.webContents.send('set_page_icon', getPageIcon(clientData[0].game));
             return;
@@ -261,18 +289,19 @@ app.whenReady().then(() => {
         if (clients.length > 0) {
             mainWindow.webContents.send('set_page_icon', getPageIcon(clientData[0].game));
         }
-
+        
         switch (page) {
             case 'config':
                 mainWindow.webContents.send('set_config', config);
-                mainWindow.webContents.send('set_badge_client_count', clientData.length);
+                mainWindow.webContents.send('clients_updated', clientData);
                 break;
             case 'dashboard':
                 mainWindow.webContents.send('set_recents', recents);
                 mainWindow.webContents.send('set_targets', targets);
                 mainWindow.webContents.send('set_stats', stats);
                 mainWindow.webContents.send('set_clients', clientData);
-                
+                mainWindow.webContents.send('set_encounter_rate', encounterRate)
+
                 if (clients.length > 0) {
                     mainWindow.webContents.send('set_elapsed_start', elapsedStart);
                     if (!isNaN(lastEncounter) && !isNaN(sinceLastEncounter)) mainWindow.webContents.send('set_latest_encounter', sinceLastEncounter)
@@ -281,7 +310,7 @@ app.whenReady().then(() => {
         }
     });
 
-    ipcMain.on('apply_config', (_event, new_config) => {
+    ipcMain.on('apply_config', (_event, new_config, target) => {
         // Send updated config to all clients
         if (clients.length > 0) {
             var data = JSON.stringify({
@@ -293,14 +322,22 @@ app.whenReady().then(() => {
 
             var msg = data.length + ' ' + data;
 
-            clients.forEach((client) => {
-                client.write(msg);
-            });
+            if (target == "all") {
+                clients.forEach((client) => {
+                    client.write(msg);
+                });
+            } else {
+                clients[target].write(msg);
+            }
         }
 
         // Save to file and update main.js reference of config
         config = new_config
         writeJSONToFile('../config.json', new_config)
+    });
+
+    ipcMain.on('refresh_editable_games', (_event) => {
+        mainWindow.webContents.send('set_editable_games', clientData);
     });
 
     const server = net.createServer((socket) => {
@@ -313,7 +350,7 @@ app.whenReady().then(() => {
             elapsedStart = Date.now();
             mainWindow.webContents.send('set_elapsed_start', elapsedStart)
         }
-        
+
         // Send config to newly connected lient
         var data = JSON.stringify({
             'type': 'apply_config',

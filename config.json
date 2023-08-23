@@ -18,7 +18,7 @@
 		}
 	},
 	"starter2": true,
-	"move_direction": "Horizontal",
+	"move_direction": "Vertical",
 	"thief_wild_items": false,
 	"starter0": true,
 	"pickup": false,
@@ -37,11 +37,12 @@
 	"battle_non_targets": false,
 	"auto_catch": false,
 	"starter1": true,
-	"mode": "manual",
+	"mode": "random encounters",
 	"target_log_limit": "30",
 	"inactive_client_timeout": "2500",
 	"game_refresh_cooldown": "200",
 	"inflict_status": false,
 	"false_swipe": false,
-	"debug": false
+	"debug": false,
+	"editing": "0"
 }

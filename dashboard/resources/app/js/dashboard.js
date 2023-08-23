@@ -1,8 +1,5 @@
 const { ipcRenderer } = require('electron')
 
-const historySampleLength = 15;
-let history = [];
-
 let elapsedInterval;
 var gameTab = 0;
 
@@ -102,7 +99,6 @@ function displayClientGameInfo(index, client) {
         $('#field-table').append(`<tr><th>${key}</th><td>${client.other[key]}</td></tr>`);
     }
 
-    // console.log(client.other)
     if (gameTab != index) {
         game_template.hide();
     }
@@ -139,9 +135,6 @@ function setRecentlySeen(encounters, reformat=true) {
 
     var recentsLength = $('#recents-limit').val()
     if (isNaN(recentsLength)) recentsLength = 7
-
-    console.log(recentsLength)
-    console.log(isNaN(recentsLength))
 
     $('#recents').empty();
 
@@ -245,7 +238,7 @@ ipcRenderer.on('set_client_party', (_event, index, party) => {
     displayClientParty(index, party);
 });
 
-ipcRenderer.on('set_client_tabs', (_event, clients) => {
+ipcRenderer.on('clients_updated', (_event, clients) => {
     setBadgeClientCount(clients.length)
     displayClientTabs(clients);
 });
@@ -265,23 +258,7 @@ ipcRenderer.on('set_elapsed_start', (_event, time) => {
     elapsedInterval = setInterval(setElapsedTime, 1000);
 });
 
-ipcRenderer.on('set_latest_encounter', (_event, elapsed) => {
-    history.push(elapsed);
-
-    if (history.length > historySampleLength) {
-        history.shift();
-    }
-
-    var sum = 0;
-    for (var i = 0; i < history.length; i++) {
-        sum += history[i];
-    }
-
-    console.log(history)
-
-    var rate = sum / history.length; // Average out the most recent x encounters
-    rate = Math.floor(1 / (rate / 3600)); // convert average encounter time to encounters/h
-
+ipcRenderer.on('set_encounter_rate', (_event, rate) => {
     $('#encounter-rate').empty()
     $('#encounter-rate').append(rate + '/h');
 });

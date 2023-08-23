@@ -26,7 +26,7 @@
                 <img src="images/pokemon-icon/201-27.png" class="icon" id="icon">
                 Pokébot NDS
             </div>
-            <span class="navbar-text text-monospace font-size-12">v0.3.2-alpha</span>
+            <span class="navbar-text text-monospace font-size-12">v0.4.0-alpha</span>
             <ul class="navbar-nav d-flex d-md-flex">
                 <li class="nav-item nav-link px-10">
                     <a href="dashboard.html">
@@ -50,11 +50,21 @@
                     </button>
                 </li>
             </ul>
-            <button class="btn btn-primary ml-auto" id="post-config" onclick="sendConfig()">Save
-                Changes (CTRL+S)</button>
         </nav>
         <div class="sticky-alerts"></div>
         <div class="content-wrapper">
+            <div class="row-eq-spacing p-20">
+                <div class="input-group" style="height: 28px; float: left; width: 400px;">
+                    <label class="input-group-text">Editing config for</label>
+                    <select class="form-control h-full" id="editing">
+                        <option value="all">All Games</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary ml-auto float-right" id="post-config" onclick="sendConfig()">
+                    <i class="fa fa-save mr-5"></i>
+                    Save Changes (CTRL+S)
+                </button>
+            </div>
             <fieldset class="row row-eq-spacing" id="config-form" disabled="disabled">
                 <div class="col-6">
                     <div class="card">

@@ -7,6 +7,15 @@ const checkboxes = [...document.querySelectorAll('input[type="checkbox"]')].map(
 
 var original_config = ''
 
+
+function setBadgeClientCount(clients) {
+    $('#home-button').empty()
+
+    if (clients > 0) {
+        $('#home-button').append('<span style="bottom:16px; right:-10px; font-size:10px" class="badge badge-primary position-absolute translate-middle text-bg-primary px-5">' + clients.toString() + '</span>')
+    }
+}
+
 function sendConfig() {
     config = original_config
 
@@ -35,7 +44,7 @@ function sendConfig() {
         config[field] = $('#' + field).prop('checked')
     }
 
-    ipcRenderer.send('apply_config', config);
+    ipcRenderer.send('apply_config', config, $('#editing').val());
 
     halfmoon.initStickyAlert({
         content: 'You may need to restart pokebot-nds.lua for the bot mode to update immediately. Other changes will take effect now.',
@@ -63,6 +72,19 @@ function updateOptionVisibility() {
     if ($('#auto_catch').prop('checked')) {
         $('#option_auto_catch').show()
     }
+}
+
+function setEditableGames(clients) {
+    $('#editing').empty()
+    $('#editing').append('<option value="all">All Games</option>')
+
+    for (var i = 0; i < clients.length; i++) {
+        var name = clients[i].game;
+
+        $('#editing').append('<option value="' + i.toString() + '">' + name + ' </option>')
+    }
+
+    $('#editing').val('all')
 }
 
 // Hide values not relevant to the current bot mode
@@ -119,14 +141,7 @@ ipcRenderer.on('set_page_icon', (_event, icon_src) => {
     document.getElementById('icon').src = icon_src
 });
 
-ipcRenderer.on('set_badge_client_count', (_event, client_count) => {
-    setBadgeClientCount(client_count);
+ipcRenderer.on('clients_updated', (_event, clients) => {
+    setBadgeClientCount(clients.length);
+    setEditableGames(clients)
 });
-
-function setBadgeClientCount(clients) {
-    $('#home-button').empty()
-
-    if (clients > 0) {
-        $('#home-button').append('<span style="bottom:16px; right:-10px; font-size:10px" class="badge badge-primary position-absolute translate-middle text-bg-primary px-5">' + clients.toString() + '</span>')
-    }
-}
