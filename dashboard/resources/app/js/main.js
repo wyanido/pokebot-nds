@@ -17,6 +17,12 @@ const rateHistorySample = 20;
 let rateHistory = [];
 let encounterRate = 0;
 
+function clientMessage(data) {
+    var msg = JSON.stringify(data);
+
+    return msg.length + ' ' + msg;
+}
+
 function randomRange(minValue, maxValue) {
     return minValue + Math.floor(Math.random() * (maxValue - minValue))
 }
@@ -186,7 +192,12 @@ function interpretClientMessage(socket, message) {
 
             mainWindow.webContents.send('clients_updated', clientData);
 
-            if (clients.length == 1) mainWindow.webContents.send('set_page_icon', getPageIcon(clientData[0].game));
+            if (clients.length == 1) {
+                mainWindow.webContents.send('set_page_icon', getPageIcon(clientData[0].game));
+
+                elapsedStart = Date.now();
+                mainWindow.webContents.send('set_elapsed_start', elapsedStart)
+            }
             return;
         case 'game':
             client.map = data.map_name + " (" + data.map_header.toString() + ")";
@@ -265,7 +276,20 @@ app.on('activate', function () {
 })
 
 app.on('window-all-closed', function () {
-    if (process.platform !== 'darwin') app.quit()
+    if (process.platform !== 'darwin') {
+        var msg = clientMessage({
+            'type': 'disconnect'
+        })
+
+        clients.forEach((client) => {
+            client.write(msg);
+        });
+
+        // Wait an arbitrary 500ms for clients to safely disconnect before closing
+        setTimeout(() => {
+            app.quit()
+        }, 500);
+    }
 })
 
 app.whenReady().then(() => {
@@ -313,14 +337,12 @@ app.whenReady().then(() => {
     ipcMain.on('apply_config', (_event, new_config, target) => {
         // Send updated config to all clients
         if (clients.length > 0) {
-            var data = JSON.stringify({
+            var msg = clientMessage({
                 'type': 'apply_config',
                 'data': {
                     'config': new_config
                 }
             })
-
-            var msg = data.length + ' ' + data;
 
             if (target == "all") {
                 clients.forEach((client) => {
@@ -346,25 +368,18 @@ app.whenReady().then(() => {
         clientData.push({})
         socketSetTimeout(socket);
 
-        if (clients.length == 1) {
-            elapsedStart = Date.now();
-            mainWindow.webContents.send('set_elapsed_start', elapsedStart)
-        }
-
         // Send config to newly connected lient
-        var data = JSON.stringify({
+        socket.write(clientMessage({
             'type': 'apply_config',
             'data': {
                 'config': config
             }
-        })
-
-        socket.write(data.length + ' ' + data);
+        }));
 
         let buffer = '';
         socket.on('data', (data) => {
             buffer += data.toString();
-            responses = buffer.split('\x00');
+            let responses = buffer.split('\x00');
 
             for (let i = 0; i < responses.length - 1; i++) {
                 var response = responses[i].trim();

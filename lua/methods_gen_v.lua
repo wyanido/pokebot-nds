@@ -20,6 +20,13 @@ take_button = { x = 200, y = 155 }
 -----------------------
 
 function pathfind_to(target)
+    -- Use local position if one axis isn't specified
+    if not target.x then
+        target.x = game_state.trainer_x
+    elseif not target.z then
+        target.z = game_state.trainer_z
+    end
+
     local dx = target.x - game_state.trainer_x
     local dz = target.z - game_state.trainer_z
     local direction_priority = "x"
@@ -28,14 +35,14 @@ function pathfind_to(target)
     local function move_vertically()
         local button = dz > 0 and "Down" or "Up"
         hold_button(button)
-        wait_frames(frames_per_move())
+        wait_frames(frames_per_move() / 2)
         release_button(button)
     end
 
     local function move_horizontally()
         local button = dx > 0 and "Right" or "Left"
         hold_button(button)
-        wait_frames(frames_per_move())
+        wait_frames(frames_per_move() / 2)
         release_button(button)
     end
 
@@ -66,6 +73,8 @@ function pathfind_to(target)
         else
             turn_cooldown = turn_cooldown - 1
         end
+
+        wait_frames(1) -- Makes movement more precise by reducing timing inconsistencies between directions
 
         -- Re-apply repel if necessary
         while mdword(offset.text_interrupt) == 2 do
@@ -772,7 +781,6 @@ function mode_random_encounters()
 
         console.log("Attempting to start a battle...")
 
-        local tile_frames = frames_per_move() - 2
         local dir1 = config.move_direction == "Horizontal" and "Left" or "Up"
         local dir2 = config.move_direction == "Horizontal" and "Right" or "Down"
         
@@ -784,6 +792,8 @@ function mode_random_encounters()
         release_button(dir2)
 
         process_wild_encounter()
+
+        pathfind_to(home)
     end
 end
 
@@ -923,25 +933,19 @@ function mode_daycare_eggs()
     local function collect_daycare_egg()
         console.debug("That's an egg!")
 
-        release_button("Right")
-        press_sequence(60, "B")
-        hold_button("Up")
-
-        while game_state.trainer_z ~= 557 do -- Bike up to daycare man
-            wait_frames(8)
-        end
-
-        release_button("Up")
+        clear_all_inputs()
+        press_sequence(30, "B")
+        
+        pathfind_to({z=557})
 
         local og_party_count = #party -- Press A until egg in party
         while #party == og_party_count do
             press_sequence("A", 5)
         end
 
-        press_sequence(200, "B", 90, "B") -- End dialogue
+        press_sequence(200, "B", 70, "B") -- End dialogue
     end
 
-    -- Daycare routine below
     if game_state.map_header ~= 321 then
         pause_bot("Please place the bot on Route 3")
     end
@@ -959,40 +963,13 @@ function mode_daycare_eggs()
         -- Otherwise free up party slots at PC
         if not has_egg then
             console.log("Party is clear of eggs. Depositing hatched Pokemon...")
-            hold_button("B")
-
-            -- Reach staircase
-            while game_state.trainer_x < 742 do
-                hold_button("Right")
-                wait_frames(1)
-            end
-
-            while game_state.trainer_x > 748 do
-                hold_button("Left")
-                wait_frames(1)
-            end
-
-            release_button("Right")
-            release_button("Left")
-
-            -- Ascend staircase
-            while game_state.trainer_z > 558 do
-                hold_button("Up")
-                wait_frames(1)
-            end
-
-            release_button("Up")
-
-            -- Align with door
-            while game_state.trainer_x < 749 do
-                hold_button("Right")
-                wait_frames(1)
-            end
-
-            release_button("Right")
-
+            
+            pathfind_to({x=748}) -- Move to staircase
+            pathfind_to({z=557}) -- Move to the door
+            pathfind_to({x=749,z=556})
+            
             -- Walk to daycare lady at desk
-            while game_state.map_header ~= 323 or game_state.trainer_z ~= 9 do
+            while game_state.map_header ~= 323 do
                 hold_button("Up")
                 wait_frames(1)
             end
@@ -1000,15 +977,7 @@ function mode_daycare_eggs()
             release_button("Up")
 
             -- Walk to PC
-            while game_state.trainer_x < 9 do
-                hold_button("Right")
-                wait_frames(1)
-            end
-
-            release_button("B")
-            release_button("Right")
-
-            wait_frames(frames_per_move())
+            pathfind_to({x=9,z=9})
             press_sequence("Up", 16, "A", 140, "A", 120, "A", 110, "A", 100)
 
             -- Temporary, add this to config once I figure out PC storage limitations
@@ -1039,9 +1008,9 @@ function mode_daycare_eggs()
             end
 
             press_sequence("B", 30, "B", 30, "B", 30, "B", 150, "B", 90) -- Exit PC
-
+            
             hold_button("B")
-
+            
             while game_state.trainer_x > 6 do -- Align with door
                 hold_button("Left")
                 wait_frames(1)
@@ -1121,9 +1090,6 @@ function mode_daycare_eggs()
 
         if mdword(offset.egg_hatching) == 1 then -- Interrupted by egg hatching
             console.log("Oh?")
-
-            release_button("Right")
-            release_button("Left")
 
             press_sequence("B", 60)
 
