@@ -169,13 +169,14 @@ function setRecentTargets(encounters, reformat=true) {
 
 function setElapsedTime() {
     var elapsed = Math.floor((Date.now() - elapsedStart) / 1000);
-
-    var s = elapsed % 60
-    var m = Math.floor(elapsed / 60) % 60
-    var h = Math.floor(m / 60)
+        s = elapsed;
+        m = Math.floor(s / 60);
+        h = Math.floor(m / 60);
+    
+    var time = `${h}h ${m % 60}m ${s % 60}s`;
 
     $('#elapsed-time').empty()
-    $('#elapsed-time').append(h + "h " + m + "m " + s + 's');
+    $('#elapsed-time').append(time);
 }
 
 function setBadgeClientCount(clients) {

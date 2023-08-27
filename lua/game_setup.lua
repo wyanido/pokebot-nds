@@ -246,8 +246,11 @@ for k, _ in pairs(ver) do
 end
 
 if not gen then
-    console.log("Unsupported Game")
-    return
+    console.log("Unsupported Game or Region")
+
+    while true do
+        emu.frameadvance()
+    end
 end
 
 console.log("Detected Game: " .. game_name)
