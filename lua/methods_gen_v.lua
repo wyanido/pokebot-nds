@@ -681,12 +681,6 @@ end
 -- BOT MODES
 -----------------------
 
-function mode_starters_advance_until_battle()
-    while not game_state.in_battle do
-        press_sequence("A", 5)
-    end
-end
-
 function mode_starters(starter)
     local ball
 
@@ -709,7 +703,7 @@ function mode_starters(starter)
     console.log("Opening Starter Selection...")
 
     while mbyte(offset.starter_selection_is_open) ~= 1 do
-        press_sequence("A", 5, starter_gift_direction, 1)
+        press_sequence("A", 5, "Down", 1)
     end
 
     console.log("Choosing Starter...")
@@ -733,7 +727,9 @@ function mode_starters(starter)
     if not config.hax then
         console.log("Waiting to start battle...")
 
-        mode_starters_advance_until_battle()
+        while not game_state.in_battle do
+            press_sequence("A", 5)
+        end
 
         console.log("Waiting to see starter...")
 
@@ -807,20 +803,14 @@ function mode_gift()
     end
 
     wait_frames(60)
-
-    local in_dreamyard = game_state.map_header == 152
-
+    
     local og_party_count = #party
     while #party == og_party_count do
-        if in_dreamyard then
-            press_sequence("A", 5)
-        else
-            press_sequence("A", 5)
-        end
+        press_sequence("A", 5)
     end
 
     -- Dialogue varies per gift type
-    if in_dreamyard then
+    if game_state.map_header == 152 then -- Dreamyard
         press_sequence(300, "B", 120, "B", 150, "B", 110, "B", 30) -- Decline nickname and progress text afterwards
     else
         press_sequence(180, "B", 60) -- Decline nickname
