@@ -6,6 +6,7 @@ This repository is dedicated to creating a multi-purpose automated tool for the 
 ## Getting started
 Check out the [wiki](https://github.com/wyanido/pokebot-nds/wiki) for more information on how to use the bot, including the setup process and FAQ.
 
+You can also optionally clone the [dev branch](https://github.com/wyanido/pokebot-nds/tree/dev) to preview upcoming features.
 ## Features
 
 _Currently only English (USA, Europe) copies are supported._
