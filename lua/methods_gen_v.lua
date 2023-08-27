@@ -1128,6 +1128,10 @@ end
 
 function mode_static_encounters()
     while not foe and not game_state.in_battle do
+        if mword(offset.map_header) == 152 then -- Dreamyard, Eon duo encounter
+            press_button("Right")
+        end
+
         press_sequence("A", 5)
     end
 
