@@ -287,6 +287,11 @@ end
 function pokemon.log(mon)
     -- Create a watered down copy of the Pokemon data for logging only
     local mon_new = shallowcopy(mon)
+    
+    if not mon or not mon_new then
+        console.warning("Tried to log a non-existent Pokémon!")
+        return false
+    end
 
     if type(mon_new.pid) == "number" then
         mon_new.pid = string.format("%08X", mon_new.pid) -- Convert PID to standard hex format
@@ -331,6 +336,11 @@ local mon_nature = {"Hardy", "Lonely", "Brave", "Adamant", "Naughty", "Bold", "D
                     "Gentle", "Sassy", "Careful", "Quirky"}
 
 function pokemon.enrich_data(mon)
+    if not mon then
+        console.warning("Tried to enrich data of a non-existent Pokémon!")
+        return
+    end
+
     mon.name = mon_dex[mon.species + 1].name
     mon.type = mon_dex[mon.species + 1].type
 
@@ -460,6 +470,19 @@ function pokemon.matches_ruleset(mon, target)
 
         if mon_gender ~= target_gender then
             console.debug("Mon gender " .. mon_gender .. " does not match target of " .. target_gender)
+            return false
+        end
+    end
+
+    -- Check if level is above threshold
+    if target.level then
+        has_other_specs = true
+
+        local mon_level = tonumber(mon.level)
+        local target_level = tonumber(target.level)
+
+        if mon_level < target_level then
+            console.debug("Mon level " .. tostring(mon.level) .. " does not meet target of " .. target.level)
             return false
         end
     end

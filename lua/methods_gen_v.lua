@@ -8,7 +8,6 @@ end
 -- MODE VARIABLES
 -----------------------
 
-starter_gift_direction = "Down"
 snivy_ball = { x = 60, y = 100 }
 tepig_ball = { x = 128, y = 75 }
 oshawott_ball = { x = 185, y = 100 }

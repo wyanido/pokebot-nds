@@ -12,7 +12,7 @@ _Currently only English (USA, Europe) copies are supported._
 |  						| DPPt | HGSS | BW | B2W2 | 
 |--						| :-: | :-: | :-: | :-: |
 | Manual (Assisted)     | ✅ | ✅ | ✅ | ✅ |
-| Starter resets 		| ❔ | ➖ | ✅ | ✅ |
+| Starter resets 		| ❔ | ✅ | ✅ | ✅ |
 | Random encounters		| ✅ | ✅ | ✅ | ✅ |
 | Auto-catching			| ➖ | ➖ | ✅ | ✅ |
 | Auto-battling			| ➖ | ➖ | ✅ | ✅ |
