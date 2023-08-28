@@ -412,7 +412,7 @@
     },
     {
         "accuracy": 100,
-        "power": null,
+        "power": 50,
         "name": "Seismic Toss",
         "type": "Fighting"
     },
@@ -892,7 +892,7 @@
     },
     {
         "accuracy": 100,
-        "power": null,
+        "power": 50,
         "name": "Psywave",
         "type": "Psychic"
     },
@@ -1294,7 +1294,7 @@
     },
     {
         "accuracy": 100,
-        "power": null,
+        "power": 61,
         "name": "Return",
         "type": "Normal"
     },
@@ -1306,7 +1306,7 @@
     },
     {
         "accuracy": 100,
-        "power": null,
+        "power": 61,
         "name": "Frustration",
         "type": "Normal"
     },
@@ -1330,7 +1330,7 @@
     },
     {
         "accuracy": 100,
-        "power": null,
+        "power": 71,
         "name": "Magnitude",
         "type": "Ground"
     },
@@ -3208,7 +3208,7 @@
     },
     {
         "accuracy": 100,
-        "power": null,
+        "power": 60,
         "name": "Heat Crash",
         "type": "Fire"
     },

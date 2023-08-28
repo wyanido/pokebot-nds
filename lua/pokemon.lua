@@ -289,7 +289,7 @@ function pokemon.log(mon)
     local mon_new = shallowcopy(mon)
     
     if not mon or not mon_new then
-        console.warning("Tried to log a non-existent Pokémon!")
+        console.debug("Tried to log a non-existent Pokémon!")
         return false
     end
 

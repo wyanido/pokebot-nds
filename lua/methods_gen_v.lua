@@ -34,14 +34,14 @@ function pathfind_to(target)
     local function move_vertically()
         local button = dz > 0 and "Down" or "Up"
         hold_button(button)
-        wait_frames(frames_per_move() / 2)
+        wait_frames(frames_per_move() - 1)
         release_button(button)
     end
 
     local function move_horizontally()
         local button = dx > 0 and "Right" or "Left"
         hold_button(button)
-        wait_frames(frames_per_move() / 2)
+        wait_frames(frames_per_move() - 1)
         release_button(button)
     end
 
@@ -779,6 +779,10 @@ function mode_random_encounters()
         local dir1 = config.move_direction == "Horizontal" and "Left" or "Up"
         local dir2 = config.move_direction == "Horizontal" and "Right" or "Down"
         
+        wait_frames(60) -- Wait to regain control post-battle
+        pathfind_to(home)
+        wait_frames(8)
+
         while not foe and not game_state.in_battle do
             move_in_direction(dir1)
             move_in_direction(dir2)
@@ -788,7 +792,6 @@ function mode_random_encounters()
 
         process_wild_encounter()
 
-        pathfind_to(home)
     end
 end
 
