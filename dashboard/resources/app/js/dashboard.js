@@ -6,6 +6,21 @@ var gameTab = 0;
 let recentEncounters;
 let recentTargets;
 
+function updateBnp() {
+    var binomialDistribution = function (b, a) {
+        c = Math.pow(1 - a, b);
+        return 100 * (c * Math.pow(- (1 / (a - 1)), b) - c);
+    }
+
+    var rate = $('#shiny-rate').val();
+    var seen = document.getElementById('phase-seen').innerHTML;
+    var chance = binomialDistribution(seen, 1 / rate);
+    var cumulativeOdds = Math.floor(chance * 100) / 100;
+
+    if (cumulativeOdds == 100 || isNaN(cumulativeOdds)) cumulativeOdds = '99.99'
+    document.getElementById('bnp').innerHTML = cumulativeOdds.toString() + '%';
+}
+
 function displayClientParty(index, party) {
     var ele = 'party-template-' + index.toString();
     $('#' + ele).remove()
@@ -129,7 +144,7 @@ function selectTab(ele) {
     updateTabVisibility()
 }
 
-function setRecentlySeen(encounters, reformat=true) {
+function setRecentlySeen(encounters, reformat = true) {
     var template = $('#row-template');
     var log = $('#recents')
 
@@ -148,7 +163,7 @@ function setRecentlySeen(encounters, reformat=true) {
     }
 }
 
-function setRecentTargets(encounters, reformat=true) {
+function setRecentTargets(encounters, reformat = true) {
     var template = $('#row-template');
     var log = $('#targets')
 
@@ -169,10 +184,10 @@ function setRecentTargets(encounters, reformat=true) {
 
 function setElapsedTime() {
     var elapsed = Math.floor((Date.now() - elapsedStart) / 1000);
-        s = elapsed;
-        m = Math.floor(s / 60);
-        h = Math.floor(m / 60);
-    
+    s = elapsed;
+    m = Math.floor(s / 60);
+    h = Math.floor(m / 60);
+
     var time = `${h}h ${m % 60}m ${s % 60}s`;
 
     $('#elapsed-time').empty()
@@ -207,6 +222,11 @@ ipcRenderer.on('set_targets', (_event, encounters) => {
     setRecentTargets(encounters);
 });
 
+var rateEle = document.getElementById('shiny-rate');
+rateEle.addEventListener('change', () => {
+    updateBnp()
+})
+
 ipcRenderer.on('set_stats', (_event, stats) => {
     document.getElementById('total-seen').innerHTML = stats.total.seen
     document.getElementById('total-shiny').innerHTML = stats.total.shiny
@@ -215,6 +235,8 @@ ipcRenderer.on('set_stats', (_event, stats) => {
 
     document.getElementById('phase-seen').innerHTML = stats.phase.seen
     document.getElementById('phase-lowest-sv').innerHTML = stats.phase.lowest_sv
+
+    updateBnp();
 });
 
 ipcRenderer.on('set_clients', (_event, clients) => {
@@ -232,7 +254,7 @@ ipcRenderer.on('set_clients', (_event, clients) => {
         clearInterval(elapsedInterval)
         $('#elapsed-time').empty()
         $('#elapsed-time').append('0s')
-        
+
         $('#encounter-rate').empty()
         $('#encounter-rate').append('0/h')
     }
