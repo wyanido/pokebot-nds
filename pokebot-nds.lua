@@ -178,7 +178,7 @@ function get_game_state()
                 trainer_z = 0,
                 phenomenon_x = 0,
                 phenomenon_z = 0,
-                in_game = false,
+                in_game = false
             }
         end
     end
@@ -275,69 +275,57 @@ if config.save_game_on_start then
 end
 
 local mode = string.lower(config.mode)
+local mode_function = _G["mode_" .. mode] -- Get the respective global scope function for the current bot mode
 local starter = -1
 
 while true do
-    if mode == "starters" then
-        -- Alternate between starters specified in config and reset until one is a target
-        if not config.starter0 and not config.starter1 and not config.starter2 then
-            console.warning("At least one starter selection must be enabled in config for this bot mode")
-            return
-        end
+    if mode_function then
+        if mode == "starters" then
+            -- Alternate between starters specified in config and reset until one is a target
+            if not config.starter0 and not config.starter1 and not config.starter2 then
+                console.warning("At least one starter selection must be enabled in config for this bot mode")
+                return
+            end
 
-        -- Cycle to next enabled starter
-        starter = (starter + 1) % 3
-
-        while not config["starter" .. tostring(starter)] do
+            -- Cycle to next enabled starter
             starter = (starter + 1) % 3
-        end
 
-        mode_starters(starter)
-    elseif mode == "random encounters" then
-        mode_random_encounters()
-        -- Run back and forth until a random encounter is triggered, run if not a target
-    elseif mode == "phenomenon encounters" then
-        -- Run back and forth until a phenomenon spawns, then encounter it
-        -- https://bulbapedia.bulbagarden.net/wiki/Phenomenon
-        mode_phenomenon_encounters()
-    elseif mode == "gift" then
-        -- Receive a gift Pokemon and reset if not a target
-        mode_gift()
-    elseif mode == "daycare eggs" then
-        -- Cycle to hatch and collect eggs until party is full, then release and repeat until a target is found
-        mode_daycare_eggs()
-    elseif mode == "static" then
-        mode_static_encounters()
-    elseif mode == "fishing" then
-        mode_fishing()
-    elseif mode == "manual" then
-        -- No bot logic, just manual gameplay with a dashboard
-        while true do
-            while not game_state.in_battle do
-                process_frame()
-
-                -- Restart if config changed
-                if mode_real ~= config.mode then
-                    goto begin
-                end
+            while not config["starter" .. tostring(starter)] do
+                starter = (starter + 1) % 3
             end
 
-            for i = 1, #foe, 1 do
-                pokemon.log(foe[i])
-            end
-
-            while game_state.in_battle do
-                process_frame()
-
-                -- Restart if config changed
-                if mode_real ~= config.mode then
-                    goto begin
-                end
-            end
+            mode_starters(starter)
+        else
+            mode_function()
         end
     else
-        console.log("Unknown bot mode: " .. config.mode)
-        return
+        if mode == "manual" then -- No bot logic, just manual gameplay with a dashboard
+            while true do
+                while not game_state.in_battle do
+                    process_frame()
+                    -- Restart if config changed
+                    if mode_real ~= config.mode then
+                        goto begin
+                    end
+                end
+
+                for i = 1, #foe, 1 do
+                    pokemon.log(foe[i])
+                end
+
+                while game_state.in_battle do
+                    process_frame()
+
+                    -- Restart if config changed
+                    if mode_real ~= config.mode then
+                        goto begin
+                    end
+                end
+            end
+        else
+            console.log("Unknown bot mode: " .. config.mode)
+            return
+        end
     end
 
     -- Restart if config changed

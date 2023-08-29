@@ -7,8 +7,8 @@ event.onexit(
 
 function touch_screen_at(x, y)
 	joypad.setanalog({['Touch X'] = x, ['Touch Y'] = y})
-	press_button("Touch")
-	 -- Force release Touch because it gets set to 'held' somehow
+	hold_button("Touch")
+	wait_frames(4) -- Hold input briefly since single-frame touchscreen inputs can be missed
 	release_button("Touch")
 end
 

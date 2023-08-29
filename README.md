@@ -26,5 +26,6 @@ _Currently only English (USA, Europe) copies are supported._
 | Phenomenon encounters	|  |  | ✅ | ✅ |
 | PokéRadar			   	| ➖ |  |  |  |
 | Headbutt encounters			   	|  | ➖ |  |  |
+| Voltorb Flip			   	|  | ✅ |  |  |
 | Thundurus/Tornadus dex resets	|  |  | ➖ |  |
 | Hidden Grotto farming	|  |  |  | ➖ |
