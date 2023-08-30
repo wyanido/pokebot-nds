@@ -323,7 +323,7 @@ while true do
                 end
             end
         else
-            console.log("Unknown bot mode: " .. config.mode)
+            console.log("No function found for mode '" .. config.mode .. "'")
             return
         end
     end
