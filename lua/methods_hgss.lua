@@ -52,6 +52,8 @@ function mode_starters()
 	-- Soft reset otherwise
 	press_button("Power")
 	wait_frames(30)
+end
+
 function mode_voltorb_flip()
     local board_pointer = mdword(0x2111938) + 0x45FCC
 
