@@ -13,7 +13,7 @@ _Currently only English (USA, Europe) copies are supported._
 |  						| DPPt | HGSS | BW | B2W2 | 
 |--						| :-: | :-: | :-: | :-: |
 | Manual (Assisted)     | ✅ | ✅ | ✅ | ✅ |
-| Starter resets 		| ❔ | ➖ | ✅ | ✅ |
+| Starter resets 		| ❔ | ✅ | ✅ | ✅ |
 | Random encounters		| ✅ | ✅ | ✅ | ✅ |
 | Auto-catching			| ➖ | ➖ | ✅ | ✅ |
 | Auto-battling			| ➖ | ➖ | ✅ | ✅ |
@@ -23,9 +23,10 @@ _Currently only English (USA, Europe) copies are supported._
 | Static encounters 	| ➖ | ➖ | ✅ | ✅ |
 | Thief farming			| ➖ | ➖ | ✅ | ✅ |
 | Fishing			   	| ➖ | ➖ | ✅ | ✅ |
-| Dust cloud farming	|  |  | ➖ | ➖ |
-| Phenomenon encounters	|  |  | ➖ | ➖ |
+| Dust cloud farming	|  |  | ✅ | ✅ |
+| Phenomenon encounters	|  |  | ✅ | ✅ |
 | PokéRadar			   	| ➖ |  |  |  |
 | Headbutt encounters			   	|  | ➖ |  |  |
+| Voltorb Flip			   	|  | ✅ |  |  |
 | Thundurus/Tornadus dex resets	|  |  | ➖ |  |
 | Hidden Grotto farming	|  |  |  | ➖ |

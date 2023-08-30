@@ -1,6 +1,25 @@
 const { ipcRenderer } = require('electron')
 
-var game_tab = 0
+let elapsedInterval;
+var gameTab = 0;
+
+let recentEncounters;
+let recentTargets;
+
+function updateBnp() {
+    var binomialDistribution = function (b, a) {
+        c = Math.pow(1 - a, b);
+        return 100 * (c * Math.pow(- (1 / (a - 1)), b) - c);
+    }
+
+    var rate = $('#shiny-rate').val();
+    var seen = document.getElementById('phase-seen').innerHTML;
+    var chance = binomialDistribution(seen, 1 / rate);
+    var cumulativeOdds = Math.floor(chance * 100) / 100;
+
+    if (cumulativeOdds == 100 || isNaN(cumulativeOdds)) cumulativeOdds = '99.99'
+    document.getElementById('bnp').innerHTML = cumulativeOdds.toString() + '%';
+}
 
 function displayClientParty(index, party) {
     var ele = 'party-template-' + index.toString();
@@ -22,11 +41,11 @@ function displayClientParty(index, party) {
         } else {
             mon.folder = mon.shiny ? 'shiny/' : '';
             mon.shiny = mon.shiny ? '✨' : '';
-            
+
             if (mon.altForm > 0) mon.species = mon.species + '-' + mon.altForm.toString()
             mon.fainted = mon.currentHP == 0 ? 'opacity: 0.5' : '';
         }
-        
+
         mon.gender = mon.gender == 'Genderless' ? 'none' : mon.gender.toLowerCase()
         mon.name = '(' + mon.name + ')'
         mon.pid = mon.pid.toString(16).toUpperCase().padEnd(8, '0');
@@ -49,7 +68,7 @@ function displayClientParty(index, party) {
         party_template.append(party_mon_template.tmpl(mon))
     }
 
-    if (game_tab != index) party_template.hide()
+    if (gameTab != index) party_template.hide()
     party_template.attr('id', ele)
 }
 
@@ -73,15 +92,15 @@ function displayClientTabs(clients) {
 
         if (!client.game) continue;
 
-        var button = $('#button-template').tmpl({ 'game': client.game })
+        var button = $('#button-template').tmpl({ 'game': client.game.replace('Pokemon', '') })
         $('#game-buttons').append(button)
 
         button.attr('id', 'button-template-' + j.toString())
     }
 
-    game_tab = Math.min(game_tab, clients.length - 1)
+    gameTab = Math.min(gameTab, clients.length - 1)
     updateTabVisibility()
-    $('#button-template-' + game_tab.toString()).attr('class', 'btn btn-primary col text-truncate')
+    $('#button-template-' + gameTab.toString()).attr('class', 'btn btn-primary col text-truncate')
 }
 
 function displayClientGameInfo(index, client) {
@@ -95,8 +114,7 @@ function displayClientGameInfo(index, client) {
         $('#field-table').append(`<tr><th>${key}</th><td>${client.other[key]}</td></tr>`);
     }
 
-    // console.log(client.other)
-    if (game_tab != index) {
+    if (gameTab != index) {
         game_template.hide();
     }
 
@@ -108,7 +126,7 @@ function updateTabVisibility() {
     for (var i = 0; i <= $('#game-buttons').children().length; i++) {
         var idx = i.toString()
 
-        if (i == game_tab) {
+        if (i == gameTab) {
             $('#game-template-' + idx).show()
             $('#party-template-' + idx).show()
             $('#button-template-' + idx).attr('class', 'btn btn-primary col text-truncate')
@@ -121,44 +139,93 @@ function updateTabVisibility() {
 }
 
 function selectTab(ele) {
-    game_tab = ele.id.replace('button-template-', '');
+    gameTab = ele.id.replace('button-template-', '');
 
     updateTabVisibility()
 }
 
-ipcRenderer.on('set_recents', (_event, encounters) => {
-    // Refresh log display
+function setRecentlySeen(encounters, reformat = true) {
     var template = $('#row-template');
     var log = $('#recents')
 
+    var recentsLength = $('#recents-limit').val()
+    if (isNaN(recentsLength)) recentsLength = 7
+
     $('#recents').empty();
 
-    for (var i = encounters.length; i >= encounters.length - 7; i--) {
+    for (var i = encounters.length; i >= encounters.length - recentsLength; i--) {
         var mon = encounters[i]
         if (!mon) continue;
-        
-        if (mon.altForm > 0) mon.species = mon.species + '-' + mon.altForm.toString()
+
+        if (reformat && mon.altForm > 0) mon.species = mon.species + '-' + mon.altForm.toString()
         var row = template.tmpl(mon);
         log.append(row)
     }
-});
+}
 
-ipcRenderer.on('set_targets', (_event, encounters) => {
-    // Refresh log display
+function setRecentTargets(encounters, reformat = true) {
     var template = $('#row-template');
     var log = $('#targets')
 
+    var targetsLength = $('#targets-limit').val()
+    if (isNaN(targetsLength)) targetsLength = 7
+
     $('#targets').empty();
 
-    for (var i = encounters.length; i >= encounters.length - 7; i--) {
+    for (var i = encounters.length; i >= encounters.length - targetsLength; i--) {
         var mon = encounters[i]
         if (!mon) continue;
 
-        if (mon.altForm > 0) mon.species = mon.species + '-' + mon.altForm.toString()
+        if (reformat && mon.altForm > 0) mon.species = mon.species + '-' + mon.altForm.toString()
         var row = template.tmpl(mon);
         log.append(row)
     }
+}
+
+function setElapsedTime() {
+    var elapsed = Math.floor((Date.now() - elapsedStart) / 1000);
+    s = elapsed;
+    m = Math.floor(s / 60);
+    h = Math.floor(m / 60);
+
+    var time = `${h}h ${m % 60}m ${s % 60}s`;
+
+    $('#elapsed-time').empty()
+    $('#elapsed-time').append(time);
+}
+
+function setBadgeClientCount(clients) {
+    $('#home-button').empty()
+
+    if (clients > 0) {
+        $('#home-button').append('<span style="bottom:16px; right:-10px; font-size:10px" class="badge badge-primary position-absolute translate-middle text-bg-primary px-5">' + clients.toString() + '</span>')
+    }
+}
+
+var recentEncountersEle = document.getElementById('recents-limit');
+recentEncountersEle.addEventListener('change', () => {
+    setRecentlySeen(recentEncounters, false)
+})
+
+var recentTargetsEle = document.getElementById('targets-limit');
+recentTargetsEle.addEventListener('change', () => {
+    setRecentTargets(recentTargets, false)
+})
+
+ipcRenderer.on('set_recents', (_event, encounters) => {
+    recentEncounters = encounters;
+    setRecentlySeen(encounters);
 });
+
+ipcRenderer.on('set_targets', (_event, encounters) => {
+    recentTargets = encounters;
+    setRecentTargets(encounters);
+});
+
+var rateEle = document.getElementById('shiny-rate');
+rateEle.addEventListener('change', () => {
+    updateBnp()
+})
 
 ipcRenderer.on('set_stats', (_event, stats) => {
     document.getElementById('total-seen').innerHTML = stats.total.seen
@@ -168,9 +235,12 @@ ipcRenderer.on('set_stats', (_event, stats) => {
 
     document.getElementById('phase-seen').innerHTML = stats.phase.seen
     document.getElementById('phase-lowest-sv').innerHTML = stats.phase.lowest_sv
+
+    updateBnp();
 });
 
 ipcRenderer.on('set_clients', (_event, clients) => {
+    setBadgeClientCount(clients.length)
     displayClientTabs(clients);
 
     for (var i = 0; i < clients.length; i++) {
@@ -179,15 +249,23 @@ ipcRenderer.on('set_clients', (_event, clients) => {
         displayClientParty(i, client.party);
         displayClientGameInfo(i, client);
     }
-    
-    last_client_count = clients.length
+
+    if (clients.length == 0) {
+        clearInterval(elapsedInterval)
+        $('#elapsed-time').empty()
+        $('#elapsed-time').append('0s')
+
+        $('#encounter-rate').empty()
+        $('#encounter-rate').append('0/h')
+    }
 });
 
 ipcRenderer.on('set_client_party', (_event, index, party) => {
     displayClientParty(index, party);
 });
 
-ipcRenderer.on('set_client_tabs', (_event, clients) => {
+ipcRenderer.on('clients_updated', (_event, clients) => {
+    setBadgeClientCount(clients.length)
     displayClientTabs(clients);
 });
 
@@ -197,4 +275,16 @@ ipcRenderer.on('set_client_game_info', (_event, index, client) => {
 
 ipcRenderer.on('set_page_icon', (_event, icon_src) => {
     document.getElementById('icon').src = icon_src
+});
+
+ipcRenderer.on('set_elapsed_start', (_event, time) => {
+    elapsedStart = time;
+
+    setElapsedTime()
+    elapsedInterval = setInterval(setElapsedTime, 1000);
+});
+
+ipcRenderer.on('set_encounter_rate', (_event, rate) => {
+    $('#encounter-rate').empty()
+    $('#encounter-rate').append(rate + '/h');
 });

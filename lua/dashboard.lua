@@ -13,21 +13,21 @@ local disconnected = false
 
 function poll_dashboard_response()
 	-- Check for server packets frequently
-	if emu.framecount() % 20 ~= 0 then
+	if emu.framecount() % 20 ~= 0 or disconnected then
 		return
 	end
 	
+	-- comm.socketServerResponse() causes BizHawk to freeze when called on the same frame a socket disconnects
 	local response = comm.socketServerResponse()
 
 	-- If the dashboard couldn't be detected, poll it less often
 	if not comm.socketServerSuccessful() then
 		if not disconnected then
-			console.warning("Dashboard disconnected!")
+			console.warning("Dashboard disconnected abruptly!")
 			disconnected = true
 		end
 
-		comm.socketServerSetTimeout(1000)
-		emu.frameadvance() -- Prevents freeze
+		emu.yield() -- Prevents freeze
 		return
 	end
 
@@ -64,5 +64,8 @@ function poll_dashboard_response()
 		end
 
 		config = response.data.config
+	elseif response.type == "disconnect" then
+		console.warning("Dashboard disconnected!")
+		disconnected = true
 	end
 end

@@ -8,6 +8,20 @@ const port = 51055;
 let mainWindow;
 let clientCooldown = false;
 let refreshTimeout;
+var elapsedStart;
+
+var lastEncounter;
+var sinceLastEncounter;
+
+const rateHistorySample = 20;
+let rateHistory = [];
+let encounterRate = 0;
+
+function clientMessage(data) {
+    var msg = JSON.stringify(data);
+
+    return msg.length + ' ' + msg;
+}
 
 function randomRange(minValue, maxValue) {
     return minValue + Math.floor(Math.random() * (maxValue - minValue))
@@ -24,7 +38,7 @@ function getPageIcon(game) {
     } else if (game.includes("Black") || game.includes("White")) {
         icon = randomRange(494, 649)
     }
-    
+
     return 'images/pokemon-icon/' + icon.toString().padStart(3, '0') + '.png'
 }
 
@@ -57,41 +71,66 @@ function readJSONFromFile(filePath, defaultValue) {
 }
 
 function formatMonData(mon) {
-    mon.gender = mon.gender.toLowerCase()
+    mon.gender = mon.gender.toLowerCase();
 
     if (mon.gender == 'genderless') {
         mon.gender = 'none' // Blank image filename
     }
 
     mon.pid = mon.pid.toString(16).toUpperCase().padEnd(8, '0');
-    mon.shiny = (mon.shinyValue < 8 ? '✨ ' : '➖ ') + mon.shinyValue
+    mon.shiny = (mon.shinyValue < 8 ? '✨ ' : '➖ ') + mon.shinyValue;
 
-    var s = '00' + mon.species.toString()
-    mon.species = s.substr(s.length - 3)
+    var s = '00' + mon.species.toString();
+    mon.species = s.substr(s.length - 3);
 
     return mon
 }
 
-function updateEncounterLog(mon) {
-    recents.push(formatMonData(mon))
-    recents = recents.slice(-config.encounter_log_limit)
+function updateEncounterRate() {
+    var now = Date.now() / 1000
+    sinceLastEncounter = now - lastEncounter
 
-    stats.total.seen += 1
-    stats.phase.seen += 1
+    if (!isNaN(lastEncounter) && !isNaN(sinceLastEncounter)) {
+        rateHistory.push(sinceLastEncounter);
 
-    stats.phase.lowest_sv = typeof (stats.phase.lowest_sv) != 'number' ? mon.shinyValue : Math.min(mon.shinyValue, stats.phase.lowest_sv)
+        if (rateHistory.length > rateHistorySample) rateHistory.shift();
 
-    var iv_sum = mon.hp_iv + mon.attack_iv + mon.defense_iv + mon.sp_attack_iv + mon.sp_defense_iv + mon.speed_iv
-    stats.total.max_iv_sum = typeof (stats.total.max_iv_sum) != 'number' ? iv_sum : Math.max(iv_sum, stats.total.max_iv_sum)
-    stats.total.min_iv_sum = typeof (stats.total.min_iv_sum) != 'number' ? iv_sum : Math.min(iv_sum, stats.total.min_iv_sum)
+        var sum = 0;
+        for (var i = 0; i < rateHistory.length; i++) {
+            sum += rateHistory[i];
+        }
 
-    if (mon.shiny == true || mon.shinyValue < 8) {
-        stats.total.shiny = stats.total.shiny + 1
+        encounterRate = sum / rateHistory.length; // Average out the most recent x encounters
+        encounterRate = Math.floor(1 / (encounterRate / 3600)); // Convert average encounter time to encounters/h
+        
+        mainWindow.webContents.send('set_encounter_rate', encounterRate)
     }
 
-    writeJSONToFile('../logs/encounters.json', recents)
+    lastEncounter = now
+}
 
-    return recents
+function updateEncounterLog(mon) {
+    recents.push(formatMonData(mon));
+    recents = recents.slice(-config.encounter_log_limit);
+
+    updateEncounterRate()
+
+    stats.total.seen += 1;
+    stats.phase.seen += 1;
+
+    stats.phase.lowest_sv = typeof (stats.phase.lowest_sv) != 'number' ? mon.shinyValue : Math.min(mon.shinyValue, stats.phase.lowest_sv);
+
+    var iv_sum = mon.hp_iv + mon.attack_iv + mon.defense_iv + mon.sp_attack_iv + mon.sp_defense_iv + mon.speed_iv;
+    stats.total.max_iv_sum = typeof (stats.total.max_iv_sum) != 'number' ? iv_sum : Math.max(iv_sum, stats.total.max_iv_sum);
+    stats.total.min_iv_sum = typeof (stats.total.min_iv_sum) != 'number' ? iv_sum : Math.min(iv_sum, stats.total.min_iv_sum);
+
+    if (mon.shiny == true || mon.shinyValue < 8) {
+        stats.total.shiny = stats.total.shiny + 1;
+    }
+
+    writeJSONToFile('../logs/encounters.json', recents);
+
+    return recents;
 }
 
 function updateTargetLog(mon) {
@@ -118,7 +157,9 @@ function socketSetTimeout(socket) {
         socket.destroy()
         console.log('Removed inactive client %d', index)
 
+        mainWindow.webContents.send('clients_updated', clientData);
         mainWindow.webContents.send('set_clients', clientData);
+        
     }, config.inactive_client_timeout)
 }
 
@@ -148,10 +189,15 @@ function interpretClientMessage(socket, message) {
         case 'init':
             client.gen = data.gen;
             client.game = data.game;
-            
-            mainWindow.webContents.send('set_client_tabs', clientData);
 
-            if (clients.length == 1) mainWindow.webContents.send('set_page_icon', getPageIcon(clientData[0].game));
+            mainWindow.webContents.send('clients_updated', clientData);
+
+            if (clients.length == 1) {
+                mainWindow.webContents.send('set_page_icon', getPageIcon(clientData[0].game));
+
+                elapsedStart = Date.now();
+                mainWindow.webContents.send('set_elapsed_start', elapsedStart)
+            }
             return;
         case 'game':
             client.map = data.map_name + " (" + data.map_header.toString() + ")";
@@ -230,7 +276,20 @@ app.on('activate', function () {
 })
 
 app.on('window-all-closed', function () {
-    if (process.platform !== 'darwin') app.quit()
+    if (process.platform !== 'darwin') {
+        var msg = clientMessage({
+            'type': 'disconnect'
+        })
+
+        clients.forEach((client) => {
+            client.write(msg);
+        });
+
+        // Wait an arbitrary 500ms for clients to safely disconnect before closing
+        setTimeout(() => {
+            app.quit()
+        }, 500);
+    }
 })
 
 app.whenReady().then(() => {
@@ -254,40 +313,53 @@ app.whenReady().then(() => {
         if (clients.length > 0) {
             mainWindow.webContents.send('set_page_icon', getPageIcon(clientData[0].game));
         }
-
+        
         switch (page) {
             case 'config':
                 mainWindow.webContents.send('set_config', config);
+                mainWindow.webContents.send('clients_updated', clientData);
                 break;
             case 'dashboard':
                 mainWindow.webContents.send('set_recents', recents);
                 mainWindow.webContents.send('set_targets', targets);
                 mainWindow.webContents.send('set_stats', stats);
                 mainWindow.webContents.send('set_clients', clientData);
+                mainWindow.webContents.send('set_encounter_rate', encounterRate)
+
+                if (clients.length > 0) {
+                    mainWindow.webContents.send('set_elapsed_start', elapsedStart);
+                    if (!isNaN(lastEncounter) && !isNaN(sinceLastEncounter)) mainWindow.webContents.send('set_latest_encounter', sinceLastEncounter)
+                }
                 break;
         }
     });
 
-    ipcMain.on('apply_config', (_event, new_config) => {
+    ipcMain.on('apply_config', (_event, new_config, target) => {
         // Send updated config to all clients
         if (clients.length > 0) {
-            var data = JSON.stringify({
+            var msg = clientMessage({
                 'type': 'apply_config',
                 'data': {
                     'config': new_config
                 }
             })
 
-            var msg = data.length + ' ' + data;
-
-            clients.forEach((client) => {
-                client.write(msg);
-            });
+            if (target == "all") {
+                clients.forEach((client) => {
+                    client.write(msg);
+                });
+            } else {
+                clients[target].write(msg);
+            }
         }
 
         // Save to file and update main.js reference of config
         config = new_config
         writeJSONToFile('../config.json', new_config)
+    });
+
+    ipcMain.on('refresh_editable_games', (_event) => {
+        mainWindow.webContents.send('set_editable_games', clientData);
     });
 
     const server = net.createServer((socket) => {
@@ -297,19 +369,17 @@ app.whenReady().then(() => {
         socketSetTimeout(socket);
 
         // Send config to newly connected lient
-        var data = JSON.stringify({
+        socket.write(clientMessage({
             'type': 'apply_config',
             'data': {
                 'config': config
             }
-        })
-
-        socket.write(data.length + ' ' + data);
+        }));
 
         let buffer = '';
         socket.on('data', (data) => {
             buffer += data.toString();
-            responses = buffer.split('\x00');
+            let responses = buffer.split('\x00');
 
             for (let i = 0; i < responses.length - 1; i++) {
                 var response = responses[i].trim();

@@ -1,6 +1,6 @@
 function update_pointers()
     offset.battle_menu_state = mdword(0x2146A88 + 0x20 * game_version) + 0x1367C
-    
+
     -- console.log(string.format("%08X", offset.battle_menu_state))
 end
 
@@ -8,7 +8,6 @@ end
 -- MODE VARIABLES
 -----------------------
 
-starter_gift_direction = "Down"
 snivy_ball = { x = 60, y = 100 }
 tepig_ball = { x = 128, y = 75 }
 oshawott_ball = { x = 185, y = 100 }
@@ -18,6 +17,71 @@ take_button = { x = 200, y = 155 }
 -----------------------
 -- MISC. BOT ACTIONS
 -----------------------
+
+function pathfind_to(target)
+    -- Use local position if one axis isn't specified
+    if not target.x then
+        target.x = game_state.trainer_x
+    elseif not target.z then
+        target.z = game_state.trainer_z
+    end
+
+    local dx = target.x - game_state.trainer_x
+    local dz = target.z - game_state.trainer_z
+    local direction_priority = "x"
+    local turn_cooldown = 2
+
+    local function move_vertically()
+        local button = dz > 0 and "Down" or "Up"
+        hold_button(button)
+        wait_frames(frames_per_move() - 1)
+        release_button(button)
+    end
+
+    local function move_horizontally()
+        local button = dx > 0 and "Right" or "Left"
+        hold_button(button)
+        wait_frames(frames_per_move() - 1)
+        release_button(button)
+    end
+
+    hold_button("B")
+    while game_state.trainer_x ~= target.x or game_state.trainer_z ~= target.z do
+        dx = target.x - game_state.trainer_x
+        dz = target.z - game_state.trainer_z
+
+        if direction_priority == "z" then
+            if dz ~= 0 then
+                move_vertically()
+            elseif dx ~= 0 then
+                move_horizontally()
+            end
+        else
+            if dx ~= 0 then
+                move_horizontally()
+            elseif dz ~= 0 then
+                move_vertically()
+            end
+        end
+        
+        -- Swap movement axis often to zigzag to the target,
+        -- decreasing the chance of the bot getting stuck
+        if turn_cooldown == 0 then
+            direction_priority = (direction_priority == "x") and "z" or "x"
+            turn_cooldown = 2
+        else
+            turn_cooldown = turn_cooldown - 1
+        end
+
+        wait_frames(1) -- Makes movement more precise by reducing timing inconsistencies between directions
+
+        -- Re-apply repel if necessary
+        while mdword(offset.text_interrupt) == 2 do
+            press_sequence("Up", 1, "A", 1)
+        end
+    end
+    release_button("B")
+end
 
 function get_mon_move_slot(mon, move_name)
     for i, v in ipairs(mon.moves) do
@@ -90,7 +154,7 @@ function do_pickup()
     if pickup_count > 0 then
         if item_count < tonumber(config.pickup_threshold) then
             console.debug("Pickup items in party: " .. item_count .. ". Collecting at threshold: " ..
-                            config.pickup_threshold)
+                              config.pickup_threshold)
         else
             press_sequence(60, "X", 30)
             touch_screen_at(65, 45)
@@ -385,7 +449,7 @@ function find_usable_ball()
             -- If config states this ball should be used
             if pokemon.matches_ruleset(foe[1], config.pokeball_override[k]) then
                 console.debug(k .. " is a valid match!")
-                
+
                 ball_index = find_ball(balls, k)
 
                 if ball_index ~= -1 then
@@ -412,15 +476,13 @@ end
 function subdue_pokemon()
     if config.false_swipe then
         -- Ensure target has no recoil moves before attempting to weaken it
-        local recoil_moves = {
-            "Brave Bird", "Double-Edge", "Flare Blitz", "Head Charge", 
-            "Head Smash", "Self-Destruct", "Take Down", "Volt Tackle", 
-            "Wild Charge", "Wood Hammer"}
+        local recoil_moves = {"Brave Bird", "Double-Edge", "Flare Blitz", "Head Charge", "Head Smash", "Self-Destruct",
+                              "Take Down", "Volt Tackle", "Wild Charge", "Wood Hammer"}
         local recoil_slot = 0
-        
+
         for _, v in ipairs(recoil_moves) do
             recoil_slot = get_mon_move_slot(foe[1], v)
-            
+
             if recoil_slot ~= 0 then
                 console.warning("The target has a recoil move. False Swipe won't be used.")
                 break
@@ -441,10 +503,8 @@ function subdue_pokemon()
 
     if config.inflict_status then
         -- Status moves in order of usefulness
-        local status_moves = {
-            "Spore", "Sleep Powder", "Lovely Kiss", "Dark Void", "Hypnosis", "Sing", "Grass Whistle", 
-            "Thunder Wave", "Glare", "Stun Spore"
-        }
+        local status_moves = {"Spore", "Sleep Powder", "Lovely Kiss", "Dark Void", "Hypnosis", "Sing", "Grass Whistle",
+                              "Thunder Wave", "Glare", "Stun Spore"}
         local status_slot = 0
 
         for i = 1, #foe[1].type, 1 do
@@ -468,10 +528,10 @@ function subdue_pokemon()
                 end
             end
         end
-        
+
         for _, v in ipairs(status_moves) do
             status_slot = get_mon_move_slot(party[get_lead_mon_index()], v)
-            
+
             if status_slot ~= 0 then
                 break
             end
@@ -498,7 +558,7 @@ function catch_pokemon()
     if ball_index == -1 then
         pause_bot("No valid Poké Balls to catch the target with")
     end
-    
+
     while mbyte(offset.battle_menu_state) ~= 1 do
         press_sequence("B", 5)
     end
@@ -537,7 +597,7 @@ function catch_pokemon()
 
         if mbyte(offset.battle_menu_state) == 4 then
             pause_bot("Lead fainted while trying to catch target")
-        end        
+        end
     end
 
     if not game_state.in_battle then
@@ -570,7 +630,7 @@ function process_wild_encounter()
     local double = #foe == 2
 
     wait_frames(30)
-    
+
     if foe_is_target then
         if double then
             wait_frames(120)
@@ -620,12 +680,6 @@ end
 -- BOT MODES
 -----------------------
 
-function mode_starters_advance_until_battle()
-    while not game_state.in_battle do
-        press_sequence("A", 5)
-    end
-end
-
 function mode_starters(starter)
     local ball
 
@@ -648,7 +702,7 @@ function mode_starters(starter)
     console.log("Opening Starter Selection...")
 
     while mbyte(offset.starter_selection_is_open) ~= 1 do
-        press_sequence("A", 5, starter_gift_direction, 1)
+        press_sequence("A", 5, "Down", 1)
     end
 
     console.log("Choosing Starter...")
@@ -672,7 +726,9 @@ function mode_starters(starter)
     if not config.hax then
         console.log("Waiting to start battle...")
 
-        mode_starters_advance_until_battle()
+        while not game_state.in_battle do
+            press_sequence("A", 5)
+        end
 
         console.log("Waiting to see starter...")
 
@@ -683,7 +739,7 @@ function mode_starters(starter)
 
     mon = party[1]
     local was_target = pokemon.log(mon)
-    
+
     if was_target then
         pause_bot("Starter meets target specs")
     else
@@ -694,31 +750,49 @@ function mode_starters(starter)
 end
 
 function mode_random_encounters()
-    check_party_status()
+    local home = {
+        x = game_state.trainer_x,
+        z = game_state.trainer_z
+    }
 
-    console.log("Attempting to start a battle...")
+    local function accept_interrupt_text()
+        while mdword(offset.text_interrupt) == 2 do
+            press_sequence("Up", 1, "A", 1)
+        end
+    end
 
-    local tile_frames = frames_per_move() - 2
-    local dir1 = config.move_direction == "Horizontal" and "Left" or "Up"
-    local dir2 = config.move_direction == "Horizontal" and "Right" or "Down"
-    
-    while not foe and not game_state.in_battle do
+    local function move_in_direction(dir)
+        accept_interrupt_text()
+
         hold_button("B")
-        hold_button(dir1)
-        wait_frames(tile_frames)
-        release_button(dir1)
-        release_button("B")
-
-        hold_button("B")
-        hold_button(dir2)
-        wait_frames(tile_frames)
-        release_button(dir2)
+        hold_button(dir)
+        wait_frames(frames_per_move() - 2)
+        release_button(dir)
         release_button("B")
     end
-    
-    release_button(dir2)
 
-    process_wild_encounter()
+    while true do
+        check_party_status()
+
+        console.log("Attempting to start a battle...")
+
+        local dir1 = config.move_direction == "Horizontal" and "Left" or "Up"
+        local dir2 = config.move_direction == "Horizontal" and "Right" or "Down"
+        
+        wait_frames(60) -- Wait to regain control post-battle
+        pathfind_to(home)
+        wait_frames(8)
+
+        while not foe and not game_state.in_battle do
+            move_in_direction(dir1)
+            move_in_direction(dir2)
+        end
+
+        release_button(dir2)
+
+        process_wild_encounter()
+
+    end
 end
 
 function mode_gift()
@@ -731,20 +805,14 @@ function mode_gift()
     end
 
     wait_frames(60)
-
-    local in_dreamyard = game_state.map_header == 152
-
+    
     local og_party_count = #party
     while #party == og_party_count do
-        if in_dreamyard then
-            press_sequence("A", 5)
-        else
-            press_sequence("A", 5)
-        end
+        press_sequence("A", 5)
     end
 
     -- Dialogue varies per gift type
-    if in_dreamyard then
+    if game_state.map_header == 152 then -- Dreamyard
         press_sequence(300, "B", 120, "B", 150, "B", 110, "B", 30) -- Decline nickname and progress text afterwards
     else
         press_sequence(180, "B", 60) -- Decline nickname
@@ -765,9 +833,9 @@ function mode_gift()
 
     local mon = party[#party]
     local was_target = pokemon.log(mon)
-    
+
     if was_target then
-        if config.save_game_after_catch then 
+        if config.save_game_after_catch then
             console.log("Gift Pokemon meets target specs! Saving...")
 
             if not config.hax then
@@ -786,49 +854,90 @@ function mode_gift()
 end
 
 function mode_phenomenon_encounters()
-    pause_bot("This mode is unfinished")
+    -- Remember initial position to return to after every battle
+    local home = {
+        x = game_state.trainer_x,
+        z = game_state.trainer_z
+    }
 
-    check_party_status()
+    local function accept_interrupt_text()
+        local interrupted = false
 
-    console.log("Running until a phenomenon spawns...")
+        while mdword(offset.text_interrupt) == 2 do
+            press_sequence("Up", 1, "A", 1)
+            interrupted = true
+        end
 
-    hold_button("B")
-
-    local tile_frames = frames_per_move()
-
-    while game_state.phenomenon_x == 0 and game_state.phenomenon_z == 0 do
-        hold_button("Left")
-        wait_frames(tile_frames)
-        hold_button("Right")
-        wait_frames(tile_frames)
+        if interrupted then
+            pathfind_to(home)
+        end
     end
 
-    console.log("Phenomena spawned! Attempting to start encounter...")
+    local function move_in_direction(dir)
+        accept_interrupt_text()
+
+        hold_button("B")
+        hold_button(dir)
+        wait_frames(frames_per_move() - 2)
+        release_button(dir)
+        release_button("B")
+    end
+
+    while true do
+        check_party_status()
+        ::begin::
+        console.log("Running until a phenomenon spawns...")
+
+        local dir1 = config.move_direction == "Horizontal" and "Left" or "Up"
+        local dir2 = config.move_direction == "Horizontal" and "Right" or "Down"
+
+        while game_state.phenomenon_x == 0 and game_state.phenomenon_z == 0 do
+            move_in_direction(dir1)
+            move_in_direction(dir2)
+        end
+
+        release_button(dir2)
+
+        console.log("Phenomenon spawned! Attempting to reach it...")
+
+        while not foe and not game_state.in_battle do
+            if game_state.phenomenon_x == 0 then -- Phenomenon was an item
+                goto begin
+            end
+
+            pathfind_to({
+                x = game_state.phenomenon_x,
+                z = game_state.phenomenon_z
+            })
+        end
+
+        if game_state.in_battle then
+            process_wild_encounter()
+        else
+            accept_interrupt_text() -- Accept repel dialogue or dust cloud item
+        end
+
+        pathfind_to(home)
+    end
 end
 
 function mode_daycare_eggs()
     local function collect_daycare_egg()
         console.debug("That's an egg!")
 
-        release_button("Right")
-        press_sequence(60, "B")
-        hold_button("Up")
-
-        while game_state.trainer_z ~= 557 do -- Bike up to daycare man
-            wait_frames(8)
-        end
-
-        release_button("Up")
+        clear_all_inputs()
+        press_sequence(30, "B")
+        
+        pathfind_to({z=557})
 
         local og_party_count = #party -- Press A until egg in party
         while #party == og_party_count do
             press_sequence("A", 5)
         end
 
-        press_sequence(200, "B", 90, "B") -- End dialogue
+        press_sequence(200, "B", 70, "B") -- End dialogue
     end
 
-    -- Daycare routine below
     if game_state.map_header ~= 321 then
         pause_bot("Please place the bot on Route 3")
     end
@@ -846,40 +955,13 @@ function mode_daycare_eggs()
         -- Otherwise free up party slots at PC
         if not has_egg then
             console.log("Party is clear of eggs. Depositing hatched Pokemon...")
-            hold_button("B")
-
-            -- Reach staircase
-            while game_state.trainer_x < 742 do
-                hold_button("Right")
-                wait_frames(1)
-            end
-
-            while game_state.trainer_x > 748 do
-                hold_button("Left")
-                wait_frames(1)
-            end
-
-            release_button("Right")
-            release_button("Left")
-
-            -- Ascend staircase
-            while game_state.trainer_z > 558 do
-                hold_button("Up")
-                wait_frames(1)
-            end
-
-            release_button("Up")
-
-            -- Align with door
-            while game_state.trainer_x < 749 do
-                hold_button("Right")
-                wait_frames(1)
-            end
-
-            release_button("Right")
-
+            
+            pathfind_to({x=748}) -- Move to staircase
+            pathfind_to({z=557}) -- Move to the door
+            pathfind_to({x=749,z=556})
+            
             -- Walk to daycare lady at desk
-            while game_state.map_header ~= 323 or game_state.trainer_z ~= 9 do
+            while game_state.map_header ~= 323 do
                 hold_button("Up")
                 wait_frames(1)
             end
@@ -887,15 +969,7 @@ function mode_daycare_eggs()
             release_button("Up")
 
             -- Walk to PC
-            while game_state.trainer_x < 9 do
-                hold_button("Right")
-                wait_frames(1)
-            end
-
-            release_button("B")
-            release_button("Right")
-
-            wait_frames(frames_per_move())
+            pathfind_to({x=9,z=9})
             press_sequence("Up", 16, "A", 140, "A", 120, "A", 110, "A", 100)
 
             -- Temporary, add this to config once I figure out PC storage limitations
@@ -926,9 +1000,9 @@ function mode_daycare_eggs()
             end
 
             press_sequence("B", 30, "B", 30, "B", 30, "B", 150, "B", 90) -- Exit PC
-
+            
             hold_button("B")
-
+            
             while game_state.trainer_x > 6 do -- Align with door
                 hold_button("Left")
                 wait_frames(1)
@@ -1009,9 +1083,6 @@ function mode_daycare_eggs()
         if mdword(offset.egg_hatching) == 1 then -- Interrupted by egg hatching
             console.log("Oh?")
 
-            release_button("Right")
-            release_button("Left")
-
             press_sequence("B", 60)
 
             -- Remember which Pokemon are currently eggs
@@ -1036,7 +1107,7 @@ function mode_daycare_eggs()
                 if config.save_game_after_catch then
                     save_game()
                 end
-                
+
                 pause_bot("Hatched a target Pokemon")
             end
 
@@ -1049,17 +1120,21 @@ end
 
 function mode_static_encounters()
     while not foe and not game_state.in_battle do
+        if mword(offset.map_header) == 152 then -- Dreamyard, Eon duo encounter
+            press_button("Right")
+        end
+
         press_sequence("A", 5)
     end
-    
+
     foe_is_target = pokemon.log(foe[1])
-    
+
     if not config.hax then
         for i = 0, 22, 1 do
             press_sequence("A", 5)
         end
     end
-    
+
     if foe_is_target then
         if config.auto_catch then
             while game_state.in_battle do

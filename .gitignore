@@ -7,7 +7,6 @@ dashboard/icudtl.dat
 dashboard/resources.pak
 dashboard/v8_context_snapshot.bin
 dashboard/locales
-dashboard-old
 build
 logs/*
 node_modules
