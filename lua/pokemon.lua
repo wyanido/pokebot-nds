@@ -324,11 +324,11 @@ function pokemon.log(mon)
     return was_target
 end
 
-local mon_ability = json.load("lua/data/ability.json")
-local mon_item = json.load("lua/data/item.json")
-local mon_move = json.load("lua/data/move.json")
-local mon_type = json.load("lua/data/type.json")
-local mon_dex = json.load("lua/data/pokedex.json")
+local mon_ability = json.load("lua/data/abilities.json")
+local mon_item = json.load("lua/data/items.json")
+local mon_move = json.load("lua/data/moves.json")
+local mon_type = json.load("lua/data/type_matchups.json")
+local mon_dex = json.load("lua/data/dex.json")
 local mon_lang = {"none", "日本語", "English", "Français", "Italiano", "Deutsch", "Español", "한국어"}
 local mon_gender = {"Male", "Female", "Genderless"}
 local mon_nature = {"Hardy", "Lonely", "Brave", "Adamant", "Naughty", "Bold", "Docile", "Relaxed", "Impish", "Lax",

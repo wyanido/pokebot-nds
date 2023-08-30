@@ -200,7 +200,7 @@ end
 
 function update_game_info(force)
     -- Refresh data at the rate it takes to move 1 tile
-    local refresh_frames = frames_per_move() / 2
+    local refresh_frames = frames_per_move()
 
     if emu.framecount() % refresh_frames == 0 or force then
         game_state = get_game_state()
@@ -234,11 +234,30 @@ function pause_bot(reason)
     end
 end
 
+function cycle_starter_choice()
+    -- Alternate between starters specified in config and reset until one is a target
+    if not config.starter0 and not config.starter1 and not config.starter2 then
+        console.warning("At least one starter selection must be enabled in config for this bot mode")
+        return
+    end
+
+    -- Cycle to next enabled starter
+    starter = (starter + 1) % 3
+
+    while not config["starter" .. tostring(starter)] do
+        starter = (starter + 1) % 3
+    end
+end
+
 function process_frame()
     emu.frameadvance()
     update_pointers()
     poll_dashboard_response()
     update_game_info()
+end
+
+function to_signed(u16)
+    return (u16 + 32768) % 65536 - 32768
 end
 
 -----------------------
@@ -281,19 +300,7 @@ local starter = -1
 while true do
     if mode_function then
         if mode == "starters" then
-            -- Alternate between starters specified in config and reset until one is a target
-            if not config.starter0 and not config.starter1 and not config.starter2 then
-                console.warning("At least one starter selection must be enabled in config for this bot mode")
-                return
-            end
-
-            -- Cycle to next enabled starter
-            starter = (starter + 1) % 3
-
-            while not config["starter" .. tostring(starter)] do
-                starter = (starter + 1) % 3
-            end
-
+            cycle_starter_choice()
             mode_starters(starter)
         else
             mode_function()
@@ -303,9 +310,9 @@ while true do
             while true do
                 while not game_state.in_battle do
                     process_frame()
-                    -- Restart if config changed
+                    
                     if mode_real ~= config.mode then
-                        goto begin
+                        goto begin -- Restart if config changed
                     end
                 end
 
@@ -315,10 +322,9 @@ while true do
 
                 while game_state.in_battle do
                     process_frame()
-
-                    -- Restart if config changed
+                    
                     if mode_real ~= config.mode then
-                        goto begin
+                        goto begin -- Restart if config changed
                     end
                 end
             end

@@ -9,9 +9,12 @@ function update_pointers()
     offset.trainer_x = offset.map_header + 4 + 2
     offset.trainer_y = offset.map_header + 12 + 2
     offset.trainer_z = offset.map_header + 8 + 2
-    -- console.log()
-    -- offset.trainer_x = 
 
+    offset.battle_indicator = 0x021A1B2A
+
+    offset.starters_ready = 0x022AFE14 -- 0 before hand appears, random number afterwards
+    offset.selected_starter = 0x022AFD90 -- 0: Turtwig, 1: Chimchar, 2: Piplup
+    
     -- console.log(string.format("%08X", offset.map_header))
 end
 
@@ -20,6 +23,13 @@ function flee_battle()
 		touch_screen_at(125, 175) -- Run
 		wait_frames(20)
     end
+end
+
+local function skip_dialogue()
+	hold_button("B")
+	press_sequence(12, "A")
+	release_button("B")
+	wait_frames(1)
 end
 
 function process_wild_encounter()

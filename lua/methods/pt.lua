@@ -14,5 +14,8 @@ function update_pointers()
     offset.trainer_x = offset.map_header + 4 + 2
     offset.trainer_y = offset.map_header + 12 + 2
     offset.trainer_z = offset.map_header + 8 + 2
+
+	offset.battle_indicator = 0x021D18F2 -- Static
+	
 	-- console.log(string.format("%08X", offset.foe_count))
 end
