@@ -1,7 +1,7 @@
 -----------------------
 -- INITIALIZATION
 -----------------------
-local BOT_VERSION = "0.4.0-alpha"
+local BOT_VERSION = "0.4.1-alpha"
 
 console.clear()
 console.log("Running " .. _VERSION)
@@ -141,19 +141,31 @@ end
 
 function get_game_state()
     local map = mword(offset.map_header)
+    local in_game = (map ~= 0x0 and map <= MAP_HEADER_COUNT)
 
     -- Update in-game values
     if gen == 4 then -- gen 4 is always considered "in game" even before the title screen, so it always returns real data
-        return {
-            map_header = map,
-            map_name = map_names[map + 1],
-            trainer_x = mword(offset.trainer_x + 2),
-            trainer_y = to_signed(mword(offset.trainer_y + 2)),
-            trainer_z = mword(offset.trainer_z + 2),
-            in_battle = mbyte(offset.battle_indicator) == 0x41 and mbyte(offset.foe_count) > 0
-        }
+        if in_game then
+            return {
+                map_header = map,
+                map_name = map_names[map + 1],
+                trainer_x = mword(offset.trainer_x + 2),
+                trainer_y = to_signed(mword(offset.trainer_y + 2)),
+                trainer_z = mword(offset.trainer_z + 2),
+                in_battle = mbyte(offset.battle_indicator) == 0x41 and mbyte(offset.foe_count) > 0,
+                in_game = true
+            }
+        else
+            return {
+                map_header = 0,
+                map_name = "--",
+                trainer_x = 0,
+                trainer_y = 0,
+                trainer_z = 0,
+                in_game = false
+            }
+        end
     else
-        local in_game = (map ~= 0x0 and map <= MAP_HEADER_COUNT)
         if in_game then
             return {
                 -- map_matrix = mdword(offset.map_matrix),

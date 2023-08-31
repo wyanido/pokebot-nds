@@ -19,7 +19,7 @@ _Currently only English (USA, Europe) copies are supported._
 | Pickup farming		| ➖ | ➖ | ✅ | ✅ |
 | Gift resets 			| ➖ | ➖ | ✅ | ✅ |
 | Egg hatching			| ➖ | ➖ | ✅ | ✅ |
-| Static encounters 	| ➖ | ➖ | ✅ | ✅ |
+| Static encounters 	| ➖ | ✅ | ✅ | ✅ |
 | Thief farming			| ➖ | ➖ | ✅ | ✅ |
 | Fishing			   	| ➖ | ➖ | ✅ | ✅ |
 | Dust cloud farming	|  |  | ✅ | ✅ |
