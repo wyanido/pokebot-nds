@@ -14,7 +14,7 @@ use std::{
 };
 
 #[derive(Debug, Serialize, Deserialize)]
-struct ClientRequest {
+struct ClientMessage {
     type_: String,
     data: serde_json::Value,
 }
@@ -30,50 +30,79 @@ fn read_json_file(path: &str) -> Result<Value, Box<dyn Error>> {
     Ok(json)
 }
 
-fn handle_client(mut stream: TcpStream, timeout: String) {
-    // Remove inactive clients
+fn read_message(stream: &mut TcpStream) -> Result<Value, std::io::Error> {
+    let mut buffer = Vec::new();
+    let null_terminator: u8 = 0;
+
+    loop {
+        let mut byte = [0; 1];
+        let result = stream.read_exact(&mut byte);
+
+        match result {
+            Ok(()) => {
+                if byte[0] == null_terminator {
+                    break;
+                }
+                buffer.push(byte[0]);
+            }
+            Err(e) => return Err(e), // Pass the error up
+        }
+    }
+
+    let message_string = String::from_utf8(buffer).expect("Invalid UTF-8 data");
+    let (_, json_string) = message_string.split_at(message_string.find(' ').unwrap_or(0));
+    let message: serde_json::Value =
+        serde_json::from_str(json_string).expect("JSON was not well-formatted");
+
+    Ok(message)
+}
+
+fn set_client_timeout(stream: &mut TcpStream, timeout: String) {
     stream
         .set_read_timeout(Some(Duration::from_millis(
             timeout.parse::<u64>().expect("Invalid timeout value"),
         )))
         .expect("set_read_timeout failed");
+}
+fn handle_client(mut stream: TcpStream, timeout: String) {
+    set_client_timeout(&mut stream, timeout);
 
-    // Parse incoming data
-    let mut buffer = String::new();
-    while let Ok(n) = stream.read_to_string(&mut buffer) {
-        if n == 0 {
-            break; // Connection closed
-        }
+    // Continously listen for client messages until disconnect
+    loop {
+        match read_message(&mut stream) {
+            Ok(message) => {
+                println!("Received message: {}", message.to_string());
 
-        match serde_json::from_str::<ClientRequest>(&buffer) {
-            Ok(request) => {
-                match request.type_.as_str() {
-                    "data_type" => {
-                        println!("Received data_type request: {:?}", request.data);
-
-                        let response = ClientRequest {
-                            type_: "response".to_string(),
-                            data: serde_json::json!({"message": "Response data"}),
-                        };
-
-                        // Serialize the response as JSON and send it back
-                        let response_json = serde_json::to_string(&response).unwrap();
-                        stream.write(response_json.as_bytes()).ok();
+                match message["type_"].as_str() {
+                    Some("comm_check") => {
+                        println!("Client tested its connection!");
+                    }
+                    Some("init") => {
+                        println!("Received 'init' message from client");
+                    }
+                    Some("party") => {
+                        println!("Received party data!");
+                    }
+                    Some("game") => {
+                        println!("Game state updated");
+                    }
+                    Some("seen") => {
+                        println!("Found a Pokémon!");
+                    }
+                    Some("seen_target") => {
+                        println!("Found a target Pokémon!");
                     }
                     _ => {
-                        println!("Received unknown request type: {}", request.type_);
+                        println!("Received unknown message type: {}", message["type_"]);
                     }
                 }
             }
             Err(e) => {
-                eprintln!("Error parsing JSON: {}", e);
+                eprintln!("{}", e);
+                break; // Exit loop on error
             }
         }
-
-        buffer.clear();
     }
-
-    println!("Client removed: {}", stream.peer_addr().unwrap());
 }
 
 fn client_send(
@@ -81,7 +110,7 @@ fn client_send(
     msg_type: &str,
     msg_data: &serde_json::Value,
 ) -> io::Result<()> {
-    let response = ClientRequest {
+    let response = ClientMessage {
         type_: msg_type.to_string(),
         data: msg_data.clone(),
     };

@@ -2,7 +2,7 @@ console.log("\nTrying to establish a connection to the dashboard...")
 
 comm.socketServerSetTimeout(50)
 comm.socketServerSetIp("127.0.0.1") -- Refreshes the connection, the dashboard suppresses the disconnect error this usually causes in favour of an easy solution
-comm.socketServerSend('{ "type": "comm_check" }' .. "\x00")
+comm.socketServerSend('{ "type_": "comm_check", "data": {}}' .. "\x00")
 
 console.log("Dashboard connected at server " .. comm.socketServerGetInfo())
 comm.socketServerSetTimeout(5)

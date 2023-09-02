@@ -311,12 +311,12 @@ function pokemon.log(mon)
     -- Send encounter to dashboard
     if was_target then
         comm.socketServerSend(json.encode({
-            type = "seen_target",
+            type_ = "seen_target",
             data = mon_new
         }) .. "\x00")
     else
         comm.socketServerSend(json.encode({
-            type = "seen",
+            type_ = "seen",
             data = mon_new
         }) .. "\x00")
     end

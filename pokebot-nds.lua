@@ -34,7 +34,7 @@ dofile("lua\\dashboard.lua")
 
 -- Send game info to the dashboard
 comm.socketServerSend(json.encode({
-    type = "init",
+    type_ = "init",
     data = {
         gen = gen,
         game = game_name
@@ -205,7 +205,7 @@ function update_game_info(force)
     if emu.framecount() % refresh_frames == 0 or force then
         game_state = get_game_state()
         comm.socketServerSend(json.encode({
-            type = "game",
+            type_ = "game",
             data = game_state
         }) .. "\x00")
 
@@ -215,7 +215,7 @@ function update_game_info(force)
     local party_changed = get_party()
     if party_changed then
         comm.socketServerSend(json.encode({
-            type = "party",
+            type_ = "party",
             data = party
         }) .. "\x00")
     end

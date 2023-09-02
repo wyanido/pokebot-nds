@@ -2,7 +2,7 @@
 <script setup lang="ts">
 import './scss/styles.scss'
 
-import { Tooltip, Toast, Popover } from 'bootstrap';
+// import { Tooltip, Toast, Popover } from 'bootstrap';
 </script>
 
 <template>
@@ -10,7 +10,7 @@ import { Tooltip, Toast, Popover } from 'bootstrap';
     <div class="navbar-brand">
       <img src="./assets/pokemon-icon/201-27.png" width="30" height="30" class="d-inline-block align-top" id="icon">
       Pokébot NDS
-      <span class="navbar-text fs-6">v0.4.0-alpha</span>
+      <span class="navbar-text fs-6">v0.5.0-alpha</span>
     </div>
     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
       <div class="navbar-nav">
