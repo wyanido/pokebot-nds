@@ -1,7 +1,10 @@
 [
     {
-        "name": "--"
-    }
+        "accuracy": 0,
+        "power": 0,
+        "name": "filler",
+        "type": "Normal"
+    },
     {
         "accuracy": 100,
         "power": 40,
@@ -196,7 +199,7 @@
     },
     {
         "accuracy": 100,
-        "power": 50,
+        "power": 40,
         "name": "Tackle",
         "type": "Normal"
     },
@@ -412,7 +415,7 @@
     },
     {
         "accuracy": 100,
-        "power": 50,
+        "power": null,
         "name": "Seismic Toss",
         "type": "Fighting"
     },
@@ -815,7 +818,7 @@
     {
         "accuracy": 90,
         "power": 130,
-        "name": "Hi Jump Kick",
+        "name": "High Jump Kick",
         "type": "Fighting"
     },
     {
@@ -892,7 +895,7 @@
     },
     {
         "accuracy": 100,
-        "power": 50,
+        "power": null,
         "name": "Psywave",
         "type": "Psychic"
     },
@@ -1258,7 +1261,7 @@
     },
     {
         "accuracy": 95,
-        "power": 20,
+        "power": 40,
         "name": "Fury Cutter",
         "type": "Bug"
     },
@@ -1294,7 +1297,7 @@
     },
     {
         "accuracy": 100,
-        "power": 61,
+        "power": null,
         "name": "Return",
         "type": "Normal"
     },
@@ -1306,7 +1309,7 @@
     },
     {
         "accuracy": 100,
-        "power": 61,
+        "power": null,
         "name": "Frustration",
         "type": "Normal"
     },
@@ -1330,7 +1333,7 @@
     },
     {
         "accuracy": 100,
-        "power": 71,
+        "power": null,
         "name": "Magnitude",
         "type": "Ground"
     },
@@ -1486,7 +1489,7 @@
     },
     {
         "accuracy": 100,
-        "power": 100,
+        "power": 120,
         "name": "Future Sight",
         "type": "Psychic"
     },
@@ -2797,563 +2800,5 @@
         "power": 60,
         "name": "Ominous Wind",
         "type": "Ghost"
-    },
-    {
-        "accuracy": 100,
-        "power": 120,
-        "name": "Shadow Force",
-        "type": "Ghost"
-    },
-    {
-        "accuracy": null,
-        "power": null,
-        "name": "Hone Claws",
-        "type": "Dark"
-    },
-    {
-        "accuracy": null,
-        "power": null,
-        "name": "Wide Guard",
-        "type": "Rock"
-    },
-    {
-        "accuracy": null,
-        "power": null,
-        "name": "Guard Split",
-        "type": "Psychic"
-    },
-    {
-        "accuracy": null,
-        "power": null,
-        "name": "Power Split",
-        "type": "Psychic"
-    },
-    {
-        "accuracy": null,
-        "power": null,
-        "name": "Wonder Room",
-        "type": "Psychic"
-    },
-    {
-        "accuracy": 100,
-        "power": 80,
-        "name": "Psyshock",
-        "type": "Psychic"
-    },
-    {
-        "accuracy": 100,
-        "power": 65,
-        "name": "Venoshock",
-        "type": "Poison"
-    },
-    {
-        "accuracy": null,
-        "power": null,
-        "name": "Autotomize",
-        "type": "Steel"
-    },
-    {
-        "accuracy": null,
-        "power": null,
-        "name": "Rage Powder",
-        "type": "Bug"
-    },
-    {
-        "accuracy": null,
-        "power": null,
-        "name": "Telekinesis",
-        "type": "Psychic"
-    },
-    {
-        "accuracy": null,
-        "power": null,
-        "name": "Magic Room",
-        "type": "Psychic"
-    },
-    {
-        "accuracy": 100,
-        "power": 50,
-        "name": "Smack Down",
-        "type": "Rock"
-    },
-    {
-        "accuracy": 100,
-        "power": 60,
-        "name": "Storm Throw",
-        "type": "Fighting"
-    },
-    {
-        "accuracy": 100,
-        "power": 70,
-        "name": "Flame Burst",
-        "type": "Fire"
-    },
-    {
-        "accuracy": 100,
-        "power": 95,
-        "name": "Sludge Wave",
-        "type": "Poison"
-    },
-    {
-        "accuracy": null,
-        "power": null,
-        "name": "Quiver Dance",
-        "type": "Bug"
-    },
-    {
-        "accuracy": 100,
-        "power": null,
-        "name": "Heavy Slam",
-        "type": "Steel"
-    },
-    {
-        "accuracy": 100,
-        "power": 120,
-        "name": "Synchronoise",
-        "type": "Psychic"
-    },
-    {
-        "accuracy": 100,
-        "power": null,
-        "name": "Electro Ball",
-        "type": "Electric"
-    },
-    {
-        "accuracy": 100,
-        "power": null,
-        "name": "Soak",
-        "type": "Water"
-    },
-    {
-        "accuracy": 100,
-        "power": 50,
-        "name": "Flame Charge",
-        "type": "Fire"
-    },
-    {
-        "accuracy": null,
-        "power": null,
-        "name": "Coil",
-        "type": "Poison"
-    },
-    {
-        "accuracy": 100,
-        "power": 65,
-        "name": "Low Sweep",
-        "type": "Fighting"
-    },
-    {
-        "accuracy": 100,
-        "power": 40,
-        "name": "Acid Spray",
-        "type": "Poison"
-    },
-    {
-        "accuracy": 100,
-        "power": 95,
-        "name": "Foul Play",
-        "type": "Dark"
-    },
-    {
-        "accuracy": 100,
-        "power": null,
-        "name": "Simple Beam",
-        "type": "Normal"
-    },
-    {
-        "accuracy": 100,
-        "power": null,
-        "name": "Entrainment",
-        "type": "Normal"
-    },
-    {
-        "accuracy": null,
-        "power": null,
-        "name": "After You",
-        "type": "Normal"
-    },
-    {
-        "accuracy": 100,
-        "power": 60,
-        "name": "Round",
-        "type": "Normal"
-    },
-    {
-        "accuracy": 100,
-        "power": 40,
-        "name": "Echoed Voice",
-        "type": "Normal"
-    },
-    {
-        "accuracy": 100,
-        "power": 70,
-        "name": "Chip Away",
-        "type": "Normal"
-    },
-    {
-        "accuracy": null,
-        "power": 50,
-        "name": "Clear Smog",
-        "type": "Poison"
-    },
-    {
-        "accuracy": 100,
-        "power": 20,
-        "name": "Stored Power",
-        "type": "Psychic"
-    },
-    {
-        "accuracy": null,
-        "power": null,
-        "name": "Quick Guard",
-        "type": "Fighting"
-    },
-    {
-        "accuracy": null,
-        "power": null,
-        "name": "Ally Switch",
-        "type": "Psychic"
-    },
-    {
-        "accuracy": 100,
-        "power": 80,
-        "name": "Scald",
-        "type": "Water"
-    },
-    {
-        "accuracy": null,
-        "power": null,
-        "name": "Shell Smash",
-        "type": "Normal"
-    },
-    {
-        "accuracy": null,
-        "power": null,
-        "name": "Heal Pulse",
-        "type": "Psychic"
-    },
-    {
-        "accuracy": 100,
-        "power": 65,
-        "name": "Hex",
-        "type": "Ghost"
-    },
-    {
-        "accuracy": 100,
-        "power": 60,
-        "name": "Sky Drop",
-        "type": "Flying"
-    },
-    {
-        "accuracy": null,
-        "power": null,
-        "name": "Shift Gear",
-        "type": "Steel"
-    },
-    {
-        "accuracy": 90,
-        "power": 60,
-        "name": "Circle Throw",
-        "type": "Fighting"
-    },
-    {
-        "accuracy": 100,
-        "power": 60,
-        "name": "Incinerate",
-        "type": "Fire"
-    },
-    {
-        "accuracy": 100,
-        "power": null,
-        "name": "Quash",
-        "type": "Dark"
-    },
-    {
-        "accuracy": 100,
-        "power": 55,
-        "name": "Acrobatics",
-        "type": "Flying"
-    },
-    {
-        "accuracy": null,
-        "power": null,
-        "name": "Reflect Type",
-        "type": "Normal"
-    },
-    {
-        "accuracy": 100,
-        "power": 70,
-        "name": "Retaliate",
-        "type": "Normal"
-    },
-    {
-        "accuracy": 100,
-        "power": null,
-        "name": "Final Gambit",
-        "type": "Fighting"
-    },
-    {
-        "accuracy": null,
-        "power": null,
-        "name": "Bestow",
-        "type": "Normal"
-    },
-    {
-        "accuracy": 50,
-        "power": 100,
-        "name": "Inferno",
-        "type": "Fire"
-    },
-    {
-        "accuracy": 100,
-        "power": 80,
-        "name": "Water Pledge",
-        "type": "Water"
-    },
-    {
-        "accuracy": 100,
-        "power": 80,
-        "name": "Fire Pledge",
-        "type": "Fire"
-    },
-    {
-        "accuracy": 100,
-        "power": 80,
-        "name": "Grass Pledge",
-        "type": "Grass"
-    },
-    {
-        "accuracy": 100,
-        "power": 70,
-        "name": "Volt Switch",
-        "type": "Electric"
-    },
-    {
-        "accuracy": 100,
-        "power": 50,
-        "name": "Struggle Bug",
-        "type": "Bug"
-    },
-    {
-        "accuracy": 100,
-        "power": 60,
-        "name": "Bulldoze",
-        "type": "Ground"
-    },
-    {
-        "accuracy": 90,
-        "power": 60,
-        "name": "Frost Breath",
-        "type": "Ice"
-    },
-    {
-        "accuracy": 90,
-        "power": 60,
-        "name": "Dragon Tail",
-        "type": "Dragon"
-    },
-    {
-        "accuracy": null,
-        "power": null,
-        "name": "Work Up",
-        "type": "Normal"
-    },
-    {
-        "accuracy": 95,
-        "power": 55,
-        "name": "Electroweb",
-        "type": "Electric"
-    },
-    {
-        "accuracy": 100,
-        "power": 90,
-        "name": "Wild Charge",
-        "type": "Electric"
-    },
-    {
-        "accuracy": 95,
-        "power": 80,
-        "name": "Drill Run",
-        "type": "Ground"
-    },
-    {
-        "accuracy": 90,
-        "power": 40,
-        "name": "Dual Chop",
-        "type": "Dragon"
-    },
-    {
-        "accuracy": 100,
-        "power": 60,
-        "name": "Heart Stamp",
-        "type": "Psychic"
-    },
-    {
-        "accuracy": 100,
-        "power": 75,
-        "name": "Horn Leech",
-        "type": "Grass"
-    },
-    {
-        "accuracy": 100,
-        "power": 90,
-        "name": "Sacred Sword",
-        "type": "Fighting"
-    },
-    {
-        "accuracy": 95,
-        "power": 75,
-        "name": "Razor Shell",
-        "type": "Water"
-    },
-    {
-        "accuracy": 100,
-        "power": 60,
-        "name": "Heat Crash",
-        "type": "Fire"
-    },
-    {
-        "accuracy": 90,
-        "power": 65,
-        "name": "Leaf Tornado",
-        "type": "Grass"
-    },
-    {
-        "accuracy": 100,
-        "power": 65,
-        "name": "Steamroller",
-        "type": "Bug"
-    },
-    {
-        "accuracy": null,
-        "power": null,
-        "name": "Cotton Guard",
-        "type": "Grass"
-    },
-    {
-        "accuracy": 95,
-        "power": 85,
-        "name": "Night Daze",
-        "type": "Dark"
-    },
-    {
-        "accuracy": 100,
-        "power": 100,
-        "name": "Psystrike",
-        "type": "Psychic"
-    },
-    {
-        "accuracy": 85,
-        "power": 25,
-        "name": "Tail Slap",
-        "type": "Normal"
-    },
-    {
-        "accuracy": 70,
-        "power": 110,
-        "name": "Hurricane",
-        "type": "Flying"
-    },
-    {
-        "accuracy": 100,
-        "power": 120,
-        "name": "Head Charge",
-        "type": "Normal"
-    },
-    {
-        "accuracy": 85,
-        "power": 50,
-        "name": "Gear Grind",
-        "type": "Steel"
-    },
-    {
-        "accuracy": 100,
-        "power": 100,
-        "name": "Searing Shot",
-        "type": "Fire"
-    },
-    {
-        "accuracy": 100,
-        "power": 120,
-        "name": "Techno Blast",
-        "type": "Normal"
-    },
-    {
-        "accuracy": 100,
-        "power": 75,
-        "name": "Relic Song",
-        "type": "Normal"
-    },
-    {
-        "accuracy": 100,
-        "power": 85,
-        "name": "Secret Sword",
-        "type": "Fighting"
-    },
-    {
-        "accuracy": 95,
-        "power": 65,
-        "name": "Glaciate",
-        "type": "Ice"
-    },
-    {
-        "accuracy": 85,
-        "power": 130,
-        "name": "Bolt Strike",
-        "type": "Electric"
-    },
-    {
-        "accuracy": 85,
-        "power": 130,
-        "name": "Blue Flare",
-        "type": "Fire"
-    },
-    {
-        "accuracy": 100,
-        "power": 80,
-        "name": "Fiery Dance",
-        "type": "Fire"
-    },
-    {
-        "accuracy": 90,
-        "power": 140,
-        "name": "Freeze Shock",
-        "type": "Ice"
-    },
-    {
-        "accuracy": 90,
-        "power": 140,
-        "name": "Ice Burn",
-        "type": "Ice"
-    },
-    {
-        "accuracy": 95,
-        "power": 55,
-        "name": "Snarl",
-        "type": "Dark"
-    },
-    {
-        "accuracy": 90,
-        "power": 85,
-        "name": "Icicle Crash",
-        "type": "Ice"
-    },
-    {
-        "accuracy": 95,
-        "power": 180,
-        "name": "V-create",
-        "type": "Fire"
-    },
-    {
-        "accuracy": 100,
-        "power": 100,
-        "name": "Fusion Flare",
-        "type": "Fire"
-    },
-    {
-        "accuracy": 100,
-        "power": 100,
-        "name": "Fusion Bolt",
-        "type": "Electric"
     }
 ]

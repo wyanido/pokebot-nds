@@ -28,7 +28,7 @@ local function get_offset_dp(game)
 
     offset.battle_indicator = 0x021A1B2A
 
-    offset.starters_ready = 0x022AFE14 -- 0 before hand appears, random number afterwards
+    offset.starters_ready = 0x022AFE14   -- 0 before hand appears, random number afterwards
     offset.selected_starter = 0x022AFD90 -- 0: Turtwig, 1: Chimchar, 2: Piplup
 
     return offset
@@ -42,10 +42,15 @@ local function get_offset_hgss(game)
     return offset
 end
 
-local function get_offset_pt(game)
+local function get_offset_pt()
     local offset = get_blank_offsets()
 
     offset.battle_indicator = 0x021D18F2
+
+    --offset.selected_starter = mdword(0x2101DEC) + 0x203E8
+    --offset.starters_ready = offset.selected_starter + 0x84
+    --offset.battle_menu_state = mbyte(0x21C0794) + 0x44878
+    --offset.battle_menu_state = 0x0236F793 -- 1 on FIGHT menu (sometimes 0), 2 on move select, 4 on switch/run after faint, 0 otherwise --2E FIGHT MENU, 2F move select BB on switch/run after fainted
 
     return offset
 end
@@ -55,17 +60,17 @@ local function get_offset_bw(game)
 
     return {
         -- Bag pouches, 4 byte pairs | 0001 0004 = 4x Master Ball
-        items_pouch = 0x02233FAC + wt, -- 1240 bytes long
+        items_pouch = 0x02233FAC + wt,     -- 1240 bytes long
         key_items_pouch = 0x02234484 + wt, -- 332 bytes long
-        tms_hms_case = 0x022345D0 + wt, -- 436 bytes long
-        medicine_pouch = 0x02234784 + wt, -- 192 bytes long
-        berries_pouch = 0x02234844 + wt, -- 234 bytes long
+        tms_hms_case = 0x022345D0 + wt,    -- 436 bytes long
+        medicine_pouch = 0x02234784 + wt,  -- 192 bytes long
+        berries_pouch = 0x02234844 + wt,   -- 234 bytes long
 
-        running_shoes = 0x0223C054 + wt, -- 0 before receiving
+        running_shoes = 0x0223C054 + wt,   -- 0 before receiving
 
         -- Party
         party_count = 0x022349B0 + wt, -- 4 bytes before first index
-        party_data = 0x022349B4 + wt, -- PID of first party member
+        party_data = 0x022349B4 + wt,  -- PID of first party member
 
         step_counter = 0x02235125 + wt,
         step_cycle = 0x02235126 + wt,
@@ -95,23 +100,23 @@ local function get_offset_bw(game)
         -- 80 = Flags
 
         -- instances separated by 0x1B4D0 bytes
-        -- nuvema_1 	= 0x2C4670, -- when exiting cheren's house
+        -- nuvema_1 	= 0x2C4670, -- when exiting cheren's house --2D6B04 - 26ACE6
         -- nuvema_2		= 0x2DFB38, -- when exiting bianca's house
         -- nuvema_3 	= 0x2FB008, -- when loaded normally
         -- nuvema_4 	= 0x3164D0, -- when exiting home or juniper's lab or flying
 
         -- Battle
         battle_indicator = 0x0226ACE6 + wt, -- 0x41 if during a battle
-        foe_count = 0x0226ACF0 + wt, -- 4 bytes before the first index
-        current_foe = 0x0226ACF4 + wt, -- PID of foe, set immediately after the battle transition ends
+        foe_count = 0x0226ACF0 + wt,        -- 4 bytes before the first index
+        current_foe = 0x0226ACF4 + wt,      -- PID of foe, set immediately after the battle transition ends
 
         -- Misc
-        save_indicator = 0x021F0100 + wt, -- 1 while save menu is open
+        save_indicator = 0x021F0100 + wt,            -- 1 while save menu is open
         starter_selection_is_open = 0x022B0C40 + wt, -- 0 when opening gift, 1 at starter select
-        battle_menu_state = 0x022D6B04 + wt, -- 1 on FIGHT menu, 2 on move select, 4 on switch/run after faint, 0 otherwise
+        battle_menu_state = 0x022D6B04 + wt,         -- 1 on FIGHT menu, 2 on move select, 4 on switch/run after faint, 0 otherwise
         battle_bag_page = 0x022962C8 + wt,
-        selected_starter = 0x02269994 + wt, -- Unconfirmed selection in gift box; 0 Snivy, 1 Tepig, 2 Oshawott, 4 Nothing
-        
+        selected_starter = 0x02269994 + wt,          -- Unconfirmed selection in gift box; 0 Snivy, 1 Tepig, 2 Oshawott, 4 Nothing
+
         fishing_bite_indicator = 0x20A8362 + wt,
         fishing_no_bite = 0x21509DB + wt,
     }
@@ -122,17 +127,17 @@ local function get_offset_b2w2(game)
 
     return {
         -- Bag pouches, 4 byte pairs | 0001 0004 = 4x Master Ball
-        items_pouch = 0x0221D9E4 + wt, -- 1240 bytes long
+        items_pouch = 0x0221D9E4 + wt,     -- 1240 bytes long
         key_items_pouch = 0x0221DEBC + wt, -- 332 bytes long
-        tms_hms_case = 0x0221E008 + wt, -- 436 bytes long
-        medicine_pouch = 0x0221E1BC + wt, -- 192 bytes long
-        berries_pouch = 0x0221E27C + wt, -- 234 bytes long
+        tms_hms_case = 0x0221E008 + wt,    -- 436 bytes long
+        medicine_pouch = 0x0221E1BC + wt,  -- 192 bytes long
+        berries_pouch = 0x0221E27C + wt,   -- 234 bytes long
 
-        running_shoes = 0x0221DEC5 + wt, -- 0 before receiving
+        running_shoes = 0x0221DEC5 + wt,   -- 0 before receiving
 
         -- Party
         party_count = 0x0221E3E8 + wt, -- 4 bytes before first index
-        party_data = 0x0221E3EC + wt, -- PID of first party member
+        party_data = 0x0221E3EC + wt,  -- PID of first party member
 
         step_counter = 0x0221EB5D + wt,
         step_cycle = 0x0221EB5E + wt,
@@ -156,15 +161,15 @@ local function get_offset_b2w2(game)
 
         -- Battle
         battle_indicator = 0x02258D86 + wt, -- 0x41 if during a battle
-        foe_count = 0x02258D90 + wt, -- 4 bytes before the first index
-        current_foe = 0x02258D94 + wt, -- PID of foe, set immediately after the battle transition ends
+        foe_count = 0x02258D90 + wt,        -- 4 bytes before the first index
+        current_foe = 0x02258D94 + wt,      -- PID of foe, set immediately after the battle transition ends
 
         -- Misc
-        save_indicator = 0x0223B4F0 + wt, -- 1 while save menu is open
+        save_indicator = 0x0223B4F0 + wt,            -- 1 while save menu is open
         starter_selection_is_open = 0x0219CFE2 + wt, -- 0 when opening gift, 1 at starter select
         battle_bag_page = 0x022845FC + wt,
-        selected_starter = 0x022574C4 + wt, -- Unconfirmed selection in gift box; 0 Snivy, 1 Tepig, 2 Oshawott, 4 Nothing
-        text_interrupt = 0x216E640 + wt, -- 2 when a repel/fishing dialogue box is open, 0 otherwise
+        selected_starter = 0x022574C4 + wt,          -- Unconfirmed selection in gift box; 0 Snivy, 1 Tepig, 2 Oshawott, 4 Nothing
+        text_interrupt = 0x216E640 + wt,             -- 2 when a repel/fishing dialogue box is open, 0 otherwise
         fishing_bite_indicator = 0x209B3CA + wt,
         fishing_no_bite = 0x214BC62 + wt,
 
@@ -299,8 +304,7 @@ if gen == 4 then
         end
     end
 
-    MON_DATA_SIZE = 236 -- Gen 4 has 16 extra trailing bytes of ball seals data
-
+    MON_DATA_SIZE = 236              -- Gen 4 has 16 extra trailing bytes of ball seals data
 elseif gen == 5 then
     dofile("lua\\methods_gen_v.lua") -- Define Gen V functions
 

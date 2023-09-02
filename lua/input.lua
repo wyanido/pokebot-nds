@@ -1,12 +1,12 @@
 -- Restore manual touch screen input when the script is stopped
 event.onexit(
-	function () 
-		client.clearautohold() 
+	function()
+		client.clearautohold()
 	end
 )
 
 function touch_screen_at(x, y)
-	joypad.setanalog({['Touch X'] = x, ['Touch Y'] = y})
+	joypad.setanalog({ ['Touch X'] = x, ['Touch Y'] = y })
 	hold_button("Touch")
 	wait_frames(4) -- Hold input briefly since single-frame touchscreen inputs can be missed
 	release_button("Touch")
@@ -15,7 +15,7 @@ end
 function press_button(button)
 	input[button] = true
 	joypad.set(input)
-	wait_frames(1)
+	wait_frames(2)
 	release_button(button)
 end
 
@@ -50,19 +50,19 @@ function release_button(button)
 end
 
 function press_sequence(...)
-  for _, k in ipairs({...}) do
-    if type(k) == "number" then
-      wait_frames(k)
-    else
-      input[k] = true
-      joypad.set(input)
-  		wait_frames(1)
-  		input[k] = false
-    end
-  end
+	for _, k in ipairs({ ... }) do
+		if type(k) == "number" then
+			wait_frames(k)
+		else
+			input[k] = true
+			joypad.set(input)
+			wait_frames(2)
+			input[k] = false
+		end
+	end
 end
 
--- Most frame advances go through this function, meaning 
+-- Most frame advances go through this function, meaning
 -- it can update the game state for other functions without needing asynchronosity
 function wait_frames(frames)
 	for _ = 1, frames do
@@ -79,8 +79,8 @@ end
 function clear_unheld_inputs()
 	for k, _ in pairs(input) do
 		if k ~= "Touch X" and k ~= "Touch Y" and not held_input[k] then
-	  	input[k] = false
-	  end
+			input[k] = false
+		end
 	end
 
 	joypad.set(input)
@@ -89,9 +89,9 @@ end
 function clear_all_inputs()
 	for k, _ in pairs(input) do
 		if k ~= "Touch X" and k ~= "Touch Y" then
-	  	input[k] = false
-		held_input[k] = false
-	  end
+			input[k] = false
+			held_input[k] = false
+		end
 	end
 
 	joypad.set(input)
