@@ -37,7 +37,7 @@
       {
         "fullscreen": false,
         "resizable": true,
-        "title": "Pokébot NDS Dashboard",
+        "title": "dashboard",
         "width": 1024,
         "height": 576
       }

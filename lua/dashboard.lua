@@ -36,7 +36,7 @@ function poll_dashboard_response()
 
 	response = json.decode(response)
 
-	if response.type == "apply_config" then
+	if response.type_ == "apply_config" then
 		if config == nil then
 			console.log("Config initialised!")
 			console.log("---------------------------")
@@ -45,7 +45,7 @@ function poll_dashboard_response()
 		end
 
 		config = response.data.config
-	elseif response.type == "disconnect" then
+	elseif response.type_ == "disconnect" then
 		console.warning("Dashboard disconnected!")
 		disconnected = true
 	end
