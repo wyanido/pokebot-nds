@@ -31,7 +31,7 @@ fn read_json_file(path: &str) -> Result<Value, Box<dyn Error>> {
 }
 
 fn handle_client(mut stream: TcpStream, timeout: String) {
-    // Remove inactive BizHawk clients
+    // Remove inactive clients
     stream
         .set_read_timeout(Some(Duration::from_millis(
             timeout.parse::<u64>().expect("Invalid timeout value"),
@@ -59,9 +59,6 @@ fn handle_client(mut stream: TcpStream, timeout: String) {
                         // Serialize the response as JSON and send it back
                         let response_json = serde_json::to_string(&response).unwrap();
                         stream.write(response_json.as_bytes()).ok();
-                    }
-                    "comm_check" => {
-                        println!("Client tested its connection");
                     }
                     _ => {
                         println!("Received unknown request type: {}", request.type_);
