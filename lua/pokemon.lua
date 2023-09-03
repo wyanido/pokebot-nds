@@ -254,6 +254,7 @@ function pokemon.read_data(address)
 
     mon.shinyValue = mon.otID ~ mon.otSID ~ ((mon.pid >> 16) & 0xFFFF) ~ (mon.pid & 0xFFFF)
     mon.shiny = mon.shinyValue < 8
+    mon.timeSeen = os.date('%Y-%m-%d %H:%M:%S')
 
     return mon
 end

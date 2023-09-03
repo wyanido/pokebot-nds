@@ -16,7 +16,7 @@ function poll_dashboard_response()
 	if emu.framecount() % 20 ~= 0 or disconnected then
 		return
 	end
-	
+
 	-- comm.socketServerResponse() causes BizHawk to freeze when called on the same frame a socket disconnects
 	local response = comm.socketServerResponse()
 

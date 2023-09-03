@@ -1,9 +1,6 @@
 [
     {
-        "accuracy": 0,
-        "power": 0,
-        "name": "--",
-        "type": "Normal"
+        "name": "--"
     },
     {
         "accuracy": 100,

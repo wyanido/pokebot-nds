@@ -235,12 +235,31 @@ function pause_bot(reason)
     end
 end
 
+function cycle_start_choice()
+    -- Alternate between starters specified in config and reset until one is a target
+    if not config.starter0 and not config.starter1 and not config.starter2 then
+        console.warning("At least one starter selection must be enabled in config for this bot mode")
+        return
+    end
+
+    -- Cycle to next enabled starter
+    starter = (starter + 1) % 3
+    --console.log("Selected Starters to pick from: " .. starter)
+    while not config["starter" .. tostring(starter)] do
+        starter = (starter + 1) % 3
+    end
+end
+
 function process_frame()
     emu.frameadvance()
     update_pointers()
     poll_dashboard_response()
     update_game_info()
     gui.text(100, 100, game_state.trainer_x .. ", " .. game_state.trainer_y .. ", " .. game_state.trainer_z)
+end
+
+function to_signed(u16)
+    return (u16 + 32768) % 65536 - 32768
 end
 
 -----------------------
@@ -283,18 +302,7 @@ local starter = -1
 while true do
     if mode_function then
         if mode == "starters" then
-            -- Alternate between starters specified in config and reset until one is a target
-            if not config.starter0 and not config.starter1 and not config.starter2 then
-                console.warning("At least one starter selection must be enabled in config for this bot mode")
-                return
-            end
-
-            -- Cycle to next enabled starter
-            starter = (starter + 1) % 3
-            --console.log("Selected Starters to pick from: " .. starter)
-            while not config["starter" .. tostring(starter)] do
-                starter = (starter + 1) % 3
-            end
+            cycle_start_choice()
             mode_starters(starter)
         else
             mode_function()
