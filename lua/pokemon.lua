@@ -455,7 +455,7 @@ function pokemon.matches_ruleset(mon, target)
 
     -- Check if species(name) is in list
     local has_other_specs = false
-    console.log(has_other_specs)
+    console.log("starting checks")
     if target.species then
         has_other_specs = true
         console.log("has other specs is true")
@@ -463,7 +463,7 @@ function pokemon.matches_ruleset(mon, target)
         for i = 1, #target.species, 1 do
             if string.lower(mon.name) == string.lower(target.species[i]) then
                 is_species = true
-                console.log("Species is true")
+                --console.log("Species is true")
                 break
             end
         end
@@ -597,13 +597,13 @@ function pokemon.matches_ruleset(mon, target)
             return false
         end
     end
-    console.log(has_other_specs)
-    if has_other_specs and not target.shiny then --must always have shiny set true or false in config or this will not work
+    if has_other_specs and not mon.shiny then --must always have shiny set true or false in config or this will not work
         console.log("Wild " .. mon.name .. " is a target!")
         return true
     else
         -- If the only specified trait is shiny: true, return false
         -- because the only single property check failed
+        --console.log("somehow we got here")
         return false
     end
 end

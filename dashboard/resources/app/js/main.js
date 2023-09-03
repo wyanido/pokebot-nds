@@ -9,6 +9,7 @@ let mainWindow;
 let clientCooldown = false;
 let refreshTimeout;
 var elapsedStart;
+var timeSinceStart;
 
 var lastEncounter;
 var sinceLastEncounter;
@@ -16,6 +17,7 @@ var sinceLastEncounter;
 const rateHistorySample = 20;
 let rateHistory = [];
 let encounterRate = 0;
+
 
 function clientMessage(data) {
     var msg = JSON.stringify(data);
@@ -102,7 +104,7 @@ function updateEncounterRate() {
 
         encounterRate = sum / rateHistory.length; // Average out the most recent x encounters
         encounterRate = Math.floor(1 / (encounterRate / 3600)); // Convert average encounter time to encounters/h
-        
+
         mainWindow.webContents.send('set_encounter_rate', encounterRate)
     }
 
@@ -159,7 +161,7 @@ function socketSetTimeout(socket) {
 
         mainWindow.webContents.send('clients_updated', clientData);
         mainWindow.webContents.send('set_clients', clientData);
-        
+
     }, config.inactive_client_timeout)
 }
 
@@ -196,7 +198,9 @@ function interpretClientMessage(socket, message) {
                 mainWindow.webContents.send('set_page_icon', getPageIcon(clientData[0].game));
 
                 elapsedStart = Date.now();
+                timeSinceStart = new Date('2023-08-31');
                 mainWindow.webContents.send('set_elapsed_start', elapsedStart)
+                mainWindow.webContents.send('set_time_since_start', timeSinceStart)
             }
             return;
         case 'game':
@@ -211,6 +215,7 @@ function interpretClientMessage(socket, message) {
             delete data['trainer_z'];
             delete data['in_game'];
             delete data['in_battle'];
+            delete data['in_starter_battle']
 
             // Reformat phenomenon if present
             if ('phenomenon_x' in data) {
@@ -313,7 +318,7 @@ app.whenReady().then(() => {
         if (clients.length > 0) {
             mainWindow.webContents.send('set_page_icon', getPageIcon(clientData[0].game));
         }
-        
+
         switch (page) {
             case 'config':
                 mainWindow.webContents.send('set_config', config);
@@ -328,6 +333,20 @@ app.whenReady().then(() => {
 
                 if (clients.length > 0) {
                     mainWindow.webContents.send('set_elapsed_start', elapsedStart);
+                    mainWindow.webContents.send('set_time_since_start', timeSinceStart)
+                    if (!isNaN(lastEncounter) && !isNaN(sinceLastEncounter)) mainWindow.webContents.send('set_latest_encounter', sinceLastEncounter)
+                }
+                break;
+            case 'overlay':
+                mainWindow.webContents.send('set_recents', recents);
+                mainWindow.webContents.send('set_targets', targets);
+                mainWindow.webContents.send('set_stats', stats);
+                mainWindow.webContents.send('set_clients', clientData);
+                mainWindow.webContents.send('set_encounter_rate', encounterRate)
+
+                if (clients.length > 0) {
+                    mainWindow.webContents.send('set_elapsed_start', elapsedStart);
+                    mainWindow.webContents.send('set_time_since_start', timeSinceStart)
                     if (!isNaN(lastEncounter) && !isNaN(sinceLastEncounter)) mainWindow.webContents.send('set_latest_encounter', sinceLastEncounter)
                 }
                 break;

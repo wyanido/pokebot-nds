@@ -179,11 +179,13 @@
                         Tools
                     </button>
                 </li>
-                <li class="nav-item nav-link px-10">
-                    <button type="button" class="btn position-relative px-10 disabled">
-                        <i class="fa fa-window-maximize mr-5"></i>
-                        Overlay
-                    </button>
+                <li class="nav-item nav-link px-10" style="cursor: default;">
+                    <a href="overlay.html">
+                        <button type="button" class="btn position-relative px-10">
+                            <i class="fa fa-window-maximize mr-5"></i>
+                            Overlay
+                        </button>
+                    </a>
                 </li>
             </ul>
         </nav>
@@ -200,12 +202,13 @@
                     <div class="card m-0 p-20">
                         <div class="row">
                             <div class="col-6 text-center">
-                                Elapsed: <span id="elapsed-time" class="badge text-bg-secondary">0s</span>
+                                Elapsed: <span id="total-elapsed-time" class="badge text-bg-secondary">0s</span>
                             </div>
                             <div class="col-6 text-center">
                                 Encounter Rate: <sapan id="encounter-rate" class="badge text-bg-secondary">0/h</span>
                             </div>
-                            <br><br>
+                            <br>
+                            <br>
                             <div class="col-6">
                                 <h2 class="card-title text-center">Total</h2>
                                 <table class="table">

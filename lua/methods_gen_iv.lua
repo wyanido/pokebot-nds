@@ -207,6 +207,7 @@ function flee_battle()
 end
 
 function subdue_pokemon()
+    console.log("Attempting to subdue pokemon...")
     if config.false_swipe then
         -- Ensure target has no recoil moves before attempting to weaken it
         local recoil_moves = { "Brave Bird", "Double-Edge", "Flare Blitz", "Head Charge", "Head Smash", "Self-Destruct",
@@ -330,7 +331,6 @@ function do_battle()
             console.log("Save counter: " .. save_counter)
             while game_state.in_battle do
                 touch_screen_at(125, 70)
-                console.log("Touching screen at 125, 70")
                 if offset.level ~= level then
                     for i = 1, 30, 1 do
                         touch_screen_at(125, 135)
@@ -347,7 +347,6 @@ function do_battle()
                     console.log("Gained Level skipping learn new move")
                     for i = 0, 50, 1 do
                         press_button("B")
-                        console.log("Touching screen at 125, 135")
                         wait_frames(2)
                     end
                     while game_state.in_battle do
@@ -404,7 +403,6 @@ function catch_pokemon()
         console.log("Attempting to catch pokemon now...")
         console.log(config.inflict_status)
         if config.inflict_status or config.false_swipe then
-            console.log("Subduing Pokemon")
             subdue_pokemon()
         end
         wait_frames(60)
@@ -440,15 +438,15 @@ function process_wild_encounter()
     wait_frames(30)
 
     if foe_is_target then
-        console.log("Wild " .. foe[1].name .. " was a target!!! Catching Now")
+        console.log("Wild " .. foe[1].name .. " is a target!!! Catching Now")
         catch_pokemon()
     else
         while game_state.in_battle do
             if config.battle_non_targets then
-                console.log("Wild " .. foe[1].name .. " was not a target, and battle non tartgets is on. Battling!")
+                console.log("Wild " .. foe[1].name .. " is not a target, and battle non tartgets is on. Battling!")
                 do_battle()
             else
-                console.log("Wild " .. foe[1].name .. " was not a target, fleeing!")
+                console.log("Wild " .. foe[1].name .. " is not a target, fleeing!")
                 flee_battle()
             end
         end
