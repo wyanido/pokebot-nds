@@ -1,0 +1,205 @@
+
+<template>
+  <nav class="navbar sticky-top navbar-dark navbar-expand bg-dark">
+    <div class="navbar-brand">
+      <img src="./assets/pokemon-icon/201-27.png" width="26" height="26" class="d-inline m-2" id="icon">
+      <span class="align-middle h5">Pokébot NDS</span>
+      <span class="navbar-text m-3" style="font-size: 14px">v0.5.0-alpha</span>
+    </div>
+    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+      <div class="navbar-nav">
+        <a class="nav-item nav-link" href="/">
+          <button class="btn active" type="button">
+            <font-awesome-icon icon="fa-solid fa-user-circle" style="margin-right: 5px;" />
+            Dashboard
+          </button>
+        </a>
+        <a class="nav-item nav-link" href="/config">
+          <button class="btn active selected" type="button">
+            <font-awesome-icon icon="fa-solid fa-gear" style="margin-right: 5px;" />
+            Config
+          </button>
+        </a>
+        <a class="nav-item nav-link disabled" href="#">
+          <button class="btn active" type="button">
+            <font-awesome-icon icon="fa-solid fa-wrench" style="margin-right: 5px;" />
+            Tools
+          </button>
+        </a>
+      </div>
+    </div>
+  </nav>
+  <fieldset class="row mt-4 px-5" id="config-control" disabled>
+    <div class="col-6">
+      <div class="input-group" style="width: 400px; margin-right:0px !important">
+        <label class="input-group-text">Editing config for</label>
+        <select class="form-control" id="editing">
+          <option value="all">All Games</option>
+        </select>
+      </div>
+    </div>
+    <div class="col-6">
+      <button class="btn btn-primary" style="float: right;" id="post-config" onclick="sendConfig()">
+        <font-awesome-icon icon="fa-solid fa-save" style="margin-left: 5px;" />
+        Save Changes (CTRL+S)
+      </button>
+    </div>
+  </fieldset>
+  <div class="container-fluid mt-4 px-5">
+    <div class="col">
+      <fieldset class="row" id="config-form" disabled>
+        <div class="col-6">
+          <div class="card p-4">
+            <h4 class="content-title">Bot Behaviour</h4>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="save_game_on_start">
+              <label class="form-check-label" for="save_game_on_start">Save game on start</label>
+            </div>
+            <br>
+            <label class="form-label" for="mode">Bot Mode</label>
+            <select class="form-control" id="mode">
+              <option value="manual">Manual</option>
+              <option disabled>-- Soft Resets</option>
+              <option value="starters">Starters</option>
+              <option value="gift">Gift Pokémon</option>
+              <option value="static_encounters">Static Encounters</option>
+              <option disabled>-- Standard</option>
+              <option value="random_encounters">Random Encounters</option>
+              <option value="phenomenon_encounters">Phenomenon Encounters</option>
+              <option value="fishing">Fishing</option>
+              <option value="daycare_eggs">Collect & Hatch Eggs</option>
+              <option disabled>-- Misc</option>
+              <option value="voltorb_flip">Voltorb Flip</option>
+            </select>
+            <div id="option_moving_encounters">
+              <br>
+              <label class="form-label" for="move_direction">Move Direction</label>
+              <select class="form-control" id="move_direction">
+                <option value="Horizontal">Horizontal</option>
+                <option value="Vertical">Vertical</option>
+              </select>
+            </div>
+            <div id="option_starters">
+              <br>
+              <label class="form-label" for="starters">Starters to cycle between</label>
+              <div id="starters">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="starter0">
+                  <label class="form-check-label" for="starter0">Snivy</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="starter1">
+                  <label class="form-check-label" for="starter1">Tepig</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="starter2">
+                  <label class="form-check-label" for="starter2">Oshawott</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card p-4 mt-3">
+            <h4 class="content-title">Target Pokémon</h4>
+            <label class="form-label" for="catch">Target traits</label>
+            <textarea class="form-control" spellcheck="false" style="min-width:120px; max-width:100%; height: 120px;"
+              id="target_traits" placeholder=""></textarea>
+            <br>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="save_game_after_catch">
+              <label class="form-check-label" for="save_game_after_catch">Save game after obtaining a target</label>
+            </div>
+          </div>
+          <div class="card p-4 mt-3">
+            <h4 class="content-title">Logging</h4>
+            <label class="form-label" for="encounter_log_limit">Encounter Log Limit</label>
+            <input id="encounter_log_limit" min="1" type="number" class="form-control" placeholder="30">
+            <br>
+            <label class="form-label" for="target_log_limit">Target Log Limit</label>
+            <input id="target_log_limit" min="1" type="number" class="form-control" placeholder="30">
+          </div>
+          <div class="card p-4 mt-3">
+            <h4 class="content-title">Other</h4>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="hax">
+              <label class="form-check-label" for="hax">Use hax for faster resets</label>
+            </div>
+            <br>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="debug">
+              <label class="form-check-label" for="debug">Debug mode</label>
+            </div>
+            <br>
+            <label class="form-label" for="inactive_client_timeout">Inactive game timeout (ms)</label>
+            <input id="inactive_client_timeout" min="1000" type="number" class="form-control" placeholder="2500">
+            <br>
+            <label class="form-label" for="game_refresh_cooldown">Game info refresh cooldown (ms)</label>
+            <input id="game_refresh_cooldown" min="1" type="number" class="form-control" placeholder="200">
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="card p-4">
+            <h4 class="content-title">Wild Battles</h4>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="battle_non_targets">
+              <label class="form-check-label" for="battle_non_targets">Defeat non-targets</label>
+            </div>
+            <br>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="cycle_lead_pokemon">
+              <label class="form-check-label" for="cycle_lead_pokemon">Replace lead Pokémon when exhausted</label>
+            </div>
+            <br>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="thief_wild_items">
+              <label class="form-check-label" for="thief_wild_items">Use Thief to steal held items</label>
+            </div>
+            <br>
+            <h4 class="content-title">Auto-Catch</h4>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="auto_catch">
+              <label class="form-check-label" for="auto_catch">Auto-catch wild targets</label>
+            </div>
+            <div id="option_auto_catch">
+              <br>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="false_swipe">
+                <label class="form-check-label" for="false_swipe">Use False Swipe</label>
+              </div>
+              <br>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="inflict_status">
+                <label class="form-check-label" for="inflict_status">Inflict sleep/paralysis</label>
+              </div>
+              <br>
+              <label class="form-label" for="pokeball_priority">Poké Ball priority</label>
+              <textarea class="form-control" spellcheck="false" style="min-width:120px; max-width:100%; height: 120px;"
+                id="pokeball_priority" placeholder=""></textarea>
+              <br>
+              <label class="form-label" for="pokeball_override">Poké Ball override</label>
+              <textarea class="form-control" spellcheck="false" style="min-width:120px; max-width:100%; height: 260px;"
+                id="pokeball_override" placeholder=""></textarea>
+            </div>
+          </div>
+          <div class="card p-4 mt-3">
+            <h4 class="content-title">Pickup</h4>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="pickup">
+              <label class="form-check-label" for="pickup">Collect Pickup items from party</label>
+            </div>
+            <br>
+            <label class="form-label" for="pickup_threshold">Pickup threshold</label>
+            <input id="pickup_threshold" style="width:100px" min="1" max="6" type="number" class="form-control">
+          </div>
+        </div>
+      </fieldset>
+    </div>
+  </div>
+  <br>
+</template>
+
+<script setup lang="ts">
+import 'bootstrap/scss/bootstrap.scss';
+// import { Tooltip, Toast, Popover } from 'bootstrap';
+
+import './components/style.css';
+</script>

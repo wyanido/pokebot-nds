@@ -1,10 +1,33 @@
-import { createApp } from "vue";
-import App from "./App.vue";
+import { createApp } from 'vue/dist/vue.esm-bundler';
+import Dashboard from './Dashboard.vue';
+import Config from './Config.vue';
 
+// Import Font Awesome icons
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faUserCircle, faGear, faWrench, faCircleArrowUp, faCircleArrowDown, faSave } from '@fortawesome/free-solid-svg-icons'
 
-import { faUserCircle, faGear, faWrench } from '@fortawesome/free-solid-svg-icons'
-library.add(faUserCircle, faGear, faWrench)
+library.add(faUserCircle, faGear, faWrench, faCircleArrowUp, faCircleArrowDown, faSave)
 
-createApp(App).component('font-awesome-icon', FontAwesomeIcon).mount("#app");
+// Route .vue pages to respective paths
+import { createRouter, createWebHistory } from "vue-router";
+
+const router = createRouter({
+    history: createWebHistory(),
+    routes: [
+        {
+            path: '/',
+            component: Dashboard,
+        },
+        {
+            path: '/config',
+            component: Config,
+        },
+    ],
+});
+
+// Initialise
+createApp({})
+    .component('font-awesome-icon', FontAwesomeIcon)
+    .use(router)
+    .mount("#app");

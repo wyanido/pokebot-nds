@@ -1,0 +1,110 @@
+/* Prevent scrolling outside the page */
+html,
+body {
+    overscroll-behavior: none;
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+}
+
+html::-webkit-scrollbar {
+    /* Chrome, Safari and Opera */
+    display: none;
+}
+
+/* Actual styling */
+body {
+    background-color: #25282C !important;
+}
+
+.white-icon {
+    color: #CCCCCC !important;
+    margin: 0 !important;
+}
+
+.bg-dark {
+    background-color: #111417 !important;
+}
+
+.card {
+    background-color: #191C20;
+    color: #CCCCCC;
+}
+
+svg {
+    background-color: transparent !important;
+    color: inherit;
+}
+
+button {
+    white-space: nowrap;
+    padding: 6px 12px;
+    font-size: 14px;
+    background-color: #1D1F22 !important;
+    /* border: none !important; */
+    border: none;
+    border-top: solid;
+    border-width: 1px;
+    border-color: #222528 !important;
+}
+
+.iv {
+    background: none !important;
+    vertical-align: middle;
+    color: #CCCCCC !important;
+    padding: 0px;
+    margin-right: 10px;
+}
+
+h4 {
+    font-size: 20px;
+    margin-bottom: 16px;
+}
+
+th, td {
+    background-color: transparent !important;
+    color: #CCCCCC !important;
+    border: none;
+    vertical-align: middle;
+    height: 50px;
+    padding: 12px;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+tr {
+    border: none;
+    border-bottom: 1px solid #47494D;
+}
+
+.selected {
+    outline: solid 2px #1D4444;
+}
+
+.form-control,
+.input-group-text {
+    height: 32px;
+    padding: 0 8px !important;
+    background-color: #303336;
+    border: none;
+    color: #CCCCCC;
+}
+
+table {
+    background-color: transparent;
+}
+
+.form-control {
+    background-color: #24272B !important;
+}
+
+.form-control:disabled {
+    color: #707173;
+}
+
+.navbar {
+    height: 55px;
+}

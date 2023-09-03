@@ -3,6 +3,7 @@
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use tauri::{Manager, PhysicalSize};
 
 use std::{
     error::Error,
@@ -172,6 +173,14 @@ fn main() {
 
     // Run Tauri app window
     tauri::Builder::default()
+        .setup(|app| {
+            let main_window = app.get_window("main").unwrap();
+            main_window
+                .set_min_size(Some(PhysicalSize::new(768, 432)))
+                .unwrap();
+
+            Ok(())
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 

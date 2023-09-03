@@ -2,23 +2,15 @@
 <html lang="en">
 
 <head>
-  <style>
-    html, body {
-      -ms-overflow-style: none; /* IE and Edge */
-      scrollbar-width: none; /* Firefox */
-    }
-
-    html::-webkit-scrollbar {
-      display: none; /* Chrome, Safari and Opera */
-    }
-  </style>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard</title>
 </head>
 
 <body>
-  <div id="app"></div>
+  <div id="app">
+    <router-view></router-view>
+  </div>
   <script type="module" src="/src/main.ts"></script>
 </body>
 
