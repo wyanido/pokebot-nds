@@ -1,8 +1,12 @@
 @font-face {
     font-family: pokemon;
-    src: url('pokemon.ttf') format('truetype');
+    src: url('../app/pokemon-dp-pro.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
+}
+
+* {
+    font-family: pokemon;
 }
 
 .pokemon {
