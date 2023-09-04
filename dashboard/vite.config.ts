@@ -8,6 +8,7 @@ export default defineConfig(async () => ({
   resolve: {
     alias: {
       '~bootstrap': path.resolve(__dirname, 'node_modules/bootstrap'),
+      'vue': 'vue/dist/vue.esm-bundler.js'
     }
   },
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`

@@ -1,4 +1,4 @@
-import { createApp } from 'vue/dist/vue.esm-bundler';
+import { createApp } from 'vue';
 import Dashboard from './Dashboard.vue';
 import Config from './Config.vue';
 
