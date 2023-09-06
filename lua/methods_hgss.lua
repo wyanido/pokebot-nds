@@ -36,7 +36,8 @@ function mode_starters()
 
     -- Proceed until starters are loaded into RAM
     while mdword(starter_pointer - 0x8) ~= 0 or mdword(starter_pointer - 0x4) == 0 do
-        press_sequence("A", 10)
+        local delay = math.random(6, 21) -- Mimic imperfect human inputs
+        press_sequence("A", delay)
     end
 
 	if not config.hax then
@@ -64,6 +65,12 @@ function mode_starters()
 	-- Soft reset otherwise
 	press_button("Power")
 	wait_frames(30)
+
+    -- Wait a random number of frames before mashing A next reset
+    -- to decrease the odds of hitting similar seeds
+    local delay = math.random(1, 90)
+    console.debug("Delaying " .. delay .. " frames...")
+    wait_frames(delay)
 end
 
 function mode_voltorb_flip()
@@ -120,8 +127,10 @@ end
 
 function mode_static_encounters()
     console.log("Waiting for battle to start...")
+    
     while not foe and not game_state.in_battle do
-        press_sequence("A", 6)
+        local delay = math.random(6, 21) -- Mimic imperfect human inputs
+        press_sequence("A", delay)
     end
 
     foe_is_target = pokemon.log(foe[1])
@@ -138,6 +147,12 @@ function mode_static_encounters()
     else
         console.log("Wild " .. foe[1].name .. " was not a target, resetting...")
         press_button("Power")
-        wait_frames(60)
+        wait_frames(30)
     end
+
+    -- Wait a random number of frames before mashing A next reset
+    -- to decrease the odds of hitting similar seeds
+    local delay = math.random(1, 90)
+    console.debug("Delaying " .. delay .. " frames...")
+    wait_frames(delay)
 end
