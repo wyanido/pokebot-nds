@@ -9,12 +9,11 @@
     <title>Pokébot NDS</title>
     <!-- Halfmoon CSS -->
     <link href="js/halfmoon-variables.min.css" rel="stylesheet" />
+    <link href="overlay.css" rel="stylesheet" />
     <script>if (typeof module === 'object') { window.module = module; module = undefined; }</script>
     <script src="js/jquery-3.6.0.min.js"></script>
     <script src="js/jquery.tmpl.min.js"></script>
     <script src="js/main.js"></script>
-    <link href="font-awesome-4.7.0/css/font-awesome.min.css" rel="stylesheet" />
-    <link href="overlay.css" rel="stylesheet" />
     <script id="party-mon-template" type="text/x-jQuery-tmpl">
         <div class="col-4 text-center">
             <div style="position:relative; display: inline-block;">
@@ -58,61 +57,215 @@
             ${name}
         </div>
     </script>
+    <script id="row-template" type="text/x-jQuery-tmpl">
+        <tr>
+            <td style="width:0px">
+                <img src="images/pokemon-icon/${species}.png">
+                <img style="position: absolute; margin-top: 20px; margin-left: -10px" src="images/items/${heldItem}.png">
+            </td>
+            <td class="iv">${hp_iv}</td>
+            <td class="iv">${attack_iv}</td>
+            <td class="iv">${defense_iv}</td>
+            <td class="iv">${sp_attack_iv}</td>
+            <td class="iv">${sp_defense_iv}</td>
+            <td class="iv">${speed_iv}</td>
+            <td class="iv">${hp_iv + attack_iv + defense_iv + sp_attack_iv + sp_defense_iv + speed_iv}
+            <td style="color: red;">${shiny}</td>
+        </tr>
+    </script>
+    <script id="party-template" type="text/x-jQuery-tmpl">
+        <div class="row mt-20 m-0">
+        </div>
+    </script>
+    <script id="game-template" type="text/x-jQuery-tmpl">
+        <div class="m-15">
+            <table id="field-table" class="table">
+                <tr>
+                    <th>Map</th>
+                    <td>${map}</td>
+                </tr>
+                <tr>
+                    <th>Position</th>
+                    <td>${position}</td>
+                </tr>
+            </table>
+        </div>
+    </script>
+    <script id="button-template" type="text/x-jQuery-tmpl">
+        <button onclick="selectTab(this)" class="btn w-full text-truncate" id="nav-game">${game}</button>
+    </script>
+    <script>if (window.module) module = window.module;</script>
 </head>
 
-<body data-set-preferred-mode-onload="true" data-dm-shortcut-enabled="true">
-    <div class="pokemon">
-        <div class="page-wrapper with-navbar transparent">
-            <nav class="navbar">
-                <div class="navbar-brand">
-                    <img src="images/pokemon-icon/201-27.png" class="icon" id="icon">
-                    Pokébot NDS
-                </div>
-                <span class="navbar-text text-monospace font-size-12">v0.4.0-alpha</span>
-                <ul class="navbar-nav d-flex d-md-flex">
-                    <li class="nav-item nav-link px-10">
-                        <a href="dashboard.html">
-                            <button type="button" class="btn position-relative px-10">
-                                <i class="fa fa-user-circle mr-5"></i>
-                                Dashboard
-                                <div id="home-button"></div>
-                            </button>
-                        </a>
-                    </li>
-                    <li class="nav-item nav-link px-10" style="cursor: default;">
-                        <a href="config.html">
-                            <button type="button" class="btn position-relative px-10">
-                                <i class="fa fa-gear mr-5"></i>
-                                Config
-                            </button>
-                        </a>
-                    </li>
-                    <li class="nav-item nav-link px-10">
-                        <button type="button" class="btn position-relative px-10 disabled">
-                            <i class="fa fa-wrench mr-5"></i>
-                            Tools
+<body class="with-custom-webkit-scrollbars with-custom-css-scrollbars" data-dm-shortcut-enabled="true"
+    data-set-preferred-mode-onload="true">
+    <div class="page-wrapper with-navbar">
+        <nav class="navbar">
+            <div class="navbar-brand">
+                <img src="images/pokemon-icon/201-27.png" class="icon" id="icon">
+                Pokébot NDS
+            </div>
+            <span class="navbar-text text-monospace font-size-12">v0.4.0-alpha</span>
+            <ul class="navbar-nav d-flex d-md-flex">
+                <li class="nav-item nav-link px-10">
+                    <a href="dashboard.html">
+                        <button type="button" class="btn position-relative px-10">
+                            <i class="fa fa-user-circle mr-5"></i>
+                            Dashboard
+                            <div id="home-button"></div>
                         </button>
-                    </li>
-                    <li class="nav-item nav-link px-10" style="cursor: default;">
-                        <a href="overlay.html">
-                            <button type="button" class="btn position-relative px-10 active">
-                                <i class="fa fa-window-maximize mr-5"></i>
-                                Overlay
-                            </button>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-            <div class="content-wrapper">
-                <div class="row">
-                    <div class="col">
-                        <h1>This is the left side of the DS</h1>
+                    </a>
+                </li>
+                <li class="nav-item nav-link px-10" style="cursor: default;">
+                    <a href="config.html">
+                        <button type="button" class="btn position-relative px-10">
+                            <i class="fa fa-gear mr-5"></i>
+                            Config
+                        </button>
+                    </a>
+                </li>
+                <li class="nav-item nav-link px-10">
+                    <button type="button" class="btn position-relative px-10 disabled">
+                        <i class="fa fa-wrench mr-5"></i>
+                        Tools
+                    </button>
+                </li>
+                <li class="nav-item nav-link px-10" style="cursor: default;">
+                    <a href="overlay.html">
+                        <button type="button" class="btn position-relative px-10 active">
+                            <i class="fa fa-window-maximize mr-5"></i>
+                            Overlay
+                        </button>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        <div class="content-wrapper">
+            <div class="row">
+                <div class="col-4">
+                    <div class="row-eq-spacing p-20">
+                        <div class="text-center" style="flex-direction: row; height: 30px;">
+                            <h2 style="position:absolute" class="card-title text-center w-full">Recently Seen</h2>
+                            <div class="input-group" style="display: none; width: 150px; height: 28px; float: right;">
+                                <label class="input-group-text">Show latest</label>
+                                <input class="form-control h-full" id="recents-limit" min="1" type="number" value="8">
+                            </div>
+                        </div>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th class="text-center">HP</th>
+                                    <th class="text-center">ATK</th>
+                                    <th class="text-center">DEF</th>
+                                    <th class="text-center">SPA</th>
+                                    <th class="text-center">SPD</th>
+                                    <th class="text-center">SPE</th>
+                                    <th class="text-center">IV SUM</th>
+                                    <th class="text-center">Shiny Value (SV)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recents">
+                            </tbody>
+                        </table>
                     </div>
-                    <div class="col">
-                        This is the DS
+                </div>
+                <div class="col-4"></div>
+                <div class="col-4">
+                    <div class="row-eq-spacing p-20">
+                        <div class="text-center" style="flex-direction: row; height: 30px;">
+                            <h2 style="position:absolute" class="card-title text-center w-full">Recent Targets</h2>
+                            <div class="input-group" style="display: none; width: 150px; height: 28px; float: right;">
+                                <label class="input-group-text">Show latest</label>
+                                <input class="form-control h-full" id="targets-limit" min="1" type="number" value="8">
+                            </div>
+                        </div>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th class="text-center">HP</th>
+                                    <th class="text-center">ATK</th>
+                                    <th class="text-center">DEF</th>
+                                    <th class="text-center">SPA</th>
+                                    <th class="text-center">SPD</th>
+                                    <th class="text-center">SPE</th>
+                                    <th class="text-center">IV SUM</th>
+                                    <th class="text-center">Shiny Value (SV)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="targets">
+                            </tbody>
+                        </table>
                     </div>
-                    <div class="col">
-                        This is the Right side of the DS
+                </div>
+            </div>
+            <div class=" row">
+                <div class="col-4 p-0 m-0">
+                    <div id="game-buttons" class="btn-group w-full" role="group"></div>
+                    <div id="game-party"></div>
+                    <div id="game-info"></div>
+                </div>
+                <div class="col-4"></div>
+                <div class="col-4">
+
+                    <div class="m-0">
+                        <div class="row">
+                            <div class="col-6 text-center">
+                                Elapsed: <span id="total-elapsed-time" class="badge text-bg-secondary">0s</span>
+                            </div>
+                            <div class="col-6 text-center">
+                                Encounter Rate: <sapan id="encounter-rate" class="badge text-bg-secondary">
+                                    0/h</span>
+                            </div>
+                            <br>
+                            <br>
+                            <div class="col-6">
+                                <h2 class="card-title text-center">Total</h2>
+                                <table class="table">
+                                    <tr>
+                                        <th>Seen</th>
+                                        <td id="total-seen"></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Shiny</th>
+                                        <td id="total-shiny"></td>
+                                    </tr>
+                                    <tr>
+                                        <th>IVs</th>
+                                        <td class="text-nowrap">
+                                            <i class="fa fa-arrow-circle-up"></i>
+                                            <span id="total-max-iv" style="margin-right: 10px"></span>
+                                            <i class="fa fa-arrow-circle-down"></i>
+                                            <span id="total-min-iv"></span>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-6">
+                                <h2 class="card-title text-center">Target Phase</h2>
+                                <table class="table">
+                                    <tr>
+                                        <th>Seen</th>
+                                        <td id="phase-seen"></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Lowest SV</th>
+                                        <td id="phase-lowest-sv"></td>
+                                    </tr>
+                                    <tr>
+                                        <th>B(n,p)
+                                            <div class="input-group mt-10" style="width: 80px; height: 28px;">
+                                                <label class="input-group-text p-5">1/</label>
+                                                <input class="form-control h-full p-5" id="shiny-rate" min="1"
+                                                    value="8192">
+                                            </div>
+                                        </th>
+                                        <td id="bnp"></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

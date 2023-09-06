@@ -7,21 +7,15 @@
 
 * {
     font-family: pokemon;
+    color: aliceblue;
+    font-size: large;
 }
 
 .pokemon {
-    min-height: 900px;
+    height: 100%;
     width: auto;
     background-color: black;
-    background-image: url(ezgif.com-resize.gif);
+    background-image: url(giratina.gif);
     background-position: center;
-
-}
-
-.transparent {
-    background-color: rgba(37, 40, 44, 0.5);
-}
-
-h1 {
-    font-family: pokemon;
+    object-fit: f;
 }

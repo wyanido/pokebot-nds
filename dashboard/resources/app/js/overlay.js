@@ -7,7 +7,6 @@ var gameTab = 0;
 
 let recentEncounters;
 let recentTargets;
-
 function updateBnp() {
     var binomialDistribution = function (b, a) {
         c = Math.pow(1 - a, b);
@@ -197,7 +196,6 @@ function setElapsedTime() {
 }
 
 function setTimeSinceStart() {
-    //var startDay = new Date('2023-08-31');
     var now = Date.now();
     var elapsed = Math.floor((now - startDay) / 1000);
     totalS = elapsed;

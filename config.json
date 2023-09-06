@@ -1,7 +1,6 @@
 {
 	"target_traits": {
-		"shiny": true,
-		"iv_sum": 186
+		"shiny": true
 	},
 	"pokeball_override": {
 		"Repeat Ball": {
@@ -17,32 +16,33 @@
 			]
 		}
 	},
-	"starter2": true,
-	"move_direction": "Vertical",
-	"thief_wild_items": false,
-	"starter0": true,
-	"pickup": false,
 	"pokeball_priority": [
 		"Premier Ball",
 		"Ultra Ball",
 		"Great Ball",
 		"Poke Ball"
 	],
-	"save_game_on_start": false,
-	"save_game_after_catch": false,
-	"pickup_threshold": "2",
-	"hax": false,
-	"cycle_lead_pokemon": true,
-	"encounter_log_limit": "30",
-	"battle_non_targets": false,
-	"auto_catch": false,
+	"move_direction": "Vertical",
+	"thief_wild_items": false,
+	"pickup": false,
+	"starter0": true,
 	"starter1": true,
-	"mode": "random_encounters",
+	"starter2": true,
+	"save_game_on_start": false,
+	"save_game_after_catch": true,
+	"pickup_threshold": "1",
+	"hax": false,
+	"cycle_lead_pokemon": false,
+	"encounter_log_limit": "30",
+	"battle_non_targets": true,
+	"auto_catch": true,
+	"mode": "sandgem_loop",
 	"target_log_limit": "30",
 	"inactive_client_timeout": "2500",
 	"game_refresh_cooldown": "200",
-	"inflict_status": false,
+	"inflict_status": true,
 	"false_swipe": false,
-	"debug": false,
-	"editing": "0"
+	"debug": true,
+	"editing": "0",
+	"swap_lead_battle": true
 }

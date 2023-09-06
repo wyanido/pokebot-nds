@@ -2,7 +2,7 @@
 const { app, BrowserWindow, ipcMain } = require('electron')
 const net = require('net');
 const fs = require('fs');
-const home = 'dashboard.html'
+const home = 'overlay.html'
 const port = 51055;
 
 let mainWindow;

@@ -235,19 +235,7 @@ function pause_bot(reason)
     end
 end
 
-function cycle_start_choice()
-    -- Alternate between starters specified in config and reset until one is a target
-    if not config.starter0 and not config.starter1 and not config.starter2 then
-        console.warning("At least one starter selection must be enabled in config for this bot mode")
-        return
-    end
-
-    -- Cycle to next enabled starter
-    starter = (starter + 1) % 3
-    --console.log("Selected Starters to pick from: " .. starter)
-    while not config["starter" .. tostring(starter)] do
-        starter = (starter + 1) % 3
-    end
+function cycle_start_choice(starter)
 end
 
 function process_frame()
@@ -302,7 +290,18 @@ local starter = -1
 while true do
     if mode_function then
         if mode == "starters" then
-            cycle_start_choice()
+            -- Alternate between starters specified in config and reset until one is a target
+            if not config.starter0 and not config.starter1 and not config.starter2 then
+                console.warning("At least one starter selection must be enabled in config for this bot mode")
+                return
+            end
+
+            -- Cycle to next enabled starter
+            starter = (starter + 1) % 3
+            console.log("Selected Starters to pick from: " .. starter)
+            while not config["starter" .. tostring(starter)] do
+                starter = (starter + 1) % 3
+            end
             mode_starters(starter)
         else
             mode_function()

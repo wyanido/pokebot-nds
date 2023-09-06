@@ -171,6 +171,67 @@ function to_and_from_pokecenter() --starts at grass patch and moves to pokecente
     save_game()
 end
 
+function do_pickup()
+    local pickup_count = 0
+    local item_count = 0
+    local items = {}
+
+    while not game_state.in_game do
+        skip_dialogue()
+    end
+
+    for i = 1, #party, 1 do
+        table.insert(items, party[i].heldItem)
+
+        if party[i].ability == "Overgrow" then
+            pickup_count = pickup_count + 1
+
+            if party[i].heldItem ~= "none" then
+                item_count = item_count + 1
+            end
+        end
+    end 
+
+    if pickup_count > 0 then
+        if item_count < tonumber(config.pickup_threshold) then
+            console.log("Pickup items in party: " .. item_count .. ". Collecting at threshold: " .. config.pickup_threshold)
+        else
+            press_sequence(60, "X", 30)
+            while mbyte(0x021C4C86) ~= 02 do
+                press_sequence("Up", 10)
+            end
+            press_button("A")
+            wait_frames(120)
+            console.log("Item count: " .. item_count)
+            for i = 1, #items, 1 do
+                if items[i] ~= "none" then
+                    console.log("getting item from mon at slot: " .. i)
+                    if i%2 == 0 then
+                        press_button("Right")
+                        wait_frames(5)
+                    end
+                    if i == 3 or i == 4 then
+                        press_button("Down")
+                        wait_frames(5)
+                    end
+                    if i == 5 or i ==6 then
+                        press_button("Down")
+                        wait_frames(5)
+                        press_button("Down")
+                        wait_frames(5)
+                    end
+                    press_sequence("A", 5, "Down", 5, "Down", 5, "A", 5, "Down", 5, "A")
+                    wait_frames(200)
+                    press_button("B")
+                end
+            end
+            press_sequence(30, "B", 150, "B", 100)
+        end
+    else
+        console.log("Pickup is enabled in config, but no Pokemon have the pickup ability.")
+    end
+end
+
 -----------------------
 -- BATTLE BOT ACTIONS
 -----------------------
@@ -187,7 +248,7 @@ end
 function use_move_at_slot(slot)
     -- Skip text to FIGHT menu
     while game_state.in_battle and (offset.battle_state_value == 0 or offset.battle_state_value == 14) do
-        press_sequence("B", 5)
+        skip_dialogue()
     end
     console.log("Using Subdue Move")
     wait_frames(30)
@@ -200,9 +261,12 @@ function use_move_at_slot(slot)
 end
 
 function flee_battle()
+     while (game_state.in_battle and offset.battle_state_value == 0) do
+            press_sequence("B", 5)
+     end
     while game_state.in_battle do
         touch_screen_at(125, 175) -- Run
-        wait_frames(20)
+        wait_frames(5)
     end
 end
 
@@ -286,23 +350,27 @@ function subdue_pokemon()
 end
 
 function do_battle()
+    --local battle_state_value = 0
+
+    -- Press B until battle state has advanced
+    while ((game_state.in_battle and (offset.battle_state_value == 0 or offset.battle_state_value == 14))) do
+        if (offset.current_hp == 0 or offset.foe_current_hp == 0) then
+            break
+        else
+            press_sequence("B", 5)
+        end
+            --console.log(offset.battle_state_value)
+    end
+        --console.log("State before stats: " .. offset.battle_state_value)
+        --console.log("Updating stats")
+    if (config.swap_lead_battle) then
+        console.log("Config set to swap lead.. swapping now")
+        swap_lead_battle()
+    end
+    wait_frames(100)
     local best_move = pokemon.find_best_move(party[1], foe[1])
 
     if best_move then
-        --local battle_state_value = 0
-
-        -- Press B until battle state has advanced
-        while ((game_state.in_battle and (offset.battle_state_value == 0 or offset.battle_state_value == 14))) do
-            if (offset.current_hp == 0 or offset.foe_current_hp == 0) then
-                break
-            else
-                press_sequence("B", 5)
-            end
-            --console.log(offset.battle_state_value)
-        end
-        --console.log("State before stats: " .. offset.battle_state_value)
-        --console.log("Updating stats")
-        wait_frames(30)
         local move1_pp = mbyte(offset.current_pokemon + 0x2C)
         local move2_pp = mbyte(offset.current_pokemon + 0x2D)
         local move3_pp = mbyte(offset.current_pokemon + 0x2E)
@@ -395,6 +463,40 @@ function do_battle()
     else
         -- Wait another frame for valid battle data
         wait_frames(1)
+    end
+end
+
+function swap_lead_battle()
+    --find strongest_mon
+    local strongest_mon_index = 1
+    local strongest_mon_first = offset.level 
+    local strongest_mon = 0
+    for i=2, #party, 1 do
+        strongest_mon = party[i].level
+        if strongest_mon_first < strongest_mon then
+            strongest_mon_first = strongest_mon
+            strongest_mon_index = strongest_mon_index + 1
+        end
+    end
+    --select strongest_mon 
+    if strongest_mon_index == 1 then
+        return
+    else
+        while offset.battle_state_value ~= 0x0A do
+            touch_screen_at(215, 165)
+            wait_frames(5)
+            console.log(offset.battle_state_value)
+        end
+        while offset.battle_state_value == 0x0A do
+            local xpos = 80 * (((strongest_mon_index - 1) % 2) + 1)
+            local ypos = (40 * (((strongest_mon_index - 1) // 3) + 1) + strongest_mon_index - 1)
+            touch_screen_at(xpos, ypos)
+            wait_frames(5)
+            touch_screen_at(xpos, ypos)
+        end
+        while(offset.battle_state_value ~= 0x01) do
+            skip_dialogue()
+        end
     end
 end
 
@@ -610,12 +712,12 @@ end
 function mode_random_encounters_running()
     console.log("Attempting to start a battle...")
 
-    local tile_frames = frames_per_move() - 2
+    local tile_frames = frames_per_move() * 2
     local dir1 = config.move_direction == "Horizontal" and "Left" or "Up"
     local dir2 = config.move_direction == "Horizontal" and "Right" or "Down"
 
+    hold_button("B")
     while not foe and not game_state.in_battle do
-        hold_button("B")
         hold_button(dir1)
         wait_frames(tile_frames)
         release_button(dir1)
@@ -625,12 +727,14 @@ function mode_random_encounters_running()
         hold_button(dir2)
         wait_frames(tile_frames)
         release_button(dir2)
-        release_button("B")
     end
-
+    release_button("B")
     release_button(dir2)
 
     process_wild_encounter()
+    if config.pickup then
+        do_pickup()
+    end
 end
 
 function mode_spin_to_win()
