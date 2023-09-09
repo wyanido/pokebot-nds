@@ -5,9 +5,9 @@ import Config from './Config.vue';
 // Import Font Awesome icons
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faUserCircle, faGear, faWrench, faCircleArrowUp, faCircleArrowDown, faSave } from '@fortawesome/free-solid-svg-icons'
+import { faUserCircle, faGear, faWrench, faCircleArrowUp, faCircleArrowDown, faSave, faInfoCircle } from '@fortawesome/free-solid-svg-icons'
 
-library.add(faUserCircle, faGear, faWrench, faCircleArrowUp, faCircleArrowDown, faSave)
+library.add(faUserCircle, faGear, faWrench, faCircleArrowUp, faCircleArrowDown, faSave, faInfoCircle)
 
 // Route .vue pages to respective paths
 import { createRouter, createWebHistory } from "vue-router";

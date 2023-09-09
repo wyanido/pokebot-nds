@@ -1,53 +1,3 @@
-<script lang="ts">
-import YAML from 'yaml';
-
-function populateConfigFields(config) {
-  const configForm = document.getElementById('config-form');
-  const textAreas = [...configForm.getElementsByTagName('textarea')].map(ele => ele.id);
-  const fields = [...configForm.querySelectorAll('input[type="number"], select')].map(ele => ele.id);
-  const checkboxes = [...configForm.querySelectorAll('input[type="checkbox"]')].map(ele => ele.id);
-
-  for (var i = 0; i < textAreas.length; i++) {
-    const key = textAreas[i]
-    $('#' + key).val(YAML.stringify(config[key]))
-  }
-
-  for (var i = 0; i < fields.length; i++) {
-    const field = fields[i]
-    $('#' + field).val(config[field])
-  }
-
-  for (var i = 0; i < checkboxes.length; i++) {
-    const field = checkboxes[i]
-    $('#' + field).prop('checked', config[field]);
-  }
-
-  $('#config-control').removeAttr('disabled')
-  $('#config-form').removeAttr('disabled')
-}
-
-export default {
-  name: 'Config',
-  mounted() {
-    this.fetchConfig();
-  },
-  methods: {
-    async fetchConfig() {
-      try {
-        const response = await window.__TAURI__.invoke('return_config');
-        const config = JSON.parse(response);
-
-        console.log(config);
-
-        populateConfigFields(config);
-      } catch (error) {
-        console.error(error);
-      }
-    },
-  },
-};
-</script>
-
 <template>
   <nav class="navbar sticky-top navbar-dark navbar-expand bg-dark">
     <div class="navbar-brand">
@@ -99,13 +49,13 @@ export default {
       <fieldset class="row" id="config-form" disabled>
         <div class="col-6">
           <div class="card p-4">
-            <h4 class="content-title">Bot Behaviour</h4>
+            <h4 class="content-title">Primary</h4>
             <div class="form-check">
               <input class="form-check-input" type="checkbox" id="save_game_on_start">
               <label class="form-check-label" for="save_game_on_start">Save game on start</label>
             </div>
             <br>
-            <label class="form-label" for="mode">Bot Mode</label>
+            <label class="form-label" for="mode">Bot Behaviour</label>
             <select class="form-control" id="mode">
               <option value="manual">Manual</option>
               <option disabled>-- Soft Resets</option>
@@ -130,26 +80,34 @@ export default {
             </div>
             <div id="option_starters">
               <br>
-              <label class="form-label" for="starters">Starters to cycle between</label>
+              <label class="form-label" for="starters">Target Starters
+                <font-awesome-icon icon="fa-solid fa-info-circle" style="margin: 0 5px;" data-bs-toggle="tooltip"
+                  data-bs-placement="top" data-bs-title="The bot will choose all selected starters an equal number of times, cycling through them in order." />
+              </label>
               <div id="starters">
                 <div class="form-check">
                   <input class="form-check-input" type="checkbox" id="starter0">
-                  <label class="form-check-label" for="starter0">Snivy</label>
+                  <label class="form-check-label" for="starter0">Turtwig/Snivy</label>
                 </div>
+                <br>
                 <div class="form-check">
                   <input class="form-check-input" type="checkbox" id="starter1">
-                  <label class="form-check-label" for="starter1">Tepig</label>
+                  <label class="form-check-label" for="starter1">Chimchar/Tepig</label>
                 </div>
+                <br>
                 <div class="form-check">
                   <input class="form-check-input" type="checkbox" id="starter2">
-                  <label class="form-check-label" for="starter2">Oshawott</label>
+                  <label class="form-check-label" for="starter2">Piplup/Oshawott</label>
                 </div>
               </div>
             </div>
           </div>
           <div class="card p-4 mt-3">
             <h4 class="content-title">Target Pokémon</h4>
-            <label class="form-label" for="catch">Target traits</label>
+            <label class="form-label" for="catch">Target traits
+              <font-awesome-icon icon="fa-solid fa-info-circle" style="margin: 0 5px;" data-bs-toggle="tooltip"
+                data-bs-placement="top" data-bs-title="YAML format. Specifies all traits a Pokémon must meet in order to be a target. If 'shiny: true' is specified, the bot will catch all shinies. Otherwise, the Pokémon must match all specified traits. For multiple items in a list, only one needs to be matched." />
+            </label>
             <textarea class="form-control" spellcheck="false" style="min-width:120px; max-width:100%; height: 120px;"
               id="target_traits" placeholder=""></textarea>
             <br>
@@ -170,12 +128,18 @@ export default {
             <h4 class="content-title">Other</h4>
             <div class="form-check">
               <input class="form-check-input" type="checkbox" id="hax">
-              <label class="form-check-label" for="hax">Use hax for faster resets</label>
+              <label class="form-check-label" for="hax">Use hax for faster resets
+                <font-awesome-icon icon="fa-solid fa-info-circle" style="margin: 0 5px;" data-bs-toggle="tooltip"
+                data-bs-placement="top" data-bs-title="Soft reset earlier than humanly possible by reading Pokémon data from RAM as soon as it is accessible." />
+              </label>
             </div>
             <br>
             <div class="form-check">
               <input class="form-check-input" type="checkbox" id="debug">
-              <label class="form-check-label" for="debug">Debug mode</label>
+              <label class="form-check-label" for="debug">Debug mode
+                <font-awesome-icon icon="fa-solid fa-info-circle" style="margin: 0 5px;" data-bs-toggle="tooltip"
+                data-bs-placement="top" data-bs-title="Outputs extra info to the Lua Console. Useful if you need to troubleshoot an issue." />
+              </label>
             </div>
             <br>
             <label class="form-label" for="inactive_client_timeout">Inactive game timeout (ms)</label>
@@ -220,11 +184,17 @@ export default {
                 <label class="form-check-label" for="inflict_status">Inflict sleep/paralysis</label>
               </div>
               <br>
-              <label class="form-label" for="pokeball_priority">Poké Ball priority</label>
+              <label class="form-label" for="pokeball_priority">Poké Ball priority
+                <font-awesome-icon icon="fa-solid fa-info-circle" style="margin: 0 5px;" data-bs-toggle="tooltip"
+                data-bs-placement="top" data-bs-title="YAML format list. Specifies the preferred Poké Ball type for the bot to use when catching a target from highest to lowest priority." />
+              </label>
               <textarea class="form-control" spellcheck="false" style="min-width:120px; max-width:100%; height: 140px;"
                 id="pokeball_priority" placeholder=""></textarea>
               <br>
-              <label class="form-label" for="pokeball_override">Poké Ball override</label>
+              <label class="form-label" for="pokeball_override">Poké Ball override
+                <font-awesome-icon icon="fa-solid fa-info-circle" style="margin: 0 5px;" data-bs-toggle="tooltip"
+                data-bs-placement="top" data-bs-title="YAML format. Specifies the target traits per Poké Ball type the bot will check for in order to use. Traits must always be in a list. Takes priority over Poké Ball priority" />
+              </label>
               <textarea class="form-control" spellcheck="false" style="min-width:120px; max-width:100%; height: 260px;"
                 id="pokeball_override" placeholder=""></textarea>
             </div>
@@ -236,7 +206,10 @@ export default {
               <label class="form-check-label" for="pickup">Collect Pickup items from party</label>
             </div>
             <br>
-            <label class="form-label" for="pickup_threshold">Pickup threshold</label>
+            <label class="form-label" for="pickup_threshold">Pickup threshold
+              <font-awesome-icon icon="fa-solid fa-info-circle" style="margin: 0 5px;" data-bs-toggle="tooltip"
+                data-bs-placement="top" data-bs-title="Number of party Pickup Pokémon that must hold an item before collection." />
+            </label>
             <input id="pickup_threshold" style="width:100px" min="1" max="6" type="number" class="form-control">
           </div>
         </div>
@@ -247,8 +220,62 @@ export default {
 </template>
 
 <script setup lang="ts">
+import { Tooltip } from 'bootstrap';
 import 'bootstrap/scss/bootstrap.scss';
-// import { Tooltip, Toast, Popover } from 'bootstrap';
-
 import './components/style.css';
+
+</script>
+
+<script lang="ts">
+import YAML from 'yaml';
+
+function populateConfigFields(config) {
+  const configForm = document.getElementById('config-form');
+  const textAreas = [...configForm.getElementsByTagName('textarea')].map(ele => ele.id);
+  const fields = [...configForm.querySelectorAll('input[type="number"], select')].map(ele => ele.id);
+  const checkboxes = [...configForm.querySelectorAll('input[type="checkbox"]')].map(ele => ele.id);
+
+  for (var i = 0; i < textAreas.length; i++) {
+    const key = textAreas[i]
+    $('#' + key).val(YAML.stringify(config[key]))
+  }
+
+  for (var i = 0; i < fields.length; i++) {
+    const field = fields[i]
+    $('#' + field).val(config[field])
+  }
+
+  for (var i = 0; i < checkboxes.length; i++) {
+    const field = checkboxes[i]
+    $('#' + field).prop('checked', config[field]);
+  }
+
+  $('#config-control').removeAttr('disabled')
+  $('#config-form').removeAttr('disabled')
+}
+
+export default {
+  name: 'Config',
+  mounted() {
+    this.fetchConfig();
+
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new Tooltip(tooltipTriggerEl))
+  },
+  methods: {
+    async fetchConfig() {
+      try {
+        const response = await window.__TAURI__.invoke('return_config');
+        const config = JSON.parse(response);
+
+        console.log(config);
+
+        populateConfigFields(config);
+      } catch (error) {
+        console.error(error);
+      }
+    },
+  },
+};
+
 </script>
