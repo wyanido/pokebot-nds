@@ -138,7 +138,7 @@ function do_pickup()
     for i = 1, #party, 1 do
         table.insert(items, party[i].heldItem)
 
-        if party[i].ability == "Overgrow" then
+        if party[i].ability == "Pickup" then
             pickup_count = pickup_count + 1
 
             if party[i].heldItem ~= "none" then
@@ -151,36 +151,24 @@ function do_pickup()
         if item_count < tonumber(config.pickup_threshold) then
             console.log("Pickup items in party: " .. item_count .. ". Collecting at threshold: " .. config.pickup_threshold)
         else
-            press_sequence(60, "X", 30)
-            while mbyte(0x021C4C86) ~= 02 do
-                press_sequence("Up", 10)
-            end
-            press_button("A")
+            wait_frames(60)
+            touch_screen_at(45, 75)
             wait_frames(120)
+
             console.log("Item count: " .. item_count)
             for i = 1, #items, 1 do
                 if items[i] ~= "none" then
                     console.log("getting item from mon at slot: " .. i)
-                    if i%2 == 0 then
-                        press_button("Right")
-                        wait_frames(5)
-                    end
-                    if i == 3 or i == 4 then
-                        press_button("Down")
-                        wait_frames(5)
-                    end
-                    if i == 5 or i ==6 then
-                        press_button("Down")
-                        wait_frames(5)
-                        press_button("Down")
-                        wait_frames(5)
-                    end
-                    press_sequence("A", 5, "Down", 5, "Down", 5, "A", 5, "Down", 5, "A")
+                    touch_screen_at(80 * ((i - 1) % 2 + 1), 30 + 50 * ((i-1) // 2))
+                    wait_frames(50)
+                    touch_screen_at(190, 100)
+                    wait_frames(50)
+                    touch_screen_at(175, 65)
                     wait_frames(200)
                     press_button("B")
                 end
             end
-            press_sequence(30, "B", 150, "B", 100)
+            press_sequence(30, "B", 120, "B", 60)
         end
     else
         console.log("Pickup is enabled in config, but no Pokemon have the pickup ability.")
