@@ -10,9 +10,14 @@ use std::{
     fs::File,
     io::{self, Read, Write},
     net::{TcpListener, TcpStream},
+    sync::Mutex,
     thread,
     time::Duration,
 };
+
+lazy_static::lazy_static! {
+    static ref CONFIG: Mutex<Value> = Mutex::new(serde_json::json!({}));
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 struct ClientMessage {
@@ -46,7 +51,7 @@ fn read_message(stream: &mut TcpStream) -> Result<Value, std::io::Error> {
                 }
                 buffer.push(byte[0]);
             }
-            Err(e) => return Err(e), // Pass the error up
+            Err(e) => return Err(e),
         }
     }
 
@@ -125,15 +130,19 @@ fn client_send(
 }
 
 fn main() {
-    let mut config: Value = serde_json::json!({});
-
     match read_json_file("../../config.json") {
         Ok(data) => {
-            config = data;
+            *CONFIG.lock().unwrap() = data;
         }
         Err(err) => {
             eprintln!("Error reading/parsing JSON data: {}", err);
         }
+    }
+
+    #[tauri::command]
+    fn return_config() -> Result<String, ()> {
+        let config = CONFIG.lock().unwrap();
+        Ok(format!("{}", *config))
     }
 
     // Create separate thread to listen out for BizHawk clients
@@ -145,23 +154,21 @@ fn main() {
         for stream in listener.incoming() {
             match stream {
                 Ok(stream) => {
-                    let config = config.clone(); // Prevents 'borrow of moved value: config'
+                    let config = CONFIG.lock().unwrap();
+                    let timeout = config["inactive_client_timeout"]
+                        .as_str()
+                        .unwrap_or_default()
+                        .to_string();
 
                     // Send config to connecting clients
                     let _ = client_send(
                         &stream,
                         "apply_config",
-                        &serde_json::json!({"config": config}),
+                        &serde_json::json!({"config": *config}),
                     );
 
                     thread::spawn(move || {
-                        handle_client(
-                            stream,
-                            config["inactive_client_timeout"]
-                                .as_str()
-                                .unwrap_or_default()
-                                .to_string(),
-                        );
+                        handle_client(stream, timeout);
                     });
                 }
                 Err(e) => {
@@ -181,6 +188,7 @@ fn main() {
 
             Ok(())
         })
+        .invoke_handler(tauri::generate_handler![return_config])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 

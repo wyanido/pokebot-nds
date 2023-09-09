@@ -90,7 +90,11 @@ tr {
     padding: 0 8px !important;
     background-color: #303336;
     border: none;
-    color: #CCCCCC;
+    color: #CCCCCC !important;
+}
+
+textarea.form-control {
+    padding: 8px 8px !important;
 }
 
 table {

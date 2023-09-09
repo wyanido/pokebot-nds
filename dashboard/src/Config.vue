@@ -1,3 +1,52 @@
+<script lang="ts">
+import YAML from 'yaml';
+
+function populateConfigFields(config) {
+  const configForm = document.getElementById('config-form');
+  const textAreas = [...configForm.getElementsByTagName('textarea')].map(ele => ele.id);
+  const fields = [...configForm.querySelectorAll('input[type="number"], select')].map(ele => ele.id);
+  const checkboxes = [...configForm.querySelectorAll('input[type="checkbox"]')].map(ele => ele.id);
+
+  for (var i = 0; i < textAreas.length; i++) {
+    const key = textAreas[i]
+    $('#' + key).val(YAML.stringify(config[key]))
+  }
+
+  for (var i = 0; i < fields.length; i++) {
+    const field = fields[i]
+    $('#' + field).val(config[field])
+  }
+
+  for (var i = 0; i < checkboxes.length; i++) {
+    const field = checkboxes[i]
+    $('#' + field).prop('checked', config[field]);
+  }
+
+  $('#config-control').removeAttr('disabled')
+  $('#config-form').removeAttr('disabled')
+}
+
+export default {
+  name: 'Config',
+  mounted() {
+    this.fetchConfig();
+  },
+  methods: {
+    async fetchConfig() {
+      try {
+        const response = await window.__TAURI__.invoke('return_config');
+        const config = JSON.parse(response);
+
+        console.log(config);
+
+        populateConfigFields(config);
+      } catch (error) {
+        console.error(error);
+      }
+    },
+  },
+};
+</script>
 
 <template>
   <nav class="navbar sticky-top navbar-dark navbar-expand bg-dark">
@@ -172,7 +221,7 @@
               </div>
               <br>
               <label class="form-label" for="pokeball_priority">Poké Ball priority</label>
-              <textarea class="form-control" spellcheck="false" style="min-width:120px; max-width:100%; height: 120px;"
+              <textarea class="form-control" spellcheck="false" style="min-width:120px; max-width:100%; height: 140px;"
                 id="pokeball_priority" placeholder=""></textarea>
               <br>
               <label class="form-label" for="pokeball_override">Poké Ball override</label>
