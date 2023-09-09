@@ -13,14 +13,14 @@ function update_pointers()
     offset.trainer_y = offset.map_header + 12 + 2
     offset.trainer_z = offset.map_header + 8 + 2
 
-    local mem_shift = mdword(0x21D2228) --27C1E0  --value @ 2C32B4
-	offset.battle_state = mem_shift + 0x470D4
-	offset.battle_state_value = mbyte(offset.battle_state) --01 is FIGHT menu, 04 is Move Select, 08 is Bag,
-	offset.current_pokemon = mem_shift + 0x49E14        -- 0A is POkemon menu 0E is animation
-	offset.foe_in_battle = offset.current_pokemon + 0xC0 --2C5ff4
-	offset.current_hp = mword(offset.current_pokemon + 0x4C)
-	offset.level = mbyte(offset.current_pokemon + 0x34)
-	offset.foe_current_hp = mword(offset.foe_in_battle + 0x4C) 
+    local mem_shift = mdword(0x21D2228)                 --27C1E0  --value @ 2C32B4
+    offset.battle_state = mem_shift + 0x470D4
+    offset.battle_state_value = mbyte(offset.battle_state) --01 is FIGHT menu, 04 is Move Select, 08 is Bag,
+    offset.current_pokemon = mem_shift + 0x49E14        -- 0A is POkemon menu 0E is animation
+    offset.foe_in_battle = offset.current_pokemon + 0xC0 --2C5ff4
+    offset.current_hp = mword(offset.current_pokemon + 0x4C)
+    offset.level = mbyte(offset.current_pokemon + 0x34)
+    offset.foe_current_hp = mword(offset.foe_in_battle + 0x4C)
     offset.facing_direction = mbyte(mem_shift + 0x25E88)
 
     -- console.log(string.format("%08X", offset.map_header))
@@ -145,11 +145,12 @@ function do_pickup()
                 item_count = item_count + 1
             end
         end
-    end 
+    end
 
     if pickup_count > 0 then
         if item_count < tonumber(config.pickup_threshold) then
-            console.log("Pickup items in party: " .. item_count .. ". Collecting at threshold: " .. config.pickup_threshold)
+            console.log("Pickup items in party: " ..
+            item_count .. ". Collecting at threshold: " .. config.pickup_threshold)
         else
             wait_frames(60)
             touch_screen_at(45, 75)
@@ -159,7 +160,7 @@ function do_pickup()
             for i = 1, #items, 1 do
                 if items[i] ~= "none" then
                     console.log("getting item from mon at slot: " .. i)
-                    touch_screen_at(80 * ((i - 1) % 2 + 1), 30 + 50 * ((i-1) // 2))
+                    touch_screen_at(80 * ((i - 1) % 2 + 1), 30 + 50 * ((i - 1) // 2))
                     wait_frames(50)
                     touch_screen_at(190, 100)
                     wait_frames(50)
@@ -204,9 +205,9 @@ function use_move_at_slot(slot)
 end
 
 function flee_battle()
-     while (game_state.in_battle and offset.battle_state_value == 0) do
-            press_sequence("B", 5)
-     end
+    while (game_state.in_battle and offset.battle_state_value == 0) do
+        press_sequence("B", 5)
+    end
     while game_state.in_battle do
         touch_screen_at(125, 175) -- Run
         wait_frames(5)
@@ -302,10 +303,10 @@ function do_battle()
         else
             press_sequence("B", 5)
         end
-            --console.log(offset.battle_state_value)
+        --console.log(offset.battle_state_value)
     end
-        --console.log("State before stats: " .. offset.battle_state_value)
-        --console.log("Updating stats")
+    --console.log("State before stats: " .. offset.battle_state_value)
+    --console.log("Updating stats")
     if (config.swap_lead_battle) then
         console.log("Config set to swap lead.. swapping now")
         swap_lead_battle()
@@ -412,16 +413,16 @@ end
 function swap_lead_battle()
     --find strongest_mon
     local strongest_mon_index = 1
-    local strongest_mon_first = offset.level 
+    local strongest_mon_first = offset.level
     local strongest_mon = 0
-    for i=2, #party, 1 do
+    for i = 2, #party, 1 do
         strongest_mon = party[i].level
         if strongest_mon_first < strongest_mon then
             strongest_mon_first = strongest_mon
             strongest_mon_index = strongest_mon_index + 1
         end
     end
-    --select strongest_mon 
+    --select strongest_mon
     if strongest_mon_index == 1 then
         return
     else
@@ -437,7 +438,7 @@ function swap_lead_battle()
             wait_frames(5)
             touch_screen_at(xpos, ypos)
         end
-        while(offset.battle_state_value ~= 0x01) do
+        while (offset.battle_state_value ~= 0x01) do
             skip_dialogue()
         end
     end
@@ -461,7 +462,7 @@ function catch_pokemon()
         wait_frames(20)
         touch_screen_at(100, 170)
         wait_frames(750)
-        if mbyte(0x02101DF0) == 0x01 then
+        if mbyte(0x0211194C) == 0x01 then
             console.log("Pokemon caught!!!")
             skip_nickname()
         else
