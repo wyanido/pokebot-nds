@@ -755,7 +755,7 @@ function mode_spin_to_win()
         while not foe and not game_state.in_battle do
             press_sequence("Up", "Left", "Down", "Right")
         end
-
+    end
     process_wild_encounter()
 end
 
