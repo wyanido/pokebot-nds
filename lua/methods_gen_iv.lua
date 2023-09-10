@@ -190,11 +190,12 @@ function do_pickup()
                 item_count = item_count + 1
             end
         end
-    end 
+    end
 
     if pickup_count > 0 then
         if item_count < tonumber(config.pickup_threshold) then
-            console.log("Pickup items in party: " .. item_count .. ". Collecting at threshold: " .. config.pickup_threshold)
+            console.log("Pickup items in party: " ..
+                item_count .. ". Collecting at threshold: " .. config.pickup_threshold)
         else
             press_sequence(60, "X", 30)
             while mbyte(0x021C4C86) ~= 02 do
@@ -206,7 +207,7 @@ function do_pickup()
             for i = 1, #items, 1 do
                 if items[i] ~= "none" then
                     console.log("getting item from mon at slot: " .. i)
-                    if i%2 == 0 then
+                    if i % 2 == 0 then
                         press_button("Right")
                         wait_frames(5)
                     end
@@ -214,7 +215,7 @@ function do_pickup()
                         press_button("Down")
                         wait_frames(5)
                     end
-                    if i == 5 or i ==6 then
+                    if i == 5 or i == 6 then
                         press_button("Down")
                         wait_frames(5)
                         press_button("Down")
@@ -261,9 +262,9 @@ function use_move_at_slot(slot)
 end
 
 function flee_battle()
-     while (game_state.in_battle and offset.battle_state_value == 0) do
-            press_sequence("B", 5)
-     end
+    while (game_state.in_battle and offset.battle_state_value == 0) do
+        press_sequence("B", 5)
+    end
     while game_state.in_battle do
         touch_screen_at(125, 175) -- Run
         wait_frames(5)
@@ -359,10 +360,10 @@ function do_battle()
         else
             press_sequence("B", 5)
         end
-            --console.log(offset.battle_state_value)
+        --console.log(offset.battle_state_value)
     end
-        --console.log("State before stats: " .. offset.battle_state_value)
-        --console.log("Updating stats")
+    --console.log("State before stats: " .. offset.battle_state_value)
+    --console.log("Updating stats")
     if (config.swap_lead_battle) then
         console.log("Config set to swap lead.. swapping now")
         swap_lead_battle()
@@ -469,16 +470,16 @@ end
 function swap_lead_battle()
     --find strongest_mon
     local strongest_mon_index = 1
-    local strongest_mon_first = offset.level 
+    local strongest_mon_first = offset.level
     local strongest_mon = 0
-    for i=2, #party, 1 do
+    for i = 2, #party, 1 do
         strongest_mon = party[i].level
         if strongest_mon_first < strongest_mon then
             strongest_mon_first = strongest_mon
             strongest_mon_index = strongest_mon_index + 1
         end
     end
-    --select strongest_mon 
+    --select strongest_mon
     if strongest_mon_index == 1 then
         return
     else
@@ -494,7 +495,7 @@ function swap_lead_battle()
             wait_frames(5)
             touch_screen_at(xpos, ypos)
         end
-        while(offset.battle_state_value ~= 0x01) do
+        while (offset.battle_state_value ~= 0x01) do
             skip_dialogue()
         end
     end
@@ -638,7 +639,7 @@ function mode_starters_DP(starter)
     end
 end
 
-function mode_starters(starter)                          --starters for platinum
+function mode_starters(starter) --starters for platinum
     --local selected_starter = mdword(0x2101DEC) + 0x203E8 -- 0: Turtwig, 1: Chimchar, 2: Piplup
     --local starters_ready = selected_starter + 0x84       -- 0 before hand appears, A94D afterwards
 
@@ -657,7 +658,7 @@ function mode_starters(starter)                          --starters for platinum
         local rand2 = math.random(3, 60)
         wait_frames(rand2)
         press_button("A")
-        wait_frames(rand2)    
+        wait_frames(rand2)
     end
     --we can save right in front of the bag in platinum so all we have to do is open and select are starter
 
