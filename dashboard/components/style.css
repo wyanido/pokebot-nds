@@ -1,18 +1,3 @@
-/* Prevent scrolling outside the page */
-html,
-body {
-    overscroll-behavior: none;
-    -ms-overflow-style: none;
-    /* IE and Edge */
-    scrollbar-width: none;
-    /* Firefox */
-}
-
-html::-webkit-scrollbar {
-    /* Chrome, Safari and Opera */
-    display: none;
-}
-
 /* Actual styling */
 body {
     background-color: #25282C !important;

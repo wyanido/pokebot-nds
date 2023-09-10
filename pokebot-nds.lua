@@ -1,11 +1,17 @@
 -----------------------
 -- INITIALIZATION
 -----------------------
-local BOT_VERSION = "0.4.0-alpha"
+local BOT_VERSION = "v0.5.0-alpha"
 
 console.clear()
-console.log("Running " .. _VERSION)
-console.log("Pokebot NDS version " .. BOT_VERSION .. " by NIDO (wyanido)")
+-- console.log("Running " .. _VERSION)
+console.log("Pokébot NDS " .. BOT_VERSION .. " by NIDO (wyanido)")
+console.log("https://github.com/wyanido/pokebot-nds\n")
+
+if gameinfo.getromhash() == "" then
+    console.log("Please load a ROM before enabling the script!")
+    return
+end
 
 mbyte = memory.read_u8
 mword = memory.read_u16_le
@@ -34,7 +40,7 @@ dofile("lua\\dashboard.lua")
 
 -- Send game info to the dashboard
 comm.socketServerSend(json.encode({
-    type_ = "init",
+    type = "load_game",
     data = {
         gen = gen,
         game = game_name
@@ -205,7 +211,7 @@ function update_game_info(force)
     if emu.framecount() % refresh_frames == 0 or force then
         game_state = get_game_state()
         comm.socketServerSend(json.encode({
-            type_ = "game",
+            type = "game",
             data = game_state
         }) .. "\x00")
 
@@ -215,7 +221,7 @@ function update_game_info(force)
     local party_changed = get_party()
     if party_changed then
         comm.socketServerSend(json.encode({
-            type_ = "party",
+            type = "party",
             data = party
         }) .. "\x00")
     end
