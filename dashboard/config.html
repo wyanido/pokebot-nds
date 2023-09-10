@@ -15,6 +15,8 @@
         integrity="sha512-T93uOawQ+FrEdyCPaWrQtppurbLm8SISu2QnHyddM0fGXKX9Amyirwibe1wGYbsW2F8lLzhOM/2+d3Zo94ljRQ=="
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://kit.fontawesome.com/b079a6b886.js" crossorigin="anonymous"></script>
+    <script src="components/config.js"></script>
+    <link rel="stylesheet" href="components/tooltip.css">
 </head>
 
 <body class="with-custom-webkit-scrollbars with-custom-css-scrollbars" data-dm-shortcut-enabled="true"
@@ -64,28 +66,28 @@
                     Save Changes (CTRL+S)
                 </button>
             </div>
-            <fieldset class="row row-eq-spacing" id="config-form" disabled="disabled">
+            <fieldset class="row row-eq-spacing" id="config-form" disabled>
                 <div class="col-6">
                     <div class="card">
-                        <h2 class="content-title">Bot Behaviour</h2>
+                        <h2 class="content-title">Primary</h2>
                         <div class="custom-switch">
                             <input type="checkbox" id="save_game_on_start">
                             <label for="save_game_on_start">Save game on start</label>
                         </div>
                         <br>
-                        <label for="mode">Bot Mode</label>
+                        <label for="mode">Bot Behaviour</label>
                         <select class="form-control" id="mode">
                             <option value="manual">Manual</option>
-                            <option disabled="disabled">-- Soft Resets</option>
+                            <option disabled>-- Soft Resets</option>
                             <option value="starters">Starters</option>
                             <option value="gift">Gift Pokémon</option>
                             <option value="static_encounters">Static Encounters</option>
-                            <option disabled="disabled">-- Standard</option>
+                            <option disabled>-- Standard</option>
                             <option value="random_encounters">Random Encounters</option>
                             <option value="phenomenon_encounters">Phenomenon Encounters</option>
                             <option value="fishing">Fishing</option>
                             <option value="daycare_eggs">Collect & Hatch Eggs</option>
-                            <option disabled="disabled">-- Misc</option>
+                            <option disabled>-- Misc</option>
                             <option value="voltorb_flip">Voltorb Flip</option>
                         </select>
                         <div id="option_moving_encounters">
@@ -98,7 +100,13 @@
                         </div>
                         <div id="option_starters">
                             <br>
-                            <label for="starters">Starters to cycle between</label>
+                            <label for="starters">Target Starters
+                                <i class="fa fa-info-circle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
+                                <div id="tooltip" role="tooltip">The bot will choose all selected starters an equal
+                                    number of times, cycling through them in order.
+                                    <div id="arrow" data-popper-arrow></div>
+                                </div>
+                            </label>
                             <div id="starters">
                                 <div class="custom-switch">
                                     <input type="checkbox" id="starter0">
@@ -141,12 +149,24 @@
                         <h2 class="content-title">Other</h2>
                         <div class="custom-switch">
                             <input type="checkbox" id="hax">
-                            <label for="hax">Use hax for faster resets</label>
+                            <label for="hax">Use hax for faster resets
+                                <i class="fa fa-info-circle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
+                                <div id="tooltip" role="tooltip">Allows the bot to do resets earlier than humanly
+                                    possible by reading Pokémon data from RAM as soon as it is accessible.
+                                    <div id="arrow" data-popper-arrow></div>
+                                </div>
+                            </label>
                         </div>
                         <br>
                         <div class="custom-switch">
                             <input type="checkbox" id="debug">
-                            <label for="debug">Debug mode</label>
+                            <label for="debug">Debug mode
+                                <i class="fa fa-info-circle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
+                                <div id="tooltip" role="tooltip">Outputs extra info to the Lua Console. Useful if you
+                                    need to troubleshoot an issue.
+                                    <div id="arrow" data-popper-arrow></div>
+                                </div>
+                            </label>
                         </div>
                         <br>
                         <label for="inactive_client_timeout">Inactive game timeout (ms)</label>
@@ -192,12 +212,25 @@
                                 <label for="inflict_status">Inflict sleep/paralysis</label>
                             </div>
                             <br>
-                            <label for="pokeball_priority">Poké Ball priority</label>
+                            <label for="pokeball_priority">Poké Ball priority
+                                <i class="fa fa-info-circle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
+                                <div id="tooltip" role="tooltip">YAML format list. Specifies the preferred Poké Ball
+                                    type for the bot to use when catching a target from highest to lowest priority.
+                                    <div id="arrow" data-popper-arrow></div>
+                                </div>
+                            </label>
                             <textarea class="form-control" spellcheck="false"
                                 style="min-width:120px; max-width:100%; height: 120px;" id="pokeball_priority"
                                 placeholder=""></textarea>
                             <br>
-                            <label for="pokeball_override">Poké Ball override</label>
+                            <label for="pokeball_override">Poké Ball override
+                                <i class="fa fa-info-circle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
+                                <div id="tooltip" role="tooltip">YAML format. Specifies the target traits per Poké Ball
+                                    type the bot will check for in order to use. Traits must always be in a list. Takes
+                                    priority over Poké Ball priority
+                                    <div id="arrow" data-popper-arrow></div>
+                                </div>
+                            </label>
                             <textarea class="form-control" spellcheck="false"
                                 style="min-width:120px; max-width:100%; height: 260px;" id="pokeball_override"
                                 placeholder=""></textarea>
@@ -210,7 +243,13 @@
                             <label for="pickup">Collect Pickup items from party</label>
                         </div>
                         <br>
-                        <label for="pickup_threshold">Pickup threshold</label>
+                        <label for="pickup_threshold">Pickup threshold
+                            <i class="fa fa-info-circle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
+                            <div id="tooltip" role="tooltip">Number of party Pickup Pokémon that must have found an item
+                                before collection.
+                                <div id="arrow" data-popper-arrow></div>
+                            </div>
+                        </label>
                         <input id="pickup_threshold" style="width:100px" min="1" max="6" type="number"
                             class="form-control">
                     </div>
@@ -218,6 +257,8 @@
             </fieldset>
         </div>
     </div>
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <script src="components/tooltip.js"></script>
 </body>
 
 </html>

@@ -1,7 +1,6 @@
 const net = require('net');
-const { AttachmentBuilder, EmbedBuilder, WebhookClient } = require('discord.js');
+// const { AttachmentBuilder, EmbedBuilder, WebhookClient } = require('discord.js');
 // const { webhookId, webhookToken } = require('../config.json');
-const port = 51055;
 
 // const file = new AttachmentBuilder('./assets/pokemon/1.png');
 // const embed = new EmbedBuilder()
@@ -10,12 +9,13 @@ const port = 51055;
 
 // const webhookClient = new WebhookClient({ url: 'https://discord.com/api/webhooks/1144275363577483306/fKmwz4f37gT2-dR1aCu0yrz0WY2h9D2o-4ahfwMf2huPoFSvHeZTkmO1T_jQDtmho5x-' });
 // webhookClient.send({
-//     content: 'Webhook test',
-//     username: 'some-username',
-//     embeds: [embed],
-//     files: [file]
-// });
-
+    //     content: 'Webhook test',
+    //     username: 'some-username',
+    //     embeds: [embed],
+    //     files: [file]
+    // });
+const port = 51055;
+    
 const server = net.createServer((socket) => {
     console.log('Client connected.');
 
@@ -76,7 +76,10 @@ function interpretClientMessage(socket, message) {
 
             break;
         case 'load_game':
-            console.log("Game was loaded.")
+            // Script was started with a ROM LOaded. Send config
+
+
+            socket.write
             break;
         case 'game_state':
 

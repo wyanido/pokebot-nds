@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.13.0",
+    "yaml": "^2.3.2"
+  }
+}
