@@ -4,30 +4,33 @@ const path = require('path');
 const socket = require('./socket');
 const port = 3000;
 
-function dashboardSetup() {
-    // Open dashboard page in default browser
-    var url = 'http://localhost:' + port + '/dashboard.html';
-    var start = (process.platform == 'darwin' ? 'open' : process.platform == 'win32' ? 'start' : 'xdg-open');
-    require('child_process').exec(start + ' ' + url);
-
-    // Create user folder if it doesn't exist
-    const userDir = '../user';
-
-    try {
-        if (!fs.existsSync(userDir)) {
-            fs.mkdirSync(userDir);
-        }
-    } catch (err) {
-        console.error(err);
-    }
-}
-
-// Serve local files to the webpage
 const server = http.createServer(function (req, res) {
-    const filePath = '.' + req.url;
+    const filePath = '.' + decodeURI(req.url); // Remove percent encoding
 
+    if (req.url.startsWith('/api')) {
+        const urlObject = new URL(req.url, 'http://localhost');
+        urlObject.searchParams.delete("data");
+        const endpoint = urlObject.pathname.substring(1).slice(4);
+
+        // console.log(endpoint)
+        // const endpoint = req.url.split(/); / / Second half of the / api /...request
+        const jsonData = handleAPIRequest(endpoint, req.url, req.method);
+
+        if (jsonData !== null) {
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(jsonData));
+        } else {
+            // Handle unknown API routes with a 404 response
+            res.writeHead(404, { 'Content-Type': 'text/plain' });
+            res.end('Not Found');
+        }
+        return;
+    }
+
+    // Handle file requests
     const extname = path.extname(filePath);
     let contentType = 'text/html';
+
 
     switch (extname) {
         case '.js':
@@ -49,7 +52,7 @@ const server = http.createServer(function (req, res) {
             } else {
                 res.writeHead(500);
                 res.write('Error: Internal Server Error');
-                res.end('\n\nPlease open the dashboard at http://localhost:3000/dashboard.html instead!')
+                res.end('\n\nPlease open the dashboard at http://localhost:3000/dashboard.html instead!');
             }
         } else {
             res.writeHead(200, { 'Content-Type': contentType });
@@ -64,6 +67,38 @@ server.listen(port, function (error) {
     } else {
         console.log('Web server running on port ' + port);
 
-        dashboardSetup();
+        var url = 'http://localhost:' + port + '/dashboard.html';
+        var start = (process.platform == 'darwin' ? 'open' : process.platform == 'win32' ? 'start' : 'xdg-open');
+        require('child_process').exec(start + ' ' + url);
     }
 });
+
+function handleAPIRequest(endpoint, url, method) {
+    switch (endpoint) {
+        case 'clients':
+            return socket.clientData;
+        case 'stats':
+            return socket.stats;
+        case 'recents':
+            return socket.recents;
+        case 'targets':
+            return socket.targets;
+        case 'elapsed_start':
+            return socket.getElapsedStart();
+        case 'config':
+            if (method == "GET") {
+                return socket.config;
+            } else if (method == "POST") {
+                const searchParams = new URLSearchParams(url.split("?")[1]);
+                const dataParam = searchParams.get("data");
+                const data = JSON.parse(decodeURIComponent(dataParam));
+
+                socket.setSocketConfig(data.config); // Required, as socket.config can't be set directly
+                socket.setConfig(data.config, data.game);
+            }
+        case 'encounter_rate':
+            return socket.getEncounterRate();
+        default:
+            return null;
+    }
+}

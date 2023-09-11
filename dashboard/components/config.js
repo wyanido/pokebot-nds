@@ -1,102 +1,115 @@
-// const { ipcRenderer } = require('electron')
-// const YAML = require('yaml');
+let config;
 
-// const configForm = document.getElementById('config-form');
+RequestAPI('config', function (error, data) {
+    if (error) {
+        console.error(error);
+        return;
+    }
 
-// const textAreas = [...configForm.getElementsByTagName('textarea')].map(ele => ele.id);
-// const fields = [...configForm.querySelectorAll('input[type="number"], select')].map(ele => ele.id);
-// const checkboxes = [...configForm.querySelectorAll('input[type="checkbox"]')].map(ele => ele.id);
+    config = data;
+    setConfig();
+});
 
-// var originalConfig = ''
+const configForm = document.getElementById('config-form');
+const textAreas = [...configForm.getElementsByTagName('textarea')].map(ele => ele.id);
+const fields = [...configForm.querySelectorAll('input[type="number"], select')].map(ele => ele.id);
+const checkboxes = [...configForm.querySelectorAll('input[type="checkbox"]')].map(ele => ele.id);
 
+var originalConfig = ''
 
-// function setBadgeClientCount(clients) {
-//     $('#home-button').empty()
+function sendConfig() {
+    config = originalConfig
 
-//     if (clients > 0) {
-//         $('#home-button').append('<span style="bottom:16px; right:-10px; font-size:10px" class="badge badge-primary position-absolute translate-middle text-bg-primary px-5">' + clients.toString() + '</span>')
-//     }
-// }
+    try {
+        for (var i = 0; i < textAreas.length; i++) {
+            const key = textAreas[i]
+            config[key] = jsyaml.load($('#' + key).val())
+        }
+    }
+    catch (e) {
+        halfmoon.initStickyAlert({
+            content: e,
+            title: 'Changes not saved',
+            alertType: 'alert-danger',
+        })
+        return
+    }
 
-// function sendConfig() {
-//     config = originalConfig
+    for (var i = 0; i < fields.length; i++) {
+        const field = fields[i]
+        config[field] = $('#' + field).val()
+    }
 
-//     try {
-//         for (var i = 0; i < textAreas.length; i++) {
-//             var key = textAreas[i]
-//             config[key] = YAML.parse($('#' + key).val())
-//         }
-//     }
-//     catch (e) {
-//         halfmoon.initStickyAlert({
-//             content: e,
-//             title: 'Changes not saved',
-//             alertType: 'alert-danger',
-//         })
-//         return
-//     }
+    for (var i = 0; i < checkboxes.length; i++) {
+        const field = checkboxes[i]
+        config[field] = $('#' + field).prop('checked')
+    }
 
-//     for (var i = 0; i < fields.length; i++) {
-//         field = fields[i]
-//         config[field] = $('#' + field).val()
-//     }
+    PostAPI('config', {
+        config: config,
+        game: $('#editing').val()
+    }, function (e, _) {
+        if (!e) {
+            halfmoon.initStickyAlert({
+                content: 'You may need to restart pokebot-nds.lua for the bot mode to update immediately. Other changes will take effect now.',
+                title: 'Changes saved!',
+                alertType: 'alert-success',
+            })
+            return;
+        }
 
-//     for (var i = 0; i < checkboxes.length; i++) {
-//         field = checkboxes[i]
-//         config[field] = $('#' + field).prop('checked')
-//     }
+        halfmoon.initStickyAlert({
+            content: e,
+            title: 'Changes not saved',
+            alertType: 'alert-danger',
+        })
+    })
+}
 
-//     ipcRenderer.send('apply_config', config, $('#editing').val());
+function updateOptionVisibility() {
+    $('#option_starters').hide();
+    $('#option_moving_encounters').hide();
+    $('#option_auto_catch').hide();
 
-//     halfmoon.initStickyAlert({
-//         content: 'You may need to restart pokebot-nds.lua for the bot mode to update immediately. Other changes will take effect now.',
-//         title: 'Changes saved!',
-//         alertType: 'alert-success',
-//     })
+    const mode = $('#mode').val();
 
-// }
+    switch (mode) {
+        case 'starters':
+            $('#option_starters').show();
+            break;
+        case 'random_encounters':
+            $('#option_moving_encounters').show();
+            break;
+        case 'phenomenon_encounters':
+            $('#option_moving_encounters').show();
+            break;
+    }
 
-// function updateOptionVisibility() {
-//     $('#option_starters').hide();
-//     $('#option_moving_encounters').hide();
-//     $('#option_auto_catch').hide();
+    if ($('#auto_catch').prop('checked')) {
+        $('#option_auto_catch').show();
+    }
+}
 
-//     var mode = $('#mode').val();
-//     switch (mode) {
-//         case 'starters':
-//             $('#option_starters').show();
-//             break;
-//         case 'random encounters':
-//             $('#option_moving_encounters').show();
-//             break;
-//         case 'phenomenon encounters':
-//             $('#option_moving_encounters').show();
-//             break;
-//     }
+function setEditableGames(clients) {
+    const selected = $('#editing').val();
 
-//     if ($('#auto_catch').prop('checked')) {
-//         $('#option_auto_catch').show();
-//     }
-// }
+    $('#editing').empty()
+    $('#editing').append('<option value="all">All Games</option>')
 
-// function setEditableGames(clients) {
-//     $('#editing').empty()
-//     $('#editing').append('<option value="all">All Games</option>')
+    for (var i = 0; i < clients.length; i++) {
+        const name = clients[i].game;
 
-//     for (var i = 0; i < clients.length; i++) {
-//         var name = clients[i].game;
+        $('#editing').append('<option value="' + i.toString() + '">' + name + ' </option>')
+    }
 
-//         $('#editing').append('<option value="' + i.toString() + '">' + name + ' </option>')
-//     }
+    $('#editing').val(selected);
+}
 
-//     $('#editing').val('all')
-// }
-
-// // Hide values not relevant to the current bot mode
-// const form = document.querySelector('fieldset');
-// form.addEventListener('change', function () {
-//     updateOptionVisibility()
-// });
+// Hide values not relevant to the current bot mode
+const form = document.querySelector('fieldset');
+form.addEventListener('change', function () {
+    updateOptionVisibility()
+});
 
 // Allow tab indentation in textareas
 const textareas = document.getElementsByTagName('textarea');
@@ -116,37 +129,52 @@ for (var i = 0; i < count; i++) {
 document.addEventListener('keydown', function (e) {
     if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault();
-        // sendConfig();
+        sendConfig();
     }
 });
 
-// ipcRenderer.on('set_config', (_event, config) => {
-//     originalConfig = config
+function setConfig() {
+    originalConfig = config
 
-//     for (var i = 0; i < textAreas.length; i++) {
-//         var key = textAreas[i]
-//         $('#' + key).val(YAML.stringify(config[key]))
-//     }
+    for (var i = 0; i < textAreas.length; i++) {
+        const key = textAreas[i]
+        $('#' + key).val(jsyaml.dump(config[key]))
+    }
 
-//     for (var i = 0; i < fields.length; i++) {
-//         field = fields[i]
-//         $('#' + field).val(config[field])
-//     }
+    for (var i = 0; i < fields.length; i++) {
+        const field = fields[i]
+        $('#' + field).val(config[field])
+    }
 
-//     for (var i = 0; i < checkboxes.length; i++) {
-//         field = checkboxes[i]
-//         $('#' + field).prop('checked', config[field]);
-//     }
+    for (var i = 0; i < checkboxes.length; i++) {
+        const field = checkboxes[i]
+        $('#' + field).prop('checked', config[field]);
+    }
 
-//     $('#config-form').removeAttr('disabled')
-//     updateOptionVisibility()
-// });
+    $('#config-form').removeAttr('disabled')
+    updateOptionVisibility()
+}
 
-// ipcRenderer.on('set_page_icon', (_event, icon_src) => {
-//     document.getElementById('icon').src = icon_src
-// });
+function updateClientInfo() {
+    RequestAPI('clients', (error, clients) => {
+        if (!error) {
+            setBadgeClientCount(clients.length);
+            setEditableGames(clients)
+        }
+    })
+};
 
-// ipcRenderer.on('clients_updated', (_event, clients) => {
-//     setBadgeClientCount(clients.length);
-//     setEditableGames(clients)
-// });
+updateClientInfo();
+
+RequestAPI('config', function (error, config) {
+    if (error) {
+        console.error(error);
+        return;
+    }
+
+    const interval = config.dashboard_poll_interval;
+
+    setInterval(() => {
+        updateClientInfo();
+    }, interval);
+})

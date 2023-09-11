@@ -6,21 +6,150 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pokébot NDS</title>
-    <script src="components/halfmoon.min.js"></script>
     <link href="components/halfmoon-variables.min.css" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
         integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsrender/1.0.13/jsrender.min.js"
-        integrity="sha512-T93uOawQ+FrEdyCPaWrQtppurbLm8SISu2QnHyddM0fGXKX9Amyirwibe1wGYbsW2F8lLzhOM/2+d3Zo94ljRQ=="
-        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="components/jquery-3.6.0.min.js"></script>
+    <script src="components/jquery.tmpl.min.js"></script>
     <script src="https://kit.fontawesome.com/b079a6b886.js" crossorigin="anonymous"></script>
-    <script src="components/dashboard.js"></script>
+    <script id="party-mon-template" type="text/x-jQuery-tmpl">
+        <div class="col-4 text-center">
+            <div style="position:relative; display: inline-block;">
+                <div style="position:absolute;left:-20px" class="dropdown with-arrow">
+                    <button style="background:transparent;border:none;cursor:pointer;" data-toggle="dropdown" type="button" id="..." aria-haspopup="true" aria-expanded="false">
+                    <img style="display: block; margin: auto; ${fainted}" src="assets/items/${pokeball}.png">
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="...">
+                        <table class="table" style="white-space: nowrap;">
+                            <tbody>
+                                <tr>
+                                    <th>PID</th>
+                                    <td>${pid}</td>
+                                </tr>
+                                <tr>
+                                    <th>Friendship</th>
+                                    <td>${friendship}</td>
+                                </tr>
+                                <tr>
+                                    <th>Shiny Value</th>
+                                    <td>${shinyValue}</td>
+                                </tr>
+                                <tr>
+                                    <th>IVs</th>
+                                    <td>${hpIV} ${attackIV} ${defenseIV} ${spAttackIV} ${spDefenseIV} ${speedIV}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <img style="position:absolute;bottom:0;right:0" src="assets/items/${heldItem}.png">
+                <div style="position:absolute;top:0;right:0">${shiny}</div>
+                <img style="position:absolute;bottom:0;left:0" src="assets/${pokerus}.png"></img>
+                <img style="${fainted}" src="assets/pokemon/${folder}${species}.png">
+            </div>
+            <br>
+            ${nickname}
+            <img src="assets/${gender}.png">
+            Lv ${level}
+            <br>
+            ${name}
+        </div>
+    </script>
+    <script id="party-egg-template" type="text/x-jQuery-tmpl">
+        <div class="col-4 text-center">
+            <div style="position:relative; display: inline-block;">
+                <div style="position:absolute;left:-20px" class="dropdown with-arrow">
+                    <button style="background:transparent;border:none;cursor:pointer;" data-toggle="dropdown" type="button" id="..." aria-haspopup="true" aria-expanded="false">
+                    <img style="display: block; margin: auto;" src="assets/items/${pokeball}.png">
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="...">
+                        <table class="table" style="white-space: nowrap;">
+                            <tbody>
+                                <tr>
+                                    <th>PID</th>
+                                    <td>${pid}</td>
+                                </tr>
+                                <tr>
+                                    <th>Shiny Value</th>
+                                    <td>${shinyValue}</td>
+                                </tr>
+                                <tr>
+                                    <th>IVs</th>
+                                    <td>${hpIV} ${attackIV} ${defenseIV} ${spAttackIV} ${spDefenseIV} ${speedIV}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <img src="assets/pokemon/egg.png">
+            </div>
+            <br>
+            ${nickname}
+            <img src="assets/${gender}.png">
+            Lv ${level}
+            <br>
+            ${name}
+            <br>
+            <center>
+            <b>Hatch Steps</b>
+            <${friendship}
+            </center>
+        </div>
+    </script>
+    <script id="row-template" type="text/x-jQuery-tmpl">
+        <tr>
+            <td style="width:0px">
+                <img src="assets/pokemon-icon/${species}.png">
+                <img style="position: absolute; margin-top: 20px; margin-left: -10px" src="assets/items/${heldItem}.png">
+                </td>
+            <td style="width:0px">
+                <img src="assets/${gender}.png">
+            </td>
+            <td style="white-space: nowrap;">Lv ${level}</td>
+            <td class="text-center">${ability}</td>
+            <td class="text-center">${nature}</td>
+            <td class="text-center">${pid}</td>
+            <td class="w-150">
+                <div class="justify-content-between" style="display: flex">
+                    <div>${hpIV}</div>
+                    <div>${attackIV}</div>
+                    <div>${defenseIV}</div>
+                    <div>${spAttackIV}</div>
+                    <div>${spDefenseIV}</div>
+                    <div>${speedIV}</div>
+                </div>
+            </td>
+            <td class="text-center">${shiny}</td>
+        </tr>
+    </script>
+    <script id="party-template" type="text/x-jQuery-tmpl">
+        <div class="row mt-20 m-0">
+        </div>
+    </script>
+    <script id="game-template" type="text/x-jQuery-tmpl">
+        <div class="m-15">
+            <table id="field-table" class="table">
+                <tr>
+                    <th>Map</th>
+                    <td>${map}</td>
+                </tr>
+                <tr>
+                    <th>Position</th>
+                    <td>${position}</td>
+                </tr>
+            </table>
+        </div>
+    </script>
+    <script id="button-template" type="text/x-jQuery-tmpl">
+        <button onclick="selectTab(this)" class="btn w-full text-truncate" id="nav-game">${game}</button>
+    </script>
 </head>
 
 <body class="with-custom-webkit-scrollbars with-custom-css-scrollbars" data-dm-shortcut-enabled="true"
     data-set-preferred-mode-onload="true">
     <div class="page-wrapper with-navbar">
+        <div class="sticky-alerts"></div>
         <nav class="navbar">
             <div class="navbar-brand">
                 <img src="assets/pokemon-icon/201-27.png" class="icon" id="icon">
@@ -171,6 +300,9 @@
             </div>
         </div>
     </div>
-</body>
+    <script src="components/halfmoon.min.js"></script>
+    <script src="components/page.js"></script>
+    <script src="components/dashboard.js"></script>
+</body>`
 
 </html>

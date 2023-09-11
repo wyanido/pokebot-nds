@@ -211,7 +211,7 @@ function update_game_info(force)
     if emu.framecount() % refresh_frames == 0 or force then
         game_state = get_game_state()
         comm.socketServerSend(json.encode({
-            type = "game",
+            type = "game_state",
             data = game_state
         }) .. "\x00")
 
@@ -240,7 +240,7 @@ function pause_bot(reason)
     end
 end
 
-function cycle_starter_choice()
+function cycle_starter_choice(starter)
     -- Alternate between starters specified in config and reset until one is a target
     if not config.starter0 and not config.starter1 and not config.starter2 then
         console.warning("At least one starter selection must be enabled in config for this bot mode")
@@ -253,6 +253,8 @@ function cycle_starter_choice()
     while not config["starter" .. tostring(starter)] do
         starter = (starter + 1) % 3
     end
+
+    return starter
 end
 
 function process_frame()
@@ -306,7 +308,7 @@ local starter = -1
 while true do
     if mode_function then
         if mode == "starters" then
-            cycle_starter_choice()
+            starter = cycle_starter_choice(starter)
             mode_starters(starter)
         else
             mode_function()
