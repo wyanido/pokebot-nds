@@ -3,7 +3,7 @@
     "start": "node app.js"
   },
   "dependencies": {
-    
+    "discord-rich-presence": "^0.0.8",
     "discord.js": "^14.13.0"
   }
 }

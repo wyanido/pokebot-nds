@@ -146,12 +146,13 @@
                             </button>
                             <br>
                             <br>
+                            <h2 class="content-title">Notifications</h2>
                             <div class="custom-switch">
                                 <input type="checkbox" id="ping_user">
                                 <label for="ping_user">Enable Announcement Ping
                                     <i class="fa fa-info-circle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
-                                    <div id="tooltip" role="tooltip">Pings a user or role in the message
-                                        when a target is found
+                                    <div id="tooltip" role="tooltip">Pings a user or role when sending a message upon
+                                        finding a target Pokémon
                                         <div id="arrow" data-popper-arrow></div>
                                     </div>
                                 </label>
@@ -161,6 +162,12 @@
                                 <label for="user_id">User/Role ID</label>
                                 <input id="user_id" class="form-control">
                             </div>
+                        </div>
+                        <br>
+                        <h2 class="content-title">Rich Presence</h2>
+                        <div class="custom-switch">
+                            <input type="checkbox" id="show_status">
+                            <label for="show_status">Display Pokébot as a Discord status</label>
                         </div>
                     </div>
                     <div class="card">

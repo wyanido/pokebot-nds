@@ -6,7 +6,6 @@ const port = 51055;
 var clients = [];
 var clientData = [];
 
-var clientCooldown = false;
 var elapsedStart;
 
 var lastEncounter;
@@ -67,7 +66,8 @@ const configTemplate = {
     webhook_url: "",
     webhook_enabled: false,
     ping_user: false,
-    user_id: ""
+    user_id: "",
+    show_status: true
 }
 const statsTemplate = {
     total: {
@@ -105,10 +105,64 @@ writeJSONToFile('../user/stats.json', stats)
 objectSubstitute(config, configTemplate)
 writeJSONToFile('../user/config.json', config)
 
+// Discord 'playing' status
+if (config.show_status) {
+    DiscordRPC = require('discord-rich-presence')('1140996615784636446');
+
+    setInterval(() => {
+        // Default status
+        let status = {
+            state: 'Idling',
+            largeImageKey: 'none',
+            startTimestamp: null,
+            instance: false,
+        }
+
+        if (clientData.length > 0) {
+            const game = clientData[0].game;
+            if (!game) return;
+
+            // Get game-specific icon
+            // TODO set this value in game_setup.lua, it's used a few times
+            let icon;
+
+            if (game.includes("Diamond")) {
+                icon = 'diamond';
+            } else if (game.includes("Pearl")) {
+                icon = 'pearl';
+            } else if (game.includes("Platinum")) {
+                icon = 'platinum';
+            } else if (game.includes("Gold")) {
+                icon = 'gold';
+            } else if (game.includes("Silver")) {
+                icon = 'silver';
+            } else if (game.includes("Black 2")) {
+                icon = 'black2';
+            } else if (game.includes("White 2")) {
+                icon = 'white2';
+            } else if (game.includes("Black")) {
+                icon = 'black';
+            } else if (game.includes("White")) {
+                icon = 'white';
+            }
+
+            const location = clientData[0].map_name;
+            if (location == undefined) return;
+            const moreGames = (clients.length > 1) ? `+ ${clientData.length - 1} game(s)` : ''
+
+            status.largeImageKey = icon;
+            status.details = `📍${location} ${moreGames}`;
+            status.state = `${stats.total.seen} seen (${stats.total.shiny}✨) at ${encounterRate}/h`;
+            status.startTimestamp = elapsedStart;
+        }
+
+        DiscordRPC.updatePresence(status);
+    }, 2500);
+}
+
 const server = net.createServer((socket) => {
     console.log('Client %d connected', clients.length);
     clients.push(socket);
-    clientData.push({})
     socketSetTimeout(socket);
 
     socket.write(formatClientMessage(
@@ -359,8 +413,10 @@ function interpretClientMessage(socket, message) {
             client.party = data;
             break;
         case 'load_game':
-            client.gen = data.gen;
-            client.game = data.game;
+            clientData[index] = {
+                gen: data.gen,
+                game: data.game
+            }
 
             if (clients.length == 1) {
                 elapsedStart = Date.now();
@@ -388,15 +444,6 @@ function interpretClientMessage(socket, message) {
             }
 
             client.other = data;
-
-            // Add a minimum update interval
-            if (!clientCooldown) {
-                clientCooldown = true;
-
-                refreshTimeout = setTimeout(() => {
-                    clientCooldown = false;
-                }, config.game_refresh_cooldown);
-            }
             break;
     }
 }

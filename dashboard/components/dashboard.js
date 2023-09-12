@@ -163,11 +163,16 @@ function setRecentlySeen(reformat = true) {
         $('#recents').empty();
 
         for (var i = encounters.length; i >= encounters.length - recentsLength; i--) {
-            var mon = encounters[i]
+            const mon = encounters[i]
             if (!mon) continue;
 
             if (reformat && mon.altForm > 0) mon.species = mon.species + '-' + mon.altForm.toString()
             var row = template.tmpl(mon);
+
+            if (mon.shiny == true || mon.shinyValue < 8) {
+                row.attr('id', 'shiny');
+            }
+
             log.append(row)
         }
     });
@@ -196,6 +201,11 @@ function setRecentTargets(reformat = true) {
 
             if (reformat && mon.altForm > 0) mon.species = mon.species + '-' + mon.altForm.toString()
             var row = template.tmpl(mon);
+
+            if (mon.shiny == true || mon.shinyValue < 8) {
+                row.attr('id', 'shiny');
+            }
+
             log.append(row)
         }
     });
