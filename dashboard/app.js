@@ -2,10 +2,12 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const socket = require('./socket');
+const mime = require('mime');
 const port = 3000;
+const baseDir = path.resolve(__dirname, '.');
 
 const server = http.createServer(function (req, res) {
-    const filePath = '.' + decodeURI(req.url); // Remove percent encoding
+    const filePath = path.join(baseDir, decodeURI(req.url));
 
     if (req.url.startsWith('/api')) {
         const urlObject = new URL(req.url, 'http://localhost');
@@ -29,20 +31,7 @@ const server = http.createServer(function (req, res) {
 
     // Handle file requests
     const extname = path.extname(filePath);
-    let contentType = 'text/html';
-
-
-    switch (extname) {
-        case '.js':
-            contentType = 'text/javascript';
-            break;
-        case '.css':
-            contentType = 'text/css';
-            break;
-        case '.png':
-            contentType = 'image/png';
-            break;
-    }
+    const contentType = mime.getType(extname) || 'text/html'; // Default to 'text/html'
 
     fs.readFile(filePath, function (error, data) {
         if (error) {

@@ -1,9 +1,29 @@
 {
+  "name": "pknds-bot-dashboard",
+  "version": "0.5.0",
+  "main": "app.js",
+  "bin": "app.js",
   "scripts": {
     "start": "node app.js"
   },
+  "pkg": {
+    "assets": [
+      "assets/**/*",
+      "components/**/*",
+      "node_modules/**/*",
+      "app.js",
+      "config.html",
+      "dashboard.html",
+      "favicon.ico",
+      "package.json",
+      "package-lock.json",
+      "socket.js"
+    ],
+    "outputPath": "out"
+  },
   "dependencies": {
     "discord-rich-presence": "^0.0.8",
-    "discord.js": "^14.13.0"
+    "discord.js": "^14.13.0",
+    "mime": "^3.0.0"
   }
 }
