@@ -2,16 +2,12 @@
 -- DP FUNCTION OVERRIDES
 -----------------------
 function update_pointers()
-    offset.mem_shift = mdword(0x21D4158) -- Value differs per reset
+    local mem_shift = mdword(0x21D4158) -- Value differs per reset
 
-    if offset.mem_shift == 0 then
-        offset.mem_shift = 0xFFFFF -- Bad code, this is an improvised solution to multiple errors
-    end
-    
-    offset.party_count = offset.mem_shift - 0x23F52 + 0xE
+    offset.party_count = mem_shift - 0x23F44
     offset.party_data = offset.party_count + 4
     
-    offset.map_header = offset.mem_shift - 0x22DA4
+    offset.map_header = mem_shift - 0x22DA4
     offset.trainer_x = offset.map_header + 4 + 2
     offset.trainer_y = offset.map_header + 12 + 2
     offset.trainer_z = offset.map_header + 8 + 2
@@ -19,9 +15,9 @@ function update_pointers()
     if mword(offset.map_header) == 340 then -- Bell Tower
         -- Wild Ho-oh's data is located at a different address to standard encounters
         -- May apply to other statics too -- research?
-        offset.foe_count = offset.mem_shift + 0x977C
+        offset.foe_count = mem_shift + 0x977C
     else
-        offset.foe_count = offset.mem_shift + 0x7574
+        offset.foe_count = mem_shift + 0x7574
     end
     offset.current_foe = offset.foe_count + 4
 
@@ -31,13 +27,12 @@ function update_pointers()
 end
 
 function mode_starters()
-	wait_frames(30)
-	
 	-- Get starter data offset for this reset
 	local starter_pointer = mdword(0x2111938) + 0x1BF78
 
     -- Proceed until starters are loaded into RAM
     while mdword(starter_pointer - 0x8) ~= 0 or mdword(starter_pointer - 0x4) == 0 do
+        starter_pointer = mdword(0x2111938) + 0x1BF78
         local delay = math.random(6, 21) -- Mimic imperfect human inputs
         press_sequence("A", delay)
     end

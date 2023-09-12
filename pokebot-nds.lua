@@ -13,9 +13,10 @@ if gameinfo.getromhash() == "" then
     return
 end
 
-mbyte = memory.read_u8
-mword = memory.read_u16_le
-mdword = memory.read_u32_le
+-- Override memory functions to prevent reading out of bounds
+mbyte = function(addr) return memory.read_u8(math.max(addr, 0)) end
+mword = function(addr) return memory.read_u16_le(math.max(addr, 0)) end
+mdword = function(addr) return memory.read_u32_le(math.max(addr, 0)) end
 console.debug = function(message)
     if config.debug then
         console.log("- " .. message)
