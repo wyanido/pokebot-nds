@@ -2,16 +2,28 @@
 -- DP FUNCTION OVERRIDES
 -----------------------
 function update_pointers()
-    offset.party_count = mdword(0x021D10EC) + 14
+    offset.mem_shift = mdword(0x21D4158) -- Value differs per reset
+
+    if offset.mem_shift == 0 then
+        offset.mem_shift = 0xFFFFF -- Bad code, this is an improvised solution to multiple errors
+    end
+    
+    offset.party_count = offset.mem_shift - 0x23F52 + 0xE
     offset.party_data = offset.party_count + 4
-
-    offset.foe_count = mdword(0x21D4158) + 0x7574
-    offset.current_foe = offset.foe_count + 4
-
-    offset.map_header = mdword(0x21D2228) + 0x1244
+    
+    offset.map_header = offset.mem_shift - 0x22DA4
     offset.trainer_x = offset.map_header + 4 + 2
     offset.trainer_y = offset.map_header + 12 + 2
     offset.trainer_z = offset.map_header + 8 + 2
+    
+    if mword(offset.map_header) == 340 then -- Bell Tower
+        -- Wild Ho-oh's data is located at a different address to standard encounters
+        -- May apply to other statics too -- research?
+        offset.foe_count = offset.mem_shift + 0x977C
+    else
+        offset.foe_count = offset.mem_shift + 0x7574
+    end
+    offset.current_foe = offset.foe_count + 4
 
     offset.battle_indicator = 0x021E76D2 -- Static
 
@@ -26,7 +38,8 @@ function mode_starters()
 
     -- Proceed until starters are loaded into RAM
     while mdword(starter_pointer - 0x8) ~= 0 or mdword(starter_pointer - 0x4) == 0 do
-        press_sequence("A", 10)
+        local delay = math.random(6, 21) -- Mimic imperfect human inputs
+        press_sequence("A", delay)
     end
 
 	if not config.hax then
@@ -54,6 +67,12 @@ function mode_starters()
 	-- Soft reset otherwise
 	press_button("Power")
 	wait_frames(30)
+
+    -- Wait a random number of frames before mashing A next reset
+    -- to decrease the odds of hitting similar seeds
+    local delay = math.random(1, 90)
+    console.debug("Delaying " .. delay .. " frames...")
+    wait_frames(delay)
 end
 
 function mode_voltorb_flip()
@@ -106,4 +125,36 @@ function mode_voltorb_flip()
     end
 
     press_sequence("A", 9)
+end
+
+function mode_static_encounters()
+    console.log("Waiting for battle to start...")
+    
+    while not foe and not game_state.in_battle do
+        local delay = math.random(6, 21) -- Mimic imperfect human inputs
+        press_sequence("A", delay)
+    end
+
+    foe_is_target = pokemon.log(foe[1])
+
+    if not config.hax then
+        -- Wait for Pokémon to fully appear on screen
+        for i = 0, 22, 1 do
+            press_sequence("A", 6)
+        end
+    end
+
+    if foe_is_target then
+        pause_bot("Wild Pokémon meets target specs!")
+    else
+        console.log("Wild " .. foe[1].name .. " was not a target, resetting...")
+        press_button("Power")
+        wait_frames(30)
+    end
+
+    -- Wait a random number of frames before mashing A next reset
+    -- to decrease the odds of hitting similar seeds
+    local delay = math.random(1, 90)
+    console.debug("Delaying " .. delay .. " frames...")
+    wait_frames(delay)
 end
