@@ -109,6 +109,11 @@ writeJSONToFile('../user/config.json', config)
 if (config.show_status) {
     DiscordRPC = require('discord-rich-presence')('1140996615784636446');
 
+    // Prevent DiscordRPC from crashing the whole app
+    process.on('unhandledRejection', (reason, promise) => {
+        console.error(reason);
+    });
+
     setInterval(() => {
         // Default status
         let status = {
@@ -133,12 +138,12 @@ if (config.show_status) {
             } else if (game.includes("Platinum")) {
                 icon = 'platinum';
             } else if (game.includes("Gold")) {
-                icon = 'gold';
+                icon = 'heartgold';
             } else if (game.includes("Silver")) {
-                icon = 'silver';
-            } else if (game.includes("Black 2")) {
+                icon = 'soulsilver';
+            } else if (game.includes("Black") && game.includes("2")) {
                 icon = 'black2';
-            } else if (game.includes("White 2")) {
+            } else if (game.includes("White") && game.includes("2")) {
                 icon = 'white2';
             } else if (game.includes("Black")) {
                 icon = 'black';
