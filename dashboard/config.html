@@ -124,24 +124,52 @@
                         </div>
                     </div>
                     <div class="card">
-                        <h2 class="content-title">Target Pokémon</h2>
-                        <label for="catch">Target traits</label>
-                        <textarea class="form-control" spellcheck="false"
-                            style="min-width:120px; max-width:100%; height: 120px;" id="target_traits"
-                            placeholder=""></textarea>
-                        <br>
+                        <h2 class="content-title">Discord</h2>
                         <div class="custom-switch">
-                            <input type="checkbox" id="save_game_after_catch">
-                            <label for="save_game_after_catch">Save game after obtaining a target</label>
+                            <input type="checkbox" id="webhook_enabled">
+                            <label for="webhook_enabled">Enable Webhook
+                                <i class="fa fa-info-circle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
+                                <div id="tooltip" role="tooltip">Sends a message through a Discord Webhook
+                                    when a target Pokémon is encountered
+                                    <div id="arrow" data-popper-arrow></div>
+                                </div>
+                            </label>
+                        </div>
+                        <div id="option_webhook">
+                            <br>
+                            <label for="webhook_url">Webhook URL</label>
+                            <input id="webhook_url" class="form-control">
+                            <br>
+                            <button class="btn" id="post-config" onclick="testWebhook()">
+                                <i class="fa fa-paper-plane mr-5"></i>
+                                Send Test Message
+                            </button>
+                            <br>
+                            <br>
+                            <div class="custom-switch">
+                                <input type="checkbox" id="ping_user">
+                                <label for="ping_user">Enable Announcement Ping
+                                    <i class="fa fa-info-circle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
+                                    <div id="tooltip" role="tooltip">Pings a user or role in the message
+                                        when a target is found
+                                        <div id="arrow" data-popper-arrow></div>
+                                    </div>
+                                </label>
+                            </div>
+                            <div id="option_ping_user">
+                                <br>
+                                <label for="user_id">User/Role ID</label>
+                                <input id="user_id" class="form-control">
+                            </div>
                         </div>
                     </div>
                     <div class="card">
                         <h2 class="content-title">Logging</h2>
                         <label for="encounter_log_limit">Encounter Log Limit</label>
-                        <input id="encounter_log_limit" min="1" type="number" class="form-control" placeholder="30">
+                        <input id="encounter_log_limit" min="1" type="number" class="form-control">
                         <br>
                         <label for="target_log_limit">Target Log Limit</label>
-                        <input id="target_log_limit" min="1" type="number" class="form-control" placeholder="30">
+                        <input id="target_log_limit" min="1" type="number" class="form-control">
                     </div>
                     <div class="card">
                         <h2 class="content-title">Other</h2>
@@ -175,6 +203,18 @@
                     </div>
                 </div>
                 <div class="col-6">
+                    <div class="card">
+                        <h2 class="content-title">Target Pokémon</h2>
+                        <label for="catch">Target traits</label>
+                        <textarea class="form-control" spellcheck="false"
+                            style="min-width:120px; max-width:100%; height: 120px;" id="target_traits"
+                            placeholder=""></textarea>
+                        <br>
+                        <div class="custom-switch">
+                            <input type="checkbox" id="save_game_after_catch">
+                            <label for="save_game_after_catch">Save game after obtaining a target</label>
+                        </div>
+                    </div>
                     <div class="card">
                         <h2 class="content-title">Wild Battles</h2>
                         <div class="custom-switch">

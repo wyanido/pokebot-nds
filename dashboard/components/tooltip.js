@@ -9,13 +9,14 @@ buttons.forEach((button, index) => {
     const tooltip = tooltips[index];
 
     const popperInstance = Popper.createPopper(button, tooltip, {
+        placement: 'top',
         modifiers: [
             {
                 name: 'offset',
                 options: {
-                    offset: [0, 8],
+                    offset: [0, 16],
                 },
-            },
+            }
         ],
     });
 

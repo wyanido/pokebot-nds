@@ -75,6 +75,9 @@ server.listen(port, function (error) {
 
 function handleAPIRequest(endpoint, url, method) {
     switch (endpoint) {
+        case 'test_webhook':
+            socket.webhookTest();
+            break;
         case 'clients':
             return socket.clientData;
         case 'stats':
@@ -93,8 +96,14 @@ function handleAPIRequest(endpoint, url, method) {
                 const dataParam = searchParams.get("data");
                 const data = JSON.parse(decodeURIComponent(dataParam));
 
-                socket.setSocketConfig(data.config); // Required, as socket.config can't be set directly
-                socket.setConfig(data.config, data.game);
+                socket.sendConfigToClients(data.config, data.game);
+
+                /*  
+                    Try both methods of overwriting the socket's config
+                    as they don't work consistently
+                */
+                socket.config = data.config;
+                socket.setSocketConfig(data.config);
             }
         case 'encounter_rate':
             return socket.getEncounterRate();

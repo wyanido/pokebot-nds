@@ -65,7 +65,9 @@ const configTemplate = {
     false_swipe: false,
     debug: false,
     webhook_url: "",
-    webhook_enabled: false
+    webhook_enabled: false,
+    ping_user: false,
+    user_id: ""
 }
 const statsTemplate = {
     total: {
@@ -279,14 +281,29 @@ function formatClientMessage(type, data) {
     return msg.length + ' ' + msg;
 }
 
-function webhookLogPokemon(mon) {
-    const file = new AttachmentBuilder('./assets/pokemon/' + mon.species + '.png');
+function webhookLogPokemon(mon, client) {
+    let gender;
+    switch (mon.gender.toLowerCase()) {
+        case 'male': gender = '♂️'; break;
+        case 'female': gender = '♀️'; break;
+        default: gender = ''; break;
+    }
+
+    const iv_sum = mon.hpIV + mon.attackIV + mon.defenseIV + mon.spAttackIV + mon.spDefenseIV + mon.speedIV;
+    const sparkle = (mon.shinyValue < 8 || mon.shiny) ? '✨' : '';
+    const folder = (mon.shinyValue < 8 || mon.shiny) ? 'shiny/' : '';
+    const file = new AttachmentBuilder(`./assets/pokemon/${folder}${mon.species}.png`);
     const embed = new EmbedBuilder()
-        .setTitle('Encountered ' + mon.name)
-        .setThumbnail('attachment://' + mon.species + '.png')
-        .setDescription('A target Pokémon was found!')
+        .setTitle(`Encountered Lv.${mon.level} ${mon.name} ${gender}`)
+        .setThumbnail(`attachment://${mon.species}.png`)
+        .setDescription(`Found at ${client.map_name} on ${client.game}`)
         .addFields(
-            { name: '\u200B', value: 'IVs' })
+            { name: 'Shiny Value', value: `${sparkle}${mon.shinyValue.toString()}`, inline: true },
+            { name: 'Nature', value: mon.nature, inline: true },
+            { name: 'Item', value: mon.heldItem, inline: true },
+        )
+        .addFields(
+            { name: '\u200B', value: `IVs (${iv_sum} Total)` })
         .addFields(
             { name: 'HP', value: mon.hpIV.toString(), inline: true },
             { name: 'ATK', value: mon.attackIV.toString(), inline: true },
@@ -295,12 +312,29 @@ function webhookLogPokemon(mon) {
             { name: 'SP.DEF', value: mon.spDefenseIV.toString(), inline: true },
             { name: 'SPEED', value: mon.speedIV.toString(), inline: true },
         )
+        .setColor('Aqua')
 
+    const webhookClient = new WebhookClient({ url: config.webhook_url });
+    let messageContents = {
+        username: 'Pokébot NDS',
+        avatarURL: 'https://i.imgur.com/7tJPLRX.png',
+        embeds: [embed],
+        files: [file]
+    }
+
+    if (config.ping_user) {
+        messageContents.content = `📢 <@${config.user_id}>`
+    }
+
+    webhookClient.send(messageContents);
+}
+
+function webhookTest() {
     const webhookClient = new WebhookClient({ url: config.webhook_url });
     webhookClient.send({
         username: 'Pokébot NDS',
-        embeds: [embed],
-        files: [file]
+        avatarURL: 'https://i.imgur.com/7tJPLRX.png',
+        content: 'Testing...'
     });
 }
 
@@ -316,7 +350,7 @@ function interpretClientMessage(socket, message) {
             writeJSONToFile('../user/stats.json', stats);
             return;
         case 'seen_target':
-            webhookLogPokemon()
+            webhookLogPokemon(data, client);
             updateEncounterLog(data);
             updateTargetLog(data);
 
@@ -334,6 +368,7 @@ function interpretClientMessage(socket, message) {
             break;
         case 'game_state':
             client.map = data.map_name + " (" + data.map_header.toString() + ")";
+            client.map_name = data.map_name;
             client.position = data.trainer_x.toString() + ", " + data.trainer_y.toString() + ", " + data.trainer_z.toString();
 
             // Parse additional data as a special category
@@ -366,7 +401,7 @@ function interpretClientMessage(socket, message) {
     }
 }
 
-function setConfig(new_config, target) {
+function sendConfigToClients(new_config, target) {
     // Send updated config to all clients
     if (clients.length > 0) {
         var msg = formatClientMessage(
@@ -398,8 +433,9 @@ module.exports = {
     getEncounterRate: () => {
         return encounterRate;
     },
-    setConfig,
+    sendConfigToClients,
     setSocketConfig: (new_config) => {
         config = new_config;
-    }
+    },
+    webhookTest
 };

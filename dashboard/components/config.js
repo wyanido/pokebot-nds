@@ -7,12 +7,12 @@ RequestAPI('config', function (error, data) {
     }
 
     config = data;
-    setConfig();
+    sendConfigToClients();
 });
 
 const configForm = document.getElementById('config-form');
 const textAreas = [...configForm.getElementsByTagName('textarea')].map(ele => ele.id);
-const fields = [...configForm.querySelectorAll('input[type="number"], select')].map(ele => ele.id);
+const fields = [...configForm.querySelectorAll('input, select')].map(ele => ele.id);
 const checkboxes = [...configForm.querySelectorAll('input[type="checkbox"]')].map(ele => ele.id);
 
 var originalConfig = ''
@@ -70,6 +70,8 @@ function updateOptionVisibility() {
     $('#option_starters').hide();
     $('#option_moving_encounters').hide();
     $('#option_auto_catch').hide();
+    $('#option_webhook').hide();
+    $('#option_ping_user').hide();
 
     const mode = $('#mode').val();
 
@@ -87,6 +89,14 @@ function updateOptionVisibility() {
 
     if ($('#auto_catch').prop('checked')) {
         $('#option_auto_catch').show();
+    }
+
+    if ($('#webhook_enabled').prop('checked')) {
+        $('#option_webhook').show();
+    }
+
+    if ($('#ping_user').prop('checked')) {
+        $('#option_ping_user').show();
     }
 }
 
@@ -133,7 +143,7 @@ document.addEventListener('keydown', function (e) {
     }
 });
 
-function setConfig() {
+function sendConfigToClients() {
     originalConfig = config
 
     for (var i = 0; i < textAreas.length; i++) {
@@ -178,3 +188,7 @@ RequestAPI('config', function (error, config) {
         updateClientInfo();
     }, interval);
 })
+
+function testWebhook() {
+    RequestAPI('test_webhook', function (e, _) { })
+}
