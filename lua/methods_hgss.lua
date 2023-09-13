@@ -13,11 +13,11 @@ function update_pointers()
     offset.trainer_y = offset.map_header + 12 + 2
     offset.trainer_z = offset.map_header + 8 + 2
 
-    local mem_shift = mdword(0x21D2228)                 --27C1E0  --value @ 2C32B4
+    local mem_shift = mdword(0x21D2228)                    --27C1E0  --value @ 2C32B4
     offset.battle_state = mem_shift + 0x470D4
     offset.battle_state_value = mbyte(offset.battle_state) --01 is FIGHT menu, 04 is Move Select, 08 is Bag,
-    offset.current_pokemon = mem_shift + 0x49E14        -- 0A is POkemon menu 0E is animation
-    offset.foe_in_battle = offset.current_pokemon + 0xC0 --2C5ff4
+    offset.current_pokemon = mem_shift + 0x49E14           -- 0A is POkemon menu 0E is animation
+    offset.foe_in_battle = offset.current_pokemon + 0xC0   --2C5ff4
     offset.current_hp = mword(offset.current_pokemon + 0x4C)
     offset.level = mbyte(offset.current_pokemon + 0x34)
     offset.foe_current_hp = mword(offset.foe_in_battle + 0x4C)
@@ -150,7 +150,7 @@ function do_pickup()
     if pickup_count > 0 then
         if item_count < tonumber(config.pickup_threshold) then
             console.log("Pickup items in party: " ..
-            item_count .. ". Collecting at threshold: " .. config.pickup_threshold)
+                item_count .. ". Collecting at threshold: " .. config.pickup_threshold)
         else
             wait_frames(60)
             touch_screen_at(45, 75)
@@ -371,6 +371,7 @@ function do_battle()
             if save_counter == 50 then
                 save_game()
                 save_counter = 0
+                return
             else
                 return
             end
