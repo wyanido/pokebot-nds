@@ -428,6 +428,7 @@ function do_battle()
             if save_counter == 50 then
                 save_game()
                 save_counter = 0
+                return
             else
                 return
             end
