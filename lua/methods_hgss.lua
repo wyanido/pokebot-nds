@@ -355,6 +355,15 @@ function do_battle()
                             press_button("A")
                             wait_frames(2)
                         end
+                        for i = 0, 50, 1 do
+                            press_button("B")
+                            wait_frames(2)
+                        end
+                        for i = 0, 20, 1 do
+                            press_button("A")
+                            wait_frames(2)
+                        end
+                        return
                     end
                     console.log("Gained Level skipping learn new move")
                     for i = 0, 50, 1 do

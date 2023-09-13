@@ -16,6 +16,7 @@ function update_pointers()
 end
 
 local save_counter = 0
+local old_mon_id
 -----------------------
 -- MISC. BOT ACTIONS
 -----------------------
@@ -405,13 +406,23 @@ function do_battle()
                         touch_screen_at(125, 135)
                         wait_frames(2)
                     end
-                    if offset.battle_state_value == 0x6C then
+                    if offset.battle_state_value == 0x6C or offset.battle_state_value == 0x14 then
                         console.log(offset.battle_state_value)
                         console.log("EVOLVING POGGGGGGGG")
-                        for i = 0, 300 do
+                        for i = 0, 300, 1 do
                             press_button("A")
                             wait_frames(2)
                         end
+                        for i = 0, 85, 1 do
+                            press_button("B")
+                            wait_frames(2)
+                        end
+                        for i = 0, 20, 1 do
+                            press_button("A")
+                            wait_frames(2)
+                        end
+                        console.log("returning to main loop")
+                        return
                     end
                     console.log("Gained Level skipping learn new move")
                     for i = 0, 50, 1 do
@@ -539,6 +550,10 @@ function process_wild_encounter()
         foe_is_target = pokemon.log(foe[i]) or foe_is_target
     end
 
+    --[[if foe[1].PID == old_mon_id then
+        console.log("Same Pokemon encountered... returning to main loop")
+        return]]
+
     wait_frames(30)
 
     if foe_is_target then
@@ -548,7 +563,9 @@ function process_wild_encounter()
         while game_state.in_battle do
             if config.battle_non_targets then
                 console.log("Wild " .. foe[1].name .. " is not a target, and battle non tartgets is on. Battling!")
+                --old_mon_id = foe[1].PID
                 do_battle()
+                return
             else
                 console.log("Wild " .. foe[1].name .. " is not a target, fleeing!")
                 flee_battle()
@@ -720,7 +737,7 @@ end
 
 function mode_random_encounters_running()
     console.log("Attempting to start a battle...")
-
+    wait_frames(200)
     local tile_frames = frames_per_move() * 2
     local dir1 = config.move_direction == "Horizontal" and "Left" or "Up"
     local dir2 = config.move_direction == "Horizontal" and "Right" or "Down"
@@ -759,6 +776,9 @@ function mode_spin_to_win()
         end
     end
     process_wild_encounter()
+    if config.pickup then
+        do_pickup()
+    end
 end
 
 function mode_sandgem_loop()
