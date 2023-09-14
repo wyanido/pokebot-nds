@@ -143,6 +143,9 @@ function get_lead_mon_index()
 end
 
 function to_and_from_pokecenter() --starts at grass patch and moves to pokecenter and heals and goes back
+    if (offset.trainer_z == 825) then
+        move_vertically(256)
+    end
     move_horizontally(184)
     move_vertically(843)
     move_horizontally(177)
@@ -401,9 +404,15 @@ function do_battle()
             console.log("Save counter: " .. save_counter)
             while game_state.in_battle do
                 touch_screen_at(125, 70)
+                console.log("Gained Level skipping learn new move")
                 if offset.level ~= level then
-                    for i = 1, 30, 1 do
+                    for i = 1, 50, 1 do
+                        console.log("touching screen at 125, 135")
                         touch_screen_at(125, 135)
+                        wait_frames(2)
+                    end
+                    for i = 1, 20, 1 do
+                        touch_screen_at(125, 70)
                         wait_frames(2)
                     end
                     if offset.battle_state_value == 0x6C or offset.battle_state_value == 0x14 then
@@ -413,7 +422,7 @@ function do_battle()
                             press_button("A")
                             wait_frames(2)
                         end
-                        for i = 0, 85, 1 do
+                        for i = 0, 90, 1 do
                             press_button("B")
                             wait_frames(2)
                         end
@@ -423,15 +432,6 @@ function do_battle()
                         end
                         console.log("returning to main loop")
                         return
-                    end
-                    console.log("Gained Level skipping learn new move")
-                    for i = 0, 50, 1 do
-                        press_button("B")
-                        wait_frames(2)
-                    end
-                    while game_state.in_battle do
-                        touch_screen_at(125, 70)
-                        wait_frames(2)
                     end
                 end
                 wait_frames(2)
