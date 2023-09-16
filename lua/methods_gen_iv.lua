@@ -22,6 +22,7 @@ local old_mon_id
 -----------------------
 
 function save_game()
+    wait_frames(100)
     console.log("Saving game...")
     hold_button("X")
     wait_frames(20)
@@ -252,11 +253,11 @@ end
 
 function use_move_at_slot(slot)
     -- Skip text to FIGHT menu
-    while game_state.in_battle and (offset.battle_state_value == 0 or offset.battle_state_value == 14) do
+    while offset.battle_state_value == 14 do
         skip_dialogue()
     end
     console.log("Using Subdue Move")
-    wait_frames(30)
+    wait_frames(60)
     touch_screen_at(128, 90) -- FIGHT
     wait_frames(30)
     local xpos = 80 * (((slot - 1) % 2) + 1)
@@ -276,6 +277,7 @@ function flee_battle()
 end
 
 function subdue_pokemon()
+    wait_frames(100)
     console.log("Attempting to subdue pokemon...")
     if config.false_swipe then
         -- Ensure target has no recoil moves before attempting to weaken it
@@ -404,10 +406,13 @@ function do_battle()
             console.log("Save counter: " .. save_counter)
             while game_state.in_battle do
                 touch_screen_at(125, 70)
-                console.log("Gained Level skipping learn new move")
+                --console.log("Gained Level skipping learn new move")
                 if offset.level ~= level then
+                    if offset.level == 28 then
+                        pause_bot("Level 28")
+                    end
                     for i = 1, 50, 1 do
-                        console.log("touching screen at 125, 135")
+                        --console.log("touching screen at 125, 135")
                         touch_screen_at(125, 135)
                         wait_frames(2)
                     end
@@ -416,7 +421,7 @@ function do_battle()
                         wait_frames(2)
                     end
                     if offset.battle_state_value == 0x6C or offset.battle_state_value == 0x14 then
-                        console.log(offset.battle_state_value)
+                        --console.log(offset.battle_state_value)
                         console.log("EVOLVING POGGGGGGGG")
                         for i = 0, 300, 1 do
                             press_button("A")
@@ -498,7 +503,6 @@ function swap_lead_battle()
         while offset.battle_state_value ~= 0x0A do
             touch_screen_at(215, 165)
             wait_frames(5)
-            console.log(offset.battle_state_value)
         end
         while offset.battle_state_value == 0x0A do
             local xpos = 80 * (((strongest_mon_index - 1) % 2) + 1)
@@ -514,11 +518,16 @@ function swap_lead_battle()
 end
 
 function catch_pokemon()
+    while (game_state.in_battle and (offset.battle_state_value == 0)) do
+        press_sequence("B", 5)
+    end
     if config.auto_catch then
         console.log("Attempting to catch pokemon now...")
-        console.log(config.inflict_status)
         if config.inflict_status or config.false_swipe then
             subdue_pokemon()
+        end
+        while offset.battle_state_value == 14 do
+            press_sequence("B", 5)
         end
         wait_frames(60)
         ::retry::
@@ -534,9 +543,16 @@ function catch_pokemon()
         if mbyte(0x02101DF0) == 0x01 then
             console.log("Pokemon caught!!!")
             skip_nickname()
+            wait_frames(200)
+            to_and_from_pokecenter()
         else
             console.log("Failed catch trying again...")
-            goto retry
+            if config.foe_status == 0 then
+                console.log("Foe not asleep reapplying")
+                subdue_pokemon()
+            else
+                goto retry
+            end
         end
     else
         pause_bot("Wild Pokemon meets target specs!")
@@ -765,7 +781,7 @@ end
 
 function mode_spin_to_win()
     console.log("Attempting to start a battle... and Spinning!")
-    wait_frames(200)
+    wait_frames(100)
     if offset.facing_direction == 00 then
         while not foe and not game_state.in_battle do
             press_sequence("Left", "Down", "Right", "Up")
@@ -783,6 +799,6 @@ end
 
 function mode_sandgem_loop()
     --use either movement mode then check status after every battle, if status bad return player to pokecenter to heal
-    mode_random_encounters_running()
+    mode_spin_to_win()
     check_status()
 end
