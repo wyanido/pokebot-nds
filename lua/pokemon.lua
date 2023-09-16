@@ -53,30 +53,30 @@ function pokemon.read_data(address)
 
     function substructSelector(index)
         local ss = {
-            [0] = {0, 1, 2, 3},
-            [1] = {0, 1, 3, 2},
-            [2] = {0, 2, 1, 3},
-            [3] = {0, 3, 1, 2},
-            [4] = {0, 2, 3, 1},
-            [5] = {0, 3, 2, 1},
-            [6] = {1, 0, 2, 3},
-            [7] = {1, 0, 3, 2},
-            [8] = {2, 0, 1, 3},
-            [9] = {3, 0, 1, 2},
-            [10] = {2, 0, 3, 1},
-            [11] = {3, 0, 2, 1},
-            [12] = {1, 2, 0, 3},
-            [13] = {1, 3, 0, 2},
-            [14] = {2, 1, 0, 3},
-            [15] = {3, 1, 0, 2},
-            [16] = {2, 3, 0, 1},
-            [17] = {3, 2, 0, 1},
-            [18] = {1, 2, 3, 0},
-            [19] = {1, 3, 2, 0},
-            [20] = {2, 1, 3, 0},
-            [21] = {3, 1, 2, 0},
-            [22] = {2, 3, 1, 0},
-            [23] = {3, 2, 1, 0}
+            [0] = { 0, 1, 2, 3 },
+            [1] = { 0, 1, 3, 2 },
+            [2] = { 0, 2, 1, 3 },
+            [3] = { 0, 3, 1, 2 },
+            [4] = { 0, 2, 3, 1 },
+            [5] = { 0, 3, 2, 1 },
+            [6] = { 1, 0, 2, 3 },
+            [7] = { 1, 0, 3, 2 },
+            [8] = { 2, 0, 1, 3 },
+            [9] = { 3, 0, 1, 2 },
+            [10] = { 2, 0, 3, 1 },
+            [11] = { 3, 0, 2, 1 },
+            [12] = { 1, 2, 0, 3 },
+            [13] = { 1, 3, 0, 2 },
+            [14] = { 2, 1, 0, 3 },
+            [15] = { 3, 1, 0, 2 },
+            [16] = { 2, 3, 0, 1 },
+            [17] = { 3, 2, 0, 1 },
+            [18] = { 1, 2, 3, 0 },
+            [19] = { 1, 3, 2, 0 },
+            [20] = { 2, 1, 3, 0 },
+            [21] = { 3, 1, 2, 0 },
+            [22] = { 2, 3, 1, 0 },
+            [23] = { 3, 2, 1, 0 }
         }
 
         return ss[index]
@@ -89,7 +89,7 @@ function pokemon.read_data(address)
     mon.checksum = mword(address + 0x06)
 
     -- Encrypted Blocks
-    block = {{}, {}, {}, {}}
+    block = { {}, {}, {}, {} }
 
     seed = mon.checksum
 
@@ -163,19 +163,19 @@ function pokemon.read_data(address)
     -- mon.unovaRibbonSet 		= blockData(0x26, 2)
 
     -- Block B
-    mon.moves = {blockData(0x28, 2), blockData(0x2A, 2), blockData(0x2C, 2), blockData(0x2E, 2)}
+    mon.moves = { blockData(0x28, 2), blockData(0x2A, 2), blockData(0x2C, 2), blockData(0x2E, 2) }
 
-    mon.pp = {blockData(0x30, 1), blockData(0x31, 1), blockData(0x32, 1), blockData(0x33, 1)}
+    mon.pp = { blockData(0x30, 1), blockData(0x31, 1), blockData(0x32, 1), blockData(0x33, 1) }
 
     mon.ppUps = blockData(0x34, 4)
 
     local data = blockData(0x38, 5)
-    mon.hpIV = (data >> 0) & 0x1F
-    mon.attackIV = (data >> 5) & 0x1F
-    mon.defenseIV = (data >> 10) & 0x1F
-    mon.speedIV = (data >> 15) & 0x1F
-    mon.spAttackIV = (data >> 20) & 0x1F
-    mon.spDefenseIV = (data >> 25) & 0x1F
+    mon.hp_iv = (data >> 0) & 0x1F
+    mon.attack_iv = (data >> 5) & 0x1F
+    mon.defense_iv = (data >> 10) & 0x1F
+    mon.speed_iv = (data >> 15) & 0x1F
+    mon.sp_attack_iv = (data >> 20) & 0x1F
+    mon.sp_defense_iv = (data >> 25) & 0x1F
     mon.isEgg = (data >> 30) & 0x01
     mon.isNicknamed = (data >> 31) & 0x01
 
@@ -185,7 +185,7 @@ function pokemon.read_data(address)
     local data = blockData(0x40, 1)
     -- mon.fatefulEncounter 	= (data >> 0) & 0x01
     mon.gender = (data >> 1) & 0x03
-    mon.altForm	= (data >> 3) & 0x1F
+    mon.altForm = (data >> 3) & 0x1F
 
     if gen == 4 then
         -- mon.leaf_crown				= blockData(0x41, 1)
@@ -254,6 +254,7 @@ function pokemon.read_data(address)
 
     mon.shinyValue = mon.otID ~ mon.otSID ~ ((mon.pid >> 16) & 0xFFFF) ~ (mon.pid & 0xFFFF)
     mon.shiny = mon.shinyValue < 8
+    mon.timeSeen = os.date('%Y-%m-%d %H:%M:%S')
 
     return mon
 end
@@ -287,7 +288,7 @@ end
 function pokemon.log(mon)
     -- Create a watered down copy of the Pokemon data for logging only
     local mon_new = shallowcopy(mon)
-    
+
     if not mon or not mon_new then
         console.debug("Tried to log a non-existent Pokémon!")
         return false
@@ -298,9 +299,9 @@ function pokemon.log(mon)
     end
 
     -- Values not relevant to the encounter log, gets removed
-    local excess_keys = {"type", "nickname", "hpEV", "attackEV", "defenseEV", "spAttackEV", "spDefenseEV",
-                         "speedEV", "dreamWorldAbility", "friendship", "isEgg", "isNicknamed", "otLanguage", "otName",
-                         "pokeball", "pokerus", "ppUps", "status", "isNsPokemon", "pp", "experience"}
+    local excess_keys = { "type", "nickname", "hpEV", "attackEV", "defenseEV", "spAttackEV", "spDefenseEV",
+        "speedEV", "dreamWorldAbility", "friendship", "isEgg", "isNicknamed", "otLanguage", "otName",
+        "pokeball", "pokerus", "ppUps", "status", "isNsPokemon", "pp", "experience" }
 
     for _, key in ipairs(excess_keys) do
         mon_new[key] = nil
@@ -324,16 +325,16 @@ function pokemon.log(mon)
     return was_target
 end
 
-local mon_ability = json.load("lua/data/abilities.json")
-local mon_item = json.load("lua/data/items.json")
-local mon_move = json.load("lua/data/moves.json")
-local mon_type = json.load("lua/data/type_matchups.json")
-local mon_dex = json.load("lua/data/dex.json")
-local mon_lang = {"none", "日本語", "English", "Français", "Italiano", "Deutsch", "Español", "한국어"}
-local mon_gender = {"Male", "Female", "Genderless"}
-local mon_nature = {"Hardy", "Lonely", "Brave", "Adamant", "Naughty", "Bold", "Docile", "Relaxed", "Impish", "Lax",
-                    "Timid", "Hasty", "Serious", "Jolly", "Naive", "Modest", "Mild", "Quiet", "Bashful", "Rash", "Calm",
-                    "Gentle", "Sassy", "Careful", "Quirky"}
+local mon_ability = json.load("lua/data/ability.json")
+local mon_item = json.load("lua/data/item.json")
+local mon_move = json.load("lua/data/move.json")
+local mon_type = json.load("lua/data/type.json")
+local mon_dex = json.load("lua/data/pokedex.json")
+local mon_lang = { "none", "日本語", "English", "Français", "Italiano", "Deutsch", "Español", "한국어" }
+local mon_gender = { "Male", "Female", "Genderless" }
+local mon_nature = { "Hardy", "Lonely", "Brave", "Adamant", "Naughty", "Bold", "Docile", "Relaxed", "Impish", "Lax",
+    "Timid", "Hasty", "Serious", "Jolly", "Naive", "Modest", "Mild", "Quiet", "Bashful", "Rash", "Calm",
+    "Gentle", "Sassy", "Careful", "Quirky" }
 
 function pokemon.enrich_data(mon)
     if not mon then
@@ -351,7 +352,7 @@ function pokemon.enrich_data(mon)
     mon.nature = mon_nature[mon.nature + 1]
     mon.heldItem = mon_item[mon.heldItem + 1]
     mon.gender = mon_gender[mon.gender + 1]
-    
+
     local move_id = mon.moves
     mon.moves = {}
 
@@ -360,6 +361,17 @@ function pokemon.enrich_data(mon)
     end
 
     return mon
+end
+
+function pokemon.check_battle_moves(ally)
+    for i = 1, #ally.moves, 1 do
+        local pp = ally.pp[i]
+        local power = ally.moves[i].power
+        local total_pp = 0
+        if pp ~= 0 and power ~= nil then
+            total_pp = total_pp + pp
+        end
+    end
 end
 
 function pokemon.find_best_move(ally, foe)
@@ -442,15 +454,17 @@ function pokemon.matches_ruleset(mon, target)
         end
     end
 
-    -- Check if species is in list
+    -- Check if species(name) is in list
     local has_other_specs = false
-
+    console.log("starting checks")
     if target.species then
         has_other_specs = true
+        console.log("has other specs is true")
         local is_species = false
         for i = 1, #target.species, 1 do
             if string.lower(mon.name) == string.lower(target.species[i]) then
                 is_species = true
+                --console.log("Species is true")
                 break
             end
         end
@@ -486,7 +500,7 @@ function pokemon.matches_ruleset(mon, target)
             return false
         end
     end
-    
+
     -- Check if ability is in list
     if target.ability then
         has_other_specs = true
@@ -522,24 +536,28 @@ function pokemon.matches_ruleset(mon, target)
     end
 
     -- Check that IVs meet target thresholds
-    local ivs = {"hpIV", "attackIV", "defenseIV", "spAttackIV", "spDefenseIV", "speedIV"}
+    local ivs = { "hp_iv", "attack_iv", "defense_iv", "sp_attack_iv", "sp_defense_iv", "speed_iv" }
     local sum = 0
 
     for _, key in ipairs(ivs) do
         sum = sum + mon[key]
         if target[key] and mon[key] < target[key] then
             has_other_specs = true
-            console.debug("Mon " .. key .. " " .. mon.hpIV .. " does not meet ruleset " .. target.hpIV)
+            console.debug("Mon " .. key .. " " .. mon.hp_iv .. " does not meet ruleset " .. target.hp_iv)
             return false
         end
     end
 
     if target.iv_sum then
         has_other_specs = true
-
-        if sum < target.iv_sum then
-            console.debug("Mon IV sum of " .. sum .. " does not meet threshold " .. target.iv_sum)
-            return false
+        for i = 1, #target.iv_sum, 1 do
+            if sum == target.iv_sum[i] then
+                console.debug("Mon IV sum of " .. sum .. " meets a value!! " .. target.iv_sum[i])
+                break
+            else
+                console.debug("Mon IV sum of " .. sum .. " does not meet any values set... ")
+                return false
+            end
         end
     end
 
@@ -580,13 +598,13 @@ function pokemon.matches_ruleset(mon, target)
             return false
         end
     end
-
-    if has_other_specs and not target.shiny then
+    if has_other_specs and not mon.shiny then --must always have shiny set true or false in config or this will not work
         console.log("Wild " .. mon.name .. " is a target!")
         return true
     else
         -- If the only specified trait is shiny: true, return false
         -- because the only single property check failed
+        --console.log("somehow we got here")
         return false
     end
 end
