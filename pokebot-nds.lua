@@ -160,6 +160,7 @@ function get_game_state()
                 trainer_y = to_signed(mword(offset.trainer_y + 2)),
                 trainer_z = mword(offset.trainer_z + 2),
                 in_battle = mbyte(offset.battle_indicator) == 0x41 and mbyte(offset.foe_count) > 0,
+                n_starter_battle = mbyte(offset.battle_indicator) == 0x41,
                 in_game = true
             }
         else
@@ -205,7 +206,7 @@ end
 
 function frames_per_move()
     if gen == 4 then -- Temporary
-        return 16
+        return 8
     end
 
     if mbyte(offset.on_bike) == 1 then
