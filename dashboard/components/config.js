@@ -85,6 +85,9 @@ function updateOptionVisibility() {
         case 'phenomenon_encounters':
             $('#option_moving_encounters').show();
             break;
+        case 'sandgem_loop':
+            $('#option_moving_encounters').show();
+            break;
     }
 
     if ($('#auto_catch').prop('checked')) {

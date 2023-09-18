@@ -807,6 +807,10 @@ end
 
 function mode_sandgem_loop()
     --use either movement mode then check status after every battle, if status bad return player to pokecenter to heal
-    mode_spin_to_win()
+    if config.move_direction == "Horizontal" or config.move_direction == "Vertical" then
+        mode_random_encounters_running()
+    elseif config.move_direction == "Spin" then
+        mode_spin_to_win()
+    end
     check_status()
 end
