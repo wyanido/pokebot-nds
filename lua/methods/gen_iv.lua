@@ -52,12 +52,15 @@ function save_game()
     wait_frames(100)
     release_button("B")
     console.log("Starting to save")
-    press_sequence("A", 800)
+    press_sequence("A", 5)
+    while offset.saveFlag == 00 do
+        press_sequence("B", 5)
+    end
 
     console.log("Saving ram")
     client.saveram() -- Flush save ram to the disk	
 
-    press_sequence("B", 10)
+    wait_frames(50)
 end
 
 function skip_nickname()
@@ -799,4 +802,8 @@ function mode_sandgem_loop()
         mode_spin_to_win()
     end
     check_status()
+end
+
+function mode_fishing()
+    save_game()
 end
