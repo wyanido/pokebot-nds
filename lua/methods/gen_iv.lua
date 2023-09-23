@@ -805,5 +805,28 @@ function mode_sandgem_loop()
 end
 
 function mode_fishing()
-    save_game()
+    while not foe and not game_state.in_battle do
+        press_button("Y")
+        wait_frames(60)
+
+        while offset.fishOn == 0x00 do
+            wait_frames(1)
+        end
+
+        if offset.fishOn == 0x01 then
+            console.log("Landed a Pokémon!")
+            break
+        else
+            console.log("Not even a nibble...")
+            press_sequence(30, "A", 20)
+        end
+    end
+
+    while not foe and not game_state.in_battle do
+        press_sequence("A", 5)
+    end
+
+    process_wild_encounter()
+
+    wait_frames(90)
 end

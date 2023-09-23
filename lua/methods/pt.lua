@@ -27,6 +27,7 @@ function update_pointers()
 	offset.foe_current_hp = mword(offset.foe_in_battle + 0x4C)
 	offset.facing_direction = mbyte(mem_shift + 0x238A4)
 	offset.saveFlag = mbyte(mem_shift + 0x2832A)
+	offset.fishOn = mbyte(0x021CF636)
 	--gui.text(100, 100, offset.trainer_x)
 	--console.log(mem_shift)
 end
