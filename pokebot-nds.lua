@@ -160,7 +160,6 @@ function get_game_state()
                 trainer_y = to_signed(mword(offset.trainer_y + 2)),
                 trainer_z = mword(offset.trainer_z + 2),
                 in_battle = mbyte(offset.battle_indicator) == 0x41 and mbyte(offset.foe_count) > 0,
-                n_starter_battle = mbyte(offset.battle_indicator) == 0x41,
                 in_game = true
             }
         else
@@ -332,7 +331,7 @@ while true do
             while true do
                 while not game_state.in_battle do
                     process_frame()
-                    
+
                     if mode_real ~= config.mode then
                         goto begin -- Restart if config changed
                     end
@@ -344,7 +343,7 @@ while true do
 
                 while game_state.in_battle do
                     process_frame()
-                    
+
                     if mode_real ~= config.mode then
                         goto begin -- Restart if config changed
                     end

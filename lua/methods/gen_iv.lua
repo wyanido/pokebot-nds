@@ -16,7 +16,6 @@ function update_pointers()
 end
 
 local save_counter = 0
-local old_mon_id
 -----------------------
 -- MISC. BOT ACTIONS
 -----------------------
@@ -55,11 +54,6 @@ function save_game()
     console.log("Starting to save")
     press_sequence("A", 800)
 
-    --touch_screen_at(218, 60)
-
-    --while mbyte(offset.save_indicator) ~= 0 do
-    --  press_sequence("A", 12)
-    --end
     console.log("Saving ram")
     client.saveram() -- Flush save ram to the disk	
 
@@ -145,7 +139,7 @@ end
 
 function to_and_from_pokecenter() --starts at grass patch and moves to pokecenter and heals and goes back
     if (offset.trainer_z == 825) then
-        move_vertically(256)
+        move_vertically(826)
     end
     move_horizontally(184)
     move_vertically(843)
@@ -357,8 +351,6 @@ function subdue_pokemon()
 end
 
 function do_battle()
-    --local battle_state_value = 0
-
     -- Press B until battle state has advanced
     while ((game_state.in_battle and (offset.battle_state_value == 0 or offset.battle_state_value == 14))) do
         if (offset.current_hp == 0 or offset.foe_current_hp == 0) then
@@ -366,10 +358,8 @@ function do_battle()
         else
             press_sequence("B", 5)
         end
-        --console.log(offset.battle_state_value)
     end
-    --console.log("State before stats: " .. offset.battle_state_value)
-    --console.log("Updating stats")
+
     if (config.swap_lead_battle) then
         console.log("Config set to swap lead.. swapping now")
         swap_lead_battle()
@@ -383,7 +373,6 @@ function do_battle()
         local move3_pp = mbyte(offset.current_pokemon + 0x2E)
         local move4_pp = mbyte(offset.current_pokemon + 0x2F)
         local level = offset.level
-        --console.log(level)
 
         if not game_state.in_battle then   -- Battle over
             return
@@ -408,9 +397,6 @@ function do_battle()
                 touch_screen_at(125, 70)
                 --console.log("Gained Level skipping learn new move")
                 if offset.level ~= level then
-                    if offset.level == 28 then
-                        pause_bot("Level 28")
-                    end
                     for i = 1, 50, 1 do
                         --console.log("touching screen at 125, 135")
                         touch_screen_at(125, 135)
@@ -435,7 +421,6 @@ function do_battle()
                             press_button("A")
                             wait_frames(2)
                         end
-                        console.log("returning to main loop")
                         return
                     end
                 end
@@ -531,7 +516,10 @@ function catch_pokemon()
         end
         wait_frames(60)
         ::retry::
-        wait_frames(100)
+        while offset.battle_state_value ~= 01 do
+            press_sequence("B", 5)
+        end
+        wait_frames(10)
         touch_screen_at(40, 170)
         wait_frames(50)
         touch_screen_at(190, 45)
@@ -544,7 +532,9 @@ function catch_pokemon()
             console.log("Pokemon caught!!!")
             skip_nickname()
             wait_frames(200)
-            to_and_from_pokecenter()
+            if config.sandgemloop then
+                to_and_from_pokecenter()
+            end
         else
             console.log("Failed catch trying again...")
             if config.foe_status == 0 then
@@ -579,7 +569,6 @@ function process_wild_encounter()
         while game_state.in_battle do
             if config.battle_non_targets then
                 console.log("Wild " .. foe[1].name .. " is not a target, and battle non tartgets is on. Battling!")
-                --old_mon_id = foe[1].PID
                 do_battle()
                 return
             else
@@ -674,9 +663,6 @@ function mode_starters_DP(starter)
 end
 
 function mode_starters(starter) --starters for platinum
-    --local selected_starter = mdword(0x2101DEC) + 0x203E8 -- 0: Turtwig, 1: Chimchar, 2: Piplup
-    --local starters_ready = selected_starter + 0x84       -- 0 before hand appears, A94D afterwards
-
     if not game_state.in_game then
         console.log("Waiting to reach overworld...")
 
@@ -728,11 +714,11 @@ function mode_starters(starter) --starters for platinum
             press_button("Power")
         end
     else
-        while not game_state.in_starter_battle do
+        while not offset.in_starter_battle ~= 0x41 do
             skip_dialogue()
         end
         local battle_state_value = 0
-        while game_state.in_starter_battle and battle_state_value == 0 do
+        while offset.in_starter_battle == 0x41 and battle_state_value == 0 do
             press_sequence("B", 5)
             --console.log("Battle State: " .. mbyte(offset.battle_state_value))
             battle_state_value = mbyte(offset.battle_state_value) --should set to 01

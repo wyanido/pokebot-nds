@@ -170,12 +170,12 @@ function pokemon.read_data(address)
     mon.ppUps = blockData(0x34, 4)
 
     local data = blockData(0x38, 5)
-    mon.hp_iv = (data >> 0) & 0x1F
-    mon.attack_iv = (data >> 5) & 0x1F
-    mon.defense_iv = (data >> 10) & 0x1F
-    mon.speed_iv = (data >> 15) & 0x1F
-    mon.sp_attack_iv = (data >> 20) & 0x1F
-    mon.sp_defense_iv = (data >> 25) & 0x1F
+    mon.hpIV = (data >> 0) & 0x1F
+    mon.attackIV = (data >> 5) & 0x1F
+    mon.defenseIV = (data >> 10) & 0x1F
+    mon.speedIV = (data >> 15) & 0x1F
+    mon.spAttackIV = (data >> 20) & 0x1F
+    mon.spDefenseIV = (data >> 25) & 0x1F
     mon.isEgg = (data >> 30) & 0x01
     mon.isNicknamed = (data >> 31) & 0x01
 
@@ -468,7 +468,6 @@ function pokemon.matches_ruleset(mon, target)
                 break
             end
         end
-
         if not is_species then
             console.debug("Mon species " .. mon.name .. " is not in ruleset")
             return false
@@ -500,6 +499,7 @@ function pokemon.matches_ruleset(mon, target)
             return false
         end
     end
+
 
     -- Check if ability is in list
     if target.ability then
@@ -536,18 +536,17 @@ function pokemon.matches_ruleset(mon, target)
     end
 
     -- Check that IVs meet target thresholds
-    local ivs = { "hp_iv", "attack_iv", "defense_iv", "sp_attack_iv", "sp_defense_iv", "speed_iv" }
+    local ivs = { "hpIV", "attackIV", "defenseIV", "spAttackIV", "spDefenseIV", "speedIV" }
     local sum = 0
 
     for _, key in ipairs(ivs) do
         sum = sum + mon[key]
         if target[key] and mon[key] < target[key] then
             has_other_specs = true
-            console.debug("Mon " .. key .. " " .. mon.hp_iv .. " does not meet ruleset " .. target.hp_iv)
+            console.debug("Mon " .. key .. " " .. mon.hpIV .. " does not meet ruleset " .. target.hpIV)
             return false
         end
     end
-
     if target.iv_sum then
         has_other_specs = true
         --for i = 1, #target.iv_sum, 1 do

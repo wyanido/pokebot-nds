@@ -14,6 +14,7 @@ function update_pointers()
 	offset.trainer_y = offset.map_header + 12 + 2
 	offset.trainer_z = offset.map_header + 8 + 2
 	offset.battle_indicator = 0x021D18F2 -- Static
+	offset.in_starter_battle = mbyte(offset.battle_indicator)
 
 	local mem_shift = mdword(0x21C0794)
 	offset.battle_state = mem_shift + 0x44878
