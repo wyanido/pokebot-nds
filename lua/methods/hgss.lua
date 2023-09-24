@@ -1,5 +1,5 @@
 -----------------------
--- DP FUNCTION OVERRIDES
+-- HG/SS OFFSETS
 -----------------------
 function update_pointers()
     offset.party_count = mdword(0x021D10EC) + 14
@@ -12,6 +12,7 @@ function update_pointers()
     offset.trainer_x = offset.map_header + 4 + 2
     offset.trainer_y = offset.map_header + 12 + 2
     offset.trainer_z = offset.map_header + 8 + 2
+    offset.battle_indicator = 0x021E76D2
 
     local mem_shift = mdword(0x21D2228)                    --27C1E0  --value @ 2C32B4
     offset.battle_state = mem_shift + 0x470D4
