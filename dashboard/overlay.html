@@ -104,23 +104,15 @@
                 <img src="assets/pokemon-icon/${species}.png">
                 <img style="position: absolute; margin-top: 20px; margin-left: -10px" src="assets/items/${heldItem}.png">
                 </td>
-            <td style="width:0px">
-                <img src="assets/${gender}.png">
-            </td>
-            <td style="white-space: nowrap;">Lv ${level}</td>
-            <td class="text-center">${ability}</td>
-            <td class="text-center">${nature}</td>
+            <td> ${hpIV}</td>
+            <td>${attackIV}</td>
+            <td>${defenseIV}</td>
+            <td>${spAttackIV}</td>
+            <td>${spDefenseIV}</td>
+            <td>${speedIV}</td>
+            <td> ${hpIV + attackIV + defenseIV + spAttackIV  + spDefenseIV + speedIV}</td>
             <td class="text-center">${pid}</td>
-            <td class="w-150">
-                <div class="justify-content-between" style="display: flex">
-                    <div>${hpIV}</div>
-                    <div>${attackIV}</div>
-                    <div>${defenseIV}</div>
-                    <div>${spAttackIV}</div>
-                    <div>${spDefenseIV}</div>
-                    <div>${speedIV}</div>
-                </div>
-            </td>
+            <td class="text-center">${nature}</td>
             <td class="text-center">${shiny}</td>
         </tr>
     </script>
@@ -213,6 +205,8 @@
                                     <th class="text-center">SPD</th>
                                     <th class="text-center">SPE</th>
                                     <th class="text-center">IV SUM</th>
+                                    <th class="text-center">PID</th>
+                                    <th class="text-center">Nature</th>
                                     <th class="text-center">Shiny Value (SV)</th>
                                 </tr>
                             </thead>
@@ -242,6 +236,8 @@
                                     <th class="text-center">SPD</th>
                                     <th class="text-center">SPE</th>
                                     <th class="text-center">IV SUM</th>
+                                    <th class="text-center">PID</th>
+                                    <th class="text-center">Nature</th>
                                     <th class="text-center">Shiny Value (SV)</th>
                                 </tr>
                             </thead>
@@ -306,7 +302,8 @@
                                     </tr>
                                     <tr>
                                         <th>B(n,p)
-                                            <div class="input-group mt-10" style="width: 80px; height: 28px;">
+                                            <div class="input-group mt-10"
+                                                style="display: none; width: 80px; height: 28px;">
                                                 <label class="input-group-text p-5">1/</label>
                                                 <input class="form-control h-full p-5" id="shiny-rate" min="1"
                                                     value="8192">

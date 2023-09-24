@@ -456,10 +456,8 @@ function pokemon.matches_ruleset(mon, target)
 
     -- Check if species(name) is in list
     local has_other_specs = false
-    console.log("starting checks")
     if target.species then
         has_other_specs = true
-        console.log("has other specs is true")
         local is_species = false
         for i = 1, #target.species, 1 do
             if string.lower(mon.name) == string.lower(target.species[i]) then
