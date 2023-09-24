@@ -540,7 +540,7 @@ function catch_pokemon()
             end
         else
             console.log("Failed catch trying again...")
-            if config.foe_status == 0 then
+            if offset.foe_status == 0 then
                 console.log("Foe not asleep reapplying")
                 subdue_pokemon()
             else
@@ -558,10 +558,6 @@ function process_wild_encounter()
     for i = 1, #foe, 1 do
         foe_is_target = pokemon.log(foe[i]) or foe_is_target
     end
-
-    --[[if foe[1].PID == old_mon_id then
-        console.log("Same Pokemon encountered... returning to main loop")
-        return]]
 
     wait_frames(30)
 

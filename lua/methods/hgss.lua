@@ -18,6 +18,7 @@ function update_pointers()
     offset.battle_state_value = mbyte(offset.battle_state) --01 is FIGHT menu, 04 is Move Select, 08 is Bag,
     offset.current_pokemon = mem_shift + 0x49E14           -- 0A is POkemon menu 0E is animation
     offset.foe_in_battle = offset.current_pokemon + 0xC0   --2C5ff4
+    offset.foe_status = offset.foe_in_battle + 0x6C
     offset.current_hp = mword(offset.current_pokemon + 0x4C)
     offset.level = mbyte(offset.current_pokemon + 0x34)
     offset.foe_current_hp = mword(offset.foe_in_battle + 0x4C)
@@ -475,9 +476,15 @@ function catch_pokemon()
         if mbyte(0x0211194C) == 0x01 then
             console.log("Pokemon caught!!!")
             skip_nickname()
+            wait_frames(200)
         else
             console.log("Failed catch trying again...")
-            goto retry
+            if offset.foe_status == 0 then
+                console.log("Foe not asleep reapplying")
+                subdue_pokemon()
+            else
+                goto retry
+            end
         end
     else
         pause_bot("Wild Pokemon meets target specs!")
@@ -552,6 +559,14 @@ function mode_starters()
     wait_frames(30)
 end
 
+function mode_random_encounters()
+    if config.move_direction == "Horizontal" or config.move_direction == "Vertical" then
+        mode_random_encounters_running()
+    elseif config.move_direction == "Spin" then
+        mode_spin_to_win()
+    end
+end
+
 function mode_random_encounters_running()
     console.log("Attempting to start a battle...")
 
@@ -594,6 +609,9 @@ function mode_spin_to_win()
     end
 
     process_wild_encounter()
+    if config.pickup then
+        do_pickup()
+    end
 end
 
 function mode_voltorb_flip()
