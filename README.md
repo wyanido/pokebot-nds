@@ -13,16 +13,16 @@ _Currently only English (USA, Europe) copies are supported._
 |  						| DPPt | HGSS | BW | B2W2 | 
 |--						| :-: | :-: | :-: | :-: |
 | Manual (Assisted)     | ✅ | ✅ | ✅ | ✅ |
-| Starter resets 		| ❔ | ✅ | ✅ | ✅ |
+| Starter resets 		| ✅ | ✅ | ✅ | ✅ |
 | Random encounters		| ✅ | ✅ | ✅ | ✅ |
-| Auto-catching			| ➖ | ➖ | ✅ | ✅ |
-| Auto-battling			| ➖ | ➖ | ✅ | ✅ |
-| Pickup farming		| ➖ | ➖ | ✅ | ✅ |
+| Auto-catching			| ✅ | ✅ | ✅ | ✅ |
+| Auto-battling			| ✅ | ✅ | ✅ | ✅ |
+| Pickup farming		| ✅ | ✅ | ✅ | ✅ |
 | Gift resets 			| ➖ | ➖ | ✅ | ✅ |
 | Egg hatching			| ➖ | ➖ | ✅ | ✅ |
-| Static encounters 	| ➖ | ✅ | ✅ | ✅ |
+| Static encounters 	| ✅ | ✅ | ✅ | ✅ |
 | Thief farming			| ➖ | ➖ | ✅ | ✅ |
-| Fishing			   	| ➖ | ➖ | ✅ | ✅ |
+| Fishing			   	| ✅ | ➖ | ✅ | ✅ |
 | Dust cloud farming	|  |  | ✅ | ✅ |
 | Phenomenon encounters	|  |  | ✅ | ✅ |
 | PokéRadar			   	| ➖ |  |  |  |
