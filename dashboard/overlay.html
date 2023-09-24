@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pokébot NDS</title>
     <link href="components/halfmoon-variables.min.css" rel="stylesheet" />
+    <link href="components/overlay.css" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
         integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -159,11 +160,13 @@
             <span class="navbar-text text-monospace font-size-12">v0.5.0-alpha</span>
             <ul class="navbar-nav d-flex d-md-flex">
                 <li class="nav-item nav-link px-10">
-                    <button type="button" class="btn position-relative px-10 active">
-                        <i class="fa fa-user-circle mr-5"></i>
-                        Dashboard
-                        <div id="home-button"></div>
-                    </button>
+                    <a href="dashboard.html">
+                        <button type="button" class="btn position-relative px-10">
+                            <i class="fa fa-user-circle mr-5"></i>
+                            Dashboard
+                            <div id="home-button"></div>
+                        </button>
+                    </a>
                 </li>
                 <li class="nav-item nav-link px-10" style="cursor: default;">
                     <a href="config.html">
@@ -181,7 +184,7 @@
                 </li>
                 <li class="nav-item nav-link px-10" style="cursor: default;">
                     <a href="overlay.html">
-                        <button type="button" class="btn position-relative px-10">
+                        <button type="button" class="btn position-relative px-10 active">
                             <i class="fa fa-window-maximize mr-5"></i>
                             Overlay
                         </button>
@@ -190,24 +193,85 @@
             </ul>
         </nav>
         <div class="content-wrapper">
-            <div class="row row-eq-spacing">
-                <div class="col-6">
-                    <div class="card p-0 m-0">
-                        <div id="game-buttons" class="btn-group w-full" role="group"></div>
-                        <div id="game-party"></div>
-                        <div id="game-info"></div>
+            <div class="row">
+                <div class="col-4">
+                    <div class="row-eq-spacing p-20">
+                        <div class="text-center" style="flex-direction: row; height: 30px;">
+                            <h2 style="position:absolute" class="card-title text-center w-full">Recently Seen</h2>
+                            <div class="input-group" style="display: none; width: 150px; height: 28px; float: right;">
+                                <label class="input-group-text">Show latest</label>
+                                <input class="form-control h-full" id="recents-limit" min="1" type="number" value="8">
+                            </div>
+                        </div>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th class="text-center">HP</th>
+                                    <th class="text-center">ATK</th>
+                                    <th class="text-center">DEF</th>
+                                    <th class="text-center">SPA</th>
+                                    <th class="text-center">SPD</th>
+                                    <th class="text-center">SPE</th>
+                                    <th class="text-center">IV SUM</th>
+                                    <th class="text-center">Shiny Value (SV)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recents">
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-                <div class="col-6">
-                    <div class="card m-0 p-20">
+                <div class="col-4"></div>
+                <div class="col-4">
+                    <div class="row-eq-spacing p-20">
+                        <div class="text-center" style="flex-direction: row; height: 30px;">
+                            <h2 style="position:absolute" class="card-title text-center w-full">Recent Targets</h2>
+                            <div class="input-group" style="display: none; width: 150px; height: 28px; float: right;">
+                                <label class="input-group-text">Show latest</label>
+                                <input class="form-control h-full" id="targets-limit" min="1" type="number" value="8">
+                            </div>
+                        </div>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th class="text-center">HP</th>
+                                    <th class="text-center">ATK</th>
+                                    <th class="text-center">DEF</th>
+                                    <th class="text-center">SPA</th>
+                                    <th class="text-center">SPD</th>
+                                    <th class="text-center">SPE</th>
+                                    <th class="text-center">IV SUM</th>
+                                    <th class="text-center">Shiny Value (SV)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="targets">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class=" row">
+                <div class="col-4 p-0 m-0">
+                    <div id="game-buttons" class="btn-group w-full" role="group"></div>
+                    <div id="game-party"></div>
+                    <div id="game-info"></div>
+                </div>
+                <div class="col-4"></div>
+                <div class="col-4">
+
+                    <div class="m-0">
                         <div class="row">
                             <div class="col-6 text-center">
-                                Elapsed: <span id="elapsed-time" class="badge text-bg-secondary">0s</span>
+                                Elapsed: <span id="total-elapsed-time" class="badge text-bg-secondary">0s</span>
                             </div>
                             <div class="col-6 text-center">
-                                Encounter Rate: <sapan id="encounter-rate" class="badge text-bg-secondary">0/h</span>
+                                Encounter Rate: <sapan id="encounter-rate" class="badge text-bg-secondary">
+                                    0/h</span>
                             </div>
-                            <br><br>
+                            <br>
+                            <br>
                             <div class="col-6">
                                 <h2 class="card-title text-center">Total</h2>
                                 <table class="table">
@@ -256,56 +320,6 @@
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="card row-eq-spacing p-20">
-                <div class="text-center" style="flex-direction: row; height: 50px;">
-                    <h2 style="position:absolute" class="card-title text-center w-full">Recently Seen</h2>
-                    <div class="input-group" style="width: 150px; height: 28px; float: right;">
-                        <label class="input-group-text">Show latest</label>
-                        <input class="form-control h-full" id="recents-limit" min="1" type="number" value="5">
-                    </div>
-                </div>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th class="text-center">Ability</th>
-                            <th class="text-center">Nature</th>
-                            <th class="text-center">PID</th>
-                            <th class="text-center">IVs</th>
-                            <th class="text-center">Shiny Value (SV)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="recents">
-                    </tbody>
-                </table>
-            </div>
-            <div class="card row-eq-spacing p-20">
-                <div class="text-center" style="flex-direction: row; height: 50px;">
-                    <h2 style="position:absolute" class="card-title text-center w-full">Recent Targets</h2>
-                    <div class="input-group" style="width: 150px; height: 28px; float: right;">
-                        <label class="input-group-text">Show latest</label>
-                        <input class="form-control h-full" id="targets-limit" min="1" type="number" value="5">
-                    </div>
-                </div>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th class="text-center">Ability</th>
-                            <th class="text-center">Nature</th>
-                            <th class="text-center">PID</th>
-                            <th class="text-center">IVs</th>
-                            <th class="text-center">Shiny Value (SV)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="targets">
-                    </tbody>
-                </table>
             </div>
         </div>
     </div>
