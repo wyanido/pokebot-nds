@@ -582,30 +582,48 @@ end
 -- BOT ENCOUNTER MODES
 -----------------------
 function mode_static_encounters()
-    if not game_state.in_game then
-        console.log("Waiting to reach overworld...")
+    console.log("Waiting to reach overworld...")
+    wait_frames(200)
+    while mbyte(offset.battle_indicator) == 0x1D do
+        local rand1 = math.random(3, 60)
+        console.log(rand1)
+        press_button("A")
+        wait_frames(rand1)
+    end
 
-        while not game_state.in_game do
-            skip_dialogue()
-        end
-        while not game_state.in_battle do
-            press_button("A")
-        end
-        while game_state.in_battle and offset.battle_state_value == 0 do
-            press_sequence("B", 5)
-        end
+    wait_frames(60)
+    press_sequence("B", 5)
+    console.log("Second Loop...")
+    while mbyte(offset.battle_indicator) ~= 0xFF do
+        local rand2 = math.random(3, 60)
+        wait_frames(rand2)
+        press_button("A")
+        wait_frames(rand2)
+    end
+    while game_state.in_battle and offset.battle_state_value == 0 do
+        press_sequence("B", 5)
+    end
+    if config.hax then
         mon = foe[1]
         local was_target = pokemon.log(mon)
         if was_target then
-            if config.auto_catch then
-                console.log("Pokemon meets target specs!")
-                catch_pokemon()
-            else
-                pause_bot("Pokemon meets target specs!")
-            end
+            pause_bot("Starter meets target specs!")
         else
             press_button("Power")
         end
+    end
+
+    mon = foe[1]
+    local was_target = pokemon.log(mon)
+    if was_target then
+        if config.auto_catch then
+            console.log("Pokemon meets target specs!")
+            catch_pokemon()
+        else
+            pause_bot("Pokemon meets target specs!")
+        end
+    else
+        press_button("Power")
     end
 end
 
@@ -662,16 +680,15 @@ function mode_starters_DP(starter)
 end
 
 function mode_starters(starter) --starters for platinum
-    if not game_state.in_game then
-        console.log("Waiting to reach overworld...")
+    console.log("Waiting to reach overworld...")
+    wait_frames(200)
 
-        while mbyte(offset.battle_indicator) == 0x1D do
-            local rand1 = math.random(3, 60)
-            console.log(rand1)
-            press_button("A")
-            wait_frames(rand1)
-        end
-    end --]]
+    while mbyte(offset.battle_indicator) == 0x1D do
+        local rand1 = math.random(3, 60)
+        console.log(rand1)
+        press_button("A")
+        wait_frames(rand1)
+    end
 
     while mbyte(offset.battle_indicator) ~= 0xFF do
         local rand2 = math.random(3, 60)
