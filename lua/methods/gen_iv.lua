@@ -571,8 +571,12 @@ function process_wild_encounter()
                 do_battle()
                 return
             else
-                console.log("Wild " .. foe[1].name .. " is not a target, fleeing!")
-                flee_battle()
+                if config.mode_static_encounters then
+                    press_button("Power")
+                else
+                    console.log("Wild " .. foe[1].name .. " is not a target, fleeing!")
+                    flee_battle()
+                end
             end
         end
     end
@@ -586,45 +590,48 @@ function mode_static_encounters()
     wait_frames(200)
     while mbyte(offset.battle_indicator) == 0x1D do
         local rand1 = math.random(3, 60)
-        console.log(rand1)
         press_button("A")
         wait_frames(rand1)
     end
 
     wait_frames(60)
     press_sequence("B", 5)
-    console.log("Second Loop...")
-    while mbyte(offset.battle_indicator) ~= 0xFF do
+    console.log("Entering Static Encounter...")
+    while mbyte(offset.battle_indicator) ~= 0x41 do
         local rand2 = math.random(3, 60)
         wait_frames(rand2)
         press_button("A")
-        wait_frames(rand2)
     end
-    while game_state.in_battle and offset.battle_state_value == 0 do
-        press_sequence("B", 5)
-    end
-    if config.hax then
-        mon = foe[1]
-        local was_target = pokemon.log(mon)
-        if was_target then
-            pause_bot("Starter meets target specs!")
-        else
-            press_button("Power")
+    wait_frames(100)
+    local shinyValue = offset.foe_TID ~ offset.foe_SID ~ ((offset.foe_PID >> 16) & 0xFFFF) ~ (offset.foe_PID & 0xFFFF)
+    console.log(shinyValue)
+    if not config.hax then
+        -- Wait for Pokémon to fully appear on screen
+        for i = 0, 22, 1 do
+            press_sequence("A", 6)
         end
     end
 
-    mon = foe[1]
-    local was_target = pokemon.log(mon)
-    if was_target then
-        if config.auto_catch then
-            console.log("Pokemon meets target specs!")
-            catch_pokemon()
-        else
-            pause_bot("Pokemon meets target specs!")
-        end
+    if shinyValue < 8 then
+        pause_bot("Wild Pokémon meets target specs!")
     else
+        console.log("Wild Pokémon was not a target, resetting...")
         press_button("Power")
+        wait_frames(30)
     end
+
+    -- Wait a random number of frames before mashing A next reset
+    -- to decrease the odds of hitting similar seeds
+    local delay = math.random(1, 90)
+    wait_frames(delay)
+    --[[if config.hax then
+        process_wild_encounter()
+    else
+        while (game_state.in_battle and (offset.battle_state_value == 0)) do
+            press_sequence("B", 5)
+        end
+    end
+    process_wild_encounter()]]
 end
 
 function mode_starters_DP(starter)
@@ -773,9 +780,7 @@ function mode_random_encounters_running()
         hold_button(dir1)
         wait_frames(tile_frames)
         release_button(dir1)
-        --release_button("B")
         press_button("A")
-        --hold_button("B")
         hold_button(dir2)
         wait_frames(tile_frames)
         release_button(dir2)
