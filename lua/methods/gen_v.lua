@@ -778,11 +778,11 @@ function mode_random_encounters()
         if(config.move_direction == "Spin") then
             if game_state.trainer_dir == 0 then
                 while not foe and not game_state.in_battle do
-                    press_sequence("Left", "Down", "Right", "Up")
+                    press_sequence("Left", 1, "Down", 1, "Right", 1, "Up", 1)
                 end
             else
                 while not foe and not game_state.in_battle do
-                    press_sequence("Up", "Left", "Down", "Right")
+                    press_sequence("Up", 1, "Left", 1, "Down", 1, "Right", 1)
                 end
             end        
         else
