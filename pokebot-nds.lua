@@ -184,7 +184,7 @@ function get_game_state()
                 trainer_z = mword(offset.trainer_z + 2),
                 phenomenon_x = mword(offset.phenomenon_x + 2),
                 phenomenon_z = mword(offset.phenomenon_z + 2),
-                -- trainer_dir = mdword(offset.trainer_direction),
+                trainer_dir = mdword(offset.trainer_direction),
                 in_battle = mbyte(offset.battle_indicator) == 0x41 and mbyte(offset.foe_count) > 0,
                 in_game = true
             }
