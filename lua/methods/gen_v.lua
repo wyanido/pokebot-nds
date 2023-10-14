@@ -775,20 +775,30 @@ function mode_random_encounters()
         check_party_status()
 
         console.log("Attempting to start a battle...")
+        if(config.move_direction == "Spin") then
+            if game_state.trainer_dir == 0 then
+                while not foe and not game_state.in_battle do
+                    press_sequence("Left", 1, "Down", 1, "Right", 1, "Up", 1)
+                end
+            else
+                while not foe and not game_state.in_battle do
+                    press_sequence("Up", 1, "Left", 1, "Down", 1, "Right", 1)
+                end
+            end        
+        else
+            local dir1 = config.move_direction == "Horizontal" and "Left" or "Up"
+            local dir2 = config.move_direction == "Horizontal" and "Right" or "Down"
+            
+            wait_frames(60) -- Wait to regain control post-battle
+            pathfind_to(home)
+            wait_frames(8)
 
-        local dir1 = config.move_direction == "Horizontal" and "Left" or "Up"
-        local dir2 = config.move_direction == "Horizontal" and "Right" or "Down"
-        
-        wait_frames(60) -- Wait to regain control post-battle
-        pathfind_to(home)
-        wait_frames(8)
-
-        while not foe and not game_state.in_battle do
-            move_in_direction(dir1)
-            move_in_direction(dir2)
+            while not foe and not game_state.in_battle do
+                move_in_direction(dir1)
+                move_in_direction(dir2)
+            end
+            release_button(dir2)
         end
-
-        release_button(dir2)
 
         process_wild_encounter()
 
