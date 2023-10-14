@@ -737,14 +737,11 @@ function mode_starters(starter) --starters for platinum
             press_button("Power")
         end
     else
-        while not offset.in_starter_battle ~= 0x41 do
+        while offset.in_starter_battle ~= 0x41 do
             skip_dialogue()
         end
-        local battle_state_value = 0
-        while offset.in_starter_battle == 0x41 and battle_state_value == 0 do
+        while offset.in_starter_battle == 0x41 and offset.battle_state_value == 0 do
             press_sequence("B", 5)
-            --console.log("Battle State: " .. mbyte(offset.battle_state_value))
-            battle_state_value = mbyte(offset.battle_state_value) --should set to 01
         end
         wait_frames(50)
         mon = party[1]
