@@ -30,3 +30,4 @@ dist-ssr
 *.sln
 *.sw?
 lua/pokebot-nds.code-workspace
+dashboard/build.bat
