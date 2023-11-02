@@ -1,15 +1,22 @@
 -----------------------
 -- INITIALIZATION
 -----------------------
-local BOT_VERSION = "0.4.1-alpha"
+local BOT_VERSION = "v0.5.0-alpha"
 
 console.clear()
-console.log("Running " .. _VERSION)
-console.log("Pokebot NDS version " .. BOT_VERSION .. " by NIDO (wyanido)")
+-- console.log("Running " .. _VERSION)
+console.log("Pokébot NDS " .. BOT_VERSION .. " by NIDO (wyanido)")
+console.log("https://github.com/wyanido/pokebot-nds\n")
 
-mbyte = memory.read_u8
-mword = memory.read_u16_le
-mdword = memory.read_u32_le
+if gameinfo.getromhash() == "" then
+    console.log("Please load a ROM before enabling the script!")
+    return
+end
+
+-- Override memory functions to prevent reading out of bounds
+mbyte = function(addr) return memory.read_u8(math.max(addr, 0)) end
+mword = function(addr) return memory.read_u16_le(math.max(addr, 0)) end
+mdword = function(addr) return memory.read_u32_le(math.max(addr, 0)) end
 console.debug = function(message)
     if config.debug then
         console.log("- " .. message)
@@ -34,7 +41,7 @@ dofile("lua\\dashboard.lua")
 
 -- Send game info to the dashboard
 comm.socketServerSend(json.encode({
-    type = "init",
+    type = "load_game",
     data = {
         gen = gen,
         game = game_name
@@ -212,12 +219,12 @@ end
 
 function update_game_info(force)
     -- Refresh data at the rate it takes to move 1 tile
-    local refresh_frames = frames_per_move() / 2
+    local refresh_frames = frames_per_move()
 
     if emu.framecount() % refresh_frames == 0 or force then
         game_state = get_game_state()
         comm.socketServerSend(json.encode({
-            type = "game",
+            type = "game_state",
             data = game_state
         }) .. "\x00")
 
@@ -246,11 +253,32 @@ function pause_bot(reason)
     end
 end
 
+function cycle_starter_choice(starter)
+    -- Alternate between starters specified in config and reset until one is a target
+    if not config.starter0 and not config.starter1 and not config.starter2 then
+        console.warning("At least one starter selection must be enabled in config for this bot mode")
+        return
+    end
+
+    -- Cycle to next enabled starter
+    starter = (starter + 1) % 3
+
+    while not config["starter" .. tostring(starter)] do
+        starter = (starter + 1) % 3
+    end
+
+    return starter
+end
+
 function process_frame()
     emu.frameadvance()
     update_pointers()
     poll_dashboard_response()
     update_game_info()
+end
+
+function to_signed(u16)
+    return (u16 + 32768) % 65536 - 32768
 end
 
 -----------------------
@@ -293,19 +321,7 @@ local starter = -1
 while true do
     if mode_function then
         if mode == "starters" then
-            -- Alternate between starters specified in config and reset until one is a target
-            if not config.starter0 and not config.starter1 and not config.starter2 then
-                console.warning("At least one starter selection must be enabled in config for this bot mode")
-                return
-            end
-
-            -- Cycle to next enabled starter
-            starter = (starter + 1) % 3
-
-            while not config["starter" .. tostring(starter)] do
-                starter = (starter + 1) % 3
-            end
-
+            starter = cycle_starter_choice(starter)
             mode_starters(starter)
         else
             mode_function()
@@ -315,9 +331,9 @@ while true do
             while true do
                 while not game_state.in_battle do
                     process_frame()
-                    -- Restart if config changed
+                    
                     if mode_real ~= config.mode then
-                        goto begin
+                        goto begin -- Restart if config changed
                     end
                 end
 
@@ -327,10 +343,9 @@ while true do
 
                 while game_state.in_battle do
                     process_frame()
-
-                    -- Restart if config changed
+                    
                     if mode_real ~= config.mode then
-                        goto begin
+                        goto begin -- Restart if config changed
                     end
                 end
             end
