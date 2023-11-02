@@ -2,54 +2,6 @@ function update_pointers()
     -- Nothing here by default!
 end
 
-function to_signed(unsigned)
-    return (unsigned + 32768) % 65536 - 32768
-end
-
-local function get_blank_offsets()
-    return {
-        party_count = 0x0,
-        party_data = 0x0,
-        map_header = 0x0,
-        trainer_x = 0x0,
-        trainer_y = 0x0,
-        trainer_z = 0x0,
-        on_bike = 0x0,
-        encounter_table = 0x0,
-        map_matrix = 0x0,
-        battle_indicator = 0x0,
-        foe_count = 0x0,
-        current_foe = 0x0
-    }
-end
-
-local function get_offset_dp(game)
-    local offset = get_blank_offsets()
-
-    offset.battle_indicator = 0x021A1B2A
-
-    offset.starters_ready = 0x022AFE14 -- 0 before hand appears, random number afterwards
-    offset.selected_starter = 0x022AFD90 -- 0: Turtwig, 1: Chimchar, 2: Piplup
-
-    return offset
-end
-
-local function get_offset_hgss(game)
-    local offset = get_blank_offsets()
-
-    offset.battle_indicator = 0x021E76D2
-
-    return offset
-end
-
-local function get_offset_pt(game)
-    local offset = get_blank_offsets()
-
-    offset.battle_indicator = 0x021D18F2
-
-    return offset
-end
-
 local function get_offset_bw(game)
     local wt = 0x20 * game -- White version is offset slightly
 
@@ -267,17 +219,17 @@ end
 
 -- Index game-specific map headers
 if gen == 4 then
-    dofile("lua\\methods_gen_iv.lua") -- Define Gen IV functions
+    offset = {} -- Most Gen 4 offsets are non-static, so these are set each frame through update_pointers()
+    dofile("lua\\methods\\gen_iv.lua")
 
     if gamecode == ver.HEARTGOLD_U.code or gamecode == ver.SOULSILVER_U.code then
         -- HG/SS have no differences in map headers
-        map_names = json.load("lua\\data\\maps_hgss.json")
+        map_names = json.load("lua\\data\\maps\\hgss.json")
         MAP_HEADER_COUNT = 540 -- HGSS
 
-        offset = get_offset_hgss()
-        dofile("lua\\methods_hgss.lua")
+        dofile("lua\\methods\\hgss.lua")
     else
-        map_names = json.load("lua\\data\\maps_dppt.json")
+        map_names = json.load("lua\\data\\maps\\dppt.json")
         MAP_HEADER_COUNT = 593 -- Pt
 
         -- DP uses Platinum headers with the name changes reverted
@@ -291,20 +243,17 @@ if gen == 4 then
             map_names[76] = "Eterna City"
             map_names[455] = "Survival Area"
             map_names[465] = "Resort Area"
-
-            offset = get_offset_dp()
         else
-            dofile("lua\\methods_platinum.lua")
-            offset = get_offset_pt()
+            dofile("lua\\methods\\pt.lua")
         end
     end
 
     MON_DATA_SIZE = 236 -- Gen 4 has 16 extra trailing bytes of ball seals data
 
 elseif gen == 5 then
-    dofile("lua\\methods_gen_v.lua") -- Define Gen V functions
+    dofile("lua\\methods\\gen_v.lua") -- Define Gen V functions
 
-    map_names = json.load("lua\\data\\maps_gen_v.json")
+    map_names = json.load("lua\\data\\maps\\bw.json")
     MAP_HEADER_COUNT = 615 -- B2W2
 
     -- BW uses B2W2 headers with the name changes reverted
@@ -319,7 +268,7 @@ elseif gen == 5 then
         offset = get_offset_bw(game_version)
     else
         -- B2W2 uses BW methods with a few overrides to match game changes
-        dofile("lua\\methods_b2w2.lua")
+        dofile("lua\\methods\\b2w2.lua")
         offset = get_offset_b2w2(game_version)
     end
 

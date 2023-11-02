@@ -110,13 +110,3 @@ function input_init()
 
 	return input
 end
-
--- Holds B to speed up text and A to progress text boxes
-function skip_dialogue()
-	hold_button("B")
-
-	press_sequence(12, "A")
-
-	release_button("B")
-	wait_frames(1)
-end

@@ -170,12 +170,12 @@ function pokemon.read_data(address)
     mon.ppUps = blockData(0x34, 4)
 
     local data = blockData(0x38, 5)
-    mon.hp_iv = (data >> 0) & 0x1F
-    mon.attack_iv = (data >> 5) & 0x1F
-    mon.defense_iv = (data >> 10) & 0x1F
-    mon.speed_iv = (data >> 15) & 0x1F
-    mon.sp_attack_iv = (data >> 20) & 0x1F
-    mon.sp_defense_iv = (data >> 25) & 0x1F
+    mon.hpIV = (data >> 0) & 0x1F
+    mon.attackIV = (data >> 5) & 0x1F
+    mon.defenseIV = (data >> 10) & 0x1F
+    mon.speedIV = (data >> 15) & 0x1F
+    mon.spAttackIV = (data >> 20) & 0x1F
+    mon.spDefenseIV = (data >> 25) & 0x1F
     mon.isEgg = (data >> 30) & 0x01
     mon.isNicknamed = (data >> 31) & 0x01
 
@@ -324,11 +324,11 @@ function pokemon.log(mon)
     return was_target
 end
 
-local mon_ability = json.load("lua/data/ability.json")
-local mon_item = json.load("lua/data/item.json")
-local mon_move = json.load("lua/data/move.json")
-local mon_type = json.load("lua/data/type.json")
-local mon_dex = json.load("lua/data/pokedex.json")
+local mon_ability = json.load("lua/data/abilities.json")
+local mon_item = json.load("lua/data/items.json")
+local mon_move = json.load("lua/data/moves.json")
+local mon_type = json.load("lua/data/type_matchups.json")
+local mon_dex = json.load("lua/data/dex.json")
 local mon_lang = {"none", "日本語", "English", "Français", "Italiano", "Deutsch", "Español", "한국어"}
 local mon_gender = {"Male", "Female", "Genderless"}
 local mon_nature = {"Hardy", "Lonely", "Brave", "Adamant", "Naughty", "Bold", "Docile", "Relaxed", "Impish", "Lax",
@@ -351,7 +351,7 @@ function pokemon.enrich_data(mon)
     mon.nature = mon_nature[mon.nature + 1]
     mon.heldItem = mon_item[mon.heldItem + 1]
     mon.gender = mon_gender[mon.gender + 1]
-
+    
     local move_id = mon.moves
     mon.moves = {}
 
@@ -522,14 +522,14 @@ function pokemon.matches_ruleset(mon, target)
     end
 
     -- Check that IVs meet target thresholds
-    local ivs = {"hp_iv", "attack_iv", "defense_iv", "sp_attack_iv", "sp_defense_iv", "speed_iv"}
+    local ivs = {"hpIV", "attackIV", "defenseIV", "spAttackIV", "spDefenseIV", "speedIV"}
     local sum = 0
 
     for _, key in ipairs(ivs) do
         sum = sum + mon[key]
         if target[key] and mon[key] < target[key] then
             has_other_specs = true
-            console.debug("Mon " .. key .. " " .. mon.hp_iv .. " does not meet ruleset " .. target.hp_iv)
+            console.debug("Mon " .. key .. " " .. mon.hpIV .. " does not meet ruleset " .. target.hpIV)
             return false
         end
     end
