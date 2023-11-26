@@ -67,7 +67,10 @@ const configTemplate = {
     webhook_enabled: false,
     ping_user: false,
     user_id: "",
-    show_status: true
+    show_status: true,
+    save_pk: true,
+    state_backup: true,
+    backup_interval: "30"
 }
 const statsTemplate = {
     total: {
@@ -409,7 +412,10 @@ function interpretClientMessage(socket, message) {
             writeJSONToFile('../user/stats.json', stats);
             return;
         case 'seen_target':
-            webhookLogPokemon(data, client);
+            if (config.webhook_enabled) {
+                webhookLogPokemon(data, client);
+            }
+            
             updateEncounterLog(data);
             updateTargetLog(data);
 

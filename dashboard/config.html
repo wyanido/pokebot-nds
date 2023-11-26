@@ -6,14 +6,14 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pokébot NDS</title>
-    <link href="components/halfmoon-variables.min.css" rel="stylesheet" />
+    <link href="components/common/halfmoon-variables.min.css" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
         integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://kit.fontawesome.com/b079a6b886.js" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"
         referrerpolicy="no-referrer"></script>
-    <link rel="stylesheet" href="components/tooltip.css">
+    <link rel="stylesheet" href="components/common/tooltip.css">
 </head>
 
 <body class="with-custom-webkit-scrollbars with-custom-css-scrollbars" data-dm-shortcut-enabled="true"
@@ -25,7 +25,7 @@
                 <img src="assets/pokemon-icon/201-27.png" class="icon" id="icon">
                 Pokébot NDS
             </div>
-            <span class="navbar-text text-monospace font-size-12">v0.5.0-alpha</span>
+            <span class="navbar-text text-monospace font-size-12">v0.5.1-alpha</span>
             <ul class="navbar-nav d-flex d-md-flex">
                 <li class="nav-item nav-link px-10">
                     <a href="dashboard.html">
@@ -171,7 +171,38 @@
                         </div>
                     </div>
                     <div class="card">
-                        <h2 class="content-title">Logging</h2>
+                        <h2 class="content-title">Backups</h2>
+                        <div class="custom-switch">
+                            <input type="checkbox" id="save_pk">
+                            <label for="save_pk">Save target Pokémon to file
+                                <i class="fa fa-info-circle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
+                                <div id="tooltip" role="tooltip">Saves encountered target Pokémon to a .pk4/.pk5 file in
+                                    the
+                                    project's /user directory. These can be directly imported into PKHeX.
+                                    <div id="arrow" data-popper-arrow></div>
+                                </div>
+                            </label>
+                        </div>
+                        <br>
+                        <div class="custom-switch">
+                            <input type="checkbox" id="state_backup">
+                            <label for="state_backup">Frequently back-up save state
+                                <i class="fa fa-info-circle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
+                                <div id="tooltip" role="tooltip">Saves the contents of RAM to a folder in the
+                                    project's /user directory. These can be loaded in an emulator as a save state.
+                                    <div id="arrow" data-popper-arrow></div>
+                                </div>
+                            </label>
+                        </div>
+                        <br>
+                        <div id="option_backup_interval">
+                            <div class="input-group" style="height: 28px; float: left; width: 250px;">
+                                <label class="input-group-text">Back-up every</label>
+                                <input id="backup_interval" min="1" type="number" class="form-control">
+                                <label class="input-group-text">minutes</label>
+                            </div>
+                            <br><br>
+                        </div>
                         <label for="encounter_log_limit">Encounter Log Limit</label>
                         <input id="encounter_log_limit" min="1" type="number" class="form-control">
                         <br>
@@ -301,11 +332,11 @@
             </fieldset>
         </div>
     </div>
-    <script src="components/halfmoon.min.js"></script>
+    <script src="components/common/halfmoon.min.js"></script>
+    <script src="components/common/popper.min.js"></script>
+    <script src="components/common/tooltip.js"></script>
     <script src="components/page.js"></script>
     <script src="components/config.js"></script>
-    <script src="components/popper.min.js"></script>
-    <script src="components/tooltip.js"></script>
 </body>
 
 </html>

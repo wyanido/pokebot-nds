@@ -1,5 +1,3 @@
-
-
 randomisePageIcon();
 
 let pollInterval;
