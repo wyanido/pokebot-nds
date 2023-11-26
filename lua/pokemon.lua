@@ -4,7 +4,107 @@ function pokemon.read_data(address)
     function rand(seed)
         return (0x41C64E6D * seed) + 0x6073
     end
+
+    local decrypt_block = function(start, finish)
+        local data = {}
+
+        for i = start, finish, 0x2 do
+            seed = rand(seed)
+            
+            local word = mword(address + i)
+            local decrypted = word ~ (seed >> 16)
+            local end_word = decrypted & 0xFFFF
+
+            table.insert(data, end_word & 0xFF)
+            table.insert(data, (end_word >> 8) & 0xFF)
+        end
+
+        return data
+    end
+
+    local verify_checksums = function(checksum)
+        local sum = 0
+
+        for j = 1, 4 do
+            for i = 1, #block[j], 2 do
+                sum = sum + block[j][i] + (block[j][i + 1] << 8)
+            end
+        end
+
+        sum = sum & 0xFFFF
+
+        return sum == checksum
+    end
     
+    -- Unencrypted bytes
+    local pid = mdword(address)
+    local checksum = mword(address + 0x06)
+    
+    -- Find intended order of the shuffled data blocks
+    local substruct = {
+        [0] = {1, 2, 3, 4},
+        [1] = {1, 2, 4, 3},
+        [2] = {1, 3, 2, 4},
+        [3] = {1, 4, 2, 3},
+        [4] = {1, 3, 4, 2},
+        [5] = {1, 4, 3, 2},
+        [6] = {2, 1, 3, 4},
+        [7] = {2, 1, 4, 3},
+        [8] = {3, 1, 2, 4},
+        [9] = {4, 1, 2, 3},
+        [10] = {3, 1, 4, 2},
+        [11] = {4, 1, 3, 2},
+        [12] = {2, 3, 1, 4},
+        [13] = {2, 4, 1, 3},
+        [14] = {3, 2, 1, 4},
+        [15] = {4, 2, 1, 3},
+        [16] = {3, 4, 1, 2},
+        [17] = {4, 3, 1, 2},
+        [18] = {2, 3, 4, 1},
+        [19] = {2, 4, 3, 1},
+        [20] = {3, 2, 4, 1},
+        [21] = {4, 2, 3, 1},
+        [22] = {3, 4, 2, 1},
+        [23] = {4, 3, 2, 1}
+    }
+
+    -- Decrypt blocks A,B,C,D and rearrange them according to the block order
+    seed = checksum
+
+    local _block = {}
+    _block[1] = decrypt_block(0x08, 0x27)
+    _block[2] = decrypt_block(0x28, 0x47)
+    _block[3] = decrypt_block(0x48, 0x67)
+    _block[4] = decrypt_block(0x68, 0x87)
+    
+    local shift = ((pid & 0x3E000) >> 0xD) % 24
+    local block_order = substruct[shift]
+
+    block = {}
+    block[1] = _block[block_order[1]]
+    block[2] = _block[block_order[2]]
+    block[3] = _block[block_order[3]]
+    block[4] = _block[block_order[4]]
+
+    -- Re-calculate the checksum of the blocks and match it with mon.checksum
+    -- If the checksum fails, assume it's the data is garbage or still being written
+    if not verify_checksums(checksum) then
+        return nil
+    end
+    
+    -- Battle stats
+    seed = pid
+    
+    return {
+        blockA = block[1],
+        blockB = block[2],
+        blockC = block[3],
+        blockD = block[4],
+        battle_stats = decrypt_block(0x88, 0xDB)
+    }
+end
+
+function pokemon.parse_data(address)
     local read_string = function(this_block, start, length)
         local text = ""
         start = start - block_start
@@ -38,219 +138,161 @@ function pokemon.read_data(address)
         return data
     end
 
-    local decrypt_block = function(start, finish)
-        local data = {}
-
-        for i = start, finish, 0x2 do
-            seed = rand(seed)
-            
-            local word = mword(address + i)
-            local decrypted = word ~ (seed >> 16)
-            local end_word = decrypted & 0xFFFF
-
-            table.insert(data, end_word & 0xFF)
-            table.insert(data, (end_word >> 8) & 0xFF)
-        end
-
-        return data
-    end
-
-    local verify_checksums = function()
-        local sum = 0
-
-        for j = 1, 4 do
-            for i = 1, #block[j], 2 do
-                sum = sum + block[j][i] + (block[j][i + 1] << 8)
-            end
-        end
-
-        sum = sum & 0xFFFF
-
-        return sum == mon.checksum
-    end
     
-    -- Read unencrypted bytes
     mon = {}
     mon.pid = mdword(address)
     mon.checksum = mword(address + 0x06)
     
-    -- Find intended order of the shuffled data blocks
-    local substruct = {
-        [0] = {1, 2, 3, 4},
-        [1] = {1, 2, 4, 3},
-        [2] = {1, 3, 2, 4},
-        [3] = {1, 4, 2, 3},
-        [4] = {1, 3, 4, 2},
-        [5] = {1, 4, 3, 2},
-        [6] = {2, 1, 3, 4},
-        [7] = {2, 1, 4, 3},
-        [8] = {3, 1, 2, 4},
-        [9] = {4, 1, 2, 3},
-        [10] = {3, 1, 4, 2},
-        [11] = {4, 1, 3, 2},
-        [12] = {2, 3, 1, 4},
-        [13] = {2, 4, 1, 3},
-        [14] = {3, 2, 1, 4},
-        [15] = {4, 2, 1, 3},
-        [16] = {3, 4, 1, 2},
-        [17] = {4, 3, 1, 2},
-        [18] = {2, 3, 4, 1},
-        [19] = {2, 4, 3, 1},
-        [20] = {3, 2, 4, 1},
-        [21] = {4, 2, 3, 1},
-        [22] = {3, 4, 2, 1},
-        [23] = {4, 3, 2, 1}
-    }
-
-    -- Decrypt blocks A,B,C,D and rearrange them according to the block order
-    seed = mon.checksum
-
-    local _block = {}
-    _block[1] = decrypt_block(0x08, 0x27)
-    _block[2] = decrypt_block(0x28, 0x47)
-    _block[3] = decrypt_block(0x48, 0x67)
-    _block[4] = decrypt_block(0x68, 0x87)
-    
-    local shift = ((mon.pid & 0x3E000) >> 0xD) % 24
-    local block_order = substruct[shift]
-
-    block = {}
-    block[1] = _block[block_order[1]]
-    block[2] = _block[block_order[2]]
-    block[3] = _block[block_order[3]]
-    block[4] = _block[block_order[4]]
-
-    -- Re-calculate the checksum of the blocks and match it with mon.checksum
-    -- If the checksum fails, assume it's the data is garbage or still being written
-    if not verify_checksums() then
-        return nil
-    end
-
     -- Block A
+    local data = pokemon.read_data(address)
     block_start = 0x07
 
-    mon.species          = read_data(block[1], 0x08, 2)
-    mon.heldItem         = read_data(block[1], 0x0A, 2)
-    mon.otID             = read_data(block[1], 0x0C, 2)
-    mon.otSID            = read_data(block[1], 0x0E, 2)
-    mon.experience       = read_data(block[1], 0x10, 3)
-    mon.friendship       = read_data(block[1], 0x14, 1)
-    mon.ability          = read_data(block[1], 0x15, 1)
-    -- mon.markings         = read_data(block[1], 0x16, 1)
-    mon.otLanguage       = read_data(block[1], 0x17, 1)
-    mon.hpEV             = read_data(block[1], 0x18, 1)
-    mon.attackEV         = read_data(block[1], 0x19, 1)
-    mon.defenseEV        = read_data(block[1], 0x1A, 1)
-    mon.speedEV          = read_data(block[1], 0x1B, 1)
-    mon.spAttackEV       = read_data(block[1], 0x1C, 1)
-    mon.spDefenseEV      = read_data(block[1], 0x1D, 1)
-    -- mon.cool 			 = read_data(block[1], 0x1E, 1)
-    -- mon.beauty 			 = read_data(block[1], 0x1F, 1)
-    -- mon.cute 			 = read_data(block[1], 0x20, 1)
-    -- mon.smart 			 = read_data(block[1], 0x21, 1)
-    -- mon.tough 			 = read_data(block[1], 0x22, 1)
-    -- mon.sheen 			 = read_data(block[1], 0x23, 1)
-    -- mon.sinnohRibbonSet1 = read_data(block[1], 0x24, 2)
-    -- mon.unovaRibbonSet 	 = read_data(block[1], 0x26, 2)
+    mon.species          = read_data(data.blockA, 0x08, 2)
+    mon.heldItem         = read_data(data.blockA, 0x0A, 2)
+    mon.otID             = read_data(data.blockA, 0x0C, 2)
+    mon.otSID            = read_data(data.blockA, 0x0E, 2)
+    mon.experience       = read_data(data.blockA, 0x10, 3)
+    mon.friendship       = read_data(data.blockA, 0x14, 1)
+    mon.ability          = read_data(data.blockA, 0x15, 1)
+    -- mon.markings         = read_data(data.blockA, 0x16, 1)
+    mon.otLanguage       = read_data(data.blockA, 0x17, 1)
+    mon.hpEV             = read_data(data.blockA, 0x18, 1)
+    mon.attackEV         = read_data(data.blockA, 0x19, 1)
+    mon.defenseEV        = read_data(data.blockA, 0x1A, 1)
+    mon.speedEV          = read_data(data.blockA, 0x1B, 1)
+    mon.spAttackEV       = read_data(data.blockA, 0x1C, 1)
+    mon.spDefenseEV      = read_data(data.blockA, 0x1D, 1)
+    -- mon.cool 			 = read_data(data.blockA, 0x1E, 1)
+    -- mon.beauty 			 = read_data(data.blockA, 0x1F, 1)
+    -- mon.cute 			 = read_data(data.blockA, 0x20, 1)
+    -- mon.smart 			 = read_data(data.blockA, 0x21, 1)
+    -- mon.tough 			 = read_data(data.blockA, 0x22, 1)
+    -- mon.sheen 			 = read_data(data.blockA, 0x23, 1)
+    -- mon.sinnohRibbonSet1 = read_data(data.blockA, 0x24, 2)
+    -- mon.unovaRibbonSet 	 = read_data(data.blockA, 0x26, 2)
 
     mon.shinyValue = mon.otID ~ mon.otSID ~ ((mon.pid >> 16) & 0xFFFF) ~ (mon.pid & 0xFFFF)
     mon.shiny = mon.shinyValue < 8
-    
+
     -- Block B
     block_start = 0x27
     mon.moves = {
-        read_data(block[2], 0x28, 2), 
-        read_data(block[2], 0x2A, 2), 
-        read_data(block[2], 0x2C, 2), 
-        read_data(block[2], 0x2E, 2)
+        read_data(data.blockB, 0x28, 2), 
+        read_data(data.blockB, 0x2A, 2), 
+        read_data(data.blockB, 0x2C, 2), 
+        read_data(data.blockB, 0x2E, 2)
     }
 
     mon.pp = {
-        read_data(block[2], 0x30, 1), 
-        read_data(block[2], 0x31, 1), 
-        read_data(block[2], 0x32, 1), 
-        read_data(block[2], 0x33, 1)
+        read_data(data.blockB, 0x30, 1), 
+        read_data(data.blockB, 0x31, 1), 
+        read_data(data.blockB, 0x32, 1), 
+        read_data(data.blockB, 0x33, 1)
     }
 
-    mon.ppUps = read_data(block[2], 0x34, 4)
+    mon.ppUps = read_data(data.blockB, 0x34, 4)
 
-    local data = read_data(block[2], 0x38, 5)
-    mon.hpIV        = (data >>  0) & 0x1F
-    mon.attackIV    = (data >>  5) & 0x1F
-    mon.defenseIV   = (data >> 10) & 0x1F
-    mon.speedIV     = (data >> 15) & 0x1F
-    mon.spAttackIV  = (data >> 20) & 0x1F
-    mon.spDefenseIV = (data >> 25) & 0x1F
-    mon.isEgg       = (data >> 30) & 0x01
-    mon.isNicknamed = (data >> 31) & 0x01
+    local value = read_data(data.blockB, 0x38, 5)
+    mon.hpIV        = (value >>  0) & 0x1F
+    mon.attackIV    = (value >>  5) & 0x1F
+    mon.defenseIV   = (value >> 10) & 0x1F
+    mon.speedIV     = (value >> 15) & 0x1F
+    mon.spAttackIV  = (value >> 20) & 0x1F
+    mon.spDefenseIV = (value >> 25) & 0x1F
+    mon.isEgg       = (value >> 30) & 0x01
+    mon.isNicknamed = (value >> 31) & 0x01
     
-    -- mon.hoennRibbonSet1		= read_data(block[2], 0x3C, 2)
-    -- mon.hoennRibbonSet2		= read_data(block[2], 0x3E, 2)
+    -- mon.hoennRibbonSet1		= read_data(data.blockB, 0x3C, 2)
+    -- mon.hoennRibbonSet2		= read_data(data.blockB, 0x3E, 2)
 
-    local data = read_data(block[2], 0x40, 1)
-    mon.fatefulEncounter = (data >> 0) & 0x01
-    mon.gender           = (data >> 1) & 0x03
-    mon.altForm	         = (data >> 3) & 0x1F
+    local value = read_data(data.blockB, 0x40, 1)
+    mon.fatefulEncounter = (value >> 0) & 0x01
+    mon.gender           = (value >> 1) & 0x03
+    mon.altForm	         = (value >> 3) & 0x1F
 
     if gen == 4 then
-        -- mon.leaf_crown = read_data(block[2], 0x41, 1)
+        -- mon.leaf_crown = read_data(data.blockB, 0x41, 1)
         mon.nature     = mon.pid % 25
     else
-        mon.nature = read_data(block[2], 0x41, 1)
+        mon.nature = read_data(data.blockB, 0x41, 1)
         
-        local data = read_data(block[2], 0x42, 1)
+        local data = read_data(data.blockB, 0x42, 1)
         mon.dreamWorldAbility = data & 0x01
         -- mon.isNsPokemon		  = data & 0x02
     end
-    
+
     -- Block C
     block_start = 0x47
-    mon.nickname         = read_string(block[3], 0x48, 21)
-    mon.originGame		 = read_data(block[3], 0x5F, 1)
-    -- mon.sinnohRibbonSet3 = read_data(block[3], 0x60, 2)
-    -- mon.sinnohRibbonSet3 = read_data(block[3], 0x62, 2)
+    mon.nickname         = read_string(data.blockC, 0x48, 21)
+    mon.originGame		 = read_data(data.blockC, 0x5F, 1)
+    -- mon.sinnohRibbonSet3 = read_data(data.blockC, 0x60, 2)
+    -- mon.sinnohRibbonSet3 = read_data(data.blockC, 0x62, 2)
 
     -- Block D
     block_start = 0x67
-    mon.otName          = read_string(block[4], 0x68, 16)
-    mon.dateEggReceived	= read_data(block[4], 0x78, 3)
-    mon.dateMet			= read_data(block[4], 0x7B, 3)
-    mon.eggLocation		= read_data(block[4], 0x7E, 2)
-    mon.metLocation		= read_data(block[4], 0x80, 2)
-    mon.pokerus         = read_data(block[4], 0x82, 1)
-    mon.pokeball        = read_data(block[4], 0x83, 1)
-    mon.encounterType	= read_data(block[4], 0x85, 1)
+    mon.otName          = read_string(data.blockD, 0x68, 16)
+    mon.dateEggReceived	= read_data(data.blockD, 0x78, 3)
+    mon.dateMet			= read_data(data.blockD, 0x7B, 3)
+    mon.eggLocation		= read_data(data.blockD, 0x7E, 2)
+    mon.metLocation		= read_data(data.blockD, 0x80, 2)
+    mon.pokerus         = read_data(data.blockD, 0x82, 1)
+    mon.pokeball        = read_data(data.blockD, 0x83, 1)
+    mon.encounterType	= read_data(data.blockD, 0x85, 1)
 
-    -- Battle stats
-    seed = mon.pid
-    local battle_stats = decrypt_block(0x88, 0xDB)
-
+    -- Battle Stats
     block_start = 0x87
-    mon.status       = read_data(battle_stats, 0x88, 1)
-    mon.level        = read_data(battle_stats, 0x8C, 1)
-    mon.capsuleIndex = read_data(battle_stats, 0x8D, 1)
-    mon.currentHP    = read_data(battle_stats, 0x8E, 2)
-    mon.maxHP        = read_data(battle_stats, 0x90, 2)
-    mon.attack       = read_data(battle_stats, 0x92, 2)
-    mon.defense      = read_data(battle_stats, 0x94, 2)
-    mon.speed        = read_data(battle_stats, 0x96, 2)
-    mon.spAttack     = read_data(battle_stats, 0x98, 2)
-    mon.spDefense    = read_data(battle_stats, 0x9A, 2)
-    -- mon.mailMessage	 = read_data(battle_stats, 0x9C, 37)
+    mon.status       = read_data(data.battle_stats, 0x88, 1)
+    mon.level        = read_data(data.battle_stats, 0x8C, 1)
+    mon.capsuleIndex = read_data(data.battle_stats, 0x8D, 1)
+    mon.currentHP    = read_data(data.battle_stats, 0x8E, 2)
+    mon.maxHP        = read_data(data.battle_stats, 0x90, 2)
+    mon.attack       = read_data(data.battle_stats, 0x92, 2)
+    mon.defense      = read_data(data.battle_stats, 0x94, 2)
+    mon.speed        = read_data(data.battle_stats, 0x96, 2)
+    mon.spAttack     = read_data(data.battle_stats, 0x98, 2)
+    mon.spDefense    = read_data(data.battle_stats, 0x9A, 2)
+    -- mon.mailMessage	 = read_data(data.battle_stats, 0x9C, 37)
 
     return mon
 end
 
-function write_file(filename, value)
-    local file = io.open(filename, "w")
+function pokemon.export_pkx(address)
+    local data = pokemon.read_data(address)
+    local mon = pokemon.parse_data(address)
 
-    if file then
-        file:write(value)
-        file:close()
-        return true
-    else
-        return false
+    local pid = mdword(address)
+    local checksum = mword(address + 0x06)
+
+    -- Match PKHeX default filename format (as best as possible)
+    local hex_string = string.format("%04X", checksum) .. string.format("%08X", pid)
+    local filename = mon.species
+
+    -- UTF-8 symbols are not supported by this lua environment
+    -- if not mon.shiny then
+    --     filename = filename .. " ★"
+    -- end
+    
+    local filename = filename .. " - " .. mon.nickname .. " - " .. hex_string
+    
+    -- Write Pokémon data to file and save in /user/targets
+    local file = io.open("user/targets/" .. filename .. ".pk" .. gen, "wb")
+    
+    file:write(string.pack("<I4", pid))
+    file:write(string.pack("<I2", 0x0))
+    file:write(string.pack("<I2", checksum))
+    file:write(string.char(table.unpack(data.blockA)))
+    file:write(string.char(table.unpack(data.blockB)))
+    file:write(string.char(table.unpack(data.blockC)))
+    file:write(string.char(table.unpack(data.blockD)))
+    file:write(string.char(table.unpack(data.battle_stats)))
+    
+    if gen == 4 then -- Gen 4 exclusive ball seal data
+        for i = 1, 0x10, 2 do
+            file:write(string.pack("<I2", 0x0))
+        end
     end
+
+    file:close()
 end
 
 local function shallowcopy(orig)

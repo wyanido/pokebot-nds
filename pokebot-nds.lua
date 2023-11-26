@@ -92,7 +92,7 @@ function get_party(force)
     local new_party = {}
 
     for i = 1, party_size do
-        local mon = pokemon.read_data(offset.party_data + (i - 1) * MON_DATA_SIZE)
+        local mon = pokemon.parse_data(offset.party_data + (i - 1) * MON_DATA_SIZE)
 
         if mon then
             mon = pokemon.enrich_data(mon)
@@ -129,11 +129,16 @@ function get_current_foes()
         local foe_count = mbyte(offset.foe_count)
 
         for i = 1, foe_count do
-            local mon = pokemon.read_data(offset.current_foe + (i - 1) * MON_DATA_SIZE)
-
+            local address = offset.current_foe + (i - 1) * MON_DATA_SIZE
+            local mon = pokemon.parse_data(address)
+            
             if mon then
                 mon = pokemon.enrich_data(mon)
-
+                
+                if config.save_pkx and pokemon.matches_ruleset(mon, config.target_traits) then
+                    pokemon.export_pkx(address)
+                end
+                
                 table.insert(foe_table, mon)
             else
                 console.debug("Foe checksum failed at slot " .. i .. ", retrying")

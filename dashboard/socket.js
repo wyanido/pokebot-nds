@@ -68,7 +68,7 @@ const configTemplate = {
     ping_user: false,
     user_id: "",
     show_status: true,
-    save_pk: true,
+    save_pkx: true,
     state_backup: true,
     backup_interval: "30"
 }
@@ -85,15 +85,15 @@ const statsTemplate = {
     }
 };
 
-// Create user folder if it doesn't exist
+// Create /user and subfolders if it doesn't exist
 const userDir = '../user';
 
-try {
-    if (!fs.existsSync(userDir)) {
-        fs.mkdirSync(userDir);
-    }
-} catch (err) {
-    console.error(err);
+if (!fs.existsSync(userDir)) {
+    fs.mkdirSync(userDir);
+}
+
+if (!fs.existsSync(userDir + "/targets")) {
+    fs.mkdirSync(userDir + "/targets");
 }
 
 var recents = readJSONFromFile('../user/encounters.json', []);
@@ -216,6 +216,7 @@ const server = net.createServer((socket) => {
 });
 
 server.listen(port, () => {
+    console.log(`=======================================`);
     console.log(`Socket server listening for clients on port ${port}`);
 });
 
@@ -330,7 +331,7 @@ function socketSetTimeout(socket) {
         }
 
         socket.destroy()
-        console.log('Removed inactive client %d', index)
+        console.log('Client %d removed for inactivity', index)
     }, config.inactive_client_timeout)
 }
 

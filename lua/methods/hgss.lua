@@ -46,7 +46,7 @@ function mode_starters()
 	-- Check all Pokémon
 	local is_target = false
 	for i = 0, 2, 1 do
-		local starter = pokemon.read_data(starter_pointer + i * MON_DATA_SIZE)
+		local starter = pokemon.parse_data(starter_pointer + i * MON_DATA_SIZE)
     	is_target = pokemon.log(pokemon.enrich_data(starter))
 
 		if is_target then

@@ -58,7 +58,7 @@ server.listen(port, function (error) {
         // var start = (process.platform == 'darwin' ? 'open' : process.platform == 'win32' ? 'start' : 'xdg-open');
         // require('child_process').exec(start + ' ' + url);
 
-        console.log('Dashboard started successfully. Access it at ' + url);
+        console.log('\nDashboard started successfully. Access it at ' + url + "\n");
     }
 });
 
