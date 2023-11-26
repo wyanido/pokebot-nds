@@ -4,256 +4,239 @@ function pokemon.read_data(address)
     function rand(seed)
         return (0x41C64E6D * seed) + 0x6073
     end
-
-    function blockDataString(offset, length)
-        local data = ""
-
-        for i = 0, length - 1, 2 do
-            local value = monTable[offset + i - 0x07] + (monTable[offset + i - 0x07] << 8)
-
-            if value == 0xFFFF or value == 0x0000 then
-                break
-            else
-                data = data .. utf8.char(value & 0xFF)
-            end
-        end
-        return data
-    end
-
-    function blockDataString_IV(offset, length)
-        local data = ""
+    
+    local read_string = function(this_block, start, length)
+        local text = ""
+        start = start - block_start
 
         for i = 0, length - 1, 2 do
-            local value = monTable[offset + i - 0x07] + (monTable[offset + i - 0x07] << 8)
+            local value = this_block[start + i] + (this_block[start + i] << 8)
 
-            if value == 0xFFFF or value == 0x0000 then
+            if value == 0xFFFF or value == 0x0000 then -- Null terminator
                 break
-            else
-                data = data .. utf8.char((value + 0x16) & 0xFF)
             end
+
+            if gen == 4 then -- Gen 4 characters have a different byte offset
+                value = value + 0x16
+            end
+
+            text = text .. utf8.char(value & 0xFF)
         end
-        return data
+        
+        return text
     end
 
-    function loopTable(dataTable, offset, length)
+    local read_data = function(this_block, start, length)
         local data = 0
+        
+        start = start - block_start
+
         for i = 0, length - 1 do
-            data = data + (dataTable[offset + i] << i * 8)
+            data = data + (this_block[start + i] << i * 8)
         end
+        
         return data
     end
 
-    function blockData(offset, length)
-        return loopTable(monTable, offset - 0x07, length)
+    local decrypt_block = function(start, finish)
+        local data = {}
+
+        for i = start, finish, 0x2 do
+            seed = rand(seed)
+            
+            local word = mword(address + i)
+            local decrypted = word ~ (seed >> 16)
+            local end_word = decrypted & 0xFFFF
+
+            table.insert(data, end_word & 0xFF)
+            table.insert(data, (end_word >> 8) & 0xFF)
+        end
+
+        return data
     end
 
-    function battleData(offset, length)
-        return loopTable(battleStats, offset - 0x87, length)
+    local verify_checksums = function()
+        local sum = 0
+
+        for j = 1, 4 do
+            for i = 1, #block[j], 2 do
+                sum = sum + block[j][i] + (block[j][i + 1] << 8)
+            end
+        end
+
+        sum = sum & 0xFFFF
+
+        return sum == mon.checksum
     end
-
-    function substructSelector(index)
-        local ss = {
-            [0] = {0, 1, 2, 3},
-            [1] = {0, 1, 3, 2},
-            [2] = {0, 2, 1, 3},
-            [3] = {0, 3, 1, 2},
-            [4] = {0, 2, 3, 1},
-            [5] = {0, 3, 2, 1},
-            [6] = {1, 0, 2, 3},
-            [7] = {1, 0, 3, 2},
-            [8] = {2, 0, 1, 3},
-            [9] = {3, 0, 1, 2},
-            [10] = {2, 0, 3, 1},
-            [11] = {3, 0, 2, 1},
-            [12] = {1, 2, 0, 3},
-            [13] = {1, 3, 0, 2},
-            [14] = {2, 1, 0, 3},
-            [15] = {3, 1, 0, 2},
-            [16] = {2, 3, 0, 1},
-            [17] = {3, 2, 0, 1},
-            [18] = {1, 2, 3, 0},
-            [19] = {1, 3, 2, 0},
-            [20] = {2, 1, 3, 0},
-            [21] = {3, 1, 2, 0},
-            [22] = {2, 3, 1, 0},
-            [23] = {3, 2, 1, 0}
-        }
-
-        return ss[index]
-    end
-
+    
+    -- Read unencrypted bytes
     mon = {}
-
-    -- Unencrypted bytes
     mon.pid = mdword(address)
     mon.checksum = mword(address + 0x06)
+    
+    -- Find intended order of the shuffled data blocks
+    local substruct = {
+        [0] = {1, 2, 3, 4},
+        [1] = {1, 2, 4, 3},
+        [2] = {1, 3, 2, 4},
+        [3] = {1, 4, 2, 3},
+        [4] = {1, 3, 4, 2},
+        [5] = {1, 4, 3, 2},
+        [6] = {2, 1, 3, 4},
+        [7] = {2, 1, 4, 3},
+        [8] = {3, 1, 2, 4},
+        [9] = {4, 1, 2, 3},
+        [10] = {3, 1, 4, 2},
+        [11] = {4, 1, 3, 2},
+        [12] = {2, 3, 1, 4},
+        [13] = {2, 4, 1, 3},
+        [14] = {3, 2, 1, 4},
+        [15] = {4, 2, 1, 3},
+        [16] = {3, 4, 1, 2},
+        [17] = {4, 3, 1, 2},
+        [18] = {2, 3, 4, 1},
+        [19] = {2, 4, 3, 1},
+        [20] = {3, 2, 4, 1},
+        [21] = {4, 2, 3, 1},
+        [22] = {3, 4, 2, 1},
+        [23] = {4, 3, 2, 1}
+    }
 
-    -- Encrypted Blocks
-    block = {{}, {}, {}, {}}
-
+    -- Decrypt blocks A,B,C,D and rearrange them according to the block order
     seed = mon.checksum
 
-    -- 128 byte block data is decrypted in 2 byte pairs
-    for i = 0x08, 0x87, 2 do
-        local word = mword(address + i)
+    local _block = {}
+    _block[1] = decrypt_block(0x08, 0x27)
+    _block[2] = decrypt_block(0x28, 0x47)
+    _block[3] = decrypt_block(0x48, 0x67)
+    _block[4] = decrypt_block(0x68, 0x87)
+    
+    local shift = ((mon.pid & 0x3E000) >> 0xD) % 24
+    local block_order = substruct[shift]
 
-        seed = rand(seed)
-        local decryptedByte = word ~ (seed >> 16)
-        local endBytes = decryptedByte & 0xFFFF
+    block = {}
+    block[1] = _block[block_order[1]]
+    block[2] = _block[block_order[2]]
+    block[3] = _block[block_order[3]]
+    block[4] = _block[block_order[4]]
 
-        local blockIndex = math.floor((i - 0x08) / 32) + 1
-
-        -- Insert the two end bytes as single bytes
-        table.insert(block[blockIndex], endBytes & 0xFF)
-        table.insert(block[blockIndex], (endBytes >> 8) & 0xFF)
-    end
-
-    -- Inverse block order
-    shift = ((mon.pid & 0x3E000) >> 0xD) % 24
-    blockOrder = substructSelector(shift)
-
-    monTable = {}
-
-    -- Iterate through each block and reorganise the data into a single master table
-    for i = 1, 4 do
-        thisBlock = block[blockOrder[i] + 1]
-
-        for j = 1, 32 do
-            table.insert(monTable, thisBlock[j])
-        end
-    end
-
-    -- Verify checksums
-    -- If the mon data is invalid, assume it's unprepared or garbage data
-    sum = 0
-
-    for i = 1, #monTable, 2 do
-        sum = sum + monTable[i] + (monTable[i + 1] << 8)
-    end
-
-    sum = sum & 0xFFFF
-
-    if sum ~= mon.checksum then
+    -- Re-calculate the checksum of the blocks and match it with mon.checksum
+    -- If the checksum fails, assume it's the data is garbage or still being written
+    if not verify_checksums() then
         return nil
     end
 
     -- Block A
-    mon.species = blockData(0x08, 2)
-    mon.heldItem = blockData(0x0A, 2)
-    mon.otID = blockData(0x0C, 2)
-    mon.otSID = blockData(0x0E, 2)
-    mon.experience = blockData(0x10, 3)
-    mon.friendship = blockData(0x14, 1)
-    mon.ability = blockData(0x15, 1)
-    -- mon.markings 			= blockData(0x16, 1)
-    mon.otLanguage = blockData(0x17, 1)
-    mon.hpEV = blockData(0x18, 1)
-    mon.attackEV = blockData(0x19, 1)
-    mon.defenseEV = blockData(0x1A, 1)
-    mon.speedEV = blockData(0x1B, 1)
-    mon.spAttackEV = blockData(0x1C, 1)
-    mon.spDefenseEV = blockData(0x1D, 1)
-    -- mon.cool 				= blockData(0x1E, 1)
-    -- mon.beauty 				= blockData(0x1F, 1)
-    -- mon.cute 				= blockData(0x20, 1)
-    -- mon.smart 				= blockData(0x21, 1)
-    -- mon.tough 				= blockData(0x22, 1)
-    -- mon.sheen 				= blockData(0x23, 1)
-    -- mon.sinnohRibbonSet1 	= blockData(0x24, 2)
-    -- mon.unovaRibbonSet 		= blockData(0x26, 2)
+    block_start = 0x07
 
-    -- Block B
-    mon.moves = {blockData(0x28, 2), blockData(0x2A, 2), blockData(0x2C, 2), blockData(0x2E, 2)}
-
-    mon.pp = {blockData(0x30, 1), blockData(0x31, 1), blockData(0x32, 1), blockData(0x33, 1)}
-
-    mon.ppUps = blockData(0x34, 4)
-
-    local data = blockData(0x38, 5)
-    mon.hpIV = (data >> 0) & 0x1F
-    mon.attackIV = (data >> 5) & 0x1F
-    mon.defenseIV = (data >> 10) & 0x1F
-    mon.speedIV = (data >> 15) & 0x1F
-    mon.spAttackIV = (data >> 20) & 0x1F
-    mon.spDefenseIV = (data >> 25) & 0x1F
-    mon.isEgg = (data >> 30) & 0x01
-    mon.isNicknamed = (data >> 31) & 0x01
-
-    -- mon.hoennRibbonSet1		= blockData(0x3C, 2)
-    -- mon.hoennRibbonSet2		= blockData(0x3E, 2)
-
-    local data = blockData(0x40, 1)
-    -- mon.fatefulEncounter 	= (data >> 0) & 0x01
-    mon.gender = (data >> 1) & 0x03
-    mon.altForm	= (data >> 3) & 0x1F
-
-    if gen == 4 then
-        -- mon.leaf_crown				= blockData(0x41, 1)
-        mon.nature = mon.pid % 25
-    else
-        mon.nature = blockData(0x41, 1)
-    end
-    local data = blockData(0x42, 1)
-    -- mon.dreamWorldAbility	= data & 0x01
-    -- mon.isNsPokemon			= data & 0x02
-
-    -- Block C
-    if gen == 4 then
-        mon.nickname = blockDataString_IV(0x48, 21)
-    else
-        mon.nickname = blockDataString(0x48, 21)
-    end
-
-    -- mon.originGame			= blockData(0x5F, 1)
-    -- mon.sinnohRibbonSet3	= blockData(0x60, 2)
-    -- mon.sinnohRibbonSet3	= blockData(0x62, 2)
-
-    -- Block D
-    if gen == 4 then
-        mon.otName = blockDataString_IV(0x68, 21)
-    else
-        mon.otName = blockDataString(0x68, 16)
-    end
-    -- mon.dateEggReceived		= blockData(0x78, 3)
-    -- mon.dateMet				= blockData(0x7B, 3)
-    -- mon.eggLocation			= blockData(0x7E, 2)
-    -- mon.metLocation			= blockData(0x80, 2)
-    mon.pokerus = blockData(0x82, 1)
-    mon.pokeball = blockData(0x83, 1)
-    -- mon.encounterType		= blockData(0x85, 1)
-
-    -- Battle stats
-    battleStats = {}
-    seed = mon.pid
-
-    -- Battle stats are also encrypted in 2-byte pairs
-    -- # TODO combine both decryption loops into a single method
-    for i = 0x88, 0xDB, 2 do
-        local word = mword(address + i)
-
-        seed = rand(seed)
-        local decryptedByte = word ~ (seed >> 16)
-        local endBytes = decryptedByte & 0xFFFF
-
-        -- Insert the two end bytes as single bytes
-        table.insert(battleStats, endBytes & 0xFF)
-        table.insert(battleStats, (endBytes >> 8) & 0xFF)
-    end
-
-    mon.status = battleData(0x88, 1)
-    mon.level = battleData(0x8C, 1)
-    -- mon.capsuleIndex		= battleData(0x8D, 1)
-    mon.currentHP = battleData(0x8E, 2)
-    mon.maxHP = battleData(0x90, 2)
-    mon.attack = battleData(0x92, 2)
-    mon.defense = battleData(0x94, 2)
-    mon.speed = battleData(0x96, 2)
-    mon.spAttack = battleData(0x98, 2)
-    mon.spDefense = battleData(0x9A, 2)
-    -- mon.mailMessage			= battleData(0x9C, 37)
+    mon.species          = read_data(block[1], 0x08, 2)
+    mon.heldItem         = read_data(block[1], 0x0A, 2)
+    mon.otID             = read_data(block[1], 0x0C, 2)
+    mon.otSID            = read_data(block[1], 0x0E, 2)
+    mon.experience       = read_data(block[1], 0x10, 3)
+    mon.friendship       = read_data(block[1], 0x14, 1)
+    mon.ability          = read_data(block[1], 0x15, 1)
+    -- mon.markings         = read_data(block[1], 0x16, 1)
+    mon.otLanguage       = read_data(block[1], 0x17, 1)
+    mon.hpEV             = read_data(block[1], 0x18, 1)
+    mon.attackEV         = read_data(block[1], 0x19, 1)
+    mon.defenseEV        = read_data(block[1], 0x1A, 1)
+    mon.speedEV          = read_data(block[1], 0x1B, 1)
+    mon.spAttackEV       = read_data(block[1], 0x1C, 1)
+    mon.spDefenseEV      = read_data(block[1], 0x1D, 1)
+    -- mon.cool 			 = read_data(block[1], 0x1E, 1)
+    -- mon.beauty 			 = read_data(block[1], 0x1F, 1)
+    -- mon.cute 			 = read_data(block[1], 0x20, 1)
+    -- mon.smart 			 = read_data(block[1], 0x21, 1)
+    -- mon.tough 			 = read_data(block[1], 0x22, 1)
+    -- mon.sheen 			 = read_data(block[1], 0x23, 1)
+    -- mon.sinnohRibbonSet1 = read_data(block[1], 0x24, 2)
+    -- mon.unovaRibbonSet 	 = read_data(block[1], 0x26, 2)
 
     mon.shinyValue = mon.otID ~ mon.otSID ~ ((mon.pid >> 16) & 0xFFFF) ~ (mon.pid & 0xFFFF)
     mon.shiny = mon.shinyValue < 8
+    
+    -- Block B
+    block_start = 0x27
+    mon.moves = {
+        read_data(block[2], 0x28, 2), 
+        read_data(block[2], 0x2A, 2), 
+        read_data(block[2], 0x2C, 2), 
+        read_data(block[2], 0x2E, 2)
+    }
+
+    mon.pp = {
+        read_data(block[2], 0x30, 1), 
+        read_data(block[2], 0x31, 1), 
+        read_data(block[2], 0x32, 1), 
+        read_data(block[2], 0x33, 1)
+    }
+
+    mon.ppUps = read_data(block[2], 0x34, 4)
+
+    local data = read_data(block[2], 0x38, 5)
+    mon.hpIV        = (data >>  0) & 0x1F
+    mon.attackIV    = (data >>  5) & 0x1F
+    mon.defenseIV   = (data >> 10) & 0x1F
+    mon.speedIV     = (data >> 15) & 0x1F
+    mon.spAttackIV  = (data >> 20) & 0x1F
+    mon.spDefenseIV = (data >> 25) & 0x1F
+    mon.isEgg       = (data >> 30) & 0x01
+    mon.isNicknamed = (data >> 31) & 0x01
+    
+    -- mon.hoennRibbonSet1		= read_data(block[2], 0x3C, 2)
+    -- mon.hoennRibbonSet2		= read_data(block[2], 0x3E, 2)
+
+    local data = read_data(block[2], 0x40, 1)
+    mon.fatefulEncounter = (data >> 0) & 0x01
+    mon.gender           = (data >> 1) & 0x03
+    mon.altForm	         = (data >> 3) & 0x1F
+
+    if gen == 4 then
+        -- mon.leaf_crown = read_data(block[2], 0x41, 1)
+        mon.nature     = mon.pid % 25
+    else
+        mon.nature = read_data(block[2], 0x41, 1)
+        
+        local data = read_data(block[2], 0x42, 1)
+        mon.dreamWorldAbility = data & 0x01
+        -- mon.isNsPokemon		  = data & 0x02
+    end
+    
+    -- Block C
+    block_start = 0x47
+    mon.nickname         = read_string(block[3], 0x48, 21)
+    mon.originGame		 = read_data(block[3], 0x5F, 1)
+    -- mon.sinnohRibbonSet3 = read_data(block[3], 0x60, 2)
+    -- mon.sinnohRibbonSet3 = read_data(block[3], 0x62, 2)
+
+    -- Block D
+    block_start = 0x67
+    mon.otName          = read_string(block[4], 0x68, 16)
+    mon.dateEggReceived	= read_data(block[4], 0x78, 3)
+    mon.dateMet			= read_data(block[4], 0x7B, 3)
+    mon.eggLocation		= read_data(block[4], 0x7E, 2)
+    mon.metLocation		= read_data(block[4], 0x80, 2)
+    mon.pokerus         = read_data(block[4], 0x82, 1)
+    mon.pokeball        = read_data(block[4], 0x83, 1)
+    mon.encounterType	= read_data(block[4], 0x85, 1)
+
+    -- Battle stats
+    seed = mon.pid
+    local battle_stats = decrypt_block(0x88, 0xDB)
+
+    block_start = 0x87
+    mon.status       = read_data(battle_stats, 0x88, 1)
+    mon.level        = read_data(battle_stats, 0x8C, 1)
+    mon.capsuleIndex = read_data(battle_stats, 0x8D, 1)
+    mon.currentHP    = read_data(battle_stats, 0x8E, 2)
+    mon.maxHP        = read_data(battle_stats, 0x90, 2)
+    mon.attack       = read_data(battle_stats, 0x92, 2)
+    mon.defense      = read_data(battle_stats, 0x94, 2)
+    mon.speed        = read_data(battle_stats, 0x96, 2)
+    mon.spAttack     = read_data(battle_stats, 0x98, 2)
+    mon.spDefense    = read_data(battle_stats, 0x9A, 2)
+    -- mon.mailMessage	 = read_data(battle_stats, 0x9C, 37)
 
     return mon
 end

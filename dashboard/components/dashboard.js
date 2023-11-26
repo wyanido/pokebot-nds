@@ -306,8 +306,6 @@ function setEncounterRate() {
             return;
         }
 
-        console.log(rate);
-
         $('#encounter-rate').empty()
         $('#encounter-rate').append(rate + '/h');
     })

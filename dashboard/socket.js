@@ -410,7 +410,7 @@ function interpretClientMessage(socket, message) {
             updateEncounterLog(data);
 
             writeJSONToFile('../user/stats.json', stats);
-            return;
+            break;
         case 'seen_target':
             if (config.webhook_enabled) {
                 webhookLogPokemon(data, client);
@@ -420,6 +420,7 @@ function interpretClientMessage(socket, message) {
             updateTargetLog(data);
 
             writeJSONToFile('../user/stats.json', stats);
+            break;
         case 'party':
             client.party = data;
             break;
