@@ -1,19 +1,25 @@
 function update_pointers()
-    offset.party_count = mdword(0x021C489C) + 14
+    local shift = 0
+
+    if language == lang.GERMAN then
+        shift = 0x140
+    end
+
+    offset.party_count = mdword(0x021C489C + shift) + 14
     offset.party_data = offset.party_count + 4
 
-    offset.foe_count = mdword(0x21C5A08) + 0x729C
+    offset.foe_count = mdword(0x21C5A08 + shift) + 0x729C
     offset.current_foe = offset.foe_count + 4
 
-    offset.map_header = mdword(0x21C489C) + 0x11B2
+    offset.map_header = mdword(0x21C489C + shift) + 0x11B2
     offset.trainer_x = offset.map_header + 4 + 2
     offset.trainer_y = offset.map_header + 12 + 2
     offset.trainer_z = offset.map_header + 8 + 2
 
-    offset.battle_indicator = 0x021A1B2A
+    offset.battle_indicator = 0x021A1B2A + shift
 
-    offset.starters_ready = 0x022AFE14 -- 0 before hand appears, random number afterwards
-    offset.selected_starter = 0x022AFD90 -- 0: Turtwig, 1: Chimchar, 2: Piplup
+    offset.starters_ready = 0x022AFE14 + shift -- 0 before hand appears, random number afterwards
+    offset.selected_starter = 0x022AFD90 + shift -- 0: Turtwig, 1: Chimchar, 2: Piplup
     
     -- console.log(string.format("%08X", offset.map_header))
 end

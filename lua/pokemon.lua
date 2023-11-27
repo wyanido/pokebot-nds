@@ -158,6 +158,7 @@ function pokemon.parse_data(data, enrich)
 
     if data == nil then
         console.warning("Tried to parse data of a non-existent Pokemon!")
+        return nil
     end
 
     mon = {}

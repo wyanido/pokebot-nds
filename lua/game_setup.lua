@@ -127,61 +127,87 @@ local function get_offset_b2w2(game)
     }
 end
 
+lang = {
+    JAPANESE = 0, 
+    ENGLISH = 1, 
+    FRENCH = 2, 
+    ITALIAN = 3, 
+    GERMAN = 4, 
+    SPANISH = 5, 
+    KOREAN = 6
+}
+
 -- Version data
 local ver = {
     DIAMOND_U = {
         code = 0x45414441,
-        name = "Pokemon Diamond Version (U)",
+        name = "Pokemon Diamond Version",
         gen = 4,
-        version = 0
+        version = 0,
+        language = lang.ENGLISH
+    },
+    DIAMOND_G = {
+        code = 0x44414441,
+        name = "Pokemon Diamant Edition",
+        gen = 4,
+        version = 0,
+        language = lang.GERMAN
     },
     PEARL_U = {
         code = 0x45415041,
-        name = "Pokemon Pearl Version (U)",
+        name = "Pokemon Pearl Version",
         gen = 4,
-        version = 1
+        version = 1,
+        language = lang.ENGLISH
     },
     PLATINUM_U = {
         code = 0x45555043,
-        name = "Pokemon Platinum Version (U)",
+        name = "Pokemon Platinum Version",
         gen = 4,
-        version = 2
+        version = 2,
+        language = lang.ENGLISH
     },
     HEARTGOLD_U = {
         code = 0x454B5049,
-        name = "Pokemon HeartGold Version (U)",
+        name = "Pokemon HeartGold Version",
         gen = 4,
-        version = 0
+        version = 0,
+        language = lang.ENGLISH
     },
     SOULSILVER_U = {
         code = 0x45475049,
-        name = "Pokemon SoulSilver Version (U)",
+        name = "Pokemon SoulSilver Version",
         gen = 4,
-        version = 1
+        version = 1,
+        language = lang.ENGLISH
     },
     BLACK_U = {
         code = 0x4F425249,
-        name = "Pokemon Black Version (U)",
+        name = "Pokemon Black Version",
         gen = 5,
-        version = 0
+        version = 0,
+        language = lang.ENGLISH
     },
     WHITE_U = {
         code = 0x4F415249,
-        name = "Pokemon White Version (U)",
+        name = "Pokemon White Version",
         gen = 5,
-        version = 1
+        version = 1,
+        language = lang.ENGLISH
     },
     BLACK2_U = {
         code = 0x4F455249,
-        name = "Pokemon Black Version 2 (U)",
+        name = "Pokemon Black Version 2",
         gen = 5,
-        version = 0
+        version = 0,
+        language = lang.ENGLISH
     },
     WHITE2_U = {
         code = 0x4F445249,
-        name = "Pokemon White Version 2 (U)",
+        name = "Pokemon White Version 2",
         gen = 5,
-        version = 1
+        version = 1,
+        language = lang.ENGLISH
     }
 }
 
@@ -193,6 +219,7 @@ for k, _ in pairs(ver) do
         game_name = ver[k].name
         game_version = ver[k].version
         gen = ver[k].gen
+        language = ver[k].language
         break
     end
 end
