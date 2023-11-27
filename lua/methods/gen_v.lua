@@ -620,7 +620,7 @@ function process_wild_encounter()
     local foe_item = false
 
     for i = 1, #foe, 1 do
-        foe_is_target = pokemon.log(foe[i]) or foe_is_target
+        foe_is_target = pokemon.log_encounter(foe[i]) or foe_is_target
 
         if foe[i].heldItem ~= "none" then
             foe_item = true
@@ -738,7 +738,7 @@ function mode_starters(starter)
     end
 
     mon = party[1]
-    local was_target = pokemon.log(mon)
+    local was_target = pokemon.log_encounter(mon)
 
     if was_target then
         pause_bot("Starter meets target specs")
@@ -832,7 +832,7 @@ function mode_gift()
     end
 
     local mon = party[#party]
-    local was_target = pokemon.log(mon)
+    local was_target = pokemon.log_encounter(mon)
 
     if was_target then
         if config.save_game_after_catch then
@@ -1098,7 +1098,7 @@ function mode_daycare_eggs()
             -- Find newly hatched party member and add to the log
             for i = 1, #party, 1 do
                 if party_eggs[i] == 1 and party[i].isEgg == 0 then
-                    local was_target = pokemon.log(party[i])
+                    local was_target = pokemon.log_encounter(party[i])
                     break
                 end
             end
@@ -1127,7 +1127,7 @@ function mode_static_encounters()
         press_sequence("A", 5)
     end
 
-    foe_is_target = pokemon.log(foe[1])
+    foe_is_target = pokemon.log_encounter(foe[1])
 
     if not config.hax then
         for i = 0, 22, 1 do

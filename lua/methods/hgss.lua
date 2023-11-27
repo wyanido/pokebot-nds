@@ -46,8 +46,10 @@ function mode_starters()
 	-- Check all Pokémon
 	local is_target = false
 	for i = 0, 2, 1 do
-		local starter = pokemon.parse_data(starter_pointer + i * MON_DATA_SIZE)
-    	is_target = pokemon.log(pokemon.enrich_data(starter))
+        local mon_data = pokemon.decrypt_data(starter_pointer + i * MON_DATA_SIZE)
+		local starter = pokemon.parse_data(mon_data, true)
+        
+    	is_target = pokemon.log_encounter(starter)
 
 		if is_target then
 			pause_bot("Starter " .. (i + 1) .. " meets target specs!")
@@ -130,7 +132,7 @@ function mode_static_encounters()
         press_sequence("A", delay)
     end
 
-    foe_is_target = pokemon.log(foe[1])
+    foe_is_target = pokemon.log_encounter(foe[1])
 
     if not config.hax then
         -- Wait for Pokémon to fully appear on screen

@@ -73,7 +73,7 @@ function mode_starters(starter)
     end
 
     mon = party[1]
-    local was_target = pokemon.log(mon)
+    local was_target = pokemon.log_encounter(mon)
 
     if was_target then
         pause_bot("Starter meets target specs")

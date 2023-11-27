@@ -92,17 +92,15 @@ function get_party(force)
     local new_party = {}
 
     for i = 1, party_size do
-        local mon = pokemon.parse_data(offset.party_data + (i - 1) * MON_DATA_SIZE)
+        local mon_data = pokemon.decrypt_data(offset.party_data + (i - 1) * MON_DATA_SIZE)
+        local mon = pokemon.parse_data(mon_data, true)
 
         if mon then
-            mon = pokemon.enrich_data(mon)
-
             -- Friendship is used to track egg cycles
             -- Converts cycles to steps
             if mon.isEgg == 1 then
                 mon.friendship = mon.friendship * 256
-                mon.friendship = math.max(0,
-                    mon.friendship - mbyte(offset.step_counter) - mbyte(offset.step_cycle) * 256)
+                mon.friendship = math.max(0, mon.friendship - mbyte(offset.step_counter) - mbyte(offset.step_cycle) * 256)
             end
 
             table.insert(new_party, mon)
@@ -129,14 +127,12 @@ function get_current_foes()
         local foe_count = mbyte(offset.foe_count)
 
         for i = 1, foe_count do
-            local address = offset.current_foe + (i - 1) * MON_DATA_SIZE
-            local mon = pokemon.parse_data(address)
+            local mon_data = pokemon.decrypt_data(offset.current_foe + (i - 1) * MON_DATA_SIZE)
+            local mon = pokemon.parse_data(mon_data, true)
             
             if mon then
-                mon = pokemon.enrich_data(mon)
-                
                 if config.save_pkx and pokemon.matches_ruleset(mon, config.target_traits) then
-                    pokemon.export_pkx(address)
+                    pokemon.export_pkx(mon_data)
                 end
                 
                 table.insert(foe_table, mon)
@@ -343,7 +339,7 @@ while true do
                 end
 
                 for i = 1, #foe, 1 do
-                    pokemon.log(foe[i])
+                    pokemon.log_encounter(foe[i])
                 end
 
                 while game_state.in_battle do

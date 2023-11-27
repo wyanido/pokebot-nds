@@ -36,7 +36,7 @@ function process_wild_encounter()
     -- Check all foes in case of a double battle in Eterna Forest
     local foe_is_target = false
     for i = 1, #foe, 1 do
-        foe_is_target = pokemon.log(foe[i]) or foe_is_target
+        foe_is_target = pokemon.log_encounter(foe[i]) or foe_is_target
     end
 	
     wait_frames(30)
@@ -95,7 +95,7 @@ function mode_starters(starter)
 	end
 
 	mon = party[1]
-	local was_target = pokemon.log(mon)
+	local was_target = pokemon.log_encounter(mon)
 	
 	if was_target then
 		pause_bot("Starter meets target specs!")

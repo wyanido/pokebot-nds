@@ -1,18 +1,19 @@
 local pokemon = {}
 
-function pokemon.read_data(address)
-    function rand(seed)
-        return (0x41C64E6D * seed) + 0x6073
+-- Interprets a region of RAM as Pokemon data and decrypts it as such
+function pokemon.decrypt_data(address)
+    local rand = function(old_seed)
+        local new_seed = (0x41C64E6D * old_seed) + 0x6073
+        seed = new_seed
+        return seed
     end
 
     local decrypt_block = function(start, finish)
         local data = {}
 
         for i = start, finish, 0x2 do
-            seed = rand(seed)
-            
             local word = mword(address + i)
-            local decrypted = word ~ (seed >> 16)
+            local decrypted = word ~ (rand(seed) >> 16)
             local end_word = decrypted & 0xFFFF
 
             table.insert(data, end_word & 0xFF)
@@ -25,22 +26,19 @@ function pokemon.read_data(address)
     local verify_checksums = function(checksum)
         local sum = 0
 
-        for j = 1, 4 do
-            for i = 1, #block[j], 2 do
-                sum = sum + block[j][i] + (block[j][i + 1] << 8)
-            end
+        for i = 0x09, 0x88, 2 do
+            sum = sum + data[i] + (data[i + 1] << 8)
         end
 
         sum = sum & 0xFFFF
 
         return sum == checksum
     end
+
+    local concat_table = function(dest, source)
+        table.move(source, 1, #source, #dest + 1, dest)
+    end
     
-    -- Unencrypted bytes
-    local pid = mdword(address)
-    local checksum = mword(address + 0x06)
-    
-    -- Find intended order of the shuffled data blocks
     local substruct = {
         [0] = {1, 2, 3, 4},
         [1] = {1, 2, 4, 3},
@@ -68,49 +66,69 @@ function pokemon.read_data(address)
         [23] = {4, 3, 2, 1}
     }
 
-    -- Decrypt blocks A,B,C,D and rearrange them according to the block order
-    seed = checksum
+    data = {} 
+    concat_table(data, memory.read_bytes_as_array(address, 0x4))
+    concat_table(data, {0x0, 0x0})
+    concat_table(data, memory.read_bytes_as_array(address + 0x06, 0x2))
 
-    local _block = {}
-    _block[1] = decrypt_block(0x08, 0x27)
-    _block[2] = decrypt_block(0x28, 0x47)
-    _block[3] = decrypt_block(0x48, 0x67)
-    _block[4] = decrypt_block(0x68, 0x87)
+    -- Unencrypted bytes
+    local pid = mdword(address)
+    local checksum = mword(address + 0x06)
     
+    -- Find intended order of the shuffled data blocks
     local shift = ((pid & 0x3E000) >> 0xD) % 24
     local block_order = substruct[shift]
 
-    block = {}
-    block[1] = _block[block_order[1]]
-    block[2] = _block[block_order[2]]
-    block[3] = _block[block_order[3]]
-    block[4] = _block[block_order[4]]
+    -- Decrypt blocks A,B,C,D and rearrange according to the order
+    seed = checksum
+
+    local _block = {}
+    for index = 1, 4 do
+        local block = (index - 1) * 0x20
+        _block[index] = decrypt_block(0x08 + block, 0x27 + block)
+    end
+
+    for _, index in ipairs(block_order) do
+        concat_table(data, _block[index])
+    end
 
     -- Re-calculate the checksum of the blocks and match it with mon.checksum
     -- If the checksum fails, assume it's the data is garbage or still being written
     if not verify_checksums(checksum) then
         return nil
     end
-    
-    -- Battle stats
+
+    -- Party-only status data
     seed = pid
-    
-    return {
-        blockA = block[1],
-        blockB = block[2],
-        blockC = block[3],
-        blockD = block[4],
-        battle_stats = decrypt_block(0x88, 0xDB)
-    }
+    concat_table(data, decrypt_block(0x88, 0xDB))
+
+    if gen == 4 then -- Write blank ball seal data
+        for i = 0x1, 0x10 do
+            table.insert(data, 0x0)
+        end
+    end
+
+    return data
 end
 
-function pokemon.parse_data(address)
-    local read_string = function(this_block, start, length)
-        local text = ""
-        start = start - block_start
+local mon_ability = json.load("lua/data/abilities.json")
+local mon_item = json.load("lua/data/items.json")
+local mon_move = json.load("lua/data/moves.json")
+local mon_type = json.load("lua/data/type_matchups.json")
+local mon_dex = json.load("lua/data/dex.json")
+local mon_lang = {"none", "日本語", "English", "Français", "Italiano", "Deutsch", "Español", "한국어"}
+local mon_gender = {"Male", "Female", "Genderless"}
+local mon_nature = {"Hardy", "Lonely", "Brave", "Adamant", "Naughty", "Bold", "Docile", "Relaxed", "Impish", "Lax",
+                    "Timid", "Hasty", "Serious", "Jolly", "Naive", "Modest", "Mild", "Quiet", "Bashful", "Rash", "Calm",
+                    "Gentle", "Sassy", "Careful", "Quirky"}
 
-        for i = 0, length - 1, 2 do
-            local value = this_block[start + i] + (this_block[start + i] << 8)
+-- Parses decrypted data into a human-readable table of key value pairs
+function pokemon.parse_data(data, enrich)
+    local read_string = function(start, length)
+        local text = ""
+
+        for i = start + 1, start + length, 2 do
+            local value = data[i] + (data[i] << 8)
 
             if value == 0xFFFF or value == 0x0000 then -- Null terminator
                 break
@@ -126,73 +144,72 @@ function pokemon.parse_data(address)
         return text
     end
 
-    local read_data = function(this_block, start, length)
-        local data = 0
-        
-        start = start - block_start
+    local read_real = function(start, length)
+        local bytes = 0
+        local j = 0
 
-        for i = 0, length - 1 do
-            data = data + (this_block[start + i] << i * 8)
+        for i = start + 1, start + length do
+            bytes = bytes + (data[i] << j * 8)
+            j = j + 1
         end
         
-        return data
+        return bytes
     end
 
-    
+    if data == nil then
+        console.warning("Tried to parse data of a non-existent Pokemon!")
+    end
+
     mon = {}
-    mon.pid = mdword(address)
-    mon.checksum = mword(address + 0x06)
+    mon.pid              = read_real(0x00, 0x4)
+    mon.checksum         = read_real(0x06, 0x02)
     
     -- Block A
-    local data = pokemon.read_data(address)
-    block_start = 0x07
-
-    mon.species          = read_data(data.blockA, 0x08, 2)
-    mon.heldItem         = read_data(data.blockA, 0x0A, 2)
-    mon.otID             = read_data(data.blockA, 0x0C, 2)
-    mon.otSID            = read_data(data.blockA, 0x0E, 2)
-    mon.experience       = read_data(data.blockA, 0x10, 3)
-    mon.friendship       = read_data(data.blockA, 0x14, 1)
-    mon.ability          = read_data(data.blockA, 0x15, 1)
-    -- mon.markings         = read_data(data.blockA, 0x16, 1)
-    mon.otLanguage       = read_data(data.blockA, 0x17, 1)
-    mon.hpEV             = read_data(data.blockA, 0x18, 1)
-    mon.attackEV         = read_data(data.blockA, 0x19, 1)
-    mon.defenseEV        = read_data(data.blockA, 0x1A, 1)
-    mon.speedEV          = read_data(data.blockA, 0x1B, 1)
-    mon.spAttackEV       = read_data(data.blockA, 0x1C, 1)
-    mon.spDefenseEV      = read_data(data.blockA, 0x1D, 1)
-    -- mon.cool 			 = read_data(data.blockA, 0x1E, 1)
-    -- mon.beauty 			 = read_data(data.blockA, 0x1F, 1)
-    -- mon.cute 			 = read_data(data.blockA, 0x20, 1)
-    -- mon.smart 			 = read_data(data.blockA, 0x21, 1)
-    -- mon.tough 			 = read_data(data.blockA, 0x22, 1)
-    -- mon.sheen 			 = read_data(data.blockA, 0x23, 1)
-    -- mon.sinnohRibbonSet1 = read_data(data.blockA, 0x24, 2)
-    -- mon.unovaRibbonSet 	 = read_data(data.blockA, 0x26, 2)
+    mon.species          = read_real(0x08, 2)
+    mon.heldItem         = read_real(0x0A, 2)
+    mon.otID             = read_real(0x0C, 2)
+    mon.otSID            = read_real(0x0E, 2)
+    mon.experience       = read_real(0x10, 3)
+    mon.friendship       = read_real(0x14, 1)
+    mon.ability          = read_real(0x15, 1)
+    -- mon.markings         = read_real(0x16, 1)
+    mon.otLanguage       = read_real(0x17, 1)
+    mon.hpEV             = read_real(0x18, 1)
+    mon.attackEV         = read_real(0x19, 1)
+    mon.defenseEV        = read_real(0x1A, 1)
+    mon.speedEV          = read_real(0x1B, 1)
+    mon.spAttackEV       = read_real(0x1C, 1)
+    mon.spDefenseEV      = read_real(0x1D, 1)
+    -- mon.cool 			 = read_real(0x1E, 1)
+    -- mon.beauty 			 = read_real(0x1F, 1)
+    -- mon.cute 			 = read_real(0x20, 1)
+    -- mon.smart 			 = read_real(0x21, 1)
+    -- mon.tough 			 = read_real(0x22, 1)
+    -- mon.sheen 			 = read_real(0x23, 1)
+    -- mon.sinnohRibbonSet1 = read_real(0x24, 2)
+    -- mon.unovaRibbonSet 	 = read_real(0x26, 2)
 
     mon.shinyValue = mon.otID ~ mon.otSID ~ ((mon.pid >> 16) & 0xFFFF) ~ (mon.pid & 0xFFFF)
     mon.shiny = mon.shinyValue < 8
 
     -- Block B
-    block_start = 0x27
     mon.moves = {
-        read_data(data.blockB, 0x28, 2), 
-        read_data(data.blockB, 0x2A, 2), 
-        read_data(data.blockB, 0x2C, 2), 
-        read_data(data.blockB, 0x2E, 2)
+        read_real(0x28, 2), 
+        read_real(0x2A, 2), 
+        read_real(0x2C, 2), 
+        read_real(0x2E, 2)
     }
 
     mon.pp = {
-        read_data(data.blockB, 0x30, 1), 
-        read_data(data.blockB, 0x31, 1), 
-        read_data(data.blockB, 0x32, 1), 
-        read_data(data.blockB, 0x33, 1)
+        read_real(0x30, 1), 
+        read_real(0x31, 1), 
+        read_real(0x32, 1), 
+        read_real(0x33, 1)
     }
 
-    mon.ppUps = read_data(data.blockB, 0x34, 4)
+    mon.ppUps = read_real(0x34, 4)
 
-    local value = read_data(data.blockB, 0x38, 5)
+    local value = read_real(0x38, 5)
     mon.hpIV        = (value >>  0) & 0x1F
     mon.attackIV    = (value >>  5) & 0x1F
     mon.defenseIV   = (value >> 10) & 0x1F
@@ -200,102 +217,95 @@ function pokemon.parse_data(address)
     mon.spAttackIV  = (value >> 20) & 0x1F
     mon.spDefenseIV = (value >> 25) & 0x1F
     mon.isEgg       = (value >> 30) & 0x01
-    mon.isNicknamed = (value >> 31) & 0x01
+    -- mon.isNicknamed = (value >> 31) & 0x01
     
-    -- mon.hoennRibbonSet1		= read_data(data.blockB, 0x3C, 2)
-    -- mon.hoennRibbonSet2		= read_data(data.blockB, 0x3E, 2)
+    -- mon.hoennRibbonSet1		= read_real(0x3C, 2)
+    -- mon.hoennRibbonSet2		= read_real(0x3E, 2)
 
-    local value = read_data(data.blockB, 0x40, 1)
-    mon.fatefulEncounter = (value >> 0) & 0x01
+    local value = read_real(0x40, 1)
+    -- mon.fatefulEncounter = (value >> 0) & 0x01
     mon.gender           = (value >> 1) & 0x03
     mon.altForm	         = (value >> 3) & 0x1F
 
     if gen == 4 then
-        -- mon.leaf_crown = read_data(data.blockB, 0x41, 1)
+        -- mon.leaf_crown = read_real(0x41, 1)
         mon.nature     = mon.pid % 25
     else
-        mon.nature = read_data(data.blockB, 0x41, 1)
+        mon.nature = read_real(0x41, 1)
         
-        local data = read_data(data.blockB, 0x42, 1)
-        mon.dreamWorldAbility = data & 0x01
+        local data = read_real(0x42, 1)
+        -- mon.dreamWorldAbility = data & 0x01
         -- mon.isNsPokemon		  = data & 0x02
     end
 
     -- Block C
-    block_start = 0x47
-    mon.nickname         = read_string(data.blockC, 0x48, 21)
-    mon.originGame		 = read_data(data.blockC, 0x5F, 1)
-    -- mon.sinnohRibbonSet3 = read_data(data.blockC, 0x60, 2)
-    -- mon.sinnohRibbonSet3 = read_data(data.blockC, 0x62, 2)
+    mon.nickname         = read_string(0x48, 21)
+    -- mon.originGame		 = read_real(0x5F, 1)
+    -- mon.sinnohRibbonSet3 = read_real(0x60, 2)
+    -- mon.sinnohRibbonSet3 = read_real(0x62, 2)
 
     -- Block D
-    block_start = 0x67
-    mon.otName          = read_string(data.blockD, 0x68, 16)
-    mon.dateEggReceived	= read_data(data.blockD, 0x78, 3)
-    mon.dateMet			= read_data(data.blockD, 0x7B, 3)
-    mon.eggLocation		= read_data(data.blockD, 0x7E, 2)
-    mon.metLocation		= read_data(data.blockD, 0x80, 2)
-    mon.pokerus         = read_data(data.blockD, 0x82, 1)
-    mon.pokeball        = read_data(data.blockD, 0x83, 1)
-    mon.encounterType	= read_data(data.blockD, 0x85, 1)
+    -- mon.otName          = read_string(0x68, 16)
+    -- mon.dateEggReceived	= read_real(0x78, 3)
+    -- mon.dateMet			= read_real(0x7B, 3)
+    -- mon.eggLocation		= read_real(0x7E, 2)
+    -- mon.metLocation		= read_real(0x80, 2)
+    mon.pokerus         = read_real(0x82, 1)
+    mon.pokeball        = read_real(0x83, 1)
+    -- mon.encounterType	= read_real(0x85, 1)
 
     -- Battle Stats
-    block_start = 0x87
-    mon.status       = read_data(data.battle_stats, 0x88, 1)
-    mon.level        = read_data(data.battle_stats, 0x8C, 1)
-    mon.capsuleIndex = read_data(data.battle_stats, 0x8D, 1)
-    mon.currentHP    = read_data(data.battle_stats, 0x8E, 2)
-    mon.maxHP        = read_data(data.battle_stats, 0x90, 2)
-    mon.attack       = read_data(data.battle_stats, 0x92, 2)
-    mon.defense      = read_data(data.battle_stats, 0x94, 2)
-    mon.speed        = read_data(data.battle_stats, 0x96, 2)
-    mon.spAttack     = read_data(data.battle_stats, 0x98, 2)
-    mon.spDefense    = read_data(data.battle_stats, 0x9A, 2)
-    -- mon.mailMessage	 = read_data(data.battle_stats, 0x9C, 37)
+    -- mon.status       = read_real(0x88, 1)
+    mon.level        = read_real(0x8C, 1)
+    -- mon.capsuleIndex = read_real(0x8D, 1)
+    mon.currentHP    = read_real(0x8E, 2)
+    mon.maxHP        = read_real(0x90, 2)
+    mon.attack       = read_real(0x92, 2)
+    mon.defense      = read_real(0x94, 2)
+    mon.speed        = read_real(0x96, 2)
+    mon.spAttack     = read_real(0x98, 2)
+    mon.spDefense    = read_real(0x9A, 2)
+    -- mon.mailMessage	 = read_real(0x9C, 37)
+
+    -- -- Substitute property IDs with ingame names
+    if enrich then
+        mon.name = mon_dex[mon.species + 1].name
+        mon.type = mon_dex[mon.species + 1].type
+
+        -- mon.rating = pokemon.get_rating(mon)
+        mon.pokeball = mon_item[mon.pokeball + 1]
+        mon.otLanguage = mon_lang[mon.otLanguage + 1]
+        mon.ability = mon_ability[mon.ability + 1]
+        mon.nature = mon_nature[mon.nature + 1]
+        mon.heldItem = mon_item[mon.heldItem + 1]
+        mon.gender = mon_gender[mon.gender + 1]
+        
+        local move_id = mon.moves
+        mon.moves = {}
+
+        for _, move in ipairs(move_id) do
+            table.insert(mon.moves, mon_move[move + 1])
+        end
+    end
 
     return mon
 end
 
-function pokemon.export_pkx(address)
-    local data = pokemon.read_data(address)
-    local mon = pokemon.parse_data(address)
-
-    local pid = mdword(address)
-    local checksum = mword(address + 0x06)
+function pokemon.export_pkx(data)
+    local mon = pokemon.parse_data(data, false)
 
     -- Match PKHeX default filename format (as best as possible)
-    local hex_string = string.format("%04X", checksum) .. string.format("%08X", pid)
-    local filename = mon.species
-
-    -- UTF-8 symbols are not supported by this lua environment
-    -- if not mon.shiny then
-    --     filename = filename .. " ★"
-    -- end
-    
-    local filename = filename .. " - " .. mon.nickname .. " - " .. hex_string
+    local hex_string = string.format("%04X", mon.checksum) .. string.format("%08X", mon.pid)
+    local filename = mon.species .. " - " .. mon.nickname .. " - " .. hex_string
     
     -- Write Pokémon data to file and save in /user/targets
     local file = io.open("user/targets/" .. filename .. ".pk" .. gen, "wb")
     
-    file:write(string.pack("<I4", pid))
-    file:write(string.pack("<I2", 0x0))
-    file:write(string.pack("<I2", checksum))
-    file:write(string.char(table.unpack(data.blockA)))
-    file:write(string.char(table.unpack(data.blockB)))
-    file:write(string.char(table.unpack(data.blockC)))
-    file:write(string.char(table.unpack(data.blockD)))
-    file:write(string.char(table.unpack(data.battle_stats)))
-    
-    if gen == 4 then -- Gen 4 exclusive ball seal data
-        for i = 1, 0x10, 2 do
-            file:write(string.pack("<I2", 0x0))
-        end
-    end
-
+    file:write(string.char(table.unpack(data)))
     file:close()
 end
 
-local function shallowcopy(orig)
+local function shallow_copy(orig)
     local orig_type = type(orig)
     local copy
     if orig_type == 'table' then
@@ -309,82 +319,52 @@ local function shallowcopy(orig)
     return copy
 end
 
-function pokemon.log(mon)
-    -- Create a watered down copy of the Pokemon data for logging only
-    local mon_new = shallowcopy(mon)
-    
-    if not mon or not mon_new then
+function pokemon.log_encounter(mon)
+    if not mon then
         console.debug("Tried to log a non-existent Pokémon!")
         return false
     end
 
-    if type(mon_new.pid) == "number" then
-        mon_new.pid = string.format("%08X", mon_new.pid) -- Convert PID to standard hex format
+    -- Create a watered down copy of the Pokemon data for logging only
+    local mon_new = shallow_copy(mon)
+    
+    mon_new.pid = string.format("%08X", mon_new.pid) -- Convert PID to hex
+
+    local key_whitelist = {
+        "pid", "species", "name", "level", "gender", "nature", "heldItem",
+        "shiny", "shinyValue", "ability", "hpIV", "attackIV", "defenseIV",
+        "spAttackIV", "spDefenseIV", "speedIV", "altForm"
+    }
+    
+    for k, v in pairs(mon_new) do
+        local allowed = false
+        
+        for _, k2 in ipairs(key_whitelist) do
+            if k2 == k then
+                allowed = true
+                break
+            end
+        end
+    
+        if not allowed then
+            mon_new[k] = nil
+        end
     end
 
-    -- Values not relevant to the encounter log, gets removed
-    local excess_keys = {"type", "nickname", "hpEV", "attackEV", "defenseEV", "spAttackEV", "spDefenseEV",
-                         "speedEV", "dreamWorldAbility", "friendship", "isEgg", "isNicknamed", "otLanguage", "otName",
-                         "pokeball", "pokerus", "ppUps", "status", "isNsPokemon", "pp", "experience"}
-
-    for _, key in ipairs(excess_keys) do
-        mon_new[key] = nil
-    end
-
+    -- Send encounter to dashboard for logging
     local was_target = pokemon.matches_ruleset(mon, config.target_traits)
+    local msg_type = was_target and "seen_target" or "seen"
 
-    -- Send encounter to dashboard
     if was_target then
-        comm.socketServerSend(json.encode({
-            type = "seen_target",
-            data = mon_new
-        }) .. "\x00")
-    else
-        comm.socketServerSend(json.encode({
-            type = "seen",
-            data = mon_new
-        }) .. "\x00")
+        console.log("Wild " .. mon.name .. " is a target!")
     end
+
+    comm.socketServerSend(json.encode({
+        type = msg_type,
+        data = mon_new
+    }) .. "\x00")
 
     return was_target
-end
-
-local mon_ability = json.load("lua/data/abilities.json")
-local mon_item = json.load("lua/data/items.json")
-local mon_move = json.load("lua/data/moves.json")
-local mon_type = json.load("lua/data/type_matchups.json")
-local mon_dex = json.load("lua/data/dex.json")
-local mon_lang = {"none", "日本語", "English", "Français", "Italiano", "Deutsch", "Español", "한국어"}
-local mon_gender = {"Male", "Female", "Genderless"}
-local mon_nature = {"Hardy", "Lonely", "Brave", "Adamant", "Naughty", "Bold", "Docile", "Relaxed", "Impish", "Lax",
-                    "Timid", "Hasty", "Serious", "Jolly", "Naive", "Modest", "Mild", "Quiet", "Bashful", "Rash", "Calm",
-                    "Gentle", "Sassy", "Careful", "Quirky"}
-
-function pokemon.enrich_data(mon)
-    if not mon then
-        console.warning("Tried to enrich data of a non-existent Pokémon!")
-        return
-    end
-
-    mon.name = mon_dex[mon.species + 1].name
-    mon.type = mon_dex[mon.species + 1].type
-
-    -- mon.rating = pokemon.get_rating(mon)
-    mon.pokeball = mon_item[mon.pokeball + 1]
-    mon.otLanguage = mon_lang[mon.otLanguage + 1]
-    mon.ability = mon_ability[mon.ability + 1]
-    mon.nature = mon_nature[mon.nature + 1]
-    mon.heldItem = mon_item[mon.heldItem + 1]
-    mon.gender = mon_gender[mon.gender + 1]
-    
-    local move_id = mon.moves
-    mon.moves = {}
-
-    for _, move in ipairs(move_id) do
-        table.insert(mon.moves, mon_move[move + 1])
-    end
-
-    return mon
 end
 
 function pokemon.find_best_move(ally, foe)
@@ -403,6 +383,7 @@ function pokemon.find_best_move(ally, foe)
     -- Sometimes, beyond all reasonable explanation, key values are completely missing
     -- Do nothing in this case to prevent crashes
     if not foe or not ally or not foe.type or not ally.moves then
+        console.warning("Pokemon values were completely absent, couldn't determine best move")
         return nil
     end
 
@@ -607,7 +588,6 @@ function pokemon.matches_ruleset(mon, target)
     end
 
     if has_other_specs and not target.shiny then
-        console.log("Wild " .. mon.name .. " is a target!")
         return true
     else
         -- If the only specified trait is shiny: true, return false

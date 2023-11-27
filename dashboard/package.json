@@ -1,6 +1,6 @@
 {
   "name": "pknds-bot-dashboard",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "main": "app.js",
   "bin": "app.js",
   "scripts": {
