@@ -109,6 +109,18 @@ objectSubstitute(config, configTemplate)
 writeJSONToFile('../user/config.json', config)
 
 // Discord 'playing' status
+const Version = {
+    DIAMOND: 0,
+    PEARL: 1,
+    PLATINUM: 2,
+    HEARTGOLD: 3,
+    SOULSILVER: 4,
+    BLACK: 5,
+    WHITE: 6,
+    BLACK2: 7,
+    WHITE2: 8
+}
+
 if (config.show_status) {
     DiscordRPC = require('discord-rich-presence')('1140996615784636446');
 
@@ -131,27 +143,18 @@ if (config.show_status) {
             if (!game) return;
 
             // Get game-specific icon
-            // TODO set this value in game_setup.lua, it's used a few times
             let icon;
 
-            if (game.includes("Diamond")) {
-                icon = 'diamond';
-            } else if (game.includes("Pearl")) {
-                icon = 'pearl';
-            } else if (game.includes("Platinum")) {
-                icon = 'platinum';
-            } else if (game.includes("Gold")) {
-                icon = 'heartgold';
-            } else if (game.includes("Silver")) {
-                icon = 'soulsilver';
-            } else if (game.includes("Black") && game.includes("2")) {
-                icon = 'black2';
-            } else if (game.includes("White") && game.includes("2")) {
-                icon = 'white2';
-            } else if (game.includes("Black")) {
-                icon = 'black';
-            } else if (game.includes("White")) {
-                icon = 'white';
+            switch (clientData[0].version) {
+                case Version.DIAMOND: icon = "diamond"; break;
+                case Version.PEARL: icon = "pearl"; break;
+                case Version.PLATINUM: icon = "platinum"; break;
+                case Version.HEARTGOLD: icon = "heartgold"; break;
+                case Version.SOULSILVER: icon = "soulsilver"; break;
+                case Version.BLACK: icon = "black"; break;
+                case Version.WHITE: icon = "white"; break;
+                case Version.BLACK2: icon = "black2"; break;
+                case Version.WHITE2: icon = "white2"; break;
             }
 
             const location = clientData[0].map_name;
@@ -428,7 +431,8 @@ function interpretClientMessage(socket, message) {
         case 'load_game':
             clientData[index] = {
                 gen: data.gen,
-                game: data.game
+                game: data.game,
+                version: data.version
             }
 
             if (clients.length == 1) {

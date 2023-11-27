@@ -7,7 +7,9 @@ oshawott_ball.x = 210
 take_button.y = 130
 
 function update_pointers()
-    offset.battle_menu_state = mdword(0x2141950 + 0x40 * game_version) + 0x135FC + 0x80
+    local shift = 0x40 and (game_version == version.WHITE2) or 0x0
+
+    offset.battle_menu_state = mdword(0x2141950 + shift) + 0x135FC + 0x80
     
     -- console.log(string.format("%08X", offset.battle_menu_state))
 end

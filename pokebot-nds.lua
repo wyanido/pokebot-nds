@@ -44,7 +44,8 @@ comm.socketServerSend(json.encode({
     type = "load_game",
     data = {
         gen = gen,
-        game = game_name
+        game = game_name,
+        version = game_version
     }
 }) .. "\x00")
 

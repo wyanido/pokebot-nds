@@ -1,5 +1,7 @@
 function update_pointers()
-    offset.battle_menu_state = mdword(0x2146A88 + 0x20 * game_version) + 0x1367C
+    local shift = 0x20 and (game_version == version.WHITE) or 0x0
+
+    offset.battle_menu_state = mdword(0x2146A88 + shift) + 0x1367C
 
     -- console.log(string.format("%08X", offset.battle_menu_state))
 end

@@ -3,7 +3,7 @@ function update_pointers()
 end
 
 local function get_offset_bw(game)
-    local wt = 0x20 * game -- White version is offset slightly
+    local wt = 0x20 and (game_version == version.WHITE) or 0x0 -- White version is offset slightly
 
     return {
         -- Bag pouches, 4 byte pairs | 0001 0004 = 4x Master Ball
@@ -70,7 +70,7 @@ local function get_offset_bw(game)
 end
 
 local function get_offset_b2w2(game)
-    local wt = 0x40 * game -- White version is offset slightly, moreso than original BW
+    local wt = 0x40 and (game_version == version.WHITE) or 0x0 -- White version is offset slightly, moreso than original BW
 
     return {
         -- Bag pouches, 4 byte pairs | 0001 0004 = 4x Master Ball
@@ -127,14 +127,26 @@ local function get_offset_b2w2(game)
     }
 end
 
+version = {
+    DIAMOND    = 0,
+    PEARL      = 1,
+    PLATINUM   = 2,
+    HEARTGOLD  = 3,
+    SOULSILVER = 4,
+    BLACK      = 5,
+    WHITE      = 6,
+    BLACK2     = 7,
+    WHITE2     = 8
+}
+
 lang = {
     JAPANESE = 0, 
-    ENGLISH = 1, 
-    FRENCH = 2, 
-    ITALIAN = 3, 
-    GERMAN = 4, 
-    SPANISH = 5, 
-    KOREAN = 6
+    ENGLISH  = 1, 
+    FRENCH   = 2, 
+    ITALIAN  = 3, 
+    GERMAN   = 4, 
+    SPANISH  = 5, 
+    KOREAN   = 6
 }
 
 -- Version data
@@ -143,70 +155,70 @@ local ver = {
         code = 0x45414441,
         name = "Pokemon Diamond Version",
         gen = 4,
-        version = 0,
+        version = version.DIAMOND,
         language = lang.ENGLISH
     },
     DIAMOND_G = {
         code = 0x44414441,
         name = "Pokemon Diamant Edition",
         gen = 4,
-        version = 0,
+        version = version.DIAMOND,
         language = lang.GERMAN
     },
     PEARL_U = {
         code = 0x45415041,
         name = "Pokemon Pearl Version",
         gen = 4,
-        version = 1,
+        version = version.PEARL,
         language = lang.ENGLISH
     },
     PLATINUM_U = {
         code = 0x45555043,
         name = "Pokemon Platinum Version",
         gen = 4,
-        version = 2,
+        version = version.PLATINUM,
         language = lang.ENGLISH
     },
     HEARTGOLD_U = {
         code = 0x454B5049,
         name = "Pokemon HeartGold Version",
         gen = 4,
-        version = 0,
+        version = version.HEARTGOLD,
         language = lang.ENGLISH
     },
     SOULSILVER_U = {
         code = 0x45475049,
         name = "Pokemon SoulSilver Version",
         gen = 4,
-        version = 1,
+        version = version.SOULSILVER,
         language = lang.ENGLISH
     },
     BLACK_U = {
         code = 0x4F425249,
         name = "Pokemon Black Version",
         gen = 5,
-        version = 0,
+        version = version.BLACK,
         language = lang.ENGLISH
     },
     WHITE_U = {
         code = 0x4F415249,
         name = "Pokemon White Version",
         gen = 5,
-        version = 1,
+        version = version.WHITE,
         language = lang.ENGLISH
     },
     BLACK2_U = {
         code = 0x4F455249,
         name = "Pokemon Black Version 2",
         gen = 5,
-        version = 0,
+        version = version.BLACK2,
         language = lang.ENGLISH
     },
     WHITE2_U = {
         code = 0x4F445249,
         name = "Pokemon White Version 2",
         gen = 5,
-        version = 1,
+        version = version.WHITE2,
         language = lang.ENGLISH
     }
 }
@@ -249,7 +261,7 @@ if gen == 4 then
     offset = {} -- Most Gen 4 offsets are non-static, so these are set each frame through update_pointers()
     dofile("lua\\methods\\gen_iv.lua")
 
-    if gamecode == ver.HEARTGOLD_U.code or gamecode == ver.SOULSILVER_U.code then
+    if game_version == version.HEARTGOLD or game_version == version.SOULSILVER then
         -- HG/SS have no differences in map headers
         map_names = json.load("lua\\data\\maps\\hgss.json")
         MAP_HEADER_COUNT = 540 -- HGSS
@@ -260,7 +272,7 @@ if gen == 4 then
         MAP_HEADER_COUNT = 593 -- Pt
 
         -- DP uses Platinum headers with the name changes reverted
-        if gamecode == ver.DIAMOND_U.code or gamecode == ver.PEARL_U.code then
+        if game_version == version.DIAMOND or game_version == version.PEARL then
             MAP_HEADER_COUNT = 559 -- DP
 
             map_names[29] = "GTS"
@@ -284,7 +296,7 @@ elseif gen == 5 then
     MAP_HEADER_COUNT = 615 -- B2W2
 
     -- BW uses B2W2 headers with the name changes reverted
-    if gamecode == ver.BLACK_U.code or gamecode == ver.WHITE_U.code then
+    if game_version == version.BLACK or game_version == version.WHITE then
         map_names[58] = "Castelia City"
         map_names[192] = "Cold Storage"
         map_names[193] = "Cold Storage"

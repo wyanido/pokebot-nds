@@ -61,6 +61,18 @@ function PostAPI(endpoint, data, callback) {
     http.send();
 }
 
+const Version = {
+    DIAMOND: 0,
+    PEARL: 1,
+    PLATINUM: 2,
+    HEARTGOLD: 3,
+    SOULSILVER: 4,
+    BLACK: 5,
+    WHITE: 6,
+    BLACK2: 7,
+    WHITE2: 8
+}
+
 function randomisePageIcon() {
     const randomRange = (min, max) => min + Math.floor(Math.random() * (max - min));
 
@@ -74,15 +86,25 @@ function randomisePageIcon() {
         if (Array.isArray(clients) && clients.length > 0) {
             const game = clients[0].game;
             let icon = 0;
-
-            if (game.includes("Gold") || game.includes("Silver")) {
-                icon = randomRange(152, 251);
-            } else if (game.includes("Diamond") || game.includes("Pearl") || game.includes("Platinum")) {
-                icon = randomRange(387, 493);
-            } else if (game.includes("Black") || game.includes("White")) {
-                icon = randomRange(494, 649);
+            
+            switch (clients[0].version) {
+                case Version.DIAMOND:
+                case Version.PEARL:
+                case Version.PLATINUM:
+                    icon = randomRange(387, 493);
+                    break;
+                case Version.HEARTGOLD:
+                case Version.SOULSILVER:
+                    icon = randomRange(152, 251);
+                    break;
+                case Version.BLACK:
+                case Version.WHITE:
+                case Version.BLACK2:
+                case Version.WHITE2:
+                    icon = randomRange(494, 649);
+                    break;
             }
-
+            
             const iconURL = 'assets/pokemon-icon/' + icon.toString().padStart(3, '0') + '.png';
             document.getElementById('icon').src = iconURL;
         } else {
