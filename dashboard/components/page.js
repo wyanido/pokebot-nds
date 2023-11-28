@@ -1,19 +1,8 @@
-randomisePageIcon();
 
-let pollInterval;
-
-RequestAPI('config', function (error, config) {
-    if (error) {
-        console.error(error);
-        return;
-    }
-
-    pollInterval = config.dashboard_poll_interval;
-});
-
-function RequestAPI(endpoint, callback) {
+function socketServerCommunicate(method, url, callback) {
     const http = new XMLHttpRequest();
-    http.open('GET', `http://localhost:3000/api/${encodeURIComponent(endpoint)}`);
+
+    http.open(method, url);
     http.responseType = 'json';
 
     http.onload = function (e) {
@@ -22,7 +11,7 @@ function RequestAPI(endpoint, callback) {
             const response = http.response;
             callback(null, response); // Pass the response data to the callback
         } else {
-            callback('Failed to fetch data. Status: ' + http.status, null);
+            callback(method + ' request failed. Status: ' + http.status, null);
         }
     };
     http.onerror = function () {
@@ -36,29 +25,18 @@ function RequestAPI(endpoint, callback) {
     http.send();
 }
 
-function PostAPI(endpoint, data, callback) {
-    const http = new XMLHttpRequest();
-    http.open('POST', `http://localhost:3000/api/${encodeURIComponent(endpoint)}?data=${JSON.stringify(data)}`);
-    http.responseType = 'json';
+function socketServerGet(endpoint, callback) {
+    const method = 'GET'
+    const url = `http://localhost:3000/api/${encodeURIComponent(endpoint)}`
+    
+    socketServerCommunicate(method, url, callback)   
+}
 
-    http.onload = function (e) {
-        // Handle response
-        if (http.status === 200) {
-            const response = http.response;
-            callback(null, response); // Pass the response data to the callback
-        } else {
-            callback('Failed to POST data. Status: ' + http.status, null);
-        }
-    };
-    http.onerror = function () {
-        halfmoon.initStickyAlert({
-            content: 'NOTE: The dashboard cannot be accessed by opening the .html pages directly in the browser. The node backend must be running.',
-            title: "Couldn't reach API endpoint",
-            alertType: 'alert-danger',
-        })
-    }
-
-    http.send();
+function socketServerSend(endpoint, data, callback) {
+    const method = 'POST'
+    const url = `http://localhost:3000/api/${encodeURIComponent(endpoint)}?data=${JSON.stringify(data)}`
+    
+    socketServerCommunicate(method, url, callback)
 }
 
 const Version = {
@@ -77,7 +55,7 @@ function randomisePageIcon() {
     const randomRange = (min, max) => min + Math.floor(Math.random() * (max - min));
 
     // Make the API request and handle the response in a callback
-    RequestAPI('clients', function (error, clients) {
+    socketServerGet('clients', function (error, clients) {
         if (error) {
             console.error(error);
             return;
@@ -108,15 +86,36 @@ function randomisePageIcon() {
             const iconURL = 'assets/pokemon-icon/' + icon.toString().padStart(3, '0') + '.png';
             document.getElementById('icon').src = iconURL;
         } else {
-            console.error('No clients found or the response is not an array.');
+            console.error('No clients connected.');
         }
     });
 }
 
-function setBadgeClientCount(clients) {
-    $('#home-button').empty()
+const dashboardBadge = $('#dashboard-badge');
 
-    if (clients > 0) {
-        $('#home-button').append('<span style="bottom:16px; right:-10px; font-size:10px" class="badge badge-primary position-absolute translate-middle text-bg-primary px-5">' + clients.toString() + '</span>')
+function setBadgeClientCount(clientCount) {
+    
+    if (clientCount > 0) {
+        const value = clientCount.toString()
+
+        if (dashboardBadge.text() != value) {
+            dashboardBadge.text(value)
+            dashboardBadge.show()
+        }
+    } else {
+        dashboardBadge.hide()
     }
 }
+
+randomisePageIcon();
+
+let pollInterval;
+
+socketServerGet('config', function (error, config) {
+    if (error) {
+        console.error(error);
+        return;
+    }
+
+    pollInterval = config.dashboard_poll_interval;
+});

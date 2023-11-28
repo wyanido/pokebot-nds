@@ -49,59 +49,43 @@ comm.socketServerSend(json.encode({
     }
 }) .. "\x00")
 
-last_party_checksums = {}
+party_hash = ""
 party = {}
 
-function get_party(force)
-    -- Prevent reading out of bounds in gen IV games
-    -- by pretending that the party is empty
+function update_party(is_reattempt)
+    -- Prevent reading out of bounds when loading gen 4 games
     if offset.party_count < 0x02000000 then
         party_changed = true
-        last_party_checksums = {}
         party = {}
         return true
     end
 
+    -- Check if party data has updated
     local party_size = mbyte(offset.party_count)
 
-    -- Get the checksums of all party members
-    local checksums = {}
-    for i = 0, party_size - 1 do
-        table.insert(checksums, mword(offset.party_data + i * MON_DATA_SIZE + 0x06))
-    end
-
-    -- Check for changes in the party data
-    -- Necessary for only sending data to the socket when things have changed
-    if party_size == #party and not force then
-        local party_changed = false
-
-        for i = 1, #checksums, 1 do
-            if checksums[i] ~= last_party_checksums[i] then
-                party_changed = true
-                break
-            end
-        end
-
-        if not party_changed then
+    if not is_reattempt then
+        local new_hash = memory.hash_region(offset.party_data, MON_DATA_SIZE * party_size)
+        
+        if party_hash == new_hash then
             return false
         end
-    end
 
-    -- Party changed, update info
-    console.debug("Party updated")
-    last_party_checksums = checksums
+        party_hash = new_hash
+        console.debug("Party updated")
+    end
+    
+    -- Read new party data
     local new_party = {}
 
-    for i = 1, party_size do
-        local mon_data = pokemon.decrypt_data(offset.party_data + (i - 1) * MON_DATA_SIZE)
-        local mon = pokemon.parse_data(mon_data, true)
-
-        if mon then
-            -- Friendship is used to track egg cycles
-            -- Converts cycles to steps
+    for i = 0, party_size - 1 do
+        local mon_data = pokemon.decrypt_data(offset.party_data + i * MON_DATA_SIZE)
+        
+        if mon_data then
+            local mon = pokemon.parse_data(mon_data, true)
+            
+            -- Friendship value is used to store egg cycles before hatching
             if mon.isEgg == 1 then
-                mon.friendship = mon.friendship * 256
-                mon.friendship = math.max(0, mon.friendship - mbyte(offset.step_counter) - mbyte(offset.step_cycle) * 256)
+                mon.friendship = mon.friendship << 8
             end
 
             table.insert(new_party, mon)
@@ -109,16 +93,25 @@ function get_party(force)
             -- If any party checksums fail, wait a frame and try again
             console.debug("Party checksum failed at slot " .. i .. ", retrying")
             emu.frameadvance()
-            return get_party(true)
+            return update_party(true)
         end
     end
 
     party = new_party
 
+    -- Update party on the node server
+    comm.socketServerSend(json.encode({
+        type = "party",
+        data = {
+            party = party,
+            hash = party_hash
+        }
+    }) .. "\x00")
+
     return true
 end
 
-function get_current_foes()
+function update_foes()
     -- Make sure it's not reading garbage non-battle data
     if mbyte(offset.battle_indicator) ~= 0x41 or mbyte(offset.foe_count) == 0 then
         foe = nil
@@ -129,9 +122,10 @@ function get_current_foes()
 
         for i = 1, foe_count do
             local mon_data = pokemon.decrypt_data(offset.current_foe + (i - 1) * MON_DATA_SIZE)
-            local mon = pokemon.parse_data(mon_data, true)
             
-            if mon then
+            if mon_data then
+                local mon = pokemon.parse_data(mon_data, true)
+                
                 if config.save_pkx and pokemon.matches_ruleset(mon, config.target_traits) then
                     pokemon.export_pkx(mon_data)
                 end
@@ -230,16 +224,10 @@ function update_game_info(force)
             data = game_state
         }) .. "\x00")
 
-        get_current_foes()
+        update_foes()
     end
 
-    local party_changed = get_party()
-    if party_changed then
-        comm.socketServerSend(json.encode({
-            type = "party",
-            data = party
-        }) .. "\x00")
-    end
+    update_party()
 end
 
 function pause_bot(reason)

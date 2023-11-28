@@ -636,7 +636,7 @@ function process_wild_encounter()
     if foe_is_target then
         if double then
             wait_frames(120)
-            pause_bot("Wild Pokemon meets target specs! There are multiple opponents, so pausing for manual catch")
+            pause_bot("Wild Pokemon meets target specs! There are multiple foes, so pausing for manual catch")
         else
             if config.auto_catch then
                 while game_state.in_battle do

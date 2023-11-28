@@ -130,21 +130,13 @@
     <script id="game-template" type="text/x-jQuery-tmpl">
         <div class="m-15">
             <table id="field-table" class="table">
-                <tr>
-                    <th>Map</th>
-                    <td>${map}</td>
-                </tr>
-                <tr>
-                    <th>Position</th>
-                    <td>${position}</td>
-                </tr>
             </table>
         </div>
     </script>
     <script id="button-template" type="text/x-jQuery-tmpl">
         <button onclick="selectTab(this)" class="btn w-full text-truncate" id="nav-game">${game}</button>
     </script>
-    <link rel="stylesheet" href="components/style.css">
+    <link rel="stylesheet" href="components/common/style.css">
 </head>
 
 <body class="with-custom-webkit-scrollbars with-custom-css-scrollbars" data-dm-shortcut-enabled="true"
@@ -162,7 +154,10 @@
                     <button type="button" class="btn position-relative px-10 active">
                         <i class="fa fa-user-circle mr-5"></i>
                         Dashboard
-                        <div id="home-button"></div>
+                        <span id="dashboard-badge" style="display: none; bottom:16px; right:-10px; font-size:10px"
+                            class="badge badge-primary position-absolute translate-middle text-bg-primary px-5">
+                            0
+                        </span>
                     </button>
                 </li>
                 <li class="nav-item nav-link px-10" style="cursor: default;">
@@ -304,6 +299,6 @@
     <script src="components/common/halfmoon.min.js"></script>
     <script src="components/page.js"></script>
     <script src="components/dashboard.js"></script>
-</body>`
+</body>
 
 </html>

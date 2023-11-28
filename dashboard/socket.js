@@ -121,54 +121,60 @@ const Version = {
     WHITE2: 8
 }
 
+process.on('uncaughtException', function (err) {
+    console.log(err);
+});
+
 if (config.show_status) {
     DiscordRPC = require('discord-rich-presence')('1140996615784636446');
 
-    // Prevent DiscordRPC from crashing the whole app
-    process.on('unhandledRejection', (reason, promise) => {
-        console.error(reason);
+    DiscordRPC.on('error', (reason, _promise) => {
+        console.error(`Discord RPC ${reason}`);
     });
 
-    setInterval(() => {
-        // Default status
-        let status = {
-            state: 'Idling',
-            largeImageKey: 'none',
-            startTimestamp: null,
-            instance: false,
-        }
-
-        if (clientData.length > 0) {
-            const game = clientData[0].game;
-            if (!game) return;
-
-            // Get game-specific icon
-            let icon;
-
-            switch (clientData[0].version) {
-                case Version.DIAMOND: icon = "diamond"; break;
-                case Version.PEARL: icon = "pearl"; break;
-                case Version.PLATINUM: icon = "platinum"; break;
-                case Version.HEARTGOLD: icon = "heartgold"; break;
-                case Version.SOULSILVER: icon = "soulsilver"; break;
-                case Version.BLACK: icon = "black"; break;
-                case Version.WHITE: icon = "white"; break;
-                case Version.BLACK2: icon = "black2"; break;
-                case Version.WHITE2: icon = "white2"; break;
+    DiscordRPC.on('connected', (_status) => {
+        setInterval(() => {
+            // Default status
+            let status = {
+                state: 'Idling',
+                largeImageKey: 'none',
+                startTimestamp: null,
+                instance: false,
             }
 
-            const location = clientData[0].map_name;
-            if (location == undefined) return;
-            const moreGames = (clients.length > 1) ? `+ ${clientData.length - 1} game(s)` : ''
+            if (clientData.length > 0) {
+                const game = clientData[0].game;
+                if (!game) return;
 
-            status.largeImageKey = icon;
-            status.details = `📍${location} ${moreGames}`;
-            status.state = `${stats.total.seen} seen (${stats.total.shiny}✨) at ${encounterRate}/h`;
-            status.startTimestamp = elapsedStart;
-        }
+                // Get game-specific icon
+                let icon;
 
-        DiscordRPC.updatePresence(status);
-    }, 2500);
+                switch (clientData[0].version) {
+                    case Version.DIAMOND: icon = "diamond"; break;
+                    case Version.PEARL: icon = "pearl"; break;
+                    case Version.PLATINUM: icon = "platinum"; break;
+                    case Version.HEARTGOLD: icon = "heartgold"; break;
+                    case Version.SOULSILVER: icon = "soulsilver"; break;
+                    case Version.BLACK: icon = "black"; break;
+                    case Version.WHITE: icon = "white"; break;
+                    case Version.BLACK2: icon = "black2"; break;
+                    case Version.WHITE2: icon = "white2"; break;
+                }
+
+                const location = clientData[0].map_name;
+                if (location == undefined) return;
+                const moreGames = (clients.length > 1) ? `+ ${clientData.length - 1} game(s)` : ''
+
+                status.largeImageKey = icon;
+                status.details = `📍${location} ${moreGames}`;
+                status.state = `${stats.total.seen} seen (${stats.total.shiny}✨) at ${encounterRate}/h`;
+                status.startTimestamp = elapsedStart;
+            }
+
+            DiscordRPC.updatePresence(status);
+        }, 2500)
+    }
+    );
 }
 
 const server = net.createServer((socket) => {
@@ -213,7 +219,7 @@ const server = net.createServer((socket) => {
         console.log('Client disconnected');
     });
 
-    socket.on('error', (err) => {
+    socket.on('error', (_err) => {
         // console.error('Socket error:', err);
     });
 });
@@ -419,14 +425,15 @@ function interpretClientMessage(socket, message) {
             if (config.webhook_enabled) {
                 webhookLogPokemon(data, client);
             }
-            
+
             updateEncounterLog(data);
             updateTargetLog(data);
 
             writeJSONToFile('../user/stats.json', stats);
             break;
         case 'party':
-            client.party = data;
+            client.party_hash = data.hash
+            client.party = data.party;
             break;
         case 'load_game':
             clientData[index] = {
@@ -443,24 +450,18 @@ function interpretClientMessage(socket, message) {
             client.map = data.map_name + " (" + data.map_header.toString() + ")";
             client.map_name = data.map_name;
             client.position = data.trainer_x.toString() + ", " + data.trainer_y.toString() + ", " + data.trainer_z.toString();
-
-            // Parse additional data as a special category
-            delete data['map_name'];
-            delete data['map_header'];
-            delete data['trainer_x'];
-            delete data['trainer_y'];
-            delete data['trainer_z'];
-            delete data['in_game'];
-            delete data['in_battle'];
-
-            // Reformat phenomenon if present
-            if ('phenomenon_x' in data) {
-                data.Phenomenon = data.phenomenon_x.toString() + ", --, " + data.phenomenon_z.toString();
-                delete data['phenomenon_x'];
-                delete data['phenomenon_z'];
+            
+            // Values displayed on the game instance's tab on the dashboard
+            var shownValues = {
+                Map: client.map,
+                Position: client.position
             }
-
-            client.other = data;
+            
+            if ('phenomenon_x' in data) {
+                shownValues.Phenomenon = data.phenomenon_x.toString() + ", --, " + data.phenomenon_z.toString();
+            }
+            
+            client.shownValues = shownValues
             break;
     }
 }

@@ -1,6 +1,6 @@
 let config;
 
-RequestAPI('config', function (error, data) {
+socketServerGet('config', function (error, data) {
     if (error) {
         console.error(error);
         return;
@@ -45,25 +45,27 @@ function sendConfig() {
         config[field] = $('#' + field).prop('checked')
     }
 
-    PostAPI('config', {
-        config: config,
-        game: $('#editing').val()
-    }, function (e, _) {
-        if (!e) {
-            halfmoon.initStickyAlert({
-                content: 'You may need to restart pokebot-nds.lua for the bot mode to update immediately. Other changes will take effect now.',
-                title: 'Changes saved!',
-                alertType: 'alert-success',
-            })
-            return;
-        }
+    socketServerSend('config', 
+        {
+            config: config,
+            game: $('#editing').val()
+        },
+        function (e, _) {
+            if (!e) {
+                halfmoon.initStickyAlert({
+                    content: 'You may need to restart pokebot-nds.lua for the bot mode to update immediately. Other changes will take effect now.',
+                    title: 'Changes saved!',
+                    alertType: 'alert-success',
+                })
+                return;
+            }
 
-        halfmoon.initStickyAlert({
-            content: e,
-            title: 'Changes not saved',
-            alertType: 'alert-danger',
+            halfmoon.initStickyAlert({
+                content: e,
+                title: 'Changes not saved',
+                alertType: 'alert-danger',
+            })
         })
-    })
 }
 
 function updateOptionVisibility() {
@@ -171,7 +173,7 @@ function sendConfigToClients() {
 }
 
 function updateClientInfo() {
-    RequestAPI('clients', (error, clients) => {
+    socketServerGet('clients', (error, clients) => {
         if (!error) {
             setBadgeClientCount(clients.length);
             setEditableGames(clients)
@@ -181,7 +183,7 @@ function updateClientInfo() {
 
 updateClientInfo();
 
-RequestAPI('config', function (error, config) {
+socketServerGet('config', function (error, config) {
     if (error) {
         console.error(error);
         return;
@@ -195,5 +197,5 @@ RequestAPI('config', function (error, config) {
 })
 
 function testWebhook() {
-    RequestAPI('test_webhook', function (e, _) { })
+    socketServerSend('test_webhook', function (e, _) { })
 }
