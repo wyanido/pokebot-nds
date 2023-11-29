@@ -28,16 +28,14 @@ The dashboard relies on net sockets to communicate with BizHawk, which aren't en
 Execute BizHawk with the arguments `--socket_ip=127.0.0.1 --socket_port=51055` to enable them. The two easiest ways to do this are:
 
 **Via the command prompt**
-* e.g. `EmuHawk.exe --socket_ip=127.0.0.1 --socket_port=51055`
-* or if you're using powershell `.\EmuHawk.exe --socket_ip=127.0.0.1 --socket_port=51055`
+* e.g. `.\EmuHawk.exe --socket_ip=127.0.0.1 --socket_port=51055`
 
 **Or creating a shortcut**
 * Append the same arguments (`--socket_ip=127.0.0.1 --socket_port=51055`) to the end of the 'Target' field after the file path.
 
 ![](https://i.imgur.com/IvTNbWz.png)
 
-Once complete, you can safely open the emulator and add `pokebot-nds.lua` to BizHawk in Tools>Lua Console. Start the script to enable the bot behaviour.
-
+Once complete, you can safely open the emulator and add `pokebot-nds.lua` to BizHawk in Tools>Lua Console. Start the script to connect the game to the dashboard.
 
 ## Features
 
