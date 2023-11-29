@@ -9,13 +9,28 @@ function update_pointers()
 
 	offset.foe_count = mdword(0x21C07DC) + 0x7304
 	offset.current_foe = offset.foe_count + 4
-
-	offset.map_header = mdword(0x21C0794) + 0x1294
-    offset.trainer_x = offset.map_header + 4 + 2
-    offset.trainer_y = offset.map_header + 12 + 2
-    offset.trainer_z = offset.map_header + 8 + 2
-
-	offset.battle_indicator = 0x021D18F2 -- Static
 	
-	-- console.log(string.format("%08X", offset.foe_count))
+	local mem_shift = mdword(0x21C0794)
+	
+	offset.map_header 		  = mem_shift + 0x1294
+	offset.trainer_x 		  = offset.map_header + 4 + 2
+	offset.trainer_y 		  = offset.map_header + 12 + 2
+	offset.trainer_z 		  = offset.map_header + 8 + 2
+	offset.facing_direction	  = mbyte(mem_shift + 0x238A4)
+	
+	offset.battle_indicator   = 0x021D18F2 -- Static
+	offset.in_starter_battle  = mbyte(offset.battle_indicator)
+	offset.battle_state 	  = mem_shift + 0x44878
+	offset.battle_state_value = mbyte(offset.battle_state) --01 is FIGHT menu, 04 is Move Select, 08 is Bag,
+	offset.current_pokemon	  = mem_shift + 0x475B8        -- 0A is POkemon menu 0E is animation
+	offset.foe_in_battle	  = offset.current_pokemon + 0xC0
+	offset.foe_status		  = offset.foe_in_battle + 0x6C
+	offset.current_hp		  = mword(offset.current_pokemon + 0x4C)
+	offset.level			  = mbyte(offset.current_pokemon + 0x34)
+	offset.foe_current_hp	  = mword(offset.foe_in_battle + 0x4C)
+	offset.foe_PID			  = mdword(offset.foe_in_battle + 0x68)
+	offset.foe_TID			  = mword(offset.foe_in_battle + 0x74)
+	offset.foe_SID			  = mword(offset.foe_in_battle + 0x75)
+	offset.saveFlag			  = mbyte(mem_shift + 0x2832A)
+	offset.fishOn			  = mbyte(0x021CF636)
 end

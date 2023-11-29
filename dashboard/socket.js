@@ -23,7 +23,7 @@ const configTemplate = {
     starter0: true,
     starter1: true,
     starter2: true,
-    move_direction: "Horizontal",
+    move_direction: "horizontal",
     target_traits: {
         iv_sum: 180
     },

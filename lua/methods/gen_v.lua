@@ -778,8 +778,8 @@ function mode_random_encounters()
 
         console.log("Attempting to start a battle...")
 
-        local dir1 = config.move_direction == "Horizontal" and "Left" or "Up"
-        local dir2 = config.move_direction == "Horizontal" and "Right" or "Down"
+        local dir1 = config.move_direction == "horizontal" and "Left" or "Up"
+        local dir2 = config.move_direction == "horizontal" and "Right" or "Down"
         
         wait_frames(60) -- Wait to regain control post-battle
         pathfind_to(home)
@@ -890,8 +890,8 @@ function mode_phenomenon_encounters()
         ::begin::
         console.log("Running until a phenomenon spawns...")
 
-        local dir1 = config.move_direction == "Horizontal" and "Left" or "Up"
-        local dir2 = config.move_direction == "Horizontal" and "Right" or "Down"
+        local dir1 = config.move_direction == "horizontal" and "Left" or "Up"
+        local dir2 = config.move_direction == "horizontal" and "Right" or "Down"
 
         while game_state.phenomenon_x == 0 and game_state.phenomenon_z == 0 do
             move_in_direction(dir1)

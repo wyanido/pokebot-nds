@@ -292,6 +292,17 @@ function pokemon.parse_data(data, enrich)
     return mon
 end
 
+function pokemon.check_battle_moves(ally)
+    for i = 1, #ally.moves, 1 do
+        local pp = ally.pp[i]
+        local power = ally.moves[i].power
+        local total_pp = 0
+        if pp ~= 0 and power ~= nil then
+            total_pp = total_pp + pp
+        end
+    end
+end
+
 function pokemon.export_pkx(data)
     local mon = pokemon.parse_data(data, false)
 

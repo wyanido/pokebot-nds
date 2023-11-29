@@ -1,7 +1,7 @@
 -----------------------
 -- INITIALIZATION
 -----------------------
-local BOT_VERSION = "v0.5.1-alpha"
+local BOT_VERSION = "v0.6.0-alpha"
 
 console.clear()
 -- console.log("Running " .. _VERSION)
@@ -156,6 +156,7 @@ function get_game_state()
                 trainer_y = to_signed(mword(offset.trainer_y + 2)),
                 trainer_z = mword(offset.trainer_z + 2),
                 in_battle = mbyte(offset.battle_indicator) == 0x41 and mbyte(offset.foe_count) > 0,
+                in_starter_battle = mbyte(offset.battle_indicator) == 0x41,
                 in_game = true
             }
         else
