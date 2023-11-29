@@ -368,16 +368,22 @@ function pokemon.log_encounter(mon)
     return was_target
 end
 
-function pokemon.find_best_move(ally, foe)
-    local function table_contains(tbl, type_check)
-        for _, type in pairs(tbl) do
-            if type == type_check then
-                return true
-            end
-        end
-        return false
+local function table_contains(table_, item)
+    if type(table_) ~= "table" then
+        table_ = {table_}
+        -- console.debug("Ruleset entry was not a table. Fixing.")
     end
 
+    for _, table_item in pairs(table_) do
+        if string.lower(table_item) == string.lower(item) then
+            return true
+        end
+    end
+
+    return false
+end
+
+function pokemon.find_best_move(ally, foe)
     local max_power_index = 1
     local max_power = 0
 
@@ -433,133 +439,90 @@ function pokemon.find_best_move(ally, foe)
     }
 end
 
-function pokemon.matches_ruleset(mon, target)
-    if not target then
-        console.warning("Mon was not a target, because no target was specified.")
+function pokemon.matches_ruleset(mon, ruleset)
+    if not ruleset then
+        console.warning("Can't check Pokemon against an empty ruleset")
         return false
     end
 
-    -- If shiny Pokemon are specific as a target, ignore other
-    -- config and always catch it
-    if target.shiny then
-        if mon.shiny or mon.shinyValue < 8 then
-            return true
-        else
-            console.debug("Mon was not shiny, checking other traits...")
-        end
+    -- Other traits don't matter with this override
+    if config.always_catch_shinies and mon.shiny then
+        return true
     end
 
-    -- Check if species is in list
-    local has_other_specs = false
+    -- Default trait comparison
+    if not ruleset.shiny == mon.shiny then
+        console.debug("Mon shininess does not match ruleset")
+        return false
+    end
 
-    if target.species then
-        has_other_specs = true
-        local is_species = false
-        for i = 1, #target.species, 1 do
-            if string.lower(mon.name) == string.lower(target.species[i]) then
-                is_species = true
-                break
-            end
-        end
-
-        if not is_species then
+    if ruleset.species then
+        if not table_contains(ruleset.species, mon.name) then
             console.debug("Mon species " .. mon.name .. " is not in ruleset")
             return false
         end
     end
 
-    -- Check if gender matches target
-    if target.gender then
-        has_other_specs = true
-
+    if ruleset.gender then
         local mon_gender = string.lower(mon.gender)
-        local target_gender = string.lower(target.gender)
+        local target_gender = string.lower(ruleset.gender)
 
         if mon_gender ~= target_gender then
-            console.debug("Mon gender " .. mon_gender .. " does not match target of " .. target_gender)
+            console.debug("Mon gender " .. mon_gender .. " does not match rule" .. target_gender)
             return false
         end
     end
 
-    -- Check if level is above threshold
-    if target.level then
-        has_other_specs = true
-
+    if ruleset.level then
         local mon_level = tonumber(mon.level)
-        local target_level = tonumber(target.level)
+        local target_level = tonumber(ruleset.level)
 
         if mon_level < target_level then
-            console.debug("Mon level " .. tostring(mon.level) .. " does not meet target of " .. target.level)
+            console.debug("Mon level " .. tostring(mon.level) .. " does not meet rule " .. ruleset.level)
             return false
         end
     end
     
-    -- Check if ability is in list
-    if target.ability then
-        has_other_specs = true
-        local meets_ability = false
-        for i = 1, #target.ability, 1 do
-            if string.lower(mon.ability) == string.lower(target.ability[i]) then
-                meets_ability = true
-                break
-            end
-        end
-
-        if not meets_ability then
+    if ruleset.ability then
+        if not table_contains(ruleset.ability, mon.ability) then
             console.debug("Mon ability " .. mon.ability .. " is not in ruleset")
             return false
         end
     end
 
-    -- Check if nature is in list
-    if target.nature then
-        has_other_specs = true
-        local is_nature = false
-        for i = 1, #target.nature, 1 do
-            if string.lower(mon.nature) == string.lower(target.nature[i]) then
-                is_nature = true
-                break
-            end
-        end
-
-        if not is_nature then
+    if ruleset.nature then
+        if not table_contains(ruleset.nature, mon.nature) then
             console.debug("Mon nature " .. mon.nature .. " is not in ruleset")
             return false
         end
     end
 
-    -- Check that IVs meet target thresholds
+    -- Check that individual IVs meet target thresholds
     local ivs = {"hpIV", "attackIV", "defenseIV", "spAttackIV", "spDefenseIV", "speedIV"}
     local sum = 0
 
     for _, key in ipairs(ivs) do
         sum = sum + mon[key]
-        if target[key] and mon[key] < target[key] then
-            has_other_specs = true
-            console.debug("Mon " .. key .. " " .. mon.hpIV .. " does not meet ruleset " .. target.hpIV)
+        if ruleset[key] and mon[key] < ruleset[key] then
+            console.debug("Mon " .. key .. " " .. mon.hpIV .. " does not meet ruleset " .. ruleset.hpIV)
             return false
         end
     end
 
-    if target.iv_sum then
-        has_other_specs = true
-
-        if sum < target.iv_sum then
-            console.debug("Mon IV sum of " .. sum .. " does not meet threshold " .. target.iv_sum)
+    if ruleset.iv_sum then
+        if sum < ruleset.iv_sum then
+            console.debug("Mon IV sum of " .. sum .. " does not meet threshold " .. ruleset.iv_sum)
             return false
         end
     end
 
-    -- Check moveset for target moves
-    if target.move then
-        has_other_specs = true
+    if ruleset.move then
         local has_move = false
-        for i = 1, #target.move, 1 do
-            for j = 1, #mon.moves, 1 do
-                if string.lower(mon.move[j].name) == string.lower(target.move[i]) then
-                    has_move = true
-                    break
-                end
+
+        for i = 1, #ruleset.move, 1 do
+            if table_contains(mon.moves, ruleset.move[i]) then
+                has_move = true
+                break
             end
         end
 
@@ -569,16 +532,13 @@ function pokemon.matches_ruleset(mon, target)
         end
     end
 
-    -- Check types in target
-    if target.type then
-        has_other_specs = true
+    if ruleset.type then
         local has_type = false
-        for i = 1, #target.type, 1 do
-            for j = 1, #mon.type, 1 do
-                if string.lower(mon.type[j]) == string.lower(target.type[i]) then
-                    has_type = true
-                    break
-                end
+
+        for i = 1, #ruleset.type, 1 do
+            if table_contains(mon.type, ruleset.type[i]) then
+                has_type = true
+                break
             end
         end
 
@@ -588,13 +548,7 @@ function pokemon.matches_ruleset(mon, target)
         end
     end
 
-    if has_other_specs and not target.shiny then
-        return true
-    else
-        -- If the only specified trait is shiny: true, return false
-        -- because the only single property check failed
-        return false
-    end
+    return true
 end
 
 return pokemon

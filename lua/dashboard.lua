@@ -41,7 +41,7 @@ function poll_dashboard_response()
 			console.log("Config initialised!")
 			console.log("---------------------------")
 		else
-			console.debug("Config Updated")
+			console.debug("Config updated")
 		end
 
 		config = response.data.config

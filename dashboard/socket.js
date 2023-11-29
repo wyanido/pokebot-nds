@@ -25,7 +25,6 @@ const configTemplate = {
     starter2: true,
     move_direction: "Horizontal",
     target_traits: {
-        shiny: true,
         iv_sum: 180
     },
     pokeball_override: {
@@ -70,7 +69,8 @@ const configTemplate = {
     show_status: true,
     save_pkx: true,
     state_backup: true,
-    backup_interval: "30"
+    backup_interval: "30",
+    always_catch_shinies: true
 }
 const statsTemplate = {
     total: {
@@ -177,8 +177,12 @@ if (config.show_status) {
     );
 }
 
+function getTimestamp() {
+    return new Date().toLocaleTimeString()
+}
+
 const server = net.createServer((socket) => {
-    console.log('Client %d connected', clients.length);
+    console.log('[%s] Client %d connected', getTimestamp(), clients.length);
     clients.push(socket);
     socketSetTimeout(socket);
 
@@ -216,7 +220,7 @@ const server = net.createServer((socket) => {
     });
 
     socket.on('end', () => {
-        console.log('Client disconnected');
+        // console.log('Client disconnected');
     });
 
     socket.on('error', (_err) => {
@@ -340,7 +344,7 @@ function socketSetTimeout(socket) {
         }
 
         socket.destroy()
-        console.log('Client %d removed for inactivity', index)
+        console.log('[%s] Client %d removed for inactivity', getTimestamp(), index)
     }, config.inactive_client_timeout)
 }
 

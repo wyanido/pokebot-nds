@@ -25,7 +25,7 @@
                 <img src="assets/pokemon-icon/201-27.png" class="icon" id="icon">
                 Pokébot NDS
             </div>
-            <span class="navbar-text text-monospace font-size-12">v0.5.1-alpha</span>
+            <span class="navbar-text text-monospace font-size-12">v0.6.0-alpha</span>
             <ul class="navbar-nav d-flex d-md-flex">
                 <li class="nav-item nav-link px-10">
                     <a href="dashboard.html">
@@ -246,7 +246,31 @@
                 <div class="col-6">
                     <div class="card">
                         <h2 class="content-title">Target Pokémon</h2>
-                        <label for="catch">Target traits</label>
+                        <div class="custom-switch">
+                            <input type="checkbox" id="always_catch_shinies">
+                            <label for="always_catch_shinies">Always keep shiny Pokemon</label>
+                        </div>
+                        <br>
+                        <label for="catch">Target traits
+                            <i class="fa fa-info-circle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
+                            <div id="tooltip" role="tooltip">YAML format. Pokémon must meet every requirement
+                                to be considered a target. For arrays, only one item in the array must match. 
+                                Not case-sensitive.
+                                <br><br>
+                                Available traits are as follow:
+                                <br> • shiny: bool
+                                <br> • iv_sum: int <i>(greater than or equal)</i>
+                                <br> • hpIV, attackIV, defenseIV, spAttack, spDefenseIV, speedIV: int <i>(greater than or equal)</i>
+                                <br> • species: array[str]
+                                <br> • gender: str
+                                <br> • level: int <i>(greater than or equal)</i>
+                                <br> • ability: array[str]
+                                <br> • nature: array[str]
+                                <br> • move: array[str]
+                                <br> • type: array[str]
+                                <div id="arrow" data-popper-arrow></div>
+                            </div>
+                        </label>
                         <textarea class="form-control" spellcheck="false"
                             style="min-width:120px; max-width:100%; height: 120px;" id="target_traits"
                             placeholder=""></textarea>
