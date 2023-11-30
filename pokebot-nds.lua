@@ -75,7 +75,6 @@ function update_party(is_reattempt)
 
     for i = 0, party_size - 1 do
         local mon_data = pokemon.decrypt_data(pointers.party_data + i * MON_DATA_SIZE)
-        
         if mon_data then
             local mon = pokemon.parse_data(mon_data, true)
             
@@ -83,13 +82,12 @@ function update_party(is_reattempt)
             if mon.isEgg == 1 then
                 mon.friendship = mon.friendship << 8
             end
-
+            
             table.insert(new_party, mon)
         else
-            -- If any party checksums fail, wait a frame and try again
-            console.debug("Party checksum failed at slot " .. i .. ", retrying")
-            emu.frameadvance()
-            return update_party(true)
+            -- If any party checksums fail, do not process this frame
+            console.debug("Party checksum failed at slot " .. i)
+            return false
         end
     end
 
@@ -271,7 +269,7 @@ end
 -----------------------
 -- PREPARATION
 -----------------------
-console.log("Waiting for dashboard to relay bot configuration...")
+console.write("Waiting for dashboard to relay bot configuration...")
 ::poll_config::
 
 emu.frameadvance()

@@ -462,7 +462,7 @@ function pokemon.matches_ruleset(mon, ruleset)
     end
 
     -- Default trait comparison
-    if not ruleset.shiny == mon.shiny then
+    if ruleset.shiny ~= mon.shiny then
         console.debug("Mon shininess does not match ruleset")
         return false
     end

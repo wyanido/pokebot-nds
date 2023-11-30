@@ -1,28 +1,33 @@
+-----------------------
+-- BASE GEN IV FUNCTIONS
+-----------------------
 function update_pointers()
-    local shift = 0
+    local offset = 0
     
     if _ROM.language == language.GERMAN then
-        shift = 0x140
+        offset = 0x140
     end
     
-    local mem_shift = mdword(0x21C0794)
-    
+    local mem_shift = mdword(0x21C489C + offset)
+
     pointers = {
-        party_count = mdword(0x021C489C + shift) + 14,
-        party_data = pointers.party_count + 4,
+        party_count = mem_shift + 0xE,
+        party_data  = mem_shift + 0x12,
 
-        foe_count = mdword(0x21C5A08 + shift) + 0x729C,
-        current_foe = pointers.foe_count + 4,
+        foe_count   = mem_shift + 0x299CE,
+        current_foe = mem_shift + 0x299D2,
 
-        map_header = mdword(0x21C489C + shift) + 0x11B2,
-        trainer_x = pointers.map_header + 4 + 2,
-        trainer_y = pointers.map_header + 12 + 2,
-        trainer_z = pointers.map_header + 8 + 2,
-        battle_state_value = mem_shift + 0x44878,
+        map_header  = mem_shift + 0x11B2,
+        trainer_x   = mem_shift + 0x11B8,
+        trainer_z   = mem_shift + 0x11BC,
+        trainer_y   = mem_shift + 0x11C0,
+        facing      = mem_shift + 0x247C6,
 
-        battle_indicator = 0x021A1B2A + shift
+        battle_state_value  = mem_shift + 0x44878,        
+        battle_indicator    = 0x021A1B2A + offset -- mostly static
     }
-    --console.log(string.format("%08X", pointers.battle_state_value))
+
+    -- console.log(string.format("%08X", mbyte(pointers.facing)))
 end
 
 local save_counter = 0
@@ -727,39 +732,55 @@ function mode_starters(starter) --starters for platinum
 end
 
 function mode_random_encounters()
-    if config.move_direction == "horizontal" or config.move_direction == "vertical" then
-        console.log("Attempting to start a battle...")
-        wait_frames(200)
-        local tile_frames = frames_per_move() * 2
-        local dir1 = config.move_direction == "Horizontal" and "Left" or "Up"
-        local dir2 = config.move_direction == "Horizontal" and "Right" or "Down"
-    
-        hold_button("B")
-        while not foe and not game_state.in_battle do
-            hold_button(dir1)
-            wait_frames(tile_frames)
-            release_button(dir1)
-            press_button("A")
-            hold_button(dir2)
-            wait_frames(tile_frames)
-            release_button(dir2)
+    console.log("Attempting to start a battle...")
+    wait_frames(30)
+
+    if config.move_direction == "spin" then
+        -- Prevent accidentally taking a step by
+        -- preventing a down input while facing down
+        if mbyte(pointers.facing) == 1 then
+            press_sequence("Right", 3)
         end
-        release_button("B")
-        release_button(dir2)
-    elseif config.move_direction == "spin" then
-        console.log("Attempting to start a battle... and Spinning!")
-    wait_frames(100)
-    if pointers.facing_direction == 00 then
+        
         while not foe and not game_state.in_battle do
-            press_sequence("Left", "Down", "Right", "Up")
+            press_sequence(
+                "Down", 3,
+                "Left", 3,
+                "Up", 3,
+                "Right", 3
+            )
         end
     else
-        while not foe and not game_state.in_battle do
-            press_sequence("Up", "Left", "Down", "Right")
+        local dir1, dir2, start_face
+        
+        if config.move_direction == "horizontal" then
+            dir1 = "Left"
+            dir2 = "Right"
+            start_face = 2
+        else
+            dir1 = "Up"
+            dir2 = "Down"
+            start_face = 0
         end
+
+        if mbyte(pointers.facing) ~= start_face then
+            press_sequence(dir2, 8)
+        end
+
+        hold_button("B")
+        
+        while not foe and not game_state.in_battle do
+            hold_button(dir1)
+            wait_frames(7)
+            hold_button(dir2)
+            wait_frames(7)
+        end
+
+        release_button("B")
     end
-end
+
     process_wild_encounter()
+    
     if config.pickup then
         do_pickup()
     end
