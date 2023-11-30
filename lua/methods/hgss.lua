@@ -4,38 +4,38 @@
 function update_pointers()
     local mem_shift = mdword(0x21D4158) -- Value differs per reset
 
-    offset.party_count = mem_shift - 0x23F44
-    offset.party_data = offset.party_count + 4
+    pointers.party_count = mem_shift - 0x23F44
+    pointers.party_data = pointers.party_count + 4
     
-    offset.map_header = mem_shift - 0x22DA4
-    offset.trainer_x = offset.map_header + 4 + 2
-    offset.trainer_y = offset.map_header + 12 + 2
-    offset.trainer_z = offset.map_header + 8 + 2
+    pointers.map_header = mem_shift - 0x22DA4
+    pointers.trainer_x = pointers.map_header + 4 + 2
+    pointers.trainer_y = pointers.map_header + 12 + 2
+    pointers.trainer_z = pointers.map_header + 8 + 2
     
-    if mword(offset.map_header) == 340 then -- Bell Tower
+    if mword(pointers.map_header) == 340 then -- Bell Tower
         -- Wild Ho-oh's data is located at a different address to standard encounters
         -- May apply to other statics too -- research?
-        offset.foe_count = mem_shift + 0x977C
+        pointers.foe_count = mem_shift + 0x977C
     else
-        offset.foe_count = mem_shift + 0x7574
+        pointers.foe_count = mem_shift + 0x7574
     end
 
-    offset.current_foe = offset.foe_count + 4
+    pointers.current_foe = pointers.foe_count + 4
 
     local mem_shift = mdword(0x21D2228) -- 27C1E0  --value @ 2C32B4
 
-    offset.battle_indicator = 0x021E76D2 -- Static
-    offset.battle_state = mem_shift + 0x470D4
-    offset.battle_state_value = mbyte(offset.battle_state) -- 01 is FIGHT menu, 04 is Move Select, 08 is Bag,
-    offset.current_pokemon = mem_shift + 0x49E14 -- 0A is POkemon menu 0E is animation
-    offset.foe_in_battle = offset.current_pokemon + 0xC0 -- 2C5ff4
-    offset.foe_status = offset.foe_in_battle + 0x6C
-    offset.current_hp = mword(offset.current_pokemon + 0x4C)
-    offset.level = mbyte(offset.current_pokemon + 0x34)
-    offset.foe_current_hp = mword(offset.foe_in_battle + 0x4C)
-    offset.facing_direction = mbyte(mem_shift + 0x25E88)
+    pointers.battle_indicator = 0x021E76D2 -- Static
+    pointers.battle_state = mem_shift + 0x470D4
+    pointers.battle_state_value = mbyte(pointers.battle_state) -- 01 is FIGHT menu, 04 is Move Select, 08 is Bag,
+    pointers.current_pokemon = mem_shift + 0x49E14 -- 0A is POkemon menu 0E is animation
+    pointers.foe_in_battle = pointers.current_pokemon + 0xC0 -- 2C5ff4
+    pointers.foe_status = pointers.foe_in_battle + 0x6C
+    pointers.current_hp = mword(pointers.current_pokemon + 0x4C)
+    pointers.level = mbyte(pointers.current_pokemon + 0x34)
+    pointers.foe_current_hp = mword(pointers.foe_in_battle + 0x4C)
+    pointers.facing_direction = mbyte(mem_shift + 0x25E88)
 
-    -- console.log(string.format("%08X", offset.map_header))
+    -- console.log(string.format("%08X", pointers.map_header))
 end
 
 local save_counter = 0
@@ -78,15 +78,15 @@ function do_battle()
 
     -- Press B until battle state has advanced
     while ((game_state.in_battle and
-        (offset.battle_state_value == 0 or offset.battle_state_value == 14))) do
-        if (offset.current_hp == 0 or offset.foe_current_hp == 0) then
+        (pointers.battle_state_value == 0 or pointers.battle_state_value == 14))) do
+        if (pointers.current_hp == 0 or pointers.foe_current_hp == 0) then
             break
         else
             press_sequence("B", 5)
         end
-        -- console.log(offset.battle_state_value)
+        -- console.log(pointers.battle_state_value)
     end
-    -- console.log("State before stats: " .. offset.battle_state_value)
+    -- console.log("State before stats: " .. pointers.battle_state_value)
     -- console.log("Updating stats")
     if (config.swap_lead_battle) then
         console.log("Config set to swap lead.. swapping now")
@@ -96,16 +96,16 @@ function do_battle()
     local best_move = pokemon.find_best_move(party[1], foe[1])
 
     if best_move then
-        local move1_pp = mbyte(offset.current_pokemon + 0x2C)
-        local move2_pp = mbyte(offset.current_pokemon + 0x2D)
-        local move3_pp = mbyte(offset.current_pokemon + 0x2E)
-        local move4_pp = mbyte(offset.current_pokemon + 0x2F)
-        local level = offset.level
+        local move1_pp = mbyte(pointers.current_pokemon + 0x2C)
+        local move2_pp = mbyte(pointers.current_pokemon + 0x2D)
+        local move3_pp = mbyte(pointers.current_pokemon + 0x2E)
+        local move4_pp = mbyte(pointers.current_pokemon + 0x2F)
+        local level = pointers.level
         -- console.log(level)
 
         if not game_state.in_battle then -- Battle over
             return
-        elseif offset.current_hp == 0 then -- Fainted
+        elseif pointers.current_hp == 0 then -- Fainted
             console.log("My Pokemon fainted...")
             while game_state.in_battle do
                 wait_frames(400)
@@ -118,19 +118,19 @@ function do_battle()
                 press_sequence("B", 5)
             end
             return
-        elseif offset.foe_current_hp == 0 then
+        elseif pointers.foe_current_hp == 0 then
             console.log("Enemy Pokemon fainted skipping text...")
             save_counter = save_counter + 1
             console.log("Save counter: " .. save_counter)
             while game_state.in_battle do
                 touch_screen_at(125, 70)
-                if offset.level ~= level then
+                if pointers.level ~= level then
                     for i = 1, 30, 1 do
                         touch_screen_at(125, 135)
                         wait_frames(2)
                     end
-                    if offset.battle_state_value == 0x6C then
-                        console.log(offset.battle_state_value)
+                    if pointers.battle_state_value == 0x6C then
+                        console.log(pointers.battle_state_value)
                         console.log("EVOLVING POGGGGGGGG")
                         for i = 0, 300 do
                             press_button("A")
@@ -205,7 +205,7 @@ end
 function swap_lead_battle()
     -- find strongest_mon
     local strongest_mon_index = 1
-    local strongest_mon_first = offset.level
+    local strongest_mon_first = pointers.level
     local strongest_mon = 0
     for i = 2, #party, 1 do
         strongest_mon = party[i].level
@@ -218,12 +218,12 @@ function swap_lead_battle()
     if strongest_mon_index == 1 then
         return
     else
-        while offset.battle_state_value ~= 0x0A do
+        while pointers.battle_state_value ~= 0x0A do
             touch_screen_at(215, 165)
             wait_frames(5)
-            console.log(offset.battle_state_value)
+            console.log(pointers.battle_state_value)
         end
-        while offset.battle_state_value == 0x0A do
+        while pointers.battle_state_value == 0x0A do
             local xpos = 80 * (((strongest_mon_index - 1) % 2) + 1)
             local ypos = (40 * (((strongest_mon_index - 1) // 3) + 1) +
                              strongest_mon_index - 1)
@@ -231,7 +231,7 @@ function swap_lead_battle()
             wait_frames(5)
             touch_screen_at(xpos, ypos)
         end
-        while (offset.battle_state_value ~= 0x01) do skip_dialogue() end
+        while (pointers.battle_state_value ~= 0x01) do skip_dialogue() end
     end
 end
 
@@ -259,7 +259,7 @@ function catch_pokemon()
             wait_frames(200)
         else
             console.log("Failed catch trying again...")
-            if offset.foe_status == 0 then
+            if pointers.foe_status == 0 then
                 console.log("Foe not asleep reapplying")
                 subdue_pokemon()
             else
@@ -297,7 +297,7 @@ function mode_random_encounters()
         console.log("Attempting to start a battle... and Spinning!")
         wait_frames(200)
 
-        if offset.facing_direction == 00 then
+        if pointers.facing_direction == 00 then
             while not foe and not game_state.in_battle do
                 press_sequence("Left", "Down", "Right", "Up")
             end

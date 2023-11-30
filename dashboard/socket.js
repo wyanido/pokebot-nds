@@ -182,7 +182,7 @@ function getTimestamp() {
 }
 
 const server = net.createServer((socket) => {
-    console.log('[%s] Client %d connected', getTimestamp(), clients.length);
+    console.log('[%s] Emulator %d connected', getTimestamp(), clients.length + 1)
     clients.push(socket);
     socketSetTimeout(socket);
 
@@ -344,7 +344,7 @@ function socketSetTimeout(socket) {
         }
 
         socket.destroy()
-        console.log('[%s] Client %d removed for inactivity', getTimestamp(), index)
+        console.log('[%s] Emulator %d removed for inactivity', getTimestamp(), index + 1)
     }, config.inactive_client_timeout)
 }
 
@@ -440,9 +440,11 @@ function interpretClientMessage(socket, message) {
             client.party = data.party;
             break;
         case 'load_game':
+            console.log('[%s] Emulator %d loaded %s', getTimestamp(), clientData.length + 1, data.name);
+
             clientData[index] = {
                 gen: data.gen,
-                game: data.game,
+                game: data.name,
                 version: data.version
             }
 

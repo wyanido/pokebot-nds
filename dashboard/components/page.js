@@ -62,7 +62,6 @@ function randomisePageIcon() {
         }
 
         if (Array.isArray(clients) && clients.length > 0) {
-            const game = clients[0].game;
             let icon = 0;
             
             switch (clients[0].version) {
@@ -94,16 +93,17 @@ function randomisePageIcon() {
 const dashboardBadge = $('#dashboard-badge');
 
 function setBadgeClientCount(clientCount) {
-    
-    if (clientCount > 0) {
-        const value = clientCount.toString()
-
-        if (dashboardBadge.text() != value) {
-            dashboardBadge.text(value)
-            dashboardBadge.show()
-        }
-    } else {
+    if (clientCount == 0) {
+        dashboardBadge.text('0')
         dashboardBadge.hide()
+        return
+    }
+
+    const value = clientCount.toString()
+
+    if (dashboardBadge.text() != value) {
+        dashboardBadge.text(value)
+        dashboardBadge.show()
     }
 }
 

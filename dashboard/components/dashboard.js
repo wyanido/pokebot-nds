@@ -328,18 +328,18 @@ function setClients() {
         setBadgeClientCount(clientCount)
         updateClientTabs(clients);
 
+        // Refresh displays
+        if (clientCount < gameContainer.children().length) gameContainer.empty()
+        if (clientCount < partyContainer.children().length) partyContainer.empty()
+
         if (clientCount == 0) {
             clearInterval(elapsedInterval)
             elapsedStart = null;
 
-            $('#elapsed-time').innerHTML = '0s'
-            $('#encounter-rate').innerHTML = '0/h'
+            $('#elapsed-time').text('0s')
+            $('#encounter-rate').text('0/h')
             return
         }
-
-        // Refresh displays
-        if (gameContainer.children().length != clientCount) gameContainer.empty()
-        if (partyContainer.children().length != clientCount) partyContainer.empty()
 
         for (var i = 0; i < clientCount; i++) {
             const client = clients[i];
@@ -368,7 +368,7 @@ function setClients() {
 
                 elapsedStart = start;
                 elapsedInterval = setInterval(updateElapsedTime, 1000);
-                updateElapsedTime();
+                updateStatBadges();
             });
         }
     })
@@ -387,12 +387,16 @@ function updateEncounterRate() {
     })
 }
 
+function updateStatBadges() {
+    updateEncounterRate()
+    updateElapsedTime()
+}
+
 function updatePage() {
     updateStats()
     setClients()
     updateRecentTargets()
     updateRecentlySeen()
-    updateEncounterRate()
 }
 
 const recentEncountersEle = document.getElementById('recents-limit');

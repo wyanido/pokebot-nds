@@ -102,7 +102,7 @@ function pokemon.decrypt_data(address)
     seed = pid
     concat_table(data, decrypt_block(0x88, 0xDB))
 
-    if gen == 4 then -- Write blank ball seal data
+    if _ROM.gen == 4 then -- Write blank ball seal data
         for i = 0x1, 0x10 do
             table.insert(data, 0x0)
         end
@@ -134,7 +134,7 @@ function pokemon.parse_data(data, enrich)
                 break
             end
 
-            if gen == 4 then -- Gen 4 characters have a different byte offset
+            if _ROM.gen == 4 then -- Gen 4 characters have a different byte offset
                 value = value + 0x16
             end
 
@@ -228,7 +228,7 @@ function pokemon.parse_data(data, enrich)
     mon.gender           = (value >> 1) & 0x03
     mon.altForm	         = (value >> 3) & 0x1F
 
-    if gen == 4 then
+    if _ROM.gen == 4 then
         -- mon.leaf_crown = read_real(0x41, 1)
         mon.nature     = mon.pid % 25
     else
@@ -311,7 +311,7 @@ function pokemon.export_pkx(data)
     local filename = mon.species .. " - " .. mon.nickname .. " - " .. hex_string
     
     -- Write Pokémon data to file and save in /user/targets
-    local file = io.open("user/targets/" .. filename .. ".pk" .. gen, "wb")
+    local file = io.open("user/targets/" .. filename .. ".pk" .. _ROM.gen, "wb")
     
     file:write(string.char(table.unpack(data)))
     file:close()

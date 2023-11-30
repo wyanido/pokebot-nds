@@ -4,33 +4,33 @@
 -----------------------
 
 function update_pointers()
-	offset.party_count = mdword(0x021BF65C) + 18
-	offset.party_data = offset.party_count + 4
+	pointers.party_count = mdword(0x021BF65C) + 18
+	pointers.party_data = pointers.party_count + 4
 
-	offset.foe_count = mdword(0x21C07DC) + 0x7304
-	offset.current_foe = offset.foe_count + 4
+	pointers.foe_count = mdword(0x21C07DC) + 0x7304
+	pointers.current_foe = pointers.foe_count + 4
 	
 	local mem_shift = mdword(0x21C0794)
 	
-	offset.map_header 		  = mem_shift + 0x1294
-	offset.trainer_x 		  = offset.map_header + 4 + 2
-	offset.trainer_y 		  = offset.map_header + 12 + 2
-	offset.trainer_z 		  = offset.map_header + 8 + 2
-	offset.facing_direction	  = mbyte(mem_shift + 0x238A4)
+	pointers.map_header 		  = mem_shift + 0x1294
+	pointers.trainer_x 		  = pointers.map_header + 4 + 2
+	pointers.trainer_y 		  = pointers.map_header + 12 + 2
+	pointers.trainer_z 		  = pointers.map_header + 8 + 2
+	pointers.facing_direction	  = mbyte(mem_shift + 0x238A4)
 	
-	offset.battle_indicator   = 0x021D18F2 -- Static
-	offset.in_starter_battle  = mbyte(offset.battle_indicator)
-	offset.battle_state 	  = mem_shift + 0x44878
-	offset.battle_state_value = mbyte(offset.battle_state) --01 is FIGHT menu, 04 is Move Select, 08 is Bag,
-	offset.current_pokemon	  = mem_shift + 0x475B8        -- 0A is POkemon menu 0E is animation
-	offset.foe_in_battle	  = offset.current_pokemon + 0xC0
-	offset.foe_status		  = offset.foe_in_battle + 0x6C
-	offset.current_hp		  = mword(offset.current_pokemon + 0x4C)
-	offset.level			  = mbyte(offset.current_pokemon + 0x34)
-	offset.foe_current_hp	  = mword(offset.foe_in_battle + 0x4C)
-	offset.foe_PID			  = mdword(offset.foe_in_battle + 0x68)
-	offset.foe_TID			  = mword(offset.foe_in_battle + 0x74)
-	offset.foe_SID			  = mword(offset.foe_in_battle + 0x75)
-	offset.saveFlag			  = mbyte(mem_shift + 0x2832A)
-	offset.fishOn			  = mbyte(0x021CF636)
+	pointers.battle_indicator   = 0x021D18F2 -- Static
+	pointers.in_starter_battle  = mbyte(pointers.battle_indicator)
+	pointers.battle_state 	  = mem_shift + 0x44878
+	pointers.battle_state_value = mbyte(pointers.battle_state) --01 is FIGHT menu, 04 is Move Select, 08 is Bag,
+	pointers.current_pokemon	  = mem_shift + 0x475B8        -- 0A is POkemon menu 0E is animation
+	pointers.foe_in_battle	  = pointers.current_pokemon + 0xC0
+	pointers.foe_status		  = pointers.foe_in_battle + 0x6C
+	pointers.current_hp		  = mword(pointers.current_pokemon + 0x4C)
+	pointers.level			  = mbyte(pointers.current_pokemon + 0x34)
+	pointers.foe_current_hp	  = mword(pointers.foe_in_battle + 0x4C)
+	pointers.foe_PID			  = mdword(pointers.foe_in_battle + 0x68)
+	pointers.foe_TID			  = mword(pointers.foe_in_battle + 0x74)
+	pointers.foe_SID			  = mword(pointers.foe_in_battle + 0x75)
+	pointers.saveFlag			  = mbyte(mem_shift + 0x2832A)
+	pointers.fishOn			  = mbyte(0x021CF636)
 end

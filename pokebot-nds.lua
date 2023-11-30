@@ -42,11 +42,7 @@ dofile("lua\\dashboard.lua")
 -- Send game info to the dashboard
 comm.socketServerSend(json.encode({
     type = "load_game",
-    data = {
-        gen = gen,
-        game = game_name,
-        version = game_version
-    }
+    data = _ROM
 }) .. "\x00")
 
 party_hash = ""
@@ -54,17 +50,17 @@ party = {}
 
 function update_party(is_reattempt)
     -- Prevent reading out of bounds when loading gen 4 games
-    if offset.party_count < 0x02000000 then
+    if pointers.party_count < 0x02000000 then
         party_changed = true
         party = {}
         return true
     end
 
     -- Check if party data has updated
-    local party_size = mbyte(offset.party_count)
+    local party_size = mbyte(pointers.party_count)
 
     if not is_reattempt then
-        local new_hash = memory.hash_region(offset.party_data, MON_DATA_SIZE * party_size)
+        local new_hash = memory.hash_region(pointers.party_data, MON_DATA_SIZE * party_size)
         
         if party_hash == new_hash then
             return false
@@ -78,7 +74,7 @@ function update_party(is_reattempt)
     local new_party = {}
 
     for i = 0, party_size - 1 do
-        local mon_data = pokemon.decrypt_data(offset.party_data + i * MON_DATA_SIZE)
+        local mon_data = pokemon.decrypt_data(pointers.party_data + i * MON_DATA_SIZE)
         
         if mon_data then
             local mon = pokemon.parse_data(mon_data, true)
@@ -113,15 +109,15 @@ end
 
 function update_foes()
     -- Make sure it's not reading garbage non-battle data
-    if mbyte(offset.battle_indicator) ~= 0x41 or mbyte(offset.foe_count) == 0 then
+    if mbyte(pointers.battle_indicator) ~= 0x41 or mbyte(pointers.foe_count) == 0 then
         foe = nil
     elseif not foe then -- Only update foe on battle start
         ::retry::
         local foe_table = {}
-        local foe_count = mbyte(offset.foe_count)
+        local foe_count = mbyte(pointers.foe_count)
 
         for i = 1, foe_count do
-            local mon_data = pokemon.decrypt_data(offset.current_foe + (i - 1) * MON_DATA_SIZE)
+            local mon_data = pokemon.decrypt_data(pointers.current_foe + (i - 1) * MON_DATA_SIZE)
             
             if mon_data then
                 local mon = pokemon.parse_data(mon_data, true)
@@ -143,20 +139,20 @@ function update_foes()
 end
 
 function get_game_state()
-    local map = mword(offset.map_header)
+    local map = mword(pointers.map_header)
     local in_game = (map ~= 0x0 and map <= MAP_HEADER_COUNT)
 
     -- Update in-game values
-    if gen == 4 then -- gen 4 is always considered "in game" even before the title screen, so it always returns real data
+    if _ROM.gen == 4 then -- gen 4 is always considered "in game" even before the title screen, so it always returns real data
         if in_game then
             return {
                 map_header = map,
                 map_name = map_names[map + 1],
-                trainer_x = mword(offset.trainer_x + 2),
-                trainer_y = to_signed(mword(offset.trainer_y + 2)),
-                trainer_z = mword(offset.trainer_z + 2),
-                in_battle = mbyte(offset.battle_indicator) == 0x41 and mbyte(offset.foe_count) > 0,
-                in_starter_battle = mbyte(offset.battle_indicator) == 0x41,
+                trainer_x = mword(pointers.trainer_x + 2),
+                trainer_y = to_signed(mword(pointers.trainer_y + 2)),
+                trainer_z = mword(pointers.trainer_z + 2),
+                in_battle = mbyte(pointers.battle_indicator) == 0x41 and mbyte(pointers.foe_count) > 0,
+                in_starter_battle = mbyte(pointers.battle_indicator) == 0x41,
                 in_game = true
             }
         else
@@ -172,16 +168,16 @@ function get_game_state()
     else
         if in_game then
             return {
-                -- map_matrix = mdword(offset.map_matrix),
+                -- map_matrix = mdword(pointers.map_matrix),
                 map_header = map,
                 map_name = map_names[map + 1],
-                trainer_x = mword(offset.trainer_x + 2),
-                trainer_y = to_signed(mword(offset.trainer_y + 2)),
-                trainer_z = mword(offset.trainer_z + 2),
-                phenomenon_x = mword(offset.phenomenon_x + 2),
-                phenomenon_z = mword(offset.phenomenon_z + 2),
-                -- trainer_dir = mdword(offset.trainer_direction),
-                in_battle = mbyte(offset.battle_indicator) == 0x41 and mbyte(offset.foe_count) > 0,
+                trainer_x = mword(pointers.trainer_x + 2),
+                trainer_y = to_signed(mword(pointers.trainer_y + 2)),
+                trainer_z = mword(pointers.trainer_z + 2),
+                phenomenon_x = mword(pointers.phenomenon_x + 2),
+                phenomenon_z = mword(pointers.phenomenon_z + 2),
+                -- trainer_dir = mdword(pointers.trainer_direction),
+                in_battle = mbyte(pointers.battle_indicator) == 0x41 and mbyte(pointers.foe_count) > 0,
                 in_game = true
             }
         else
@@ -201,13 +197,13 @@ function get_game_state()
 end
 
 function frames_per_move()
-    if gen == 4 then -- Temporary
+    if _ROM.gen == 4 then -- Temporary
         return 16
     end
 
-    if mbyte(offset.on_bike) == 1 then
+    if mbyte(pointers.on_bike) == 1 then
         return 4
-    elseif mbyte(offset.running_shoes) > 0 then
+    elseif mbyte(pointers.running_shoes) > 0 then
         return 8
     end
 
