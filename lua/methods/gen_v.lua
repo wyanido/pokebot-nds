@@ -398,7 +398,7 @@ function save_game()
     touch_screen_at(218, 60)
     wait_frames(120)
 
-    while mbyte(offset.save_indicator) ~= 0 do
+    while mbyte(pointers.save_indicator) ~= 0 do
         press_sequence("A", 12)
     end
 
@@ -605,7 +605,7 @@ function catch_pokemon()
         pause_bot("No valid Poké Balls to catch the target with")
     end
 
-    while mbyte(offset.battle_menu_state) ~= 1 do
+    while mbyte(pointers.battle_menu_state) ~= 1 do
         press_sequence("B", 5)
     end
 

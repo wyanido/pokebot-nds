@@ -26,6 +26,16 @@ function update_pointers()
         -- May apply to other statics too -- research?
         pointers.foe_count = mem_shift + 0x977C
     end
+
+    -- TODO replace the methods that depend on these pointers
+    local mem_shift = mdword(0x21D2228) -- 27C1E0  --value @ 2C32B4
+
+    pointers.current_pokemon = mem_shift + 0x49E14 -- 0A is POkemon menu 0E is animation
+    pointers.foe_in_battle = pointers.current_pokemon + 0xC0 -- 2C5ff4
+    pointers.foe_status = pointers.foe_in_battle + 0x6C
+    pointers.current_hp = mword(pointers.current_pokemon + 0x4C)
+    pointers.level = mbyte(pointers.current_pokemon + 0x34)
+    pointers.foe_current_hp = mword(pointers.foe_in_battle + 0x4C)
 end
 
 local save_counter = 0
