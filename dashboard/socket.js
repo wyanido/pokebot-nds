@@ -70,7 +70,8 @@ const configTemplate = {
     save_pkx: true,
     state_backup: true,
     backup_interval: "30",
-    always_catch_shinies: true
+    always_catch_shinies: true,
+    auto_open_page: true
 }
 const statsTemplate = {
     total: {
