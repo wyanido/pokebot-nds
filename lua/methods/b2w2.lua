@@ -7,7 +7,7 @@ oshawott_ball.x = 210
 take_button.y = 130
 
 function update_pointers()
-    local offset = 0x40 and (_ROM.version == version.WHITE2) or 0x0 -- White version is offset slightly, moreso than original BW
+    local offset = (_ROM.version == version.WHITE2) and 0x40 or 0x0 -- White version is offset slightly, moreso than original BW
 
     pointers = {
         -- Bag pouches, 4 byte pairs | 0001 0004 = 4x Master Ball

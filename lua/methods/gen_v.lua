@@ -1,5 +1,5 @@
 function update_pointers()
-    local offset = 0x20 and (_ROM.version == version.WHITE) or 0x0 -- White version is offset slightly
+    local offset = (_ROM.version == version.WHITE) and 0x20 or 0x0 -- White version is offset slightly
 
     pointers = {
         -- Bag pouches, 4 byte pairs | 0001 0004 = 4x Master Ball
@@ -44,6 +44,7 @@ function update_pointers()
         battle_menu_state = mdword(0x2146A88 + offset) + 0x1367C, -- 1 on FIGHT menu, 2 on move select, 4 on switch/run after faint, 0 otherwise
         battle_bag_page = 0x022962C8 + offset,
         selected_starter = 0x02269994 + offset, -- Unconfirmed selection in gift box; 0 Snivy, 1 Tepig, 2 Oshawott, 4 Nothing
+        text_interrupt = 0x2172BA0 + offset,
 
         fishing_bite_indicator = 0x20A8362 + offset,
         fishing_no_bite = 0x21509DB + offset
