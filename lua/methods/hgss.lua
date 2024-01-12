@@ -3,13 +3,16 @@
 -----------------------
 function update_pointers()
     local mem_shift = mdword(0x21D4158)
+    -- Static Pokemon data is inconsistent between locations & resets,
+    -- so find the current offset using a relative value
+    local foe_offset = mdword(mem_shift + 0x6930)
 
     pointers = {
         party_count = mem_shift - 0x23F44,
         party_data  = mem_shift - 0x23F40,
         
-        foe_count   = mem_shift + 0x7574,
-        current_foe = mem_shift + 0x7578,
+        foe_count   = foe_offset + 0xC14,
+        current_foe = foe_offset + 0xC18,
 
         map_header  = mem_shift - 0x22DA4,
         trainer_x   = mem_shift - 0x22D9E,
@@ -18,24 +21,8 @@ function update_pointers()
         facing      = mem_shift + 0x25E88,
 
         battle_state_value = mem_shift + 0x470D4, -- 01 is FIGHT menu, 04 is Move Select, 08 is Bag,
-        battle_indicator   = 0x021E76D2 -- Static
+        battle_indicator   = 0x021E76D2, -- Static
     }
-
-    if mword(pointers.map_header) == 340 then -- Bell Tower
-        -- Wild Ho-oh's data is located at a different address to standard encounters
-        -- May apply to other statics too -- research?
-        pointers.foe_count = mem_shift + 0x977C
-    end
-
-    -- TODO replace the methods that depend on these pointers
-    local mem_shift = mdword(0x21D2228) -- 27C1E0  --value @ 2C32B4
-
-    pointers.current_pokemon = mem_shift + 0x49E14 -- 0A is POkemon menu 0E is animation
-    pointers.foe_in_battle = pointers.current_pokemon + 0xC0 -- 2C5ff4
-    pointers.foe_status = pointers.foe_in_battle + 0x6C
-    pointers.current_hp = mword(pointers.current_pokemon + 0x4C)
-    pointers.level = mbyte(pointers.current_pokemon + 0x34)
-    pointers.foe_current_hp = mword(pointers.foe_in_battle + 0x4C)
 end
 
 local save_counter = 0
