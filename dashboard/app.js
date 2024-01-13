@@ -52,13 +52,17 @@ const server = http.createServer(function (req, res) {
 
 server.listen(port, function (error) {
     if (error) {
-        console.log('An error has occurred', error);
+        console.log('An error occurred while starting the dashboard server: ', error);
     } else {
-        console.log('Web server running on port ' + port);
-
         var url = 'http://localhost:' + port + '/dashboard.html';
-        var start = (process.platform == 'darwin' ? 'open' : process.platform == 'win32' ? 'start' : 'xdg-open');
-        require('child_process').exec(start + ' ' + url);
+        var config = require('../user/config.json');
+        
+        if (config.auto_open_page) {
+            var start = (process.platform == 'darwin' ? 'open' : process.platform == 'win32' ? 'start' : 'xdg-open');
+            require('child_process').exec(start + ' ' + url);
+        }
+
+        console.log('\nDashboard started successfully. Access it at ' + url + "\n");
     }
 });
 

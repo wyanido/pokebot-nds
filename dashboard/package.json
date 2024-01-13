@@ -1,12 +1,13 @@
 {
   "name": "pknds-bot-dashboard",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "main": "app.js",
   "bin": "app.js",
   "scripts": {
     "start": "node app.js"
   },
   "pkg": {
+    "scripts": "app.js",
     "assets": [
       "assets/**/*",
       "components/**/*",

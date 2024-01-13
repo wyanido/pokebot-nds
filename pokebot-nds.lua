@@ -1,7 +1,7 @@
 -----------------------
 -- INITIALIZATION
 -----------------------
-local BOT_VERSION = "v0.5.0-alpha"
+local BOT_VERSION = "v0.6.0-alpha"
 
 console.clear()
 -- console.log("Running " .. _VERSION)
@@ -42,98 +42,88 @@ dofile("lua\\dashboard.lua")
 -- Send game info to the dashboard
 comm.socketServerSend(json.encode({
     type = "load_game",
-    data = {
-        gen = gen,
-        game = game_name
-    }
+    data = _ROM
 }) .. "\x00")
 
-last_party_checksums = {}
+party_hash = ""
 party = {}
 
-function get_party(force)
-    -- Prevent reading out of bounds in gen IV games
-    -- by pretending that the party is empty
-    if offset.party_count < 0x02000000 then
+function update_party(is_reattempt)
+    -- Prevent reading out of bounds when loading gen 4 games
+    if pointers.party_count < 0x02000000 then
         party_changed = true
-        last_party_checksums = {}
         party = {}
         return true
     end
 
-    local party_size = mbyte(offset.party_count)
+    -- Check if party data has updated
+    local party_size = mbyte(pointers.party_count)
 
-    -- Get the checksums of all party members
-    local checksums = {}
-    for i = 0, party_size - 1 do
-        table.insert(checksums, mword(offset.party_data + i * MON_DATA_SIZE + 0x06))
-    end
-
-    -- Check for changes in the party data
-    -- Necessary for only sending data to the socket when things have changed
-    if party_size == #party and not force then
-        local party_changed = false
-
-        for i = 1, #checksums, 1 do
-            if checksums[i] ~= last_party_checksums[i] then
-                party_changed = true
-                break
-            end
-        end
-
-        if not party_changed then
+    if not is_reattempt then
+        local new_hash = memory.hash_region(pointers.party_data, MON_DATA_SIZE * party_size)
+        
+        if party_hash == new_hash then
             return false
         end
-    end
 
-    -- Party changed, update info
-    console.debug("Party updated")
-    last_party_checksums = checksums
+        party_hash = new_hash
+        console.debug("Party updated")
+    end
+    
+    -- Read new party data
     local new_party = {}
 
-    for i = 1, party_size do
-        local mon = pokemon.read_data(offset.party_data + (i - 1) * MON_DATA_SIZE)
-
-        if mon then
-            mon = pokemon.enrich_data(mon)
-
-            -- Friendship is used to track egg cycles
-            -- Converts cycles to steps
+    for i = 0, party_size - 1 do
+        local mon_data = pokemon.decrypt_data(pointers.party_data + i * MON_DATA_SIZE)
+        if mon_data then
+            local mon = pokemon.parse_data(mon_data, true)
+            
+            -- Friendship value is used to store egg cycles before hatching
             if mon.isEgg == 1 then
-                mon.friendship = mon.friendship * 256
-                mon.friendship = math.max(0,
-                    mon.friendship - mbyte(offset.step_counter) - mbyte(offset.step_cycle) * 256)
+                mon.friendship = mon.friendship << 8
             end
-
+            
             table.insert(new_party, mon)
         else
-            -- If any party checksums fail, wait a frame and try again
-            console.debug("Party checksum failed at slot " .. i .. ", retrying")
-            emu.frameadvance()
-            return get_party(true)
+            -- If any party checksums fail, do not process this frame
+            console.debug("Party checksum failed at slot " .. i)
+            return false
         end
     end
 
     party = new_party
 
+    -- Update party on the node server
+    comm.socketServerSend(json.encode({
+        type = "party",
+        data = {
+            party = party,
+            hash = party_hash
+        }
+    }) .. "\x00")
+
     return true
 end
 
-function get_current_foes()
+function update_foes()
     -- Make sure it's not reading garbage non-battle data
-    if mbyte(offset.battle_indicator) ~= 0x41 or mbyte(offset.foe_count) == 0 then
+    if mbyte(pointers.battle_indicator) ~= 0x41 or mbyte(pointers.foe_count) == 0 then
         foe = nil
     elseif not foe then -- Only update foe on battle start
         ::retry::
         local foe_table = {}
-        local foe_count = mbyte(offset.foe_count)
+        local foe_count = mbyte(pointers.foe_count)
 
         for i = 1, foe_count do
-            local mon = pokemon.read_data(offset.current_foe + (i - 1) * MON_DATA_SIZE)
-
-            if mon then
-                mon = pokemon.enrich_data(mon)
-
+            local mon_data = pokemon.decrypt_data(pointers.current_foe + (i - 1) * MON_DATA_SIZE)
+            
+            if mon_data then
+                local mon = pokemon.parse_data(mon_data, true)
+                
+                if config.save_pkx and pokemon.matches_ruleset(mon, config.target_traits) then
+                    pokemon.export_pkx(mon_data)
+                end
+                
                 table.insert(foe_table, mon)
             else
                 console.debug("Foe checksum failed at slot " .. i .. ", retrying")
@@ -147,19 +137,20 @@ function get_current_foes()
 end
 
 function get_game_state()
-    local map = mword(offset.map_header)
+    local map = mword(pointers.map_header)
     local in_game = (map ~= 0x0 and map <= MAP_HEADER_COUNT)
 
     -- Update in-game values
-    if gen == 4 then -- gen 4 is always considered "in game" even before the title screen, so it always returns real data
+    if _ROM.gen == 4 then -- gen 4 is always considered "in game" even before the title screen, so it always returns real data
         if in_game then
             return {
                 map_header = map,
                 map_name = map_names[map + 1],
-                trainer_x = mword(offset.trainer_x + 2),
-                trainer_y = to_signed(mword(offset.trainer_y + 2)),
-                trainer_z = mword(offset.trainer_z + 2),
-                in_battle = mbyte(offset.battle_indicator) == 0x41 and mbyte(offset.foe_count) > 0,
+                trainer_x = mword(pointers.trainer_x + 2),
+                trainer_y = to_signed(mword(pointers.trainer_y + 2)),
+                trainer_z = mword(pointers.trainer_z + 2),
+                in_battle = mbyte(pointers.battle_indicator) == 0x41 and mbyte(pointers.foe_count) > 0,
+                in_starter_battle = mbyte(pointers.battle_indicator) == 0x41,
                 in_game = true
             }
         else
@@ -175,16 +166,16 @@ function get_game_state()
     else
         if in_game then
             return {
-                -- map_matrix = mdword(offset.map_matrix),
+                -- map_matrix = mdword(pointers.map_matrix),
                 map_header = map,
                 map_name = map_names[map + 1],
-                trainer_x = mword(offset.trainer_x + 2),
-                trainer_y = to_signed(mword(offset.trainer_y + 2)),
-                trainer_z = mword(offset.trainer_z + 2),
-                phenomenon_x = mword(offset.phenomenon_x + 2),
-                phenomenon_z = mword(offset.phenomenon_z + 2),
-                -- trainer_dir = mdword(offset.trainer_direction),
-                in_battle = mbyte(offset.battle_indicator) == 0x41 and mbyte(offset.foe_count) > 0,
+                trainer_x = mword(pointers.trainer_x + 2),
+                trainer_y = to_signed(mword(pointers.trainer_y + 2)),
+                trainer_z = mword(pointers.trainer_z + 2),
+                phenomenon_x = mword(pointers.phenomenon_x + 2),
+                phenomenon_z = mword(pointers.phenomenon_z + 2),
+                -- trainer_dir = mdword(pointers.trainer_direction),
+                in_battle = mbyte(pointers.battle_indicator) == 0x41 and mbyte(pointers.foe_count) > 0,
                 in_game = true
             }
         else
@@ -204,13 +195,13 @@ function get_game_state()
 end
 
 function frames_per_move()
-    if gen == 4 then -- Temporary
+    if _ROM.gen == 4 then -- Temporary
         return 16
     end
 
-    if mbyte(offset.on_bike) == 1 then
+    if mbyte(pointers.on_bike) == 1 then
         return 4
-    elseif mbyte(offset.running_shoes) > 0 then
+    elseif mbyte(pointers.running_shoes) > 0 then
         return 8
     end
 
@@ -228,16 +219,10 @@ function update_game_info(force)
             data = game_state
         }) .. "\x00")
 
-        get_current_foes()
+        update_foes()
     end
 
-    local party_changed = get_party()
-    if party_changed then
-        comm.socketServerSend(json.encode({
-            type = "party",
-            data = party
-        }) .. "\x00")
-    end
+    update_party()
 end
 
 function pause_bot(reason)
@@ -284,7 +269,7 @@ end
 -----------------------
 -- PREPARATION
 -----------------------
-console.log("Waiting for dashboard to relay bot configuration...")
+console.write("Waiting for dashboard to relay bot configuration...")
 ::poll_config::
 
 emu.frameadvance()
@@ -338,7 +323,7 @@ while true do
                 end
 
                 for i = 1, #foe, 1 do
-                    pokemon.log(foe[i])
+                    pokemon.log_encounter(foe[i])
                 end
 
                 while game_state.in_battle do

@@ -1,69 +1,58 @@
-let config;
-
-RequestAPI('config', function (error, data) {
-    if (error) {
-        console.error(error);
-        return;
-    }
-
-    config = data;
-    sendConfigToClients();
-});
 
 const configForm = document.getElementById('config-form');
-const textAreas = [...configForm.getElementsByTagName('textarea')].map(ele => ele.id);
-const fields = [...configForm.querySelectorAll('input, select')].map(ele => ele.id);
+const textAreas  = [...configForm.getElementsByTagName('textarea')].map(ele => ele.id);
+const fields     = [...configForm.querySelectorAll('input, select')].map(ele => ele.id);
 const checkboxes = [...configForm.querySelectorAll('input[type="checkbox"]')].map(ele => ele.id);
 
-var originalConfig = ''
+let config;
 
 function sendConfig() {
-    config = originalConfig
-
-    try {
-        for (var i = 0; i < textAreas.length; i++) {
-            const key = textAreas[i]
-            config[key] = jsyaml.load($('#' + key).val())
+    const sendConfigToClients = function() {
+        try {
+            for (var i = 0; i < textAreas.length; i++) {
+                const key = textAreas[i]
+                config[key] = jsyaml.load($('#' + key).val())
+            }
+        } catch (error) {
+            return error
         }
+
+        for (var i = 0; i < fields.length; i++) {
+            const field = fields[i]
+            config[field] = $('#' + field).val()
+        }
+
+        for (var i = 0; i < checkboxes.length; i++) {
+            const field = checkboxes[i]
+            config[field] = $('#' + field).prop('checked')
+        }
+
+        socketServerSend('config',
+            {
+                config: config,
+                game: $('#editing').val()
+            },
+            function (error, _) {
+                return error;
+            }
+        )
     }
-    catch (e) {
+
+    const error = sendConfigToClients()
+    
+    if (!error) {
         halfmoon.initStickyAlert({
-            content: e,
+            content: 'You may need to restart pokebot-nds.lua for the bot mode to update immediately. Other changes will take effect now.',
+            title: 'Changes saved!',
+            alertType: 'alert-success',
+        })
+    } else {
+        halfmoon.initStickyAlert({
+            content: error,
             title: 'Changes not saved',
             alertType: 'alert-danger',
         })
-        return
     }
-
-    for (var i = 0; i < fields.length; i++) {
-        const field = fields[i]
-        config[field] = $('#' + field).val()
-    }
-
-    for (var i = 0; i < checkboxes.length; i++) {
-        const field = checkboxes[i]
-        config[field] = $('#' + field).prop('checked')
-    }
-
-    PostAPI('config', {
-        config: config,
-        game: $('#editing').val()
-    }, function (e, _) {
-        if (!e) {
-            halfmoon.initStickyAlert({
-                content: 'You may need to restart pokebot-nds.lua for the bot mode to update immediately. Other changes will take effect now.',
-                title: 'Changes saved!',
-                alertType: 'alert-success',
-            })
-            return;
-        }
-
-        halfmoon.initStickyAlert({
-            content: e,
-            title: 'Changes not saved',
-            alertType: 'alert-danger',
-        })
-    })
 }
 
 function updateOptionVisibility() {
@@ -72,6 +61,7 @@ function updateOptionVisibility() {
     $('#option_auto_catch').hide();
     $('#option_webhook').hide();
     $('#option_ping_user').hide();
+    $('#option_backup_interval').hide();
 
     const mode = $('#mode').val();
 
@@ -89,6 +79,10 @@ function updateOptionVisibility() {
 
     if ($('#auto_catch').prop('checked')) {
         $('#option_auto_catch').show();
+    }
+
+    if ($('#state_backup').prop('checked')) {
+        $('#option_backup_interval').show();
     }
 
     if ($('#webhook_enabled').prop('checked')) {
@@ -115,36 +109,8 @@ function setEditableGames(clients) {
     $('#editing').val(selected);
 }
 
-// Hide values not relevant to the current bot mode
-const form = document.querySelector('fieldset');
-form.addEventListener('change', function () {
-    updateOptionVisibility()
-});
-
-// Allow tab indentation in textareas
-const textareas = document.getElementsByTagName('textarea');
-const count = textareas.length;
-for (var i = 0; i < count; i++) {
-    textareas[i].onkeydown = function (e) {
-        if (e.key == 'Tab') {
-            e.preventDefault();
-            var s = this.selectionStart;
-            this.value = this.value.substring(0, this.selectionStart) + '  ' + this.value.substring(this.selectionEnd);
-            this.selectionEnd = s + 2;
-        }
-    }
-}
-
-// Ctrl + S shortcut
-document.addEventListener('keydown', function (e) {
-    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-        e.preventDefault();
-        sendConfig();
-    }
-});
-
-function sendConfigToClients() {
-    originalConfig = config
+function populateConfigForm() {
+    // originalConfig = config
 
     for (var i = 0; i < textAreas.length; i++) {
         const key = textAreas[i]
@@ -166,7 +132,7 @@ function sendConfigToClients() {
 }
 
 function updateClientInfo() {
-    RequestAPI('clients', (error, clients) => {
+    socketServerGet('clients', (error, clients) => {
         if (!error) {
             setBadgeClientCount(clients.length);
             setEditableGames(clients)
@@ -174,9 +140,51 @@ function updateClientInfo() {
     })
 };
 
+function testWebhook() {
+    socketServerSend('test_webhook', function (e, _) { })
+}
+
+// Hide values not relevant to the current bot mode
+const form = document.querySelector('fieldset');
+form.addEventListener('change', function () {
+    updateOptionVisibility()
+});
+
+// Allow tab indentation in textareas
+const textareas = document.getElementsByTagName('textarea');
+const count = textareas.length;
+for (var i = 0; i < count; i++) {
+    textareas[i].onkeydown = function (e) {
+        if (e.key == 'Tab') {
+            e.preventDefault();
+            var s = this.selectionStart;
+            this.value = this.value.substring(0, this.selectionStart) + '  ' + this.value.substring(this.selectionEnd);
+            this.selectionEnd = s + 2;
+        }
+    }
+}
+
+socketServerGet('config', function (error, data) {
+    if (error) {
+        console.error(error);
+        return;
+    }
+
+    config = data;
+    populateConfigForm();
+});
+
+// Ctrl + S shortcut
+document.addEventListener('keydown', function (e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        sendConfig();
+    }
+});
+
 updateClientInfo();
 
-RequestAPI('config', function (error, config) {
+socketServerGet('config', function (error, config) {
     if (error) {
         console.error(error);
         return;
@@ -188,7 +196,3 @@ RequestAPI('config', function (error, config) {
         updateClientInfo();
     }, interval);
 })
-
-function testWebhook() {
-    RequestAPI('test_webhook', function (e, _) { })
-}

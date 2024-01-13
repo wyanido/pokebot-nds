@@ -1,10 +1,10 @@
-console.log("\nTrying to establish a connection to the dashboard...")
+console.write("\nTrying to establish a connection to the dashboard...")
 
 comm.socketServerSetTimeout(50)
 comm.socketServerSetIp("127.0.0.1") -- Refreshes the connection, the dashboard suppresses the disconnect error this usually causes in favour of an easy solution
 comm.socketServerSend('{"type":"comm_check"}' .. "\x00")
 
-console.log("Dashboard connected at server " .. comm.socketServerGetInfo())
+console.log(" Connected!")
 comm.socketServerSetTimeout(5)
 
 config = nil
@@ -38,10 +38,10 @@ function poll_dashboard_response()
 
 	if response.type == "apply_config" then
 		if config == nil then
-			console.log("Config initialised!")
+			console.log(" Initialised!")
 			console.log("---------------------------")
 		else
-			console.debug("Config Updated")
+			console.debug("Config updated")
 		end
 
 		config = response.data.config

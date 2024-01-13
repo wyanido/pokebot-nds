@@ -1,10 +1,32 @@
 
 let elapsedStart;
 let elapsedInterval;
-var gameTab = 0;
+let gameTab = 0;
 
 let recentEncounters;
 let recentTargets;
+
+/* 
+    Hashes are used to determine whether value changes
+    should be reflected to minimise page updates
+*/
+let partyHashes = [];
+let shownValuesHashes = [];
+
+function hashObject(obj) {
+    const jsonString = JSON.stringify(obj);
+    
+    if (!jsonString) return null
+    
+    var hash = 0;
+    for (var i = 0; i < jsonString.length; i++) {
+        var code = jsonString.charCodeAt(i);
+        hash = ((hash << 5) - hash) + code;
+        hash = hash & hash;
+    }
+    
+    return hash;
+}
 
 function updateBnp() {
     var binomialDistribution = function (b, a) {
@@ -12,120 +34,157 @@ function updateBnp() {
         return 100 * (c * Math.pow(- (1 / (a - 1)), b) - c);
     }
 
-    var rate = $('#shiny-rate').val();
-    var seen = document.getElementById('phase-seen').innerHTML;
-    var chance = binomialDistribution(seen, 1 / rate);
-    var cumulativeOdds = Math.floor(chance * 100) / 100;
+    const rate = $('#shiny-rate').val();
+    const seen = document.getElementById('phase-seen').innerHTML;
+    const chance = binomialDistribution(seen, 1 / rate);
+    const cumulativeOdds = Math.floor(chance * 100) / 100;
 
     if (cumulativeOdds == 100 || isNaN(cumulativeOdds)) cumulativeOdds = '99.99'
     document.getElementById('bnp').innerHTML = cumulativeOdds.toString() + '%';
 }
 
-function displayClientParty(index, party) {
-    var ele = 'party-template-' + index.toString();
-    $('#' + ele).remove()
+const partyContainer = $('#game-party')
+const partyMonTemplate = $('#party-mon-template');
+const partyEggTemplate = $('#party-egg-template');
+const partyTemplate = $('#party-template');
 
-    if (!party) return
-
-    var party_mon_template = $('#party-mon-template');
-    jQuery.tmpl()
-    var party_template = $('#party-template').tmpl();
-    $('#game-party').append(party_template)
-
-    for (var i = 0; i < 6; i++) {
-        var mon = party[i]
-
-        if (!mon) break
-
-        if (mon.isEgg) {
-            party_mon_template = $('#party-egg-template')
-        } else {
-            mon.folder = mon.shiny ? 'shiny/' : '';
-            mon.shiny = mon.shiny ? '✨' : '';
-
-            if (mon.altForm > 0) mon.species = mon.species + '-' + mon.altForm.toString()
-            mon.fainted = mon.currentHP == 0 ? 'opacity: 0.5' : '';
-        }
-
-        mon.gender = mon.gender == 'Genderless' ? 'none' : mon.gender.toLowerCase()
-        mon.name = '(' + mon.name + ')'
-        mon.pid = mon.pid.toString(16).toUpperCase().padEnd(8, '0');
-        // mon.rating = rating_stars(mon.rating)
-
-        // Get Pokerus strain
-        var x = mon.pokerus << 8;
-        var y = mon.pokerus & 0xF;
+function displayClientParty(tabIndex, party) {
+    const getPokerusStrain = function (value) {
+        const x = value << 8;
+        const y = value & 0xF;
 
         if (x > 0) {
             if (y == 0) {
-                mon.pokerus = 'cured'
+                return 'cured';
             } else {
-                mon.pokerus = 'infected'
+                return 'infected';
             }
         } else {
-            mon.pokerus = 'none'
+            return 'none';
         }
-
-        party_template.append(party_mon_template.tmpl(mon))
     }
 
-    if (gameTab != index) party_template.hide()
-    party_template.attr('id', ele)
+    // Update existing party element, otherwise create a new template
+    const eleName = 'party-template-' + tabIndex.toString();
+    const existing = $('#' + eleName);
+    const ele = existing.length ? existing.detach() : partyTemplate.tmpl();
+
+    if (existing.length) {
+        ele.empty()
+    } else {
+        ele.attr('id', eleName);
+    }
+
+    if (!party) return
+
+    for (var i = 0; i < 6; i++) {
+        const mon = party[i]
+
+        if (!mon) break
+
+        // Format Pokemon data for readability
+        mon.folder = mon.shiny ? 'shiny/' : '';
+        mon.shiny = mon.shiny ? '✨' : '';
+        mon.fainted = mon.currentHP == 0 ? 'opacity: 0.5' : '';
+        mon.gender = mon.gender == 'Genderless' ? 'none' : mon.gender.toLowerCase();
+        mon.name = '(' + mon.name + ')';
+        mon.pid = mon.pid.toString(16).toUpperCase().padEnd(8, '0');
+        mon.pokerus = getPokerusStrain(mon.pokerus);
+
+        if (mon.altForm > 0) {
+            mon.species = mon.species + '-' + mon.altForm.toString();
+        }
+
+        const template = mon.isEgg ? partyEggTemplate : partyMonTemplate;
+        ele.append(template.tmpl(mon))
+    }
+
+    partyContainer.append(ele);
 }
 
-function displayClientTabs(clients) {
-    $('#game-buttons').empty();
+const gameContainer = $('#game-info');
+const gameTemplate = $('#game-template');
 
-    if (clients.length == 0) {
-        $('#top-row').append($('#game-template').tmpl())
+function valueHasUpdated(hash, hashArray, i) {
+    return (i > hashArray.length || hash != hashArray[i])
+}
 
-        var button = $('#button-template').tmpl({ 'game': 'No game detected!' })
+function displayClientGameInfo(tabIndex, clientData) {
+    // Update existing game element, otherwise create a new template
+    const eleName = 'game-template-' + tabIndex.toString();
+    const existing = $('#' + eleName);
+    const ele = existing.length ? existing : gameTemplate.tmpl();
+
+    if (!existing.length) {
+        ele.attr('id', eleName);
+        gameContainer.append(ele);
+    }
+
+    const fieldTable = $('#field-table', ele).detach();
+    fieldTable.empty();
+
+    for (const key in clientData.shownValues) {
+        fieldTable.append(`
+            <tr>
+                <th>
+                    ${key}
+                </th>
+                <td>
+                    ${clientData.shownValues[key]}
+                </td>
+            </tr>`
+        );
+    }
+
+    ele.append(fieldTable)
+}
+
+const tabContainer = $('#game-buttons');
+const buttonTemplate = $('#button-template');
+
+function updateClientTabs(clients) {
+    const clientCount = clients.length;
+
+    if (clientCount == 0) {
+        tabContainer.empty();
+        const button = buttonTemplate.tmpl({ 'game': 'No game detected!' })
         button.attr('class', 'btn btn-primary col text-truncate')
-        $('#game-buttons').append(button)
+
+        tabContainer.append(button)
 
         displayClientParty(0, {});
         displayClientGameInfo(0, {});
         return
     }
 
-    for (var j = 0; j < clients.length; j++) {
-        var client = clients[j]
-
-        if (!client.game) continue;
-
-        var button = $('#button-template').tmpl({ 'game': client.game.replace('Pokemon', '') })
-        $('#game-buttons').append(button)
-
-        button.attr('id', 'button-template-' + j.toString())
+    // Refresh display
+    if (tabContainer.children().length != clientCount) {
+        tabContainer.empty()
     }
 
-    gameTab = Math.min(gameTab, clients.length - 1)
-    updateTabVisibility()
-    $('#button-template-' + gameTab.toString()).attr('class', 'btn btn-primary col text-truncate')
-}
+    for (var i = 0; i < clientCount; i++) {
+        const client = clients[i]
 
-function displayClientGameInfo(index, client) {
-    var ele = 'game-template-' + index.toString();
-    $('#' + ele).remove();
+        if (!client.game) continue; // Client still hasn't loaded a game
 
-    var game_template = $('#game-template').tmpl(client)
-    $('#game-info').append(game_template)
+        const buttonName = 'button-template-' + i.toString(); 
+        const existing = $('#' + buttonName);
 
-    for (const key in client.other) {
-        $('#field-table').append(`<tr><th>${key}</th><td>${client.other[key]}</td></tr>`);
+        if (!existing.length) {
+            const button = existing.length ? existing.detach() : buttonTemplate.tmpl({ 'game': client.game.replace('Pokemon', '') });
+            button.attr('id', buttonName);
+            tabContainer.append(button)
+        }
     }
 
-    if (gameTab != index) {
-        game_template.hide();
-    }
-
-    game_template.attr('id', ele);
-    $('#field-table').attr('id', '')
+    gameTab = Math.min(gameTab, clientCount - 1)
 }
 
 function updateTabVisibility() {
-    for (var i = 0; i <= $('#game-buttons').children().length; i++) {
-        var idx = i.toString()
+    const tabCount = tabContainer.children().length
+
+    for (var i = 0; i <= tabCount; i++) {
+        const idx = i.toString()
 
         if (i == gameTab) {
             $('#game-template-' + idx).show()
@@ -145,112 +204,112 @@ function selectTab(ele) {
     updateTabVisibility()
 }
 
-function setRecentlySeen(reformat = true) {
-    RequestAPI('recents', function (error, encounters) {
+const rowTemplate = $('#row-template');
+
+function displayList(log, doReformat, targetEle, limiterEle) {
+    const targetsLength = limiterEle.val() || 7;
+    const entries = log.length;
+
+    targetEle.empty();
+
+    for (var i = entries; i >= entries - targetsLength; i --) {
+        const mon = log[i]
+        if (!mon) continue;
+
+        if (doReformat && mon.altForm > 0) {
+            mon.species = mon.species + '-' + mon.altForm.toString()
+        }
+
+        const row = rowTemplate.tmpl(mon);
+
+        if (mon.shiny == true || mon.shinyValue < 8) {
+            row.attr('id', 'shiny');
+        }
+
+        targetEle.append(row)
+    }
+}
+
+const recentsEle = $('#recents');
+const recentsLimit = $('#recents-limit');
+
+function updateRecentlySeen(reformat = true) {
+    socketServerGet('recents', function (error, encounters) {
         if (error) {
             console.error(error);
             return;
         }
 
+        const updated = !recentEncounters || recentEncounters.slice(-1)[0].pid != encounters.slice(-1)[0].pid
         recentEncounters = encounters;
 
-        var template = $('#row-template');
-        var log = $('#recents')
-
-        var recentsLength = $('#recents-limit').val()
-        if (isNaN(recentsLength)) recentsLength = 7
-
-        $('#recents').empty();
-
-        for (var i = encounters.length; i >= encounters.length - recentsLength; i--) {
-            const mon = encounters[i]
-            if (!mon) continue;
-
-            if (reformat && mon.altForm > 0) mon.species = mon.species + '-' + mon.altForm.toString()
-            var row = template.tmpl(mon);
-
-            if (mon.shiny == true || mon.shinyValue < 8) {
-                row.attr('id', 'shiny');
-            }
-
-            log.append(row)
+        if (updated) {
+            displayList(
+                encounters,
+                reformat,
+                recentsEle,
+                recentsLimit
+            )
         }
     });
 }
 
-function setRecentTargets(reformat = true) {
-    RequestAPI('targets', function (error, encounters) {
+const targetsEle = $('#targets');
+const targetsLimit = $('#targets-limit');
+
+function updateRecentTargets(reformat = true) {
+    socketServerGet('targets', function (error, encounters) {
         if (error) {
             console.error(error);
             return;
         }
 
+        const updated = !recentTargets || recentTargets.slice(-1)[0].pid != encounters.slice(-1)[0].pid
         recentTargets = encounters;
-
-        var template = $('#row-template');
-        var log = $('#targets')
-
-        var targetsLength = $('#targets-limit').val()
-        if (isNaN(targetsLength)) targetsLength = 7
-
-        $('#targets').empty();
-
-        for (var i = encounters.length; i >= encounters.length - targetsLength; i--) {
-            var mon = encounters[i]
-            if (!mon) continue;
-
-            if (reformat && mon.altForm > 0) mon.species = mon.species + '-' + mon.altForm.toString()
-            var row = template.tmpl(mon);
-
-            if (mon.shiny == true || mon.shinyValue < 8) {
-                row.attr('id', 'shiny');
-            }
-
-            log.append(row)
+        
+        if (updated) {
+            displayList(
+                encounters,
+                reformat,
+                targetsEle,
+                targetsLimit
+            )
         }
     });
 }
 
-function setElapsedTime() {
-    var elapsed = Math.floor((Date.now() - elapsedStart) / 1000);
-    s = elapsed;
-    m = Math.floor(s / 60);
-    h = Math.floor(m / 60);
+const elapsedTime = $('#elapsed-time');
 
-    var time = `${h}h ${m % 60}m ${s % 60}s`;
+function updateElapsedTime() {
+    const elapsed = Math.floor((Date.now() - elapsedStart) / 1000);
+    const s = elapsed;
+    const m = Math.floor(s / 60);
+    const h = Math.floor(m / 60);
+    const time = `${h}h ${m % 60}m ${s % 60}s`;
 
-    $('#elapsed-time').empty()
-    $('#elapsed-time').append(time);
+    elapsedTime.text(time)
 }
 
-var recentEncountersEle = document.getElementById('recents-limit');
-recentEncountersEle.addEventListener('change', () => {
-    setRecentlySeen(recentEncounters, false)
-})
+let statsHash;
 
-var recentTargetsEle = document.getElementById('targets-limit');
-recentTargetsEle.addEventListener('change', () => {
-    setRecentTargets(recentTargets, false)
-})
-
-var rateEle = document.getElementById('shiny-rate');
-rateEle.addEventListener('change', () => {
-    updateBnp()
-})
-
-function setStats() {
-    RequestAPI('stats', function (error, stats) {
+function updateStats() {
+    socketServerGet('stats', function (error, stats) {
         if (error) {
             console.error(error);
             return;
         }
 
-        document.getElementById('total-seen').innerHTML = stats.total.seen
-        document.getElementById('total-shiny').innerHTML = stats.total.shiny
-        document.getElementById('total-max-iv').innerHTML = stats.total.max_iv_sum
-        document.getElementById('total-min-iv').innerHTML = stats.total.min_iv_sum
+        const hash = hashObject(stats);
+        if (statsHash == hash) return;
 
-        document.getElementById('phase-seen').innerHTML = stats.phase.seen
+        statsHash = hash;
+
+        document.getElementById('total-seen').innerHTML      = stats.total.seen
+        document.getElementById('total-shiny').innerHTML     = stats.total.shiny
+        document.getElementById('total-max-iv').innerHTML    = stats.total.max_iv_sum
+        document.getElementById('total-min-iv').innerHTML    = stats.total.min_iv_sum
+
+        document.getElementById('phase-seen').innerHTML      = stats.phase.seen
         document.getElementById('phase-lowest-sv').innerHTML = stats.phase.lowest_sv
 
         updateBnp();
@@ -258,72 +317,104 @@ function setStats() {
 };
 
 function setClients() {
-    RequestAPI('clients', function (error, clients) {
+    socketServerGet('clients', function (error, clients) {
         if (error) {
             console.error(error);
             return;
         }
 
-        setBadgeClientCount(clients.length)
-        displayClientTabs(clients);
+        const clientCount = clients.length
 
-        for (var i = 0; i < clients.length; i++) {
-            var client = clients[i];
+        setBadgeClientCount(clientCount)
+        updateClientTabs(clients);
 
-            displayClientParty(i, client.party);
-            displayClientGameInfo(i, client);
-        }
+        // Refresh displays
+        if (clientCount < gameContainer.children().length) gameContainer.empty()
+        if (clientCount < partyContainer.children().length) partyContainer.empty()
 
-        if (clients.length == 0) {
+        if (clientCount == 0) {
             clearInterval(elapsedInterval)
             elapsedStart = null;
 
-            $('#elapsed-time').empty()
-            $('#elapsed-time').append('0s')
+            $('#elapsed-time').text('0s')
+            $('#encounter-rate').text('0/h')
+            return
+        }
 
-            $('#encounter-rate').empty()
-            $('#encounter-rate').append('0/h')
-        } else if (!elapsedStart) {
+        for (var i = 0; i < clientCount; i++) {
+            const client = clients[i];
+
+            // Update client party display if data changed
+            if (partyContainer.children().length != clientCount || valueHasUpdated(client.party_hash, partyHashes, i)) {
+                displayClientParty(i, client.party);
+                partyHashes[i] = client.party_hash
+            }
+            
+            if (gameContainer.children().length != clientCount || valueHasUpdated(hashObject(client.shownValues), shownValuesHashes, i)) {
+                displayClientGameInfo(i, client);
+                shownValuesHashes[i] = hashObject(client.shownValues)
+            }
+        }
+
+        updateTabVisibility()
+
+        if (!elapsedStart) {
             // Start elapsed timer if a game is connected
-            RequestAPI('elapsed_start', function (error, start) {
+            socketServerGet('elapsed_start', function (error, start) {
                 if (error) {
                     console.error(error);
                     return;
                 }
 
                 elapsedStart = start;
-                elapsedInterval = setInterval(setElapsedTime, 1000);
-                setElapsedTime();
+                elapsedInterval = setInterval(updateElapsedTime, 1000);
+                updateStatBadges();
             });
         }
     })
 };
 
-function setEncounterRate() {
-    RequestAPI('encounter_rate', function (error, rate) {
+const encounterRate = $('#encounter-rate');
+
+function updateEncounterRate() {
+    socketServerGet('encounter_rate', function (error, rate) {
         if (error) {
             console.error(error);
             return;
         }
 
-        console.log(rate);
-
-        $('#encounter-rate').empty()
-        $('#encounter-rate').append(rate + '/h');
+        encounterRate.text(`${rate}/h`)
     })
 }
 
-function updatePage() {
-    setStats()
-    setClients()
-    setRecentTargets()
-    setRecentlySeen()
-    setEncounterRate()
+function updateStatBadges() {
+    updateEncounterRate()
+    updateElapsedTime()
 }
 
-updatePage();
+function updatePage() {
+    updateStats()
+    setClients()
+    updateRecentTargets()
+    updateRecentlySeen()
+}
 
-RequestAPI('config', function (error, config) {
+const recentEncountersEle = document.getElementById('recents-limit');
+recentEncountersEle.addEventListener('change', () => {
+    updateRecentlySeen(recentEncounters, false)
+})
+
+const recentTargetsEle = document.getElementById('targets-limit');
+recentTargetsEle.addEventListener('change', () => {
+    updateRecentTargets(recentTargets, false)
+})
+
+const rateEle = document.getElementById('shiny-rate');
+rateEle.addEventListener('change', () => {
+    updateBnp()
+})
+
+socketServerGet('config', function (error, config) {
     if (error) {
         console.error(error);
         return;
@@ -336,3 +427,4 @@ RequestAPI('config', function (error, config) {
     }, interval);
 })
 
+updatePage();

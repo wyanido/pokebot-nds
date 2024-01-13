@@ -23,9 +23,8 @@ const configTemplate = {
     starter0: true,
     starter1: true,
     starter2: true,
-    move_direction: "Horizontal",
+    move_direction: "horizontal",
     target_traits: {
-        shiny: true,
         iv_sum: 180
     },
     pokeball_override: {
@@ -58,7 +57,7 @@ const configTemplate = {
     battle_non_targets: false,
     auto_catch: false,
     target_log_limit: "30",
-    inactive_client_timeout: "5000",
+    inactive_client_timeout: "15000",
     dashboard_poll_interval: "330",
     inflict_status: false,
     false_swipe: false,
@@ -67,7 +66,10 @@ const configTemplate = {
     webhook_enabled: false,
     ping_user: false,
     user_id: "",
-    show_status: true
+    show_status: true,
+    save_pkx: true,
+    always_catch_shinies: true,
+    auto_open_page: true
 }
 const statsTemplate = {
     total: {
@@ -82,15 +84,15 @@ const statsTemplate = {
     }
 };
 
-// Create user folder if it doesn't exist
+// Create /user and subfolders if it doesn't exist
 const userDir = '../user';
 
-try {
-    if (!fs.existsSync(userDir)) {
-        fs.mkdirSync(userDir);
-    }
-} catch (err) {
-    console.error(err);
+if (!fs.existsSync(userDir)) {
+    fs.mkdirSync(userDir);
+}
+
+if (!fs.existsSync(userDir + "/targets")) {
+    fs.mkdirSync(userDir + "/targets");
 }
 
 var recents = readJSONFromFile('../user/encounters.json', []);
@@ -106,67 +108,80 @@ objectSubstitute(config, configTemplate)
 writeJSONToFile('../user/config.json', config)
 
 // Discord 'playing' status
+const Version = {
+    DIAMOND: 0,
+    PEARL: 1,
+    PLATINUM: 2,
+    HEARTGOLD: 3,
+    SOULSILVER: 4,
+    BLACK: 5,
+    WHITE: 6,
+    BLACK2: 7,
+    WHITE2: 8
+}
+
+process.on('uncaughtException', function (err) {
+    console.log(err);
+});
+
 if (config.show_status) {
     DiscordRPC = require('discord-rich-presence')('1140996615784636446');
 
-    // Prevent DiscordRPC from crashing the whole app
-    process.on('unhandledRejection', (reason, promise) => {
-        console.error(reason);
+    DiscordRPC.on('error', (reason, _promise) => {
+        console.error(`Discord RPC ${reason}`);
     });
 
-    setInterval(() => {
-        // Default status
-        let status = {
-            state: 'Idling',
-            largeImageKey: 'none',
-            startTimestamp: null,
-            instance: false,
-        }
-
-        if (clientData.length > 0) {
-            const game = clientData[0].game;
-            if (!game) return;
-
-            // Get game-specific icon
-            // TODO set this value in game_setup.lua, it's used a few times
-            let icon;
-
-            if (game.includes("Diamond")) {
-                icon = 'diamond';
-            } else if (game.includes("Pearl")) {
-                icon = 'pearl';
-            } else if (game.includes("Platinum")) {
-                icon = 'platinum';
-            } else if (game.includes("Gold")) {
-                icon = 'heartgold';
-            } else if (game.includes("Silver")) {
-                icon = 'soulsilver';
-            } else if (game.includes("Black") && game.includes("2")) {
-                icon = 'black2';
-            } else if (game.includes("White") && game.includes("2")) {
-                icon = 'white2';
-            } else if (game.includes("Black")) {
-                icon = 'black';
-            } else if (game.includes("White")) {
-                icon = 'white';
+    DiscordRPC.on('connected', (_status) => {
+        setInterval(() => {
+            // Default status
+            let status = {
+                state: 'Idling',
+                largeImageKey: 'none',
+                startTimestamp: null,
+                instance: false,
             }
 
-            const location = clientData[0].map_name;
-            if (location == undefined) return;
-            const moreGames = (clients.length > 1) ? `+ ${clientData.length - 1} game(s)` : ''
+            if (clientData.length > 0) {
+                const game = clientData[0].game;
+                if (!game) return;
 
-            status.largeImageKey = icon;
-            status.details = `📍${location} ${moreGames}`;
-            status.state = `${stats.total.seen} seen (${stats.total.shiny}✨) at ${encounterRate}/h`;
-            status.startTimestamp = elapsedStart;
-        }
+                // Get game-specific icon
+                let icon;
 
-        DiscordRPC.updatePresence(status);
-    }, 2500);
+                switch (clientData[0].version) {
+                    case Version.DIAMOND: icon = "diamond"; break;
+                    case Version.PEARL: icon = "pearl"; break;
+                    case Version.PLATINUM: icon = "platinum"; break;
+                    case Version.HEARTGOLD: icon = "heartgold"; break;
+                    case Version.SOULSILVER: icon = "soulsilver"; break;
+                    case Version.BLACK: icon = "black"; break;
+                    case Version.WHITE: icon = "white"; break;
+                    case Version.BLACK2: icon = "black2"; break;
+                    case Version.WHITE2: icon = "white2"; break;
+                }
+
+                const location = clientData[0].map_name;
+                if (location == undefined) return;
+                const moreGames = (clients.length > 1) ? `+ ${clientData.length - 1} game(s)` : ''
+
+                status.largeImageKey = icon;
+                status.details = `📍${location} ${moreGames}`;
+                status.state = `${stats.total.seen} seen (${stats.total.shiny}✨) at ${encounterRate}/h`;
+                status.startTimestamp = elapsedStart;
+            }
+
+            DiscordRPC.updatePresence(status);
+        }, 2500)
+    }
+    );
+}
+
+function getTimestamp() {
+    return new Date().toLocaleTimeString()
 }
 
 const server = net.createServer((socket) => {
-    console.log('Client %d connected', clients.length);
+    console.log('[%s] Emulator %d connected', getTimestamp(), clients.length + 1)
     clients.push(socket);
     socketSetTimeout(socket);
 
@@ -204,15 +219,16 @@ const server = net.createServer((socket) => {
     });
 
     socket.on('end', () => {
-        console.log('Client disconnected');
+        // console.log('Client disconnected');
     });
 
-    socket.on('error', (err) => {
+    socket.on('error', (_err) => {
         // console.error('Socket error:', err);
     });
 });
 
 server.listen(port, () => {
+    console.log(`=======================================`);
     console.log(`Socket server listening for clients on port ${port}`);
 });
 
@@ -327,7 +343,7 @@ function socketSetTimeout(socket) {
         }
 
         socket.destroy()
-        console.log('Removed inactive client %d', index)
+        console.log('[%s] Emulator %d removed for inactivity', getTimestamp(), index + 1)
     }, config.inactive_client_timeout)
 }
 
@@ -407,20 +423,28 @@ function interpretClientMessage(socket, message) {
             updateEncounterLog(data);
 
             writeJSONToFile('../user/stats.json', stats);
-            return;
+            break;
         case 'seen_target':
-            webhookLogPokemon(data, client);
+            if (config.webhook_enabled) {
+                webhookLogPokemon(data, client);
+            }
+
             updateEncounterLog(data);
             updateTargetLog(data);
 
             writeJSONToFile('../user/stats.json', stats);
+            break;
         case 'party':
-            client.party = data;
+            client.party_hash = data.hash
+            client.party = data.party;
             break;
         case 'load_game':
+            console.log('[%s] Emulator %d loaded %s', getTimestamp(), clientData.length + 1, data.name);
+
             clientData[index] = {
                 gen: data.gen,
-                game: data.game
+                game: data.name,
+                version: data.version
             }
 
             if (clients.length == 1) {
@@ -431,24 +455,18 @@ function interpretClientMessage(socket, message) {
             client.map = data.map_name + " (" + data.map_header.toString() + ")";
             client.map_name = data.map_name;
             client.position = data.trainer_x.toString() + ", " + data.trainer_y.toString() + ", " + data.trainer_z.toString();
-
-            // Parse additional data as a special category
-            delete data['map_name'];
-            delete data['map_header'];
-            delete data['trainer_x'];
-            delete data['trainer_y'];
-            delete data['trainer_z'];
-            delete data['in_game'];
-            delete data['in_battle'];
-
-            // Reformat phenomenon if present
-            if ('phenomenon_x' in data) {
-                data.Phenomenon = data.phenomenon_x.toString() + ", --, " + data.phenomenon_z.toString();
-                delete data['phenomenon_x'];
-                delete data['phenomenon_z'];
+            
+            // Values displayed on the game instance's tab on the dashboard
+            var shownValues = {
+                Map: client.map,
+                Position: client.position
             }
-
-            client.other = data;
+            
+            if ('phenomenon_x' in data) {
+                shownValues.Phenomenon = data.phenomenon_x.toString() + ", --, " + data.phenomenon_z.toString();
+            }
+            
+            client.shownValues = shownValues
             break;
     }
 }

@@ -1,7 +1,54 @@
 function update_pointers()
-    offset.battle_menu_state = mdword(0x2146A88 + 0x20 * game_version) + 0x1367C
+    local offset = (_ROM.version == version.WHITE) and 0x20 or 0x0 -- White version is offset slightly
 
-    -- console.log(string.format("%08X", offset.battle_menu_state))
+    pointers = {
+        -- Bag pouches, 4 byte pairs | 0001 0004 = 4x Master Ball
+        items_pouch = 0x02233FAC + offset, -- 1240 bytes long
+        key_items_pouch = 0x02234484 + offset, -- 332 bytes long
+        tms_hms_case = 0x022345D0 + offset, -- 436 bytes long
+        medicine_pouch = 0x02234784 + offset, -- 192 bytes long
+        berries_pouch = 0x02234844 + offset, -- 234 bytes long
+
+        running_shoes = 0x0223C054 + offset, -- 0 before receiving
+
+        -- Party
+        party_count = 0x022349B0 + offset, -- 4 bytes before first index
+        party_data = 0x022349B4 + offset, -- PID of first party member
+
+        step_counter = 0x02235125 + offset,
+        step_cycle = 0x02235126 + offset,
+
+        -- Location
+        map_header = 0x0224F90C + offset,
+        trainer_x = 0x0224F910 + offset,
+        trainer_y = 0x0224F914 + offset,
+        trainer_z = 0x0224F918 + offset,
+        trainer_direction = 0x0224F924 + offset, -- 0, 4, 8, 12 -> Up, Left, Down, Right
+        on_bike = 0x0224F94C + offset,
+        encounter_table = 0x0224FFE0 + offset,
+        map_matrix = 0x02250C1C + offset,
+
+        phenomenon_x = 0x02257018 + offset,
+        phenomenon_z = 0x0225701C + offset,
+
+        egg_hatching = 0x0226DF68 + offset,
+
+        -- Battle
+        battle_indicator = 0x0226ACE6 + offset, -- 0x41 if during a battle
+        foe_count = 0x0226ACF0 + offset, -- 4 bytes before the first index
+        current_foe = 0x0226ACF4 + offset, -- PID of foe, set immediately after the battle transition ends
+
+        -- Misc
+        save_indicator = 0x021F0100 + offset, -- 1 while save menu is open
+        starter_selection_is_open = 0x022B0C40 + offset, -- 0 when opening gift, 1 at starter select
+        battle_menu_state = mdword(0x2146A88 + offset) + 0x1367C, -- 1 on FIGHT menu, 2 on move select, 4 on switch/run after faint, 0 otherwise
+        battle_bag_page = 0x022962C8 + offset,
+        selected_starter = 0x02269994 + offset, -- Unconfirmed selection in gift box; 0 Snivy, 1 Tepig, 2 Oshawott, 4 Nothing
+        text_interrupt = 0x2172BA0 + offset,
+
+        fishing_bite_indicator = 0x20A8362 + offset,
+        fishing_no_bite = 0x21509DB + offset
+    }
 end
 
 -----------------------
@@ -76,7 +123,7 @@ function pathfind_to(target)
         wait_frames(1) -- Makes movement more precise by reducing timing inconsistencies between directions
 
         -- Re-apply repel if necessary
-        while mdword(offset.text_interrupt) == 2 do
+        while mdword(pointers.text_interrupt) == 2 do
             press_sequence("Up", 1, "A", 1)
         end
     end
@@ -104,7 +151,7 @@ end
 
 function use_move_at_slot(slot)
     -- Skip text to FIGHT menu
-    while game_state.in_battle and mbyte(offset.battle_menu_state) == 0 do
+    while game_state.in_battle and mbyte(pointers.battle_menu_state) == 0 do
         press_sequence("B", 5)
     end
 
@@ -190,7 +237,7 @@ function do_battle()
 
         while game_state.in_battle and battle_state == 0 do
             press_sequence("B", 5)
-            battle_state = mbyte(offset.battle_menu_state)
+            battle_state = mbyte(pointers.battle_menu_state)
         end
 
         if not game_state.in_battle then -- Battle over
@@ -341,7 +388,7 @@ function save_game()
     -- SAVE button is at a different position before choosing starter
     if #party == 0 then -- No starter, no dex
         touch_screen_at(60, 93)
-    elseif mword(offset.map_header) == 391 then -- No dex (not a perfect fix)
+    elseif mword(pointers.map_header) == 391 then -- No dex (not a perfect fix)
         touch_screen_at(188, 88)
     else -- Standard
         touch_screen_at(60, 143)
@@ -352,7 +399,7 @@ function save_game()
     touch_screen_at(218, 60)
     wait_frames(120)
 
-    while mbyte(offset.save_indicator) ~= 0 do
+    while mbyte(pointers.save_indicator) ~= 0 do
         press_sequence("A", 12)
     end
 
@@ -363,7 +410,7 @@ end
 
 function flee_battle()
     while game_state.in_battle do
-        local battle_state = mbyte(offset.battle_menu_state)
+        local battle_state = mbyte(pointers.battle_menu_state)
 
         if battle_state == 4 then -- Fainted
             wait_frames(30)
@@ -419,7 +466,7 @@ function find_usable_ball()
     local ball_count = 0
 
     local slot = 1
-    for i = offset.items_pouch, offset.items_pouch + 1240, 4 do
+    for i = pointers.items_pouch, pointers.items_pouch + 1240, 4 do
         local item = mword(i)
         local count = mword(i + 2)
 
@@ -559,7 +606,7 @@ function catch_pokemon()
         pause_bot("No valid Poké Balls to catch the target with")
     end
 
-    while mbyte(offset.battle_menu_state) ~= 1 do
+    while mbyte(pointers.battle_menu_state) ~= 1 do
         press_sequence("B", 5)
     end
 
@@ -573,7 +620,7 @@ function catch_pokemon()
 
     local button = (ball_index - 1) % 6 + 1
     local page = math.floor((ball_index - 1) / 6)
-    local current_page = mbyte(offset.battle_bag_page)
+    local current_page = mbyte(pointers.battle_bag_page)
 
     while current_page ~= page do -- Scroll to page with ball
         if current_page < page then
@@ -592,10 +639,10 @@ function catch_pokemon()
     wait_frames(30)
     touch_screen_at(108, 176) -- USE
 
-    while mbyte(offset.battle_menu_state) ~= 1 and game_state.in_battle do -- Wait until catch failed or battle ended
+    while mbyte(pointers.battle_menu_state) ~= 1 and game_state.in_battle do -- Wait until catch failed or battle ended
         press_sequence("B", 5)
 
-        if mbyte(offset.battle_menu_state) == 4 then
+        if mbyte(pointers.battle_menu_state) == 4 then
             pause_bot("Lead fainted while trying to catch target")
         end
     end
@@ -620,7 +667,7 @@ function process_wild_encounter()
     local foe_item = false
 
     for i = 1, #foe, 1 do
-        foe_is_target = pokemon.log(foe[i]) or foe_is_target
+        foe_is_target = pokemon.log_encounter(foe[i]) or foe_is_target
 
         if foe[i].heldItem ~= "none" then
             foe_item = true
@@ -634,7 +681,7 @@ function process_wild_encounter()
     if foe_is_target then
         if double then
             wait_frames(120)
-            pause_bot("Wild Pokemon meets target specs! There are multiple opponents, so pausing for manual catch")
+            pause_bot("Wild Pokemon meets target specs! There are multiple foes, so pausing for manual catch")
         else
             if config.auto_catch then
                 while game_state.in_battle do
@@ -701,14 +748,14 @@ function mode_starters(starter)
 
     console.log("Opening Starter Selection...")
 
-    while mbyte(offset.starter_selection_is_open) ~= 1 do
+    while mbyte(pointers.starter_selection_is_open) ~= 1 do
         press_sequence("A", 5, "Down", 1)
     end
 
     console.log("Choosing Starter...")
 
-    while mbyte(offset.starter_selection_is_open) ~= 0 do
-        if mbyte(offset.selected_starter) ~= 4 then
+    while mbyte(pointers.starter_selection_is_open) ~= 0 do
+        if mbyte(pointers.selected_starter) ~= 4 then
             touch_screen_at(120, 180) -- Pick this one!
             wait_frames(5)
             touch_screen_at(240, 100) -- Yes
@@ -738,7 +785,7 @@ function mode_starters(starter)
     end
 
     mon = party[1]
-    local was_target = pokemon.log(mon)
+    local was_target = pokemon.log_encounter(mon)
 
     if was_target then
         pause_bot("Starter meets target specs")
@@ -756,7 +803,7 @@ function mode_random_encounters()
     }
 
     local function accept_interrupt_text()
-        while mdword(offset.text_interrupt) == 2 do
+        while mdword(pointers.text_interrupt) == 2 do
             press_sequence("Up", 1, "A", 1)
         end
     end
@@ -776,8 +823,8 @@ function mode_random_encounters()
 
         console.log("Attempting to start a battle...")
 
-        local dir1 = config.move_direction == "Horizontal" and "Left" or "Up"
-        local dir2 = config.move_direction == "Horizontal" and "Right" or "Down"
+        local dir1 = config.move_direction == "horizontal" and "Left" or "Up"
+        local dir2 = config.move_direction == "horizontal" and "Right" or "Down"
         
         wait_frames(60) -- Wait to regain control post-battle
         pathfind_to(home)
@@ -832,7 +879,7 @@ function mode_gift()
     end
 
     local mon = party[#party]
-    local was_target = pokemon.log(mon)
+    local was_target = pokemon.log_encounter(mon)
 
     if was_target then
         if config.save_game_after_catch then
@@ -863,7 +910,7 @@ function mode_phenomenon_encounters()
     local function accept_interrupt_text()
         local interrupted = false
 
-        while mdword(offset.text_interrupt) == 2 do
+        while mdword(pointers.text_interrupt) == 2 do
             press_sequence("Up", 1, "A", 1)
             interrupted = true
         end
@@ -888,8 +935,8 @@ function mode_phenomenon_encounters()
         ::begin::
         console.log("Running until a phenomenon spawns...")
 
-        local dir1 = config.move_direction == "Horizontal" and "Left" or "Up"
-        local dir2 = config.move_direction == "Horizontal" and "Right" or "Down"
+        local dir1 = config.move_direction == "horizontal" and "Left" or "Up"
+        local dir2 = config.move_direction == "horizontal" and "Right" or "Down"
 
         while game_state.phenomenon_x == 0 and game_state.phenomenon_z == 0 do
             move_in_direction(dir1)
@@ -1080,7 +1127,7 @@ function mode_daycare_eggs()
             end
         end
 
-        if mdword(offset.egg_hatching) == 1 then -- Interrupted by egg hatching
+        if mdword(pointers.egg_hatching) == 1 then -- Interrupted by egg hatching
             console.log("Oh?")
 
             press_sequence("B", 60)
@@ -1091,14 +1138,14 @@ function mode_daycare_eggs()
                 party_eggs[i] = party[i].isEgg
             end
 
-            while mdword(offset.egg_hatching) == 1 do
+            while mdword(pointers.egg_hatching) == 1 do
                 press_sequence(15, "B")
             end
 
             -- Find newly hatched party member and add to the log
             for i = 1, #party, 1 do
                 if party_eggs[i] == 1 and party[i].isEgg == 0 then
-                    local was_target = pokemon.log(party[i])
+                    local was_target = pokemon.log_encounter(party[i])
                     break
                 end
             end
@@ -1120,14 +1167,14 @@ end
 
 function mode_static_encounters()
     while not foe and not game_state.in_battle do
-        if mword(offset.map_header) == 152 then -- Dreamyard, Eon duo encounter
+        if mword(pointers.map_header) == 152 then -- Dreamyard, Eon duo encounter
             press_button("Right")
         end
 
         press_sequence("A", 5)
     end
 
-    foe_is_target = pokemon.log(foe[1])
+    foe_is_target = pokemon.log_encounter(foe[1])
 
     if not config.hax then
         for i = 0, 22, 1 do
@@ -1162,11 +1209,10 @@ function mode_fishing()
         press_button("Y")
         wait_frames(60)
 
-        while mword(offset.fishing_bite_indicator) ~= 0xFFF1 and mbyte(offset.fishing_no_bite) == 0 do
-            wait_frames(1)
-        end
+        while mword(pointers.fishing_bite_indicator) ~= 0xFFF1 and
+            mbyte(pointers.fishing_no_bite) == 0 do wait_frames(1) end
 
-        if mword(offset.fishing_bite_indicator) == 0xFFF1 then
+        if mword(pointers.fishing_bite_indicator) == 0xFFF1 then
             console.log("Landed a Pokémon!")
             break
         else

@@ -6,14 +6,14 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pokébot NDS</title>
-    <link href="components/halfmoon-variables.min.css" rel="stylesheet" />
+    <link href="components/common/halfmoon-variables.min.css" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
         integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://kit.fontawesome.com/b079a6b886.js" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"
         referrerpolicy="no-referrer"></script>
-    <link rel="stylesheet" href="components/tooltip.css">
+    <link rel="stylesheet" href="components/common/tooltip.css">
 </head>
 
 <body class="with-custom-webkit-scrollbars with-custom-css-scrollbars" data-dm-shortcut-enabled="true"
@@ -25,14 +25,17 @@
                 <img src="assets/pokemon-icon/201-27.png" class="icon" id="icon">
                 Pokébot NDS
             </div>
-            <span class="navbar-text text-monospace font-size-12">v0.5.0-alpha</span>
+            <span class="navbar-text text-monospace font-size-12">v0.6.0-alpha</span>
             <ul class="navbar-nav d-flex d-md-flex">
                 <li class="nav-item nav-link px-10">
                     <a href="dashboard.html">
                         <button type="button" class="btn position-relative px-10">
                             <i class="fa fa-user-circle mr-5"></i>
                             Dashboard
-                            <div id="home-button"></div>
+                            <span id="dashboard-badge" style="display: none; bottom:16px; right:-10px; font-size:10px"
+                                class="badge badge-primary position-absolute translate-middle text-bg-primary px-5">
+                                0
+                            </span>
                         </button>
                     </a>
                 </li>
@@ -86,14 +89,15 @@
                             <option value="fishing">Fishing</option>
                             <option value="daycare_eggs">Collect & Hatch Eggs</option>
                             <option disabled>-- Misc</option>
-                            <option value="voltorb_flip">Voltorb Flip</option>
+                            <option value="voltorb_flip">Voltorb Flip (HGSS)</option>
                         </select>
                         <div id="option_moving_encounters">
                             <br>
-                            <label for="move_direction">Move Direction</label>
+                            <label for="move_direction">Movement Method</label>
                             <select class="form-control" id="move_direction">
-                                <option value="Horizontal">Horizontal</option>
-                                <option value="Vertical">Vertical</option>
+                                <option value="horizontal">Horizontal</option>
+                                <option value="vertical">Vertical</option>
+                                <option value="spin">Spin (Gen IV)</option>
                             </select>
                         </div>
                         <div id="option_starters">
@@ -101,24 +105,24 @@
                             <label for="starters">Target Starters
                                 <i class="fa fa-info-circle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
                                 <div id="tooltip" role="tooltip">The bot will choose all selected starters an equal
-                                    number of times, cycling through them in order.
+                                    number of times, cycling through them in order. (Does not apply to HGSS)
                                     <div id="arrow" data-popper-arrow></div>
                                 </div>
                             </label>
                             <div id="starters">
                                 <div class="custom-switch">
                                     <input type="checkbox" id="starter0">
-                                    <label for="starter0">Snivy</label>
+                                    <label for="starter0">Snivy/Turtwig</label>
                                 </div>
                                 <br>
                                 <div class="custom-switch">
                                     <input type="checkbox" id="starter1">
-                                    <label for="starter1">Tepig</label>
+                                    <label for="starter1">Tepig/Chimchar</label>
                                 </div>
                                 <br>
                                 <div class="custom-switch">
                                     <input type="checkbox" id="starter2">
-                                    <label for="starter2">Oshawott</label>
+                                    <label for="starter2">Oshawott/Piplup</label>
                                 </div>
                             </div>
                         </div>
@@ -172,6 +176,18 @@
                     </div>
                     <div class="card">
                         <h2 class="content-title">Logging</h2>
+                        <div class="custom-switch">
+                            <input type="checkbox" id="save_pkx">
+                            <label for="save_pkx">Save target Pokémon to file
+                                <i class="fa fa-info-circle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
+                                <div id="tooltip" role="tooltip">Saves encountered target Pokémon to a .pk4/.pk5 file in
+                                    the
+                                    project's /user directory. These can be directly imported into PKHeX.
+                                    <div id="arrow" data-popper-arrow></div>
+                                </div>
+                            </label>
+                        </div>
+                        <br>
                         <label for="encounter_log_limit">Encounter Log Limit</label>
                         <input id="encounter_log_limit" min="1" type="number" class="form-control">
                         <br>
@@ -207,12 +223,41 @@
                         <br>
                         <label for="dashboard_poll_interval">Dashboard refresh interval (ms)</label>
                         <input id="dashboard_poll_interval" min="1" type="number" class="form-control">
+                        <br>
+                        <div class="custom-switch">
+                            <input type="checkbox" id="auto_open_page">
+                            <label for="auto_open_page">Open dashboard page in browser on startup</label>
+                        </div>
                     </div>
                 </div>
                 <div class="col-6">
                     <div class="card">
                         <h2 class="content-title">Target Pokémon</h2>
-                        <label for="catch">Target traits</label>
+                        <div class="custom-switch">
+                            <input type="checkbox" id="always_catch_shinies">
+                            <label for="always_catch_shinies">Always keep shiny Pokemon</label>
+                        </div>
+                        <br>
+                        <label for="catch">Target traits
+                            <i class="fa fa-info-circle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
+                            <div id="tooltip" role="tooltip">YAML format. Pokémon must meet every requirement
+                                to be considered a target. For arrays, only one item in the array must match. 
+                                Not case-sensitive.
+                                <br><br>
+                                Available traits are as follow:
+                                <br> • shiny: bool
+                                <br> • iv_sum: int <i>(greater than or equal)</i>
+                                <br> • hpIV, attackIV, defenseIV, spAttack, spDefenseIV, speedIV: int <i>(greater than or equal)</i>
+                                <br> • species: array[str]
+                                <br> • gender: str
+                                <br> • level: int <i>(greater than or equal)</i>
+                                <br> • ability: array[str]
+                                <br> • nature: array[str]
+                                <br> • move: array[str]
+                                <br> • type: array[str]
+                                <div id="arrow" data-popper-arrow></div>
+                            </div>
+                        </label>
                         <textarea class="form-control" spellcheck="false"
                             style="min-width:120px; max-width:100%; height: 120px;" id="target_traits"
                             placeholder=""></textarea>
@@ -301,11 +346,11 @@
             </fieldset>
         </div>
     </div>
-    <script src="components/halfmoon.min.js"></script>
+    <script src="components/common/halfmoon.min.js"></script>
+    <script src="components/common/popper.min.js"></script>
+    <script src="components/common/tooltip.js"></script>
     <script src="components/page.js"></script>
     <script src="components/config.js"></script>
-    <script src="components/popper.min.js"></script>
-    <script src="components/tooltip.js"></script>
 </body>
 
 </html>
