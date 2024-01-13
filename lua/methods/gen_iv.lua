@@ -9,6 +9,7 @@ function update_pointers()
     end
     
     local mem_shift = mdword(0x21C489C + offset)
+    local foe_offset = mdword(mem_shift + 0x6930)
 
     pointers = {
         party_count = mem_shift + 0xE,
@@ -560,36 +561,24 @@ end
 -- BOT ENCOUNTER MODES
 -----------------------
 function mode_static_encounters()
-    console.log("Waiting to reach overworld...")
-    wait_frames(200)
-    while mbyte(pointers.battle_indicator) == 0x1D do
-        local rand1 = math.random(3, 60)
-        press_button("A")
-        wait_frames(rand1)
+    console.log("Waiting for battle to start...")
+    
+    while not foe and not game_state.in_battle do
+        local delay = math.random(6, 21) -- Mimic imperfect human inputs
+        press_sequence("A", "Start", delay)
     end
 
-    wait_frames(60)
-    press_sequence("B", 5)
-    console.log("Entering Static Encounter...")
-    while mbyte(pointers.battle_indicator) ~= 0x41 do
-        local rand2 = math.random(3, 60)
-        wait_frames(rand2)
-        press_button("A")
-    end
-    wait_frames(100)
-    local shinyValue = pointers.foe_TID ~ pointers.foe_SID ~ ((pointers.foe_PID >> 16) & 0xFFFF) ~ (pointers.foe_PID & 0xFFFF)
-    console.log(shinyValue)
+    foe_is_target = pokemon.log_encounter(foe[1])
+
     if not config.hax then
         -- Wait for Pokémon to fully appear on screen
-        for i = 0, 22, 1 do
-            press_sequence("A", 6)
-        end
+        for i = 0, 22, 1 do press_sequence("A", 6) end
     end
 
-    if shinyValue < 8 then
+    if foe_is_target then
         pause_bot("Wild Pokémon meets target specs!")
     else
-        console.log("Wild Pokémon was not a target, resetting...")
+        console.log("Wild " .. foe[1].name .. " was not a target, resetting...")
         press_button("Power")
         wait_frames(30)
     end
@@ -597,15 +586,8 @@ function mode_static_encounters()
     -- Wait a random number of frames before mashing A next reset
     -- to decrease the odds of hitting similar seeds
     local delay = math.random(1, 90)
+    console.debug("Delaying " .. delay .. " frames...")
     wait_frames(delay)
-    --[[if config.hax then
-        process_wild_encounter()
-    else
-        while (game_state.in_battle and (pointers.battle_state_value == 0)) do
-            press_sequence("B", 5)
-        end
-    end
-    process_wild_encounter()]]
 end
 
 function mode_starters_DP(starter)

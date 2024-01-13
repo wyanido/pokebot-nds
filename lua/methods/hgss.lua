@@ -25,8 +25,6 @@ function update_pointers()
     }
 end
 
-local save_counter = 0
-
 function save_game()
     console.log("Saving game...")
     touch_screen_at(125, 75)
@@ -143,34 +141,4 @@ function mode_voltorb_flip()
     end
 
     press_sequence("A", 9)
-end
-
-function mode_static_encounters()
-    console.log("Waiting for battle to start...")
-    
-    while not foe and not game_state.in_battle do
-        local delay = math.random(6, 21) -- Mimic imperfect human inputs
-        press_sequence("A", delay)
-    end
-
-    foe_is_target = pokemon.log_encounter(foe[1])
-
-    if not config.hax then
-        -- Wait for Pokémon to fully appear on screen
-        for i = 0, 22, 1 do press_sequence("A", 6) end
-    end
-
-    if foe_is_target then
-        pause_bot("Wild Pokémon meets target specs!")
-    else
-        console.log("Wild " .. foe[1].name .. " was not a target, resetting...")
-        press_button("Power")
-        wait_frames(30)
-    end
-
-    -- Wait a random number of frames before mashing A next reset
-    -- to decrease the odds of hitting similar seeds
-    local delay = math.random(1, 90)
-    console.debug("Delaying " .. delay .. " frames...")
-    wait_frames(delay)
 end

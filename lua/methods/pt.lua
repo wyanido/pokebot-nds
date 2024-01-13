@@ -5,13 +5,16 @@
 
 function update_pointers()
 	local mem_shift = mdword(0x21C0794)
+	-- Static Pokemon data is inconsistent between locations & resets,
+    -- so find the current offset using a relative value	
+	local foe_offset = mdword(mem_shift + 0x217A8)
 	
 	pointers = {
 		party_count = mem_shift + 0xB0,
 		party_data  = mem_shift + 0xB4,
 
-		foe_count 	= mem_shift + 0x28AE0,
-		current_foe = mem_shift + 0x28AE4,
+		foe_count 	= foe_offset - 0x2D5C,
+		current_foe = foe_offset - 0x2D58,
 		
 		map_header	= mem_shift + 0x1294,
 		trainer_x 	= mem_shift + 0x129A,
@@ -22,10 +25,8 @@ function update_pointers()
 		battle_state_value = mem_shift + 0x44878, -- 01 is FIGHT menu, 04 is Move Select, 08 is Bag,
 		battle_indicator   = 0x021D18F2 -- static
 	}
-
-	-- TODO replace the methods that depend on these pointers
-	local mem_shift = mdword(0x21C0794)
 	
+	-- TODO replace the methods that depend on these pointers
 	pointers.in_starter_battle = mbyte(pointers.battle_indicator)
 	pointers.current_pokemon   = mem_shift + 0x475B8        -- 0A is POkemon menu 0E is animation
 	pointers.foe_in_battle	   = pointers.current_pokemon + 0xC0
