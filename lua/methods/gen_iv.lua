@@ -9,14 +9,14 @@ function update_pointers()
     end
     
     local mem_shift = mdword(0x21C489C + offset)
-    local foe_offset = mdword(mem_shift + 0x6930)
+    local foe_offset = mdword(mem_shift + 0x226FE)
 
     pointers = {
         party_count = mem_shift + 0xE,
         party_data  = mem_shift + 0x12,
 
-        foe_count   = mem_shift + 0x299CE,
-        current_foe = mem_shift + 0x299D2,
+        foe_count   = foe_offset - 0x2B74,
+        current_foe = foe_offset - 0x2B70,
 
         map_header  = mem_shift + 0x11B2,
         trainer_x   = mem_shift + 0x11B8,
@@ -27,8 +27,6 @@ function update_pointers()
         battle_state_value  = mem_shift + 0x44878,        
         battle_indicator    = 0x021A1B2A + offset -- mostly static
     }
-
-    -- console.log(string.format("%08X", mbyte(pointers.facing)))
 end
 
 local save_counter = 0
@@ -565,7 +563,7 @@ function mode_static_encounters()
     
     while not foe and not game_state.in_battle do
         local delay = math.random(6, 21) -- Mimic imperfect human inputs
-        press_sequence("A", "Start", delay)
+        press_sequence("A", delay)
     end
 
     foe_is_target = pokemon.log_encounter(foe[1])
