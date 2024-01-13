@@ -29,51 +29,43 @@ function update_pointers()
     }
 end
 
-local save_counter = 0
 -----------------------
 -- MISC. BOT ACTIONS
 -----------------------
 
 function save_game()
-    wait_frames(100)
     console.log("Saving game...")
     hold_button("X")
     wait_frames(20)
     release_button("X")
-    console.log("Starting Map Check...")
+    
     -- SAVE button is at a different position before choosing starter
     if mword(pointers.map_header) == 0156 then -- No dex (not a perfect fix)
         while mbyte(0x021C4C86) ~= 04 do
             press_sequence("Up", 10)
         end
     else
-        console.log("Not on first route...")
         while mbyte(0x021C4C86) ~= 07 do
             press_sequence("Up", 10)
         end
     end
+
     press_sequence("A", 10)
-    console.log("Pressing A")
     hold_button("B")
-    console.log("Holding B")
     wait_frames(100)
     release_button("B")
     press_button("A")
-    console.log("Pressing A")
     wait_frames(30)
     hold_button("B")
-    console.log("Holding B")
     wait_frames(100)
     release_button("B")
-    console.log("Starting to save")
     press_sequence("A", 5)
+
     while pointers.saveFlag == 00 do
         press_sequence("B", 5)
     end
 
-    console.log("Saving ram")
     client.saveram() -- Flush save ram to the disk	
-
     wait_frames(50)
 end
 
@@ -110,33 +102,6 @@ function check_status()
         end
     end
     console.log("Lead Pokemon is OK, continuing search...")
-end
-
-function move_vertically(target)
-    while target ~= game_state.trainer_z do
-        local dz = target - game_state.trainer_z
-        local button = dz > 0 and "Down" or "Up"
-        hold_button("B")
-        hold_button(button)
-        if dz < 2 then
-            release_button("B")
-        end
-    end
-    clear_all_inputs()
-end
-
-function move_horizontally(target)
-    while target ~= game_state.trainer_x do
-        local dx = target - game_state.trainer_x
-        local button = dx > 0 and "Right" or "Left"
-
-        hold_button("B")
-        hold_button(button)
-        if dx < 2 then
-            release_button("B")
-        end
-    end
-    clear_all_inputs()
 end
 
 function get_lead_mon_index()
@@ -356,7 +321,6 @@ function do_battle()
         if not game_state.in_battle then   -- Battle over
             return
         elseif pointers.current_hp == 0 then -- Fainted or learning new move
-            console.log("My Pokemon fainted...")
             while game_state.in_battle do
                 wait_frames(400)
                 touch_screen_at(125, 135)    -- FLEE
@@ -370,14 +334,11 @@ function do_battle()
             return
         elseif pointers.foe_current_hp == 0 then
             console.log("Enemy Pokemon fainted skipping text...")
-            save_counter = save_counter + 1
-            console.log("Save counter: " .. save_counter)
             while game_state.in_battle do
                 touch_screen_at(125, 70)
-                --console.log("Gained Level skipping learn new move")
+                
                 if pointers.level ~= level then
                     for i = 1, 50, 1 do
-                        --console.log("touching screen at 125, 135")
                         touch_screen_at(125, 135)
                         wait_frames(2)
                     end
@@ -386,8 +347,7 @@ function do_battle()
                         wait_frames(2)
                     end
                     if pointers.battle_state_value == 0x6C or pointers.battle_state_value == 0x14 then
-                        --console.log(pointers.battle_state_value)
-                        console.log("EVOLVING POGGGGGGGG")
+                        -- Evolving
                         for i = 0, 300, 1 do
                             press_button("A")
                             wait_frames(2)
@@ -405,13 +365,6 @@ function do_battle()
                 end
                 wait_frames(2)
             end
-            if save_counter == 50 then
-                save_game()
-                save_counter = 0
-                return
-            else
-                return
-            end
         end
 
         wait_frames(60)
@@ -425,9 +378,8 @@ function do_battle()
             local xpos = 80 * (((best_move.index - 1) % 2) + 1)
             local ypos = 50 * (((best_move.index - 1) // 2) + 1)
             touch_screen_at(xpos, ypos) -- Select move slot
-            console.log("Attacking now...")
-            wait_frames(30)
 
+            wait_frames(30)
 
             party[1].pp[1] = move1_pp -- update moves pp for find_best_move function
             party[1].pp[2] = move2_pp
@@ -588,7 +540,7 @@ function mode_static_encounters()
     wait_frames(delay)
 end
 
-function mode_starters_DP(starter)
+function mode_starters(starter)
     if not game_state.in_game then
         console.log("Waiting to reach overworld...")
 
@@ -637,77 +589,6 @@ function mode_starters_DP(starter)
         console.log("Starter was not a target, resetting...")
         press_button("Power")
         wait_frames(180)
-    end
-end
-
-function mode_starters(starter) --starters for platinum
-    console.log("Waiting to reach overworld...")
-    wait_frames(200)
-
-    while mbyte(pointers.battle_indicator) == 0x1D do
-        local rand1 = math.random(3, 60)
-        console.log(rand1)
-        press_button("A")
-        wait_frames(rand1)
-    end
-
-    while mbyte(pointers.battle_indicator) ~= 0xFF do
-        local rand2 = math.random(3, 60)
-        wait_frames(rand2)
-        press_button("A")
-        wait_frames(rand2)
-    end
-    --we can save right in front of the bag in platinum so all we have to do is open and select are starter
-
-    -- Open briefcase and skip through dialogue until starter select
-    console.log("Skipping dialogue to briefcase")
-    local selected_starter = mdword(0x2101DEC) + 0x203E8 -- 0: Turtwig, 1: Chimchar, 2: Piplup
-    local starters_ready = selected_starter + 0x84       -- 0 before hand appears, A94D afterwards
-
-    while not (mdword(starters_ready) > 0) do
-        press_button("B")
-        wait_frames(2)
-    end
-
-    -- Need to wait for hand to be visible to find offset
-    console.log("Selecting starter...")
-
-    -- Highlight and select target
-    while mdword(selected_starter) < starter do
-        press_sequence("Right", 10)
-    end
-
-    while #party == 0 do
-        press_sequence("A", 6)
-    end
-
-    console.log("Waiting to see starter...")
-    if config.hax then
-        mon = party[1]
-        local was_target = pokemon.log(mon)
-        if was_target then
-            pause_bot("Starter meets target specs!")
-        else
-            press_button("Power")
-        end
-    else
-        while pointers.in_starter_battle ~= 0x41 do
-            skip_dialogue()
-        end
-        while pointers.in_starter_battle == 0x41 and pointers.battle_state_value == 0 do
-            press_sequence("B", 5)
-        end
-        wait_frames(50)
-        mon = party[1]
-        local was_target = pokemon.log(mon)
-        if was_target then
-            pause_bot("Starter meets target specs!")
-        else
-            console.log("Starter was not a target, resetting...")
-            selected_starter = 0
-            starters_ready = 0
-            press_button("Power")
-        end
     end
 end
 

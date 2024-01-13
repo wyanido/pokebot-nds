@@ -57,7 +57,7 @@ const configTemplate = {
     battle_non_targets: false,
     auto_catch: false,
     target_log_limit: "30",
-    inactive_client_timeout: "5000",
+    inactive_client_timeout: "15000",
     dashboard_poll_interval: "330",
     inflict_status: false,
     false_swipe: false,
@@ -68,8 +68,6 @@ const configTemplate = {
     user_id: "",
     show_status: true,
     save_pkx: true,
-    state_backup: true,
-    backup_interval: "30",
     always_catch_shinies: true,
     auto_open_page: true
 }

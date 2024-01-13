@@ -1,4 +1,3 @@
-
 -----------------------
 -- DP FUNCTION OVERRIDES
 -----------------------
@@ -39,4 +38,75 @@ function update_pointers()
 	pointers.foe_SID		   = mword(pointers.foe_in_battle + 0x75)
 	pointers.saveFlag		   = mbyte(mem_shift + 0x2832A)
 	pointers.fishOn			   = mbyte(0x021CF636)
+end
+
+function mode_starters(starter) --starters for platinum
+    console.log("Waiting to reach overworld...")
+    wait_frames(200)
+
+    while mbyte(pointers.battle_indicator) == 0x1D do
+        local rand1 = math.random(3, 60)
+        console.log(rand1)
+        press_button("A")
+        wait_frames(rand1)
+    end
+
+    while mbyte(pointers.battle_indicator) ~= 0xFF do
+        local rand2 = math.random(3, 60)
+        wait_frames(rand2)
+        press_button("A")
+        wait_frames(rand2)
+    end
+    --we can save right in front of the bag in platinum so all we have to do is open and select are starter
+
+    -- Open briefcase and skip through dialogue until starter select
+    console.log("Skipping dialogue to briefcase")
+    local selected_starter = mdword(0x2101DEC) + 0x203E8 -- 0: Turtwig, 1: Chimchar, 2: Piplup
+    local starters_ready = selected_starter + 0x84       -- 0 before hand appears, A94D afterwards
+
+    while not (mdword(starters_ready) > 0) do
+        press_button("B")
+        wait_frames(2)
+    end
+
+    -- Need to wait for hand to be visible to find offset
+    console.log("Selecting starter...")
+
+    -- Highlight and select target
+    while mdword(selected_starter) < starter do
+        press_sequence("Right", 10)
+    end
+
+    while #party == 0 do
+        press_sequence("A", 6)
+    end
+
+    console.log("Waiting to see starter...")
+    if config.hax then
+        mon = party[1]
+        local was_target = pokemon.log(mon)
+        if was_target then
+            pause_bot("Starter meets target specs!")
+        else
+            press_button("Power")
+        end
+    else
+        while pointers.in_starter_battle ~= 0x41 do
+            skip_dialogue()
+        end
+        while pointers.in_starter_battle == 0x41 and pointers.battle_state_value == 0 do
+            press_sequence("B", 5)
+        end
+        wait_frames(50)
+        mon = party[1]
+        local was_target = pokemon.log(mon)
+        if was_target then
+            pause_bot("Starter meets target specs!")
+        else
+            console.log("Starter was not a target, resetting...")
+            selected_starter = 0
+            starters_ready = 0
+            press_button("Power")
+        end
+    end
 end
