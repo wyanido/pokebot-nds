@@ -45,9 +45,9 @@ _Currently only English (USA, Europe) copies are supported._
 | Manual (Assisted)     | ✅ | ✅ | ✅ | ✅ |
 | Starter resets 		| ✅ | ✅ | ✅ | ✅ |
 | Random encounters		| ✅ | ✅ | ✅ | ✅ |
-| Auto-catching			| ✅ | ✅ | ✅ | ✅ |
-| Auto-battling			| ✅ | ✅ | ✅ | ✅ |
-| Pickup farming		| ✅ | ✅ | ✅ | ✅ |
+| Auto-catching			| ❔ | ➖ | ✅ | ✅ |
+| Auto-battling			| ❔ | ➖ | ✅ | ✅ |
+| Pickup farming		| ❔ | ➖ | ✅ | ✅ |
 | Gift resets 			| ➖ | ➖ | ✅ | ✅ |
 | Egg hatching			| ➖ | ➖ | ✅ | ✅ |
 | Static encounters 	| ✅ | ✅ | ✅ | ✅ |
