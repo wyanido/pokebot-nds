@@ -121,6 +121,20 @@ local mon_gender = {"Male", "Female", "Genderless"}
 local mon_nature = {"Hardy", "Lonely", "Brave", "Adamant", "Naughty", "Bold", "Docile", "Relaxed", "Impish", "Lax",
                     "Timid", "Hasty", "Serious", "Jolly", "Naive", "Modest", "Mild", "Quiet", "Bashful", "Rash", "Calm",
                     "Gentle", "Sassy", "Careful", "Quirky"}
+local char_table_iv = {"💰", "🗝️", "💿", "✉️", "💊", "🍓", "◓", "💥", "←", "↑", "↓", "→",
+                       "►", "＆", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F",
+                       "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y",
+                       "Z", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r",
+                       "s", "t", "u", "v", "w", "x", "y", "z", "À", "Á", "Â", "Ã", "Ä", "Å", "Æ", "Ç", "È",
+                       "É", "Ê", "Ë", "Ì", "Í", "Î", "Ï", "Ð", "Ñ", "Ò", "Ó", "Ô", "Õ", "Ö", "×", "Ø",
+                       "Ù", "Ú", "Û", "Ü", "Ý", "Þ", "ß", "à", "á", "â", "ã", "ä", "å", "æ", "ç", "è",
+                       "é", "ê", "ë", "ì", "í", "î", "ï", "ð", "ñ", "ò", "ó", "ô", "õ", "ö", "÷", "ø",
+                       "ù", "ú", "û", "ü", "ý", "þ", "ÿ", "Œ", "œ", "Ş", "ş", "ª", "º", "er", "re", "r",
+                       "₽", "¡", "¿", "!", "?", ", ", ".", "…", "･", "/", "‘", "’", "“", "”", "„",
+                       "«", "»", "(", ")", "♂", "♀", "+", "-", "*", "#", "=", "&", "~", ":", ";", "♠", "♣",
+                       "♥", "♦", "★", "◎", "○", "□", "△", "◇", "@", "♪", "%", "☀", "☁", "☂",
+                       "☃", "😑", "☺", "☹", "😠", "⤴︎", "⤵︎", "💤", "e", "PK", "MN", " ", " ",
+                       " ", " ", " ", "°", "_", "＿", "․", "‥"}
 
 -- Parses decrypted data into a human-readable table of key value pairs
 function pokemon.parse_data(data, enrich)
@@ -135,10 +149,10 @@ function pokemon.parse_data(data, enrich)
             end
 
             if _ROM.gen == 4 then -- Gen 4 characters have a different byte offset
-                value = value + 0x16
+                text = text .. char_table_iv[(value - 0x112) & 0xFF]
+            else
+                text = text .. utf8.char(value & 0xFF)
             end
-
-            text = text .. utf8.char(value & 0xFF)
         end
         
         return text
