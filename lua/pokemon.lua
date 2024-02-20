@@ -371,7 +371,7 @@ function pokemon.log_encounter(mon)
         console.log("Wild " .. mon.name .. " is a target!")
     end
 
-    comm.socketServerSend(json.encode({
+    dashboard:send(json.encode({
         type = msg_type,
         data = mon_new
     }) .. "\x00")

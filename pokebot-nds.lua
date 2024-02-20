@@ -27,7 +27,7 @@ console.warning = function(message)
 end
 
 -- Requirements
-json = require("lua\\json")
+json = require("lua\\modules\\json")
 dofile("lua\\input.lua")
 dofile("lua\\game_setup.lua")
 
@@ -40,7 +40,7 @@ dofile("lua\\dashboard.lua")
 -----------------------
 
 -- Send game info to the dashboard
-comm.socketServerSend(json.encode({
+dashboard:send(json.encode({
     type = "load_game",
     data = _ROM
 }) .. "\x00")
@@ -94,7 +94,7 @@ function update_party(is_reattempt)
     party = new_party
 
     -- Update party on the node server
-    comm.socketServerSend(json.encode({
+    dashboard:send(json.encode({
         type = "party",
         data = {
             party = party,
@@ -214,7 +214,7 @@ function update_game_info(force)
 
     if emu.framecount() % refresh_frames == 0 or force then
         game_state = get_game_state()
-        comm.socketServerSend(json.encode({
+        dashboard:send(json.encode({
             type = "game_state",
             data = game_state
         }) .. "\x00")
@@ -269,7 +269,7 @@ end
 -----------------------
 -- PREPARATION
 -----------------------
-console.write("Waiting for dashboard to relay bot configuration...")
+console.write("Waiting for dashboard to relay bot configuration... ")
 ::poll_config::
 
 emu.frameadvance()

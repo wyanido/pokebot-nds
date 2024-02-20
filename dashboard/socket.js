@@ -57,7 +57,6 @@ const configTemplate = {
     battle_non_targets: false,
     auto_catch: false,
     target_log_limit: "30",
-    inactive_client_timeout: "15000",
     dashboard_poll_interval: "330",
     inflict_status: false,
     false_swipe: false,
@@ -183,8 +182,7 @@ function getTimestamp() {
 const server = net.createServer((socket) => {
     console.log('[%s] Emulator %d connected', getTimestamp(), clients.length + 1)
     clients.push(socket);
-    socketSetTimeout(socket);
-
+    
     socket.write(formatClientMessage(
         'apply_config',
         { 'config': config }
@@ -199,14 +197,8 @@ const server = net.createServer((socket) => {
             var response = responses[i].trim();
 
             if (response.length > 0) {
-                clearTimeout(socket.inactivityTimeout);
-                socketSetTimeout(socket);
-
-                // Separate JSON from length prefix
-                var body = response.slice(response.indexOf(' ') + 1);
-
                 try {
-                    var message = JSON.parse(body);
+                    var message = JSON.parse(response);
 
                     interpretClientMessage(socket, message);
                 } catch (error) {
@@ -334,21 +326,8 @@ function updateTargetLog(mon) {
     return targets
 }
 
-function socketSetTimeout(socket) {
-    socket.inactivityTimeout = setTimeout(() => {
-        const index = clients.indexOf(socket);
-        if (index > -1) {
-            clients.splice(index, 1);
-            clientData.splice(index, 1);
-        }
-
-        socket.destroy()
-        console.log('[%s] Emulator %d removed for inactivity', getTimestamp(), index + 1)
-    }, config.inactive_client_timeout)
-}
-
 function formatClientMessage(type, data) {
-    var msg = JSON.stringify({
+    return JSON.stringify({
         'type': type,
         'data': data
     });
