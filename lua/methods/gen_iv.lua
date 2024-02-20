@@ -673,3 +673,57 @@ function mode_fishing()
 
     wait_frames(90)
 end
+
+function mode_gift()
+    if not game_state.in_game then
+        console.log("Waiting to reach overworld...")
+
+        while not game_state.in_game do
+            local delay = math.random(5, 30) -- Mimic imperfect human inputs
+            press_sequence("A", delay)
+        end
+    end
+
+    wait_frames(60)
+    
+    local og_party_count = #party
+    while #party == og_party_count do
+        press_sequence("A", 5)
+    end
+
+    press_sequence(180, "B", 60) -- Decline nickname
+    
+    if not config.hax then
+        -- Party menu
+        press_sequence("X", 30)
+        touch_screen_at(65, 45)
+        wait_frames(90)
+
+        touch_screen_at(80 * ((#party - 1) % 2 + 1), 30 + 50 * ((#party - 1) // 2)) -- Select gift mon
+        wait_frames(30)
+
+        touch_screen_at(200, 105) -- SUMMARY
+        wait_frames(120)
+    end
+
+    local mon = party[#party]
+    local was_target = pokemon.log_encounter(mon)
+
+    if was_target then
+        if config.save_game_after_catch then
+            console.log("Gift Pokemon meets target specs! Saving...")
+
+            if not config.hax then
+                press_sequence("B", 120, "B", 120, "B", 60) -- Exit out of menu
+            end
+
+            save_game()
+        end
+
+        pause_bot("Gift Pokemon meets target specs")
+    else
+        console.log("Gift Pokemon was not a target, resetting...")
+        press_button("Power")
+        wait_frames(60)
+    end
+end
