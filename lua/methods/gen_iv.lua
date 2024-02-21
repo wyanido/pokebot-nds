@@ -78,6 +78,13 @@ function skip_nickname()
     save_game()
 end
 
+function skip_dialogue()
+	hold_button("B")
+	press_sequence(12, "A")
+	release_button("B")
+	wait_frames(1)
+end
+
 function check_status()
     if #party == 0 or game_state.in_battle then -- Don't check party status if bot was started during a battle
         return nil
@@ -581,7 +588,7 @@ function mode_starters(starter)
     end
 
     mon = party[1]
-    local was_target = pokemon.log(mon)
+    local was_target = pokemon.log_encounter(mon)
 
     if was_target then
         pause_bot("Starter meets target specs!")
