@@ -88,7 +88,7 @@ function mode_starters(starter) --starters for platinum
         end
     else
         while pointers.in_starter_battle ~= 0x41 do
-            skip_dialogue()
+            press_sequence(12, "A")
         end
         while pointers.in_starter_battle == 0x41 and pointers.battle_state_value == 0 do
             press_sequence("B", 5)

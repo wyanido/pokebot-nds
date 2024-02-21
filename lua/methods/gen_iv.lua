@@ -78,13 +78,6 @@ function skip_nickname()
     save_game()
 end
 
-function skip_dialogue()
-	hold_button("B")
-	press_sequence(12, "A")
-	release_button("B")
-	wait_frames(1)
-end
-
 function check_status()
     if #party == 0 or game_state.in_battle then -- Don't check party status if bot was started during a battle
         return nil
@@ -127,7 +120,7 @@ function do_pickup()
     local items = {}
 
     while not game_state.in_game do
-        skip_dialogue()
+        press_sequence(12, "A")
     end
 
     for i = 1, #party, 1 do
@@ -199,15 +192,17 @@ end
 function use_move_at_slot(slot)
     -- Skip text to FIGHT menu
     while pointers.battle_state_value == 14 do
-        skip_dialogue()
+        press_sequence(12, "A")
     end
-    console.log("Using Subdue Move")
+
     wait_frames(60)
     touch_screen_at(128, 90) -- FIGHT
     wait_frames(30)
+
     local xpos = 80 * (((slot - 1) % 2) + 1)
     local ypos = 50 * (((slot - 1) // 2) + 1)
     touch_screen_at(xpos, ypos) -- Select move slot
+
     wait_frames(60)
 end
 
@@ -435,7 +430,7 @@ function swap_lead_battle()
             touch_screen_at(xpos, ypos)
         end
         while (pointers.battle_state_value ~= 0x01) do
-            skip_dialogue()
+            press_sequence(12, "A")
         end
     end
 end
@@ -552,7 +547,7 @@ function mode_starters(starter)
         console.log("Waiting to reach overworld...")
 
         while not game_state.in_battle do
-            skip_dialogue()
+            press_sequence(12, "A")
         end
     end
 
@@ -561,7 +556,7 @@ function mode_starters(starter)
 
     -- Skip through dialogue until starter select
     while not (mdword(pointers.starters_ready) > 0) do
-        skip_dialogue()
+        press_sequence(12, "A")
     end
 
     release_button("Up")
