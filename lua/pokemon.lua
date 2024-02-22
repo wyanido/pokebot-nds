@@ -282,7 +282,7 @@ function pokemon.parse_data(data, enrich)
     mon.spDefense    = read_real(0x9A, 2)
     -- mon.mailMessage	 = read_real(0x9C, 37)
 
-    -- -- Substitute property IDs with ingame names
+    -- Substitute property IDs with ingame names
     if enrich then
         mon.name = mon_dex[mon.species + 1].name
         mon.type = mon_dex[mon.species + 1].type
@@ -301,6 +301,9 @@ function pokemon.parse_data(data, enrich)
         for _, move in ipairs(move_id) do
             table.insert(mon.moves, mon_move[move + 1])
         end
+
+        -- Keep a reference of the original data, necessary for export_pkx
+        mon.raw = data
     end
 
     return mon
@@ -326,7 +329,9 @@ function pokemon.export_pkx(data)
     
     -- Write Pokémon data to file and save in /user/targets
     local file = io.open("user/targets/" .. filename .. ".pk" .. _ROM.gen, "wb")
-    
+
+    console.log("Saved " .. mon.nickname .. " to disk as " .. filename)
+
     file:write(string.char(table.unpack(data)))
     file:close()
 end
@@ -382,7 +387,11 @@ function pokemon.log_encounter(mon)
     local msg_type = was_target and "seen_target" or "seen"
 
     if was_target then
-        console.log("Wild " .. mon.name .. " is a target!")
+        console.log(mon.name .. " is a target!")
+
+        if config.save_pkx then
+            pokemon.export_pkx(mon.raw)
+        end
     end
 
     dashboard:send(json.encode({
@@ -476,9 +485,11 @@ function pokemon.matches_ruleset(mon, ruleset)
     end
 
     -- Default trait comparison
-    if ruleset.shiny ~= mon.shiny then
-        console.debug("Mon shininess does not match ruleset")
-        return false
+    if ruleset.shiny then
+        if ruleset.shiny ~= mon.shiny then
+            console.debug("Mon shininess does not match ruleset")
+            return false
+        end
     end
 
     if ruleset.species then

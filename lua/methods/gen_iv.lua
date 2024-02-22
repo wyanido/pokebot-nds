@@ -436,11 +436,10 @@ function swap_lead_battle()
 end
 
 function catch_pokemon()
-    while (game_state.in_battle and (pointers.battle_state_value == 0)) do
+    while game_state.in_battle and pointers.battle_state_value == 0 do
         press_sequence("B", 5)
     end
     if config.auto_catch then
-        console.log("Attempting to catch pokemon now...")
         if config.inflict_status or config.false_swipe then
             subdue_pokemon()
         end
@@ -448,10 +447,12 @@ function catch_pokemon()
             press_sequence("B", 5)
         end
         wait_frames(60)
+        
         ::retry::
         while pointers.battle_state_value ~= 01 do
             press_sequence("B", 5)
         end
+
         wait_frames(10)
         touch_screen_at(40, 170)
         wait_frames(50)
@@ -461,14 +462,12 @@ function catch_pokemon()
         wait_frames(20)
         touch_screen_at(100, 170)
         wait_frames(750)
+        
         if mbyte(0x02101DF0) == 0x01 then
-            console.log("Pokemon caught!!!")
             skip_nickname()
             wait_frames(200)
         else
-            console.log("Failed catch trying again...")
             if pointers.foe_status == 0 then
-                console.log("Foe not asleep reapplying")
                 subdue_pokemon()
             else
                 goto retry
@@ -489,7 +488,6 @@ function process_wild_encounter()
     wait_frames(30)
     
     if foe_is_target then
-        console.log("Wild " .. foe[1].name .. " is a target!!! Catching Now")
         catch_pokemon()
     else
         while game_state.in_battle do

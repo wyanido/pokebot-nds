@@ -120,10 +120,6 @@ function update_foes()
             if mon_data then
                 local mon = pokemon.parse_data(mon_data, true)
                 
-                if config.save_pkx and pokemon.matches_ruleset(mon, config.target_traits) then
-                    pokemon.export_pkx(mon_data)
-                end
-                
                 table.insert(foe_table, mon)
             else
                 console.debug("Foe checksum failed at slot " .. i .. ", retrying")
