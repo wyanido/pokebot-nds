@@ -107,6 +107,8 @@
                 <img src="assets/${gender}.png">
             </td>
             <td style="white-space: nowrap;">Lv ${level}</td>
+            <td class="text-center">${pid}</td>
+            <td class="text-center">${shiny}</td>
             <td class="text-center">${ability}</td>
             <td class="text-center">${nature}</td>
             <td class="w-200">
@@ -121,8 +123,6 @@
                 </div>
             </td>
             <td class="text-center"><img src="assets/type/${hpType}.png"><br>${hpPower} BP</td>
-            <td class="text-center">${pid}</td>
-            <td class="text-center">${shiny}</td>
         </tr>
     </script>
     <script id="party-template" type="text/x-jQuery-tmpl">
@@ -260,12 +260,12 @@
                             <th></th>
                             <th></th>
                             <th></th>
+                            <th class="text-center">PID</th>
+                            <th class="text-center">Shiny Value (SV)</th>
                             <th class="text-center">Ability</th>
                             <th class="text-center">Nature</th>
                             <th class="text-center">IVs</th>
                             <th class="text-center">Hidden Power</th>
-                            <th class="text-center">PID</th>
-                            <th class="text-center">Shiny Value (SV)</th>
                         </tr>
                     </thead>
                     <tbody id="recents">
@@ -286,11 +286,12 @@
                             <th></th>
                             <th></th>
                             <th></th>
+                            <th class="text-center">PID</th>
+                            <th class="text-center">Shiny Value (SV)</th>
                             <th class="text-center">Ability</th>
                             <th class="text-center">Nature</th>
-                            <th class="text-center">PID</th>
                             <th class="text-center">IVs</th>
-                            <th class="text-center">Shiny Value (SV)</th>
+                            <th class="text-center">Hidden Power</th>
                         </tr>
                     </thead>
                     <tbody id="targets">
