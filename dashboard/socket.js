@@ -11,6 +11,7 @@ var elapsedStart;
 var lastEncounter;
 var sinceLastEncounter;
 
+const clientInactivityTimeout = 180000; // Prevent excessive pile-up of ended sessions, remove them after 3 minutes
 const rateHistorySample = 20;
 var rateHistory = [];
 var encounterRate = 0;
@@ -180,9 +181,10 @@ function getTimestamp() {
 }
 
 const server = net.createServer((socket) => {
-    console.log('[%s] Emulator %d connected', getTimestamp(), clients.length + 1)
+    console.log('[%s] Session %d connected', getTimestamp(), clients.length + 1)
     clients.push(socket);
-    
+    socketSetTimeout(socket);
+
     socket.write(formatClientMessage(
         'apply_config',
         { 'config': config }
@@ -197,6 +199,9 @@ const server = net.createServer((socket) => {
             var response = responses[i].trim();
 
             if (response.length > 0) {
+                clearTimeout(socket.inactivityTimeout);
+                socketSetTimeout(socket);
+
                 try {
                     var message = JSON.parse(response);
 
@@ -220,9 +225,21 @@ const server = net.createServer((socket) => {
 });
 
 server.listen(port, () => {
-    console.log(`=======================================`);
-    console.log(`Socket server listening for clients on port ${port}`);
+    console.log(`Socket server listening for emulators on port ${port}`);
 });
+
+function socketSetTimeout(socket) {
+    socket.inactivityTimeout = setTimeout(() => {
+        const index = clients.indexOf(socket);
+        if (index > -1) {
+            clients.splice(index, 1);
+            clientData.splice(index, 1);
+        }
+
+        socket.destroy()
+        console.log('[%s] Session %d removed for inactivity', getTimestamp(), index + 1)
+    }, clientInactivityTimeout)
+}
 
 function objectSubstitute(src, sub, recursive = false) {
     for (var key in sub) {
@@ -383,8 +400,8 @@ function webhookLogPokemon(mon, client) {
     webhookClient.send(messageContents);
 }
 
-function webhookTest() {
-    const webhookClient = new WebhookClient({ url: config.webhook_url });
+function webhookTest(url) {
+    const webhookClient = new WebhookClient({ url: url });
     webhookClient.send({
         username: 'Pokébot NDS',
         avatarURL: 'https://i.imgur.com/7tJPLRX.png',
@@ -418,7 +435,7 @@ function interpretClientMessage(socket, message) {
             client.party = data.party;
             break;
         case 'load_game':
-            console.log('[%s] Emulator %d loaded %s', getTimestamp(), clientData.length + 1, data.name);
+            console.log('[%s] Session %d loaded %s', getTimestamp(), clientData.length + 1, data.name);
 
             clientData[index] = {
                 gen: data.gen,

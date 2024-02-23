@@ -162,7 +162,11 @@ function updateClientInfo() {
 };
 
 function testWebhook() {
-    socketServerSend('test_webhook', function (e, _) { })
+    socketServerSend('test_webhook',
+        {
+            webhook_url: $('#webhook_url').val()
+        },
+        function (e, _) { });
 }
 
 // Hide values not relevant to the current bot mode

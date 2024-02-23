@@ -6,6 +6,8 @@ const mime = require('mime');
 const port = 3000;
 const baseDir = path.resolve(__dirname, '.');
 
+console.clear(); // Clear node package upgrade text 
+
 const server = http.createServer(function (req, res) {
     const filePath = path.join(baseDir, decodeURI(req.url));
 
@@ -67,9 +69,18 @@ server.listen(port, function (error) {
 });
 
 function handleAPIRequest(endpoint, url, method) {
+    let data;
+
+    if (method == "POST") {
+        const searchParams = new URLSearchParams(url.split("?")[1]);
+        const dataParam = searchParams.get("data");
+        
+        data = JSON.parse(decodeURIComponent(dataParam));
+    }
+
     switch (endpoint) {
         case 'test_webhook':
-            socket.webhookTest();
+            socket.webhookTest(data.webhook_url);
             break;
         case 'clients':
             return socket.clientData;
@@ -85,15 +96,11 @@ function handleAPIRequest(endpoint, url, method) {
             if (method == "GET") {
                 return socket.config;
             } else if (method == "POST") {
-                const searchParams = new URLSearchParams(url.split("?")[1]);
-                const dataParam = searchParams.get("data");
-                const data = JSON.parse(decodeURIComponent(dataParam));
-
                 socket.sendConfigToClients(data.config, data.game);
 
                 /*  
                     Try both methods of overwriting the socket's config
-                    as they don't work consistently
+                    because they don't work consistently
                 */
                 socket.config = data.config;
                 socket.setSocketConfig(data.config);

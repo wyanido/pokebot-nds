@@ -22,6 +22,10 @@ function update_pointers()
 
         battle_state_value = mem_shift + 0x470D4, -- 01 is FIGHT menu, 04 is Move Select, 08 is Bag,
         battle_indicator   = 0x021E76D2, -- Static
+
+        easy_chat_open           = mem_shift + 0x28644,
+        easy_chat_category_sizes = mem_shift + 0x200C4,
+        easy_chat_word_list      = mem_shift + 0x20124,
     }
 end
 
@@ -42,7 +46,6 @@ function save_game()
     touch_screen_at(230, 95)
     wait_frames(800)
 
-    console.log("Saving ram")
     client.saveram() -- Flush save ram to the disk	
 
     press_sequence("B", 10)
@@ -144,12 +147,10 @@ function mode_voltorb_flip()
 end
 
 function mode_primo_gift()
-    local category_sizes = 0x22C0334
-
     -- Finds the location of a phrase ID within the Easy Chat menu
     local function find_word(target_word)
         local word = tonumber(target_word)
-        local addr = 0x22C0394 -- Starting index of list of unlocked words
+        local addr = pointers.easy_chat_word_list
         local seek = 0x0
         while mword(addr + seek) ~= word and seek < 0xFFFF do
             seek = seek + 0x2
@@ -158,7 +159,7 @@ function mode_primo_gift()
         local category_idx = 0
         local word_idx = seek / 2
         while word_idx >= 0 do
-            local category_count = mdword(category_sizes + category_idx * 4)
+            local category_count = mdword(pointers.easy_chat_category_sizes + category_idx * 4)
             local new_idx = word_idx - category_count
             
             if new_idx >= 0 then
@@ -193,9 +194,9 @@ function mode_primo_gift()
         local word_location = find_word(word)
 
         touch_category(word_location[1])
-        wait_frames(60)
+        wait_frames(30)
 
-        local category_count = mdword(category_sizes + word_location[1] * 4)
+        local category_count = mdword(pointers.easy_chat_category_sizes + word_location[1] * 4)
         local page_location = word_location[2]
         
         if category_count - 10 < word_location[2] then  
@@ -215,34 +216,37 @@ function mode_primo_gift()
         
         while times_to_scroll > 0 do
             touch_screen_at(240, 131)
-            wait_frames(60)
+            wait_frames(30)
             times_to_scroll = times_to_scroll - 1
         end
         
         touch_word(page_location)
-        wait_frames(120)
     end
 
     local function input_easy_chat_phrase(word1, word2)
         -- Press A until Easy Chat prompt appears
-        while mbyte(0x22C88B4) ~= 0x1 do
-            press_sequence("A", 30)
+        console.log('Awaiting Easy Chat prompt...')
+        
+        while mbyte(pointers.easy_chat_open) ~= 0x1 do
+            press_sequence("A", 12)
         end
         
-        wait_frames(60)
+        wait_frames(45)
+
         touch_screen_at(65, 25) -- Select 1st input box
-        wait_frames(60)
+        wait_frames(30)
 
         input_word(word1)
-        touch_screen_at(182, 25) -- Select 2nd input box
         wait_frames(60)
+        touch_screen_at(182, 25) -- Select 2nd input box
+        wait_frames(30)
 
         input_word(word2)
+        wait_frames(60)
 
         console.log("Confirming input...")
-        wait_frames(60)
         touch_screen_at(218, 118) -- CONFIRM
-        wait_frames(60)
+        wait_frames(15)
         touch_screen_at(218, 118) -- YES
         wait_frames(60)
     end
