@@ -228,7 +228,7 @@ function mode_primo_gift()
         console.log('Awaiting Easy Chat prompt...')
         
         while mbyte(pointers.easy_chat_open) ~= 0x1 do
-            press_sequence("A", 12)
+            press_sequence("A", math.random(5, 30))
         end
         
         wait_frames(45)
