@@ -147,7 +147,7 @@ function updateClientTabs(clients) {
 
     if (clientCount == 0) {
         tabContainer.empty();
-        const button = buttonTemplate.tmpl({ 'game': 'No game detected!' })
+        const button = buttonTemplate.tmpl({ 'game': 'Load pokebot-nds.lua in an emulator to begin!' })
         button.attr('class', 'btn btn-primary col text-truncate')
 
         tabContainer.append(button)

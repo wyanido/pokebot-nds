@@ -45,22 +45,18 @@ function mode_starters(starter) --starters for platinum
     wait_frames(200)
 
     while mbyte(pointers.battle_indicator) == 0x1D do
-        local rand1 = math.random(3, 60)
-        console.log(rand1)
-        press_button("A")
-        wait_frames(rand1)
+        local delay = math.random(6, 21) -- Mimic imperfect human inputs
+        press_sequence("A", delay)
     end
 
     while mbyte(pointers.battle_indicator) ~= 0xFF do
-        local rand2 = math.random(3, 60)
-        wait_frames(rand2)
-        press_button("A")
-        wait_frames(rand2)
+        local delay = math.random(6, 21) -- Mimic imperfect human inputs
+        press_sequence("A", delay)
     end
     --we can save right in front of the bag in platinum so all we have to do is open and select are starter
 
     -- Open briefcase and skip through dialogue until starter select
-    console.log("Skipping dialogue to briefcase")
+    console.log("Skipping dialogue to briefcase...")
     local selected_starter = mdword(0x2101DEC) + 0x203E8 -- 0: Turtwig, 1: Chimchar, 2: Piplup
     local starters_ready = selected_starter + 0x84       -- 0 before hand appears, A94D afterwards
 
@@ -84,7 +80,7 @@ function mode_starters(starter) --starters for platinum
     console.log("Waiting to see starter...")
     if config.hax then
         mon = party[1]
-        local was_target = pokemon.log(mon)
+        local was_target = pokemon.log_encounter(mon)
         if was_target then
             pause_bot("Starter meets target specs!")
         else
@@ -92,14 +88,14 @@ function mode_starters(starter) --starters for platinum
         end
     else
         while pointers.in_starter_battle ~= 0x41 do
-            skip_dialogue()
+            press_sequence(12, "A")
         end
         while pointers.in_starter_battle == 0x41 and pointers.battle_state_value == 0 do
             press_sequence("B", 5)
         end
         wait_frames(50)
         mon = party[1]
-        local was_target = pokemon.log(mon)
+        local was_target = pokemon.log_encounter(mon)
         if was_target then
             pause_bot("Starter meets target specs!")
         else

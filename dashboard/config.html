@@ -25,7 +25,7 @@
                 <img src="assets/pokemon-icon/201-27.png" class="icon" id="icon">
                 Pokébot NDS
             </div>
-            <span class="navbar-text text-monospace font-size-12">v0.6.0-alpha</span>
+            <span class="navbar-text text-monospace font-size-12">v0.7.0-alpha</span>
             <ul class="navbar-nav d-flex d-md-flex">
                 <li class="nav-item nav-link px-10">
                     <a href="dashboard.html">
@@ -218,9 +218,6 @@
                             </label>
                         </div>
                         <br>
-                        <label for="inactive_client_timeout">Inactive game timeout (ms)</label>
-                        <input id="inactive_client_timeout" min="1000" type="number" class="form-control">
-                        <br>
                         <label for="dashboard_poll_interval">Dashboard refresh interval (ms)</label>
                         <input id="dashboard_poll_interval" min="1" type="number" class="form-control">
                         <br>
@@ -244,17 +241,17 @@
                                 to be considered a target. For arrays, only one item in the array must match. 
                                 Not case-sensitive.
                                 <br><br>
-                                Available traits are as follow:
-                                <br> • shiny: bool
-                                <br> • iv_sum: int <i>(greater than or equal)</i>
-                                <br> • hpIV, attackIV, defenseIV, spAttack, spDefenseIV, speedIV: int <i>(greater than or equal)</i>
-                                <br> • species: array[str]
-                                <br> • gender: str
-                                <br> • level: int <i>(greater than or equal)</i>
-                                <br> • ability: array[str]
-                                <br> • nature: array[str]
-                                <br> • move: array[str]
-                                <br> • type: array[str]
+                                Target traits and their data types include:
+                                <br> • shiny: <i>boolean</i>
+                                <br> • iv_sum: <i>int (greater than or equal)</i>
+                                <br> • hpIV, attackIV, defenseIV, spAttack, spDefenseIV, speedIV: <i>int (greater than or equal)</i>
+                                <br> • species: <i>array[str]</i>
+                                <br> • gender: <i>str</i>
+                                <br> • level: <i>int (greater than or equal)</i>
+                                <br> • ability: <i>array[str]</i>
+                                <br> • nature: <i>array[str]</i>
+                                <br> • move: <i>array[str]</i>
+                                <br> • type: <i>array[str]</i>
                                 <div id="arrow" data-popper-arrow></div>
                             </div>
                         </label>
