@@ -6,6 +6,19 @@ const checkboxes = [...configForm.querySelectorAll('input[type="checkbox"]')].ma
 
 let config;
 
+$.getJSON("components/data/en_easychat_iv.json", function (json) {
+    let phrases = '';
+
+    json.forEach(word => {
+        phrases += `<option value=${word[0]}>${word[1]}</option>`;
+    });
+
+    document.getElementById('primo1').innerHTML += phrases;
+    document.getElementById('primo2').innerHTML += phrases;
+    document.getElementById('primo3').innerHTML += phrases;
+    document.getElementById('primo4').innerHTML += phrases;
+});
+
 function sendConfig() {
     const sendConfigToClients = function() {
         try {
@@ -55,6 +68,10 @@ function sendConfig() {
     }
 }
 
+/*  
+    Updates the visibility of some fields that depend on others,
+    so only the relevant settings are displayed when editing the config.
+*/
 function updateOptionVisibility() {
     $('#option_starters').hide();
     $('#option_moving_encounters').hide();
@@ -62,6 +79,7 @@ function updateOptionVisibility() {
     $('#option_webhook').hide();
     $('#option_ping_user').hide();
     $('#option_backup_interval').hide();
+    $('#option_primo_gift').show();
 
     const mode = $('#mode').val();
 
@@ -74,6 +92,9 @@ function updateOptionVisibility() {
             break;
         case 'phenomenon_encounters':
             $('#option_moving_encounters').show();
+            break;
+        case 'primo_gift':
+            $('#option_primo_gift').show();
             break;
     }
 

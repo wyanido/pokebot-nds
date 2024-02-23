@@ -14,6 +14,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"
         referrerpolicy="no-referrer"></script>
     <link rel="stylesheet" href="components/common/tooltip.css">
+    <link rel="stylesheet" href="components/common/style.css">
 </head>
 
 <body class="with-custom-webkit-scrollbars with-custom-css-scrollbars" data-dm-shortcut-enabled="true"
@@ -82,6 +83,7 @@
                             <option disabled>-- Soft Resets</option>
                             <option value="starters">Starters</option>
                             <option value="gift">Gift Pokémon</option>
+                            <option value="primo_gift">Primo Gift Eggs (HGSS)</option>
                             <option value="static_encounters">Static Encounters</option>
                             <option disabled>-- Standard</option>
                             <option value="random_encounters">Random Encounters</option>
@@ -124,6 +126,26 @@
                                     <input type="checkbox" id="starter2">
                                     <label for="starter2">Oshawott/Piplup</label>
                                 </div>
+                            </div>
+                        </div>
+                        <div id="option_primo">
+                            <br>
+                            <label for="words">Secret Phrases</label>
+                            <i class="fa fa-info-circle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
+                                <div id="tooltip" role="tooltip">Sends a message through a Discord Webhook
+                                    when a target Pokémon is encountered
+                                    <div id="arrow" data-popper-arrow></div>
+                                </div>
+                            <a href="https://www.pokewiki.de/Spezial:Geheimcode-Generator?uselang=en" target="_blank"> (calculate)</a>
+                            <div style="display: block; width: 100%; align-items: center;">
+                                <label for="word1">Question 1.</label>
+                                <select class="primo-phrase form-control" id="primo1"></select>
+                                <select class="primo-phrase form-control" id="primo2"></select>
+                            </div>
+                            <div style="display: block; width: 100%; align-items: center;">
+                                <label for="word1">Question 2.</label>
+                                <select class="primo-phrase form-control" id="primo3"></select>
+                                <select class="primo-phrase form-control" id="primo4"></select>
                             </div>
                         </div>
                     </div>
