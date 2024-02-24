@@ -45,7 +45,7 @@ _Currently only English (USA, Europe) copies are supported._
 | Dust cloud farming	|  |  | ✅ | ✅ |
 | Phenomenon encounters	|  |  | ✅ | ✅ |
 | PokéRadar			   	| ➖ |  |  |  |
-| Headbutt encounters			   	|  | ➖ |  |  |
+| Headbutt Trees			   	|  | ✅ |  |  |
 | Voltorb Flip			   	|  | ✅ |  |  |
 | Thundurus/Tornadus dex resets	|  |  | ➖ |  |
 | Hidden Grotto farming	|  |  |  | ➖ |

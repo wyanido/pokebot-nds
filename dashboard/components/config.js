@@ -79,7 +79,7 @@ function updateOptionVisibility() {
     $('#option_webhook').hide();
     $('#option_ping_user').hide();
     $('#option_backup_interval').hide();
-    $('#option_primo_gift').show();
+    $('#option_primo').hide();
 
     const mode = $('#mode').val();
 
@@ -94,7 +94,7 @@ function updateOptionVisibility() {
             $('#option_moving_encounters').show();
             break;
         case 'primo_gift':
-            $('#option_primo_gift').show();
+            $('#option_primo').show();
             break;
     }
 

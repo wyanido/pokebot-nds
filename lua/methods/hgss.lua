@@ -18,7 +18,7 @@ function update_pointers()
         trainer_x   = mem_shift - 0x22D9E,
         trainer_z   = mem_shift - 0x22D9A,
         trainer_y   = mem_shift - 0x22D96,
-        facing      = mem_shift + 0x25E88,
+        facing      = mem_shift + 0x1DC4,
 
         battle_state_value = mem_shift + 0x470D4, -- 01 is FIGHT menu, 04 is Move Select, 08 is Bag,
         battle_indicator   = 0x021E76D2, -- Static
@@ -280,4 +280,64 @@ function mode_primo_gift()
         press_button("Power")
         wait_frames(60)
     end
+end
+
+function mode_headbutt()
+    local function find_move_in_party(move_name)
+        for i = 1, #party, 1 do
+            for j = 1, #party[i].moves, 1 do
+                local move = party[i].moves[j].name
+
+                if move == move_name then
+                    return true
+                end
+            end
+        end
+
+        return false
+    end
+
+    if not find_move_in_party("Headbutt") then
+        pause_bot("No Headbutt user found in party!")
+    end
+
+    ::headbutt::
+    local og_dir = mbyte(pointers.facing)
+    local og_x = game_state.trainer_x
+    local og_z = game_state.trainer_z
+
+    -- Press A until following Pokemon pushes you out of the way
+    while game_state.trainer_x == og_x and game_state.trainer_z == og_z do
+        press_sequence("A", 12)
+    end
+
+    -- Wait for battle to start
+    wait_frames(400)
+
+    if game_state.in_battle then
+        process_wild_encounter()
+        wait_frames(90)
+    else
+        -- Headbut Trees in HGSS have a 100% encounter rate, so if
+        -- nothing is encountered, this tree will never spawn anything
+        pause_bot("This tree doesn't yield any Pokémon!")
+    end
+    
+    -- Return to original position
+    local dir = mbyte(pointers.facing)
+
+    if dir == 0 then     press_sequence("Down")
+    elseif dir == 1 then press_button("Up")
+    elseif dir == 2 then press_button("Right")
+    elseif dir == 3 then press_button("Left") end
+
+    wait_frames(24)
+
+    -- Face the tree again
+    if og_dir == 0 then     press_button("Up")
+    elseif og_dir == 1 then press_button("Down")
+    elseif og_dir == 2 then press_button("Left")
+    elseif og_dir == 3 then press_button("Right") end
+
+    goto headbutt
 end
