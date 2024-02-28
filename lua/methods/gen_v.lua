@@ -827,8 +827,8 @@ function mode_random_encounters()
         local dir2 = config.move_direction == "horizontal" and "Right" or "Down"
         
         wait_frames(60) -- Wait to regain control post-battle
-        pathfind_to(home)
-        wait_frames(8)
+        -- pathfind_to(home)
+        -- wait_frames(8)
 
         while not foe and not game_state.in_battle do
             move_in_direction(dir1)

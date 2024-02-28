@@ -28,24 +28,30 @@ Run the dashboard with `start-dashboard.bat` before you add or enable pokebot-nd
 
 ## Features
 
-_Currently only English (USA, Europe) copies are supported._
 |  						| DPPt | HGSS | BW | B2W2 | 
 |--						| :-: | :-: | :-: | :-: |
 | Manual (Assisted)     | ✅ | ✅ | ✅ | ✅ |
 | Starter resets 		| ✅ | ✅ | ✅ | ✅ |
 | Random encounters		| ✅ | ✅ | ✅ | ✅ |
-| Auto-catching			| ❔ | ➖ | ✅ | ✅ |
-| Auto-battling			| ❔ | ➖ | ✅ | ✅ |
 | Pickup farming		| ❔ | ➖ | ✅ | ✅ |
 | Gift resets 			| ✅ | ✅ | ✅ | ✅ |
-| Egg hatching			| ➖ | ➖ | ✅ | ✅ |
 | Static encounters 	| ✅ | ✅ | ✅ | ✅ |
-| Thief farming			| ➖ | ➖ | ✅ | ✅ |
 | Fishing			   	| ✅ | ➖ | ✅ | ✅ |
-| Dust cloud farming	|  |  | ✅ | ✅ |
-| Phenomenon encounters	|  |  | ✅ | ✅ |
-| PokéRadar			   	| ➖ |  |  |  |
-| Headbutt Trees			   	|  | ✅ |  |  |
-| Voltorb Flip			   	|  | ✅ |  |  |
-| Thundurus/Tornadus dex resets	|  |  | ➖ |  |
-| Hidden Grotto farming	|  |  |  | ➖ |
+| Egg hatching			| ➖ | ➖ | ✅ | ✅ |
+
+#### Experimental
+|  						| DPPt | HGSS | BW | B2W2 | 
+|--						| :-: | :-: | :-: | :-: |
+| Auto-catching			| ➖ | ➖ | ✅ | ✅ |
+| Auto-battling			| ➖ | ➖ | ✅ | ✅ |
+| Thief farming			| ➖ | ➖ | ✅ | ✅ |
+
+#### Game-specific
+|  						| DPPt | HGSS | BW | B2W2 | 
+|--						| :-: | :-: | :-: | :-: |
+| PokéRadar     | ➖ |  |  |  |
+| Headbutt Trees 		|  | ✅ |  |  |
+| Voltorb Flip		|  | ✅ |  |  |
+| Thundurus/Tornadus dex resets 			|  |  | ➖ |  |
+| Hidden Grotto encounters 	|  |  |  | ➖ |
+| Phenomenon encounters		|  |  | ✅ | ✅ |
