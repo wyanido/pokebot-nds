@@ -118,7 +118,7 @@ function mode_starters(starter)
     local was_target = pokemon.log_encounter(mon)
 
     if was_target then
-        pause_bot("Starter meets target specs")
+        abort("Starter meets target specs")
     else
         console.log("Starter was not a target, resetting...")
         press_button("Power")

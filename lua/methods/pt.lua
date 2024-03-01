@@ -22,11 +22,12 @@ function update_pointers()
 		facing		= mem_shift + 0x238A4,
 		
 		battle_state_value = mem_shift + 0x44878, -- 01 is FIGHT menu, 04 is Move Select, 08 is Bag,
-		battle_indicator   = 0x021D18F2 -- static
+		battle_indicator   = 0x021D18F2, -- static
+
+        fishing_bite_indicator = 0x021CF636,
 	}
 	
 	-- TODO replace the methods that depend on these pointers
-	pointers.in_starter_battle = mbyte(pointers.battle_indicator)
 	pointers.current_pokemon   = mem_shift + 0x475B8        -- 0A is POkemon menu 0E is animation
 	pointers.foe_in_battle	   = pointers.current_pokemon + 0xC0
 	pointers.foe_status		   = pointers.foe_in_battle + 0x6C
@@ -37,7 +38,6 @@ function update_pointers()
 	pointers.foe_TID		   = mword(pointers.foe_in_battle + 0x74)
 	pointers.foe_SID		   = mword(pointers.foe_in_battle + 0x75)
 	pointers.saveFlag		   = mbyte(mem_shift + 0x2832A)
-	pointers.fishOn			   = mbyte(0x021CF636)
 end
 
 function mode_starters(starter) --starters for platinum
@@ -82,22 +82,22 @@ function mode_starters(starter) --starters for platinum
         mon = party[1]
         local was_target = pokemon.log_encounter(mon)
         if was_target then
-            pause_bot("Starter meets target specs!")
+            abort("Starter meets target specs!")
         else
             press_button("Power")
         end
     else
-        while pointers.in_starter_battle ~= 0x41 do
+        while game_state.in_battle do
             press_sequence(12, "A")
         end
-        while pointers.in_starter_battle == 0x41 and pointers.battle_state_value == 0 do
+        while game_state.in_battle and pointers.battle_state_value == 0 do
             press_sequence("B", 5)
         end
         wait_frames(50)
         mon = party[1]
         local was_target = pokemon.log_encounter(mon)
         if was_target then
-            pause_bot("Starter meets target specs!")
+            abort("Starter meets target specs!")
         else
             console.log("Starter was not a target, resetting...")
             selected_starter = 0

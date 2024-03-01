@@ -22,10 +22,13 @@ function update_pointers()
 
         battle_state_value = mem_shift + 0x470D4, -- 01 is FIGHT menu, 04 is Move Select, 08 is Bag,
         battle_indicator   = 0x021E76D2, -- Static
+        fishing_bite_indicator = 0x21DD853,
 
         easy_chat_open           = mem_shift + 0x28644,
         easy_chat_category_sizes = mem_shift + 0x200C4,
         easy_chat_word_list      = mem_shift + 0x20124,
+
+        -- registered_key_item_1 = mem_shift - 0x231FC,
     }
 end
 
@@ -78,7 +81,7 @@ function mode_starters()
         is_target = pokemon.log_encounter(starter)
 
         if is_target then
-            pause_bot("Starter " .. (i + 1) .. " meets target specs!")
+            abort("Starter " .. (i + 1) .. " meets target specs!")
         end
 
         -- Scroll through each starter and log as they become visible
@@ -111,7 +114,7 @@ function mode_voltorb_flip()
 
     -- The game corner doesn't let you play while holding the maximum of 50k coins
     local coin_count = mword(board_pointer - 0x69BA8)
-    if coin_count == 50000 then pause_bot("Can't earn any more coins") end
+    if coin_count == 50000 then abort("Can't earn any more coins") end
 
     proceed_text()
 
@@ -274,7 +277,7 @@ function mode_primo_gift()
             save_game()
         end
 
-        pause_bot("Gift Pokemon meets target specs")
+        abort("Gift Pokemon meets target specs")
     else
         console.log("Gift Pokemon was not a target, resetting...")
         press_button("Power")
@@ -298,7 +301,7 @@ function mode_headbutt()
     end
 
     if not find_move_in_party("Headbutt") then
-        pause_bot("No Headbutt user found in party!")
+        abort("No Headbutt user found in party!")
     end
 
     ::headbutt::
@@ -320,7 +323,7 @@ function mode_headbutt()
     else
         -- Headbut Trees in HGSS have a 100% encounter rate, so if
         -- nothing is encountered, this tree will never spawn anything
-        pause_bot("This tree doesn't yield any Pokémon!")
+        abort("This tree doesn't yield any Pokémon!")
     end
     
     -- Return to original position

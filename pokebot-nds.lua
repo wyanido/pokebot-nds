@@ -107,7 +107,7 @@ end
 
 function update_foes()
     -- Make sure it's not reading garbage non-battle data
-    if mbyte(pointers.battle_indicator) ~= 0x41 or mbyte(pointers.foe_count) == 0 then
+    if mbyte(pointers.battle_indicator) ~= 0x41 then
         foe = nil
     elseif not foe then -- Only update foe on battle start
         ::retry::
@@ -145,8 +145,7 @@ function get_game_state()
                 trainer_x = mword(pointers.trainer_x + 2),
                 trainer_y = to_signed(mword(pointers.trainer_y + 2)),
                 trainer_z = mword(pointers.trainer_z + 2),
-                in_battle = mbyte(pointers.battle_indicator) == 0x41 and mbyte(pointers.foe_count) > 0,
-                in_starter_battle = mbyte(pointers.battle_indicator) == 0x41,
+                in_battle = mbyte(pointers.battle_indicator) == 0x41 and foe,
                 in_game = true
             }
         else
@@ -170,8 +169,7 @@ function get_game_state()
                 trainer_z = mword(pointers.trainer_z + 2),
                 phenomenon_x = mword(pointers.phenomenon_x + 2),
                 phenomenon_z = mword(pointers.phenomenon_z + 2),
-                -- trainer_dir = mdword(pointers.trainer_direction),
-                in_battle = mbyte(pointers.battle_indicator) == 0x41 and mbyte(pointers.foe_count) > 0,
+                in_battle = mbyte(pointers.battle_indicator) == 0x41 and foe,
                 in_game = true
             }
         else
@@ -221,17 +219,12 @@ function update_game_info(force)
     update_party()
 end
 
-function pause_bot(reason)
+function abort(reason)
     clear_all_inputs()
     client.clearautohold()
 
-    console.log("###################################")
-    console.log(reason .. ". Pausing bot! (Make sure to disable the lua script before intervening)")
-
-    -- Do nothing ever again
-    while true do
-        emu.frameadvance()
-    end
+    console.log("##### MODE FINISHED #####")
+    assert(false, "\n" .. reason .. ". Stopping bot!")
 end
 
 function cycle_starter_choice(starter)

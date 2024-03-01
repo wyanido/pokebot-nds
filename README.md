@@ -11,7 +11,7 @@ This repository is dedicated to creating a multi-purpose automated tool for the 
 - [VigiL](https://github.com/907VigiL) for backporting the first Gen V methods to Gen IV
 
 ## Getting Started
-<img src="https://i.imgur.com/lHaYC4z.png" width="700"/>
+![example](https://i.imgur.com/lHaYC4z.png)
 
 #### Prerequisites
 You'll need to install [node.js](https://nodejs.org/en) and the latest version of [BizHawk](https://github.com/TASEmulators/BizHawk) in order to use this tool. 
@@ -26,32 +26,26 @@ _(You can also clone the [dev branch](https://github.com/wyanido/pokebot-nds/tre
 #### Setup
 Run the dashboard with `start-dashboard.bat` before you add or enable pokebot-nds.lua in Tools>Lua Console. The game will connect to the dashboard once the script starts running.
 
-## Features
-
+## Bot Modes
 |  						| DPPt | HGSS | BW | B2W2 | 
 |--						| :-: | :-: | :-: | :-: |
-| Manual (Assisted)     | ✅ | ✅ | ✅ | ✅ |
 | Starter resets 		| ✅ | ✅ | ✅ | ✅ |
 | Random encounters		| ✅ | ✅ | ✅ | ✅ |
-| Pickup farming		| ❔ | ➖ | ✅ | ✅ |
+| Phenomenon encounters		|  |  | ✅ | ✅ |
 | Gift resets 			| ✅ | ✅ | ✅ | ✅ |
 | Static encounters 	| ✅ | ✅ | ✅ | ✅ |
-| Fishing			   	| ✅ | ➖ | ✅ | ✅ |
+| Fishing			   	| ✅ | ✅ | ✅ | ✅ |
 | Egg hatching			| ➖ | ➖ | ✅ | ✅ |
+| PokéRadar     | ➖ |  |  |  |
+| Headbutt Trees 		|  | ✅ |  |  |
+| Thundurus/Tornadus dex resets 			|  |  | ➖ |  |
+| Hidden Grottos 	|  |  |  | ➖ |
 
-#### Experimental
+#### Additional Features
 |  						| DPPt | HGSS | BW | B2W2 | 
 |--						| :-: | :-: | :-: | :-: |
 | Auto-catching			| ➖ | ➖ | ✅ | ✅ |
 | Auto-battling			| ➖ | ➖ | ✅ | ✅ |
 | Thief farming			| ➖ | ➖ | ✅ | ✅ |
-
-#### Game-specific
-|  						| DPPt | HGSS | BW | B2W2 | 
-|--						| :-: | :-: | :-: | :-: |
-| PokéRadar     | ➖ |  |  |  |
-| Headbutt Trees 		|  | ✅ |  |  |
+| Pickup farming		| ➖ | ➖ | ✅ | ✅ |
 | Voltorb Flip		|  | ✅ |  |  |
-| Thundurus/Tornadus dex resets 			|  |  | ➖ |  |
-| Hidden Grotto encounters 	|  |  |  | ➖ |
-| Phenomenon encounters		|  |  | ✅ | ✅ |

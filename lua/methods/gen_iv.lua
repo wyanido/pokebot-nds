@@ -25,7 +25,8 @@ function update_pointers()
         facing      = mem_shift + 0x247C6,
 
         battle_state_value  = mem_shift + 0x44878,        
-        battle_indicator    = 0x021A1B2A + offset -- mostly static
+        battle_indicator    = 0x021A1B2A + offset, -- mostly static
+        fishing_bite_indicator = 0x21D5E16,
     }
 end
 
@@ -98,7 +99,7 @@ function check_status()
         if config.cycle_lead_pokemon then
             console.log("Finding a suitable replacement")
         else
-            pause_bot("auto cycle off waiting for manual intervention")
+            abort("auto cycle off waiting for manual intervention")
         end
     end
     console.log("Lead Pokemon is OK, continuing search...")
@@ -207,13 +208,12 @@ function use_move_at_slot(slot)
 end
 
 function flee_battle()
-    while (game_state.in_battle and pointers.battle_state_value == 0) do
-        press_sequence("B", 5)
-    end
     while game_state.in_battle do
         touch_screen_at(125, 175) -- Run
         wait_frames(5)
     end
+
+    console.log("Got away safely!")
 end
 
 function subdue_pokemon()
@@ -474,7 +474,7 @@ function catch_pokemon()
             end
         end
     else
-        pause_bot("Wild Pokemon meets target specs!")
+        abort("Wild Pokemon meets target specs!")
     end
 end
 
@@ -513,7 +513,7 @@ end
 function mode_static_encounters()
     console.log("Waiting for battle to start...")
     
-    while not foe and not game_state.in_battle do
+    while not game_state.in_battle do
         local delay = math.random(6, 21) -- Mimic imperfect human inputs
         press_sequence("A", delay)
     end
@@ -526,7 +526,7 @@ function mode_static_encounters()
     end
 
     if foe_is_target then
-        pause_bot("Wild Pokémon meets target specs!")
+        abort("Wild Pokémon meets target specs!")
     else
         console.log("Wild " .. foe[1].name .. " was not a target, resetting...")
         press_button("Power")
@@ -584,7 +584,7 @@ function mode_starters(starter)
     local was_target = pokemon.log_encounter(mon)
 
     if was_target then
-        pause_bot("Starter meets target specs!")
+        abort("Starter meets target specs!")
     else
         console.log("Starter was not a target, resetting...")
         press_button("Power")
@@ -603,7 +603,7 @@ function mode_random_encounters()
             press_sequence("Right", 3)
         end
         
-        while not foe and not game_state.in_battle do
+        while not game_state.in_battle do
             press_sequence(
                 "Down", 3,
                 "Left", 3,
@@ -630,7 +630,7 @@ function mode_random_encounters()
 
         hold_button("B")
         
-        while not foe and not game_state.in_battle do
+        while not game_state.in_battle do
             hold_button(dir1)
             wait_frames(7)
             hold_button(dir2)
@@ -648,15 +648,15 @@ function mode_random_encounters()
 end
 
 function mode_fishing()
-    while not foe and not game_state.in_battle do
+    while true do
         press_button("Y")
         wait_frames(60)
 
-        while pointers.fishOn == 0x00 do
+        while mbyte(pointers.fishing_bite_indicator) == 0x00 do
             wait_frames(1)
         end
 
-        if pointers.fishOn == 0x01 then
+        if mbyte(pointers.fishing_bite_indicator) == 0x01 then
             console.log("Landed a Pokémon!")
             break
         else
@@ -665,7 +665,7 @@ function mode_fishing()
         end
     end
 
-    while not foe and not game_state.in_battle do
+    while not game_state.in_battle do
         press_sequence("A", 5)
     end
 
@@ -720,7 +720,7 @@ function mode_gift()
             save_game()
         end
 
-        pause_bot("Gift Pokemon meets target specs")
+        abort("Gift Pokemon meets target specs")
     else
         console.log("Gift Pokemon was not a target, resetting...")
         press_button("Power")
