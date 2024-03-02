@@ -23,8 +23,10 @@ function update_pointers()
 		
 		battle_state_value = mem_shift + 0x44878, -- 01 is FIGHT menu, 04 is Move Select, 08 is Bag,
 		battle_indicator   = 0x021D18F2, -- static
-
         fishing_bite_indicator = 0x021CF636,
+
+        trainer_name = mem_shift + 0x7C,
+        trainer_id = mem_shift + 0x8C
 	}
 	
 	-- TODO replace the methods that depend on these pointers
@@ -34,9 +36,6 @@ function update_pointers()
 	pointers.current_hp		   = mword(pointers.current_pokemon + 0x4C)
 	pointers.level			   = mbyte(pointers.current_pokemon + 0x34)
 	pointers.foe_current_hp	   = mword(pointers.foe_in_battle + 0x4C)
-	pointers.foe_PID		   = mdword(pointers.foe_in_battle + 0x68)
-	pointers.foe_TID		   = mword(pointers.foe_in_battle + 0x74)
-	pointers.foe_SID		   = mword(pointers.foe_in_battle + 0x75)
 	pointers.saveFlag		   = mbyte(mem_shift + 0x2832A)
 end
 

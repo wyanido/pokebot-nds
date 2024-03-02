@@ -27,7 +27,9 @@ function update_pointers()
         easy_chat_open           = mem_shift + 0x28644,
         easy_chat_category_sizes = mem_shift + 0x200C4,
         easy_chat_word_list      = mem_shift + 0x20124,
-
+        
+        trainer_name = mem_shift - 0x23F74,
+        trainer_id = mem_shift - 0x23F64
         -- registered_key_item_1 = mem_shift - 0x231FC,
     }
 end

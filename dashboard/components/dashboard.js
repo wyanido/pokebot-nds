@@ -120,6 +120,26 @@ function displayClientGameInfo(tabIndex, clientData) {
         gameContainer.append(ele);
     }
 
+    // OT, TID, SID
+    const trainerFieldTable = $('#trainer-field-table', ele).detach();
+    trainerFieldTable.empty();
+    
+    for (const key in clientData.trainer) {
+        trainerFieldTable.append(`
+            <tr>
+                <th>
+                    ${key}
+                </th>
+                <td>
+                    ${clientData.trainer[key]}
+                </td>
+            </tr>`
+        );
+    }
+
+    ele.append(trainerFieldTable)
+
+    // Game-specific values the bot decides to send
     const fieldTable = $('#field-table', ele).detach();
     fieldTable.empty();
 
@@ -206,7 +226,7 @@ function selectTab(ele) {
 
 const rowTemplate = $('#row-template');
 
-function displayList(log, doReformat, targetEle, limiterEle) {
+function refreshPokemonList(log, doReformat, targetEle, limiterEle) {
     const targetsLength = limiterEle.val() || 7;
     const entries = log.length;
 
@@ -219,6 +239,13 @@ function displayList(log, doReformat, targetEle, limiterEle) {
         if (doReformat && mon.altForm > 0) {
             mon.species = mon.species + '-' + mon.altForm.toString()
         }
+
+        // Display raised/lowered stat modifiers in colour
+        mon.attackMod    = ['Lonely', 'Adamant', 'Naughty', 'Brave'].includes(mon.nature) ? 'up' : ['Bold', 'Modest', 'Calm', 'Timid'].includes(mon.nature) ? ' down' : '';
+        mon.defenseMod   = ['Bold', 'Impish', 'Lax', 'Relaxed'].includes(mon.nature) ? 'up'      : ['Lonely', 'Mild', 'Gentle', 'Hasty'].includes(mon.nature) ? ' down' : '';
+        mon.spAttackMod  = ['Modest', 'Mild', 'Rash', 'Quiet'].includes(mon.nature) ? 'up'       : ['Adamant', 'Impish', 'Careful', 'Jolly'].includes(mon.nature) ? ' down' : '';
+        mon.spDefenseMod = ['Calm', 'Gentle', 'Careful', 'Sassy',].includes(mon.nature) ? 'up'   : ['Naughty', 'Lax', 'Rash', 'Naive'].includes(mon.nature) ? ' down' : '';
+        mon.speedMod     = ['Timid', 'Hasty', 'Jolly', 'Naive',].includes(mon.nature) ? 'up'     : ['Brave', 'Relaxed', 'Quiet', 'Sassy'].includes(mon.nature) ? ' down' : '';
 
         const row = rowTemplate.tmpl(mon);
 
@@ -233,7 +260,7 @@ function displayList(log, doReformat, targetEle, limiterEle) {
 const recentsEle = $('#recents');
 const recentsLimit = $('#recents-limit');
 
-function updateRecentlySeen(reformat = true) {
+function updateRecentlySeen(reformat = true, force = false) {
     socketServerGet('recents', function (error, encounters) {
         if (error) {
             console.error(error);
@@ -243,8 +270,8 @@ function updateRecentlySeen(reformat = true) {
         const updated = !recentEncounters || recentEncounters.slice(-1)[0].pid != encounters.slice(-1)[0].pid
         recentEncounters = encounters;
 
-        if (updated) {
-            displayList(
+        if (updated || force) {
+            refreshPokemonList(
                 encounters,
                 reformat,
                 recentsEle,
@@ -257,7 +284,7 @@ function updateRecentlySeen(reformat = true) {
 const targetsEle = $('#targets');
 const targetsLimit = $('#targets-limit');
 
-function updateRecentTargets(reformat = true) {
+function updateRecentTargets(reformat = true, force = false) {
     socketServerGet('targets', function (error, encounters) {
         if (error) {
             console.error(error);
@@ -267,8 +294,8 @@ function updateRecentTargets(reformat = true) {
         const updated = !recentTargets || recentTargets.slice(-1)[0].pid != encounters.slice(-1)[0].pid
         recentTargets = encounters;
         
-        if (updated) {
-            displayList(
+        if (updated || force) {
+            refreshPokemonList(
                 encounters,
                 reformat,
                 targetsEle,
@@ -367,8 +394,7 @@ function setClients() {
                 }
 
                 elapsedStart = start;
-                elapsedInterval = setInterval(updateElapsedTime, 1000);
-                updateStatBadges();
+                elapsedInterval = setInterval(updateStatBadges, 1000);
             });
         }
     })
@@ -401,12 +427,12 @@ function updatePage() {
 
 const recentEncountersEle = document.getElementById('recents-limit');
 recentEncountersEle.addEventListener('change', () => {
-    updateRecentlySeen(recentEncounters, false)
+    updateRecentlySeen(false, true)
 })
 
 const recentTargetsEle = document.getElementById('targets-limit');
 recentTargetsEle.addEventListener('change', () => {
-    updateRecentTargets(recentTargets, false)
+    updateRecentTargets(false, true)
 })
 
 const rateEle = document.getElementById('shiny-rate');

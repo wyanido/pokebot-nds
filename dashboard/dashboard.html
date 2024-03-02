@@ -103,26 +103,26 @@
                 <img src="assets/pokemon-icon/${species}.png">
                 <img style="position: absolute; margin-top: 20px; margin-left: -10px" src="assets/items/${heldItem}.png">
                 </td>
-            <td style="width:0px">
+            <td style="width:0px;padding:0px">
                 <img src="assets/${gender}.png">
             </td>
-            <td style="white-space: nowrap;">Lv ${level}</td>
+            <td style="white-space:nowrap;padding-left:0px">Lv ${level}</td>
             <td class="text-center">${pid}</td>
             <td class="text-center">${shiny}</td>
             <td class="text-center">${ability}</td>
             <td class="text-center">${nature}</td>
             <td class="w-200">
                 <div class="justify-content-between" style="display: flex">
-                    <div>${hpIV}</div>
-                    <div>${attackIV}</div>
-                    <div>${defenseIV}</div>
-                    <div>${spAttackIV}</div>
-                    <div>${spDefenseIV}</div>
-                    <div>${speedIV}</div>
-                    <div style="color: grey">(${ivSum})</div>
+                    <div class="iv">${hpIV}</div>
+                    <div class="iv ${attackMod}">${attackIV}</div>
+                    <div class="iv ${defenseMod}">${defenseIV}</div>
+                    <div class="iv ${spAttackMod}">${spAttackIV}</div>
+                    <div class="iv ${spDefenseMod}">${spDefenseIV}</div>
+                    <div class="iv ${speedMod}">${speedIV}</div>
+                    <div class="iv" style="color: grey">(${ivSum})</div>
                 </div>
             </td>
-            <td class="text-center"><img src="assets/type/${hpType}.png"><br>${hpPower} BP</td>
+            <td class="text-center"><img src="assets/type/${hpType}.png"><br>${hpPower} Power</td>
         </tr>
     </script>
     <script id="party-template" type="text/x-jQuery-tmpl">
@@ -130,14 +130,17 @@
         </div>
     </script>
     <script id="game-template" type="text/x-jQuery-tmpl">
-        <div class="m-15">
-            <table id="field-table" class="table">
+        <div class="m-15" style="display: flex">
+            <table id="trainer-field-table" class="table w-half h-full">
+            </table>
+            <table id="field-table" class="table w-half h-full">
             </table>
         </div>
     </script>
     <script id="button-template" type="text/x-jQuery-tmpl">
         <button onclick="selectTab(this)" class="btn w-full text-truncate" id="nav-game">${game}</button>
     </script>
+    <link rel="stylesheet" href="components/common/tooltip.css">
     <link rel="stylesheet" href="components/common/style.css">
 </head>
 
@@ -232,6 +235,16 @@
                                     </tr>
                                     <tr>
                                         <th>B(n,p)
+                                            <i class="fa fa-info-circle ml-5" id="tooltip-icon"
+                                                aria-describedby="tooltip"></i>
+                                            <div id="tooltip" role="tooltip"
+                                                style="font-weight: normal; text-align: left;">
+                                                Binomial distribution calculator.<br><br>
+                                                For odds 1/<i>n</i>, the % represents the cumulative chance to
+                                                have encountered a target Pokémon within a 'seen' number of trials. In
+                                                most cases, <i>n</i> would represent the base shiny odds.
+                                                <div id="arrow" data-popper-arrow></div>
+                                            </div>
                                             <div class="input-group mt-10" style="width: 80px; height: 28px;">
                                                 <label class="input-group-text p-5">1/</label>
                                                 <input class="form-control h-full p-5" id="shiny-rate" min="1"
@@ -264,7 +277,17 @@
                             <th class="text-center">Shiny Value (SV)</th>
                             <th class="text-center">Ability</th>
                             <th class="text-center">Nature</th>
-                            <th class="text-center">IVs</th>
+                            <th class="text-center">IVs
+                                <i class="fa fa-info-circle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
+                                <div id="tooltip" role="tooltip" style="font-weight: normal; text-align: left;">
+                                    Stats are listed in the following order:<br>
+                                    HP, Attack, Defense, Sp. Atk, Sp. Def, Speed<br><br>
+                                    Stats in Red are raised by the nature.<br>
+                                    Stats in Blue are lowered by the nature.<br><br>
+                                    IV Total is listed at the end (186 Max.)
+                                    <div id="arrow" data-popper-arrow></div>
+                                </div>
+                            </th>
                             <th class="text-center">Hidden Power</th>
                         </tr>
                     </thead>
@@ -290,7 +313,17 @@
                             <th class="text-center">Shiny Value (SV)</th>
                             <th class="text-center">Ability</th>
                             <th class="text-center">Nature</th>
-                            <th class="text-center">IVs</th>
+                            <th class="text-center">IVs
+                                <i class="fa fa-info-circle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
+                                <div id="tooltip" role="tooltip" style="font-weight: normal; text-align: left;">
+                                    Stats are listed in the following order:<br>
+                                    HP, Attack, Defense, Sp. Atk, Sp. Def, Speed<br><br>
+                                    Stats in Red are raised by the nature.<br>
+                                    Stats in Blue are lowered by the nature.<br><br>
+                                    IV Total is listed at the end (186 Max.)
+                                    <div id="arrow" data-popper-arrow></div>
+                                </div>
+                            </th>
                             <th class="text-center">Hidden Power</th>
                         </tr>
                     </thead>
@@ -301,6 +334,8 @@
         </div>
     </div>
     <script src="components/common/halfmoon.min.js"></script>
+    <script src="components/common/popper.min.js"></script>
+    <script src="components/common/tooltip.js"></script>
     <script src="components/page.js"></script>
     <script src="components/dashboard.js"></script>
 </body>

@@ -449,16 +449,22 @@ function interpretClientMessage(socket, message) {
         case 'game_state':
             client.map = data.map_name + " (" + data.map_header.toString() + ")";
             client.map_name = data.map_name;
-            client.position = data.trainer_x.toString() + ", " + data.trainer_y.toString() + ", " + data.trainer_z.toString();
+            client.position = (data.trainer_x || '--').toString() + ", " + (data.trainer_y || '--').toString() + ", " + (data.trainer_z || '--').toString();
             
             // Values displayed on the game instance's tab on the dashboard
+            client.trainer = {
+                Name: data.trainer_name || '--',
+                TID: data.trainer_id || '--',
+                SID: data.trainer_sid || '--'
+            }
+
             var shownValues = {
-                Map: client.map,
-                Position: client.position
+                Map: client.map || '--',
+                Position: client.position || '--, --, --'
             }
             
             if ('phenomenon_x' in data) {
-                shownValues.Phenomenon = data.phenomenon_x.toString() + ", --, " + data.phenomenon_z.toString();
+                shownValues.Phenomenon = (data.phenomenon_x || '--').toString() + ", --, " + (data.phenomenon_z || '--').toString();
             }
             
             client.shownValues = shownValues

@@ -146,22 +146,20 @@ function get_game_state()
                 trainer_y = to_signed(mword(pointers.trainer_y + 2)),
                 trainer_z = mword(pointers.trainer_z + 2),
                 in_battle = mbyte(pointers.battle_indicator) == 0x41 and foe,
-                in_game = true
+                in_game = true,
+                trainer_name = read_string(pointers.trainer_name),
+                trainer_id = string.format("%05d", mword(pointers.trainer_id)),
+                trainer_sid = string.format("%05d", mword(pointers.trainer_id + 2)),
             }
         else
             return {
                 map_header = 0,
-                map_name = "--",
-                trainer_x = 0,
-                trainer_y = 0,
-                trainer_z = 0,
-                in_game = false
+                in_game = false,
             }
         end
     else
         if in_game then
             return {
-                -- map_matrix = mdword(pointers.map_matrix),
                 map_header = map,
                 map_name = map_names[map + 1],
                 trainer_x = mword(pointers.trainer_x + 2),
@@ -170,19 +168,16 @@ function get_game_state()
                 phenomenon_x = mword(pointers.phenomenon_x + 2),
                 phenomenon_z = mword(pointers.phenomenon_z + 2),
                 in_battle = mbyte(pointers.battle_indicator) == 0x41 and foe,
-                in_game = true
+                in_game = true,
+                trainer_name = read_string(pointers.trainer_name),
+                trainer_id = string.format("%05d", mword(pointers.trainer_id)),
+                trainer_sid = string.format("%05d", mword(pointers.trainer_id + 2)),
             }
         else
             -- Set minimum required values for the dashboard
             return {
                 map_header = 0,
-                map_name = "--",
-                trainer_x = 0,
-                trainer_y = 0,
-                trainer_z = 0,
-                phenomenon_x = 0,
-                phenomenon_z = 0,
-                in_game = false
+                in_game = false,
             }
         end
     end

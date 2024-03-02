@@ -47,7 +47,10 @@ function update_pointers()
         text_interrupt = 0x2172BA0 + offset,
 
         fishing_bite_indicator = 0x20A8362 + offset,
-        fishing_no_bite = 0x21509DB + offset
+        fishing_no_bite = 0x21509DB + offset,
+
+        trainer_name = 0x2234FB0 + offset,
+        trainer_id = 0x2234FC0 + offset
     }
 end
 
@@ -1224,4 +1227,32 @@ function mode_fishing()
     process_wild_encounter()
 
     wait_frames(90)
+end
+
+function read_string(input, offset)
+    local text = ""
+
+    if type(input) == "table" then
+        for i = offset + 1, #input, 2 do
+            local value = input[i] + (input[i] << 8)
+
+            if value == 0xFFFF or value == 0x0000 then -- Null terminator
+                break
+            end
+
+            text = text .. utf8.char(value & 0xFF)
+        end
+    else
+        for i = input, input + 32, 2 do
+            local value = mword(i)
+
+            if value == 0xFFFF or value == 0x0000 then -- Null terminator
+                break
+            end
+
+            text = text .. utf8.char(value & 0xFF)
+        end
+    end
+    
+    return text
 end

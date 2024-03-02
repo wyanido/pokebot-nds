@@ -8,3 +8,15 @@
     display: inline-block; 
     width: auto;
 }
+
+.iv {
+    padding: 3px;
+}
+
+.up {
+    color: rgb(242, 99, 123);
+}
+
+.down {
+    color: rgb(82, 137, 248);
+}

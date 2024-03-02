@@ -55,7 +55,10 @@ function update_pointers()
         fishing_bite_indicator = 0x209B3CA + offset,
         fishing_no_bite = 0x214BC62 + offset,
 
-        battle_menu_state = mdword(0x2141950 + offset) + 0x1367C -- 1 on FIGHT menu, 2 on move select, 4 on switch/run after faint, 0 otherwise
+        battle_menu_state = mdword(0x2141950 + offset) + 0x1367C, -- 1 on FIGHT menu, 2 on move select, 4 on switch/run after faint, 0 otherwise
+    
+        trainer_name = 0x221E9E8 + offset,
+        trainer_id = 0x221E9F8 + offset
     }
 end
 

@@ -121,43 +121,9 @@ local mon_gender = {"Male", "Female", "Genderless"}
 local mon_nature = {"Hardy", "Lonely", "Brave", "Adamant", "Naughty", "Bold", "Docile", "Relaxed", "Impish", "Lax",
                     "Timid", "Hasty", "Serious", "Jolly", "Naive", "Modest", "Mild", "Quiet", "Bashful", "Rash", "Calm",
                     "Gentle", "Sassy", "Careful", "Quirky"}
-local char_table_iv = {"💰", "🗝️", "💿", "✉️", "💊", "🍓", "◓", "💥", "←", "↑", "↓", "→",
-                       "►", "＆", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F",
-                       "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y",
-                       "Z", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r",
-                       "s", "t", "u", "v", "w", "x", "y", "z", "À", "Á", "Â", "Ã", "Ä", "Å", "Æ", "Ç", "È",
-                       "É", "Ê", "Ë", "Ì", "Í", "Î", "Ï", "Ð", "Ñ", "Ò", "Ó", "Ô", "Õ", "Ö", "×", "Ø",
-                       "Ù", "Ú", "Û", "Ü", "Ý", "Þ", "ß", "à", "á", "â", "ã", "ä", "å", "æ", "ç", "è",
-                       "é", "ê", "ë", "ì", "í", "î", "ï", "ð", "ñ", "ò", "ó", "ô", "õ", "ö", "÷", "ø",
-                       "ù", "ú", "û", "ü", "ý", "þ", "ÿ", "Œ", "œ", "Ş", "ş", "ª", "º", "er", "re", "r",
-                       "₽", "¡", "¿", "!", "?", ", ", ".", "…", "･", "/", "‘", "’", "“", "”", "„",
-                       "«", "»", "(", ")", "♂", "♀", "+", "-", "*", "#", "=", "&", "~", ":", ";", "♠", "♣",
-                       "♥", "♦", "★", "◎", "○", "□", "△", "◇", "@", "♪", "%", "☀", "☁", "☂",
-                       "☃", "😑", "☺", "☹", "😠", "⤴︎", "⤵︎", "💤", " ", "PK", "MN", " ", " ",
-                       " ", " ", " ", "°", "_", "＿", "․", "‥"}
 
 -- Parses decrypted data into a human-readable table of key value pairs
 function pokemon.parse_data(data, enrich)
-    local read_string = function(start, length)
-        local text = ""
-
-        for i = start + 1, start + length, 2 do
-            local value = data[i] + (data[i] << 8)
-
-            if value == 0xFFFF or value == 0x0000 then -- Null terminator
-                break
-            end
-
-            if _ROM.gen == 4 then -- Gen 4 characters have a different byte offset
-                text = text .. char_table_iv[(value - 0x112) & 0xFF]
-            else
-                text = text .. utf8.char(value & 0xFF)
-            end
-        end
-        
-        return text
-    end
-
     local read_real = function(start, length)
         local bytes = 0
         local j = 0
@@ -254,13 +220,13 @@ function pokemon.parse_data(data, enrich)
     end
 
     -- Block C
-    mon.nickname         = read_string(0x48, 21)
+    mon.nickname         = read_string(data, 0x48)
     -- mon.originGame		 = read_real(0x5F, 1)
     -- mon.sinnohRibbonSet3 = read_real(0x60, 2)
     -- mon.sinnohRibbonSet3 = read_real(0x62, 2)
 
     -- Block D
-    -- mon.otName          = read_string(0x68, 16)
+    -- mon.otName          = read_string(data, 0x68)
     -- mon.dateEggReceived	= read_real(0x78, 3)
     -- mon.dateMet			= read_real(0x7B, 3)
     -- mon.eggLocation		= read_real(0x7E, 2)
