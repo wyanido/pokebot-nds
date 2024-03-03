@@ -113,6 +113,12 @@ function update_foes()
         ::retry::
         local foe_table = {}
         local foe_count = mbyte(pointers.foe_count)
+        
+        if foe_count == 0 then
+            console.debug("Foe data doesn't exist yet, retrying next frame...")
+            emu.frameadvance()
+            goto retry
+        end 
 
         for i = 1, foe_count do
             local mon_data = pokemon.decrypt_data(pointers.current_foe + (i - 1) * MON_DATA_SIZE)
@@ -122,7 +128,7 @@ function update_foes()
                 
                 table.insert(foe_table, mon)
             else
-                console.debug("Foe checksum failed at slot " .. i .. ", retrying")
+                console.debug("Foe checksum failed at slot " .. i .. ", retrying next frame...")
                 emu.frameadvance()
                 goto retry
             end
@@ -145,7 +151,7 @@ function get_game_state()
                 trainer_x = mword(pointers.trainer_x + 2),
                 trainer_y = to_signed(mword(pointers.trainer_y + 2)),
                 trainer_z = mword(pointers.trainer_z + 2),
-                in_battle = mbyte(pointers.battle_indicator) == 0x41 and foe,
+                in_battle = type(foe) == "table" and #foe > 0,
                 in_game = true,
                 trainer_name = read_string(pointers.trainer_name),
                 trainer_id = string.format("%05d", mword(pointers.trainer_id)),
@@ -183,25 +189,8 @@ function get_game_state()
     end
 end
 
-function frames_per_move()
-    if _ROM.gen == 4 then -- Temporary
-        return 16
-    end
-
-    if mbyte(pointers.on_bike) == 1 then
-        return 4
-    elseif mbyte(pointers.running_shoes) > 0 then
-        return 8
-    end
-
-    return 16
-end
-
 function update_game_info(force)
-    -- Refresh data at the rate it takes to move 1 tile
-    local refresh_frames = frames_per_move()
-
-    if emu.framecount() % refresh_frames == 0 or force then
+    if emu.framecount() % 4 == 0 or force then
         game_state = get_game_state()
         dashboard:send(json.encode({
             type = "game_state",
@@ -218,8 +207,8 @@ function abort(reason)
     clear_all_inputs()
     client.clearautohold()
 
-    console.log("##### MODE FINISHED #####")
-    assert(false, "\n" .. reason .. ". Stopping bot!")
+    console.log("##### BOT TASK ENDED #####")
+    error(reason)
 end
 
 function cycle_starter_choice(starter)
@@ -319,8 +308,7 @@ while true do
                 end
             end
         else
-            console.log("No function found for mode '" .. config.mode .. "'")
-            return
+            abort("Function for mode '" .. config.mode .. "' does not exist. It may not be compatible with this game.")
         end
     end
 

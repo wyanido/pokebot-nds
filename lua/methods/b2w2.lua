@@ -128,3 +128,17 @@ function mode_starters(starter)
         wait_frames(60)
     end
 end
+
+function mode_hidden_grottos()
+    if game_state.map_header ~= 518 then -- All Hidden Grottos share the same map ID
+        abort("Please start the script inside of a Hidden Grotto!")
+    end
+
+    hold_button("Down")
+
+    while game_state.map_header == 518 do
+        wait_frames(2)
+    end
+
+    release_button("Down")
+end
