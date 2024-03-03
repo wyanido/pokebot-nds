@@ -14,6 +14,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"
         referrerpolicy="no-referrer"></script>
     <link rel="stylesheet" href="components/common/tooltip.css">
+    <link rel="stylesheet" href="components/common/style.css">
 </head>
 
 <body class="with-custom-webkit-scrollbars with-custom-css-scrollbars" data-dm-shortcut-enabled="true"
@@ -25,7 +26,7 @@
                 <img src="assets/pokemon-icon/201-27.png" class="icon" id="icon">
                 Pokébot NDS
             </div>
-            <span class="navbar-text text-monospace font-size-12">v0.6.0-alpha</span>
+            <span class="navbar-text text-monospace font-size-12">v0.7.0-alpha</span>
             <ul class="navbar-nav d-flex d-md-flex">
                 <li class="nav-item nav-link px-10">
                     <a href="dashboard.html">
@@ -78,18 +79,20 @@
                         <br>
                         <label for="mode">Bot Behaviour</label>
                         <select class="form-control" id="mode">
-                            <option value="manual">Manual</option>
-                            <option disabled>-- Soft Resets</option>
+                            <option value="manual">Manual (logging only)</option>
+                            <option disabled>-- All Games</option>
                             <option value="starters">Starters</option>
                             <option value="gift">Gift Pokémon</option>
                             <option value="static_encounters">Static Encounters</option>
-                            <option disabled>-- Standard</option>
                             <option value="random_encounters">Random Encounters</option>
-                            <option value="phenomenon_encounters">Phenomenon Encounters</option>
-                            <option value="fishing">Fishing</option>
                             <option value="daycare_eggs">Collect & Hatch Eggs</option>
-                            <option disabled>-- Misc</option>
-                            <option value="voltorb_flip">Voltorb Flip (HGSS)</option>
+                            <option value="fishing">Fishing</option>
+                            <option disabled>-- HeartGold/SoulSilver</option>
+                            <option value="primo_gift">Primo Gift Eggs</option>
+                            <option value="voltorb_flip">Voltorb Flip</option>
+                            <option value="headbutt">Headbutt Trees</option>
+                            <option disabled>-- BW/B2W2</option>
+                            <option value="phenomenon_encounters">Phenomenon Encounters</option>
                         </select>
                         <div id="option_moving_encounters">
                             <br>
@@ -124,6 +127,25 @@
                                     <input type="checkbox" id="starter2">
                                     <label for="starter2">Oshawott/Piplup</label>
                                 </div>
+                            </div>
+                        </div>
+                        <div id="option_primo">
+                            <br>
+                            <label for="words">Secret Phrases</label>
+                            <i class="fa fa-info-circle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
+                                <div id="tooltip" role="tooltip">Secret phrase the bot should tell to Primo in the Violet City Pokémon Center. Check the linked website to find a phrase that results in an egg for your Trainer ID.
+                                    <div id="arrow" data-popper-arrow></div>
+                                </div>
+                            <a href="https://www.pokewiki.de/Spezial:Geheimcode-Generator?uselang=en" target="_blank"> (calculate)</a>
+                            <div style="display: block; width: 100%; align-items: center;">
+                                <label for="word1">Question 1.</label>
+                                <select class="primo-phrase form-control" id="primo1"></select>
+                                <select class="primo-phrase form-control" id="primo2"></select>
+                            </div>
+                            <div style="display: block; width: 100%; align-items: center;">
+                                <label for="word1">Question 2.</label>
+                                <select class="primo-phrase form-control" id="primo3"></select>
+                                <select class="primo-phrase form-control" id="primo4"></select>
                             </div>
                         </div>
                     </div>
@@ -218,9 +240,6 @@
                             </label>
                         </div>
                         <br>
-                        <label for="inactive_client_timeout">Inactive game timeout (ms)</label>
-                        <input id="inactive_client_timeout" min="1000" type="number" class="form-control">
-                        <br>
                         <label for="dashboard_poll_interval">Dashboard refresh interval (ms)</label>
                         <input id="dashboard_poll_interval" min="1" type="number" class="form-control">
                         <br>
@@ -233,34 +252,37 @@
                 <div class="col-6">
                     <div class="card">
                         <h2 class="content-title">Target Pokémon</h2>
-                        <div class="custom-switch">
-                            <input type="checkbox" id="always_catch_shinies">
-                            <label for="always_catch_shinies">Always keep shiny Pokemon</label>
-                        </div>
-                        <br>
                         <label for="catch">Target traits
                             <i class="fa fa-info-circle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
                             <div id="tooltip" role="tooltip">YAML format. Pokémon must meet every requirement
                                 to be considered a target. For arrays, only one item in the array must match. 
                                 Not case-sensitive.
                                 <br><br>
-                                Available traits are as follow:
-                                <br> • shiny: bool
-                                <br> • iv_sum: int <i>(greater than or equal)</i>
-                                <br> • hpIV, attackIV, defenseIV, spAttack, spDefenseIV, speedIV: int <i>(greater than or equal)</i>
-                                <br> • species: array[str]
-                                <br> • gender: str
-                                <br> • level: int <i>(greater than or equal)</i>
-                                <br> • ability: array[str]
-                                <br> • nature: array[str]
-                                <br> • move: array[str]
-                                <br> • type: array[str]
+                                Target traits and their data types include:
+                                <br> • shiny: <i>boolean</i>
+                                <br> • iv_sum: <i>int (greater than or equal)</i>
+                                <br> • hpIV, attackIV, defenseIV, spAttack, spDefenseIV, speedIV: <i>int (greater than or equal)</i>
+                                <br> • species: <i>array[str] (english name)</i>
+                                <br> • gender: <i>str</i>
+                                <br> • level: <i>int (greater than or equal)</i>
+                                <br> • ability: <i>array[str]</i>
+                                <br> • nature: <i>array[str]</i>
+                                <br> • move: <i>array[str]</i>
+                                <br> • type: <i>array[str]</i>
                                 <div id="arrow" data-popper-arrow></div>
                             </div>
                         </label>
                         <textarea class="form-control" spellcheck="false"
                             style="min-width:120px; max-width:100%; height: 120px;" id="target_traits"
                             placeholder=""></textarea>
+                        <br>
+                        <div class="custom-switch">
+                            <input type="checkbox" id="always_catch_shinies">
+                            <label for="always_catch_shinies">Make exceptions for shiny Pokemon
+                                <i class="fa fa-info-circle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
+                            <div id="tooltip" role="tooltip">When encountering a shiny Pokémon, ignore the above ruleset and always catch it.</div>
+                            </label>
+                        </div>
                         <br>
                         <div class="custom-switch">
                             <input type="checkbox" id="save_game_after_catch">

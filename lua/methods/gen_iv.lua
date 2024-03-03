@@ -25,7 +25,11 @@ function update_pointers()
         facing      = mem_shift + 0x247C6,
 
         battle_state_value  = mem_shift + 0x44878,        
-        battle_indicator    = 0x021A1B2A + offset -- mostly static
+        battle_indicator    = 0x021A1B2A + offset, -- mostly static
+        fishing_bite_indicator = 0x21D5E16,
+
+        trainer_name = mem_shift - 0x22,
+        trainer_id = mem_shift - 0x12
     }
 end
 
@@ -98,7 +102,7 @@ function check_status()
         if config.cycle_lead_pokemon then
             console.log("Finding a suitable replacement")
         else
-            pause_bot("auto cycle off waiting for manual intervention")
+            abort("auto cycle off waiting for manual intervention")
         end
     end
     console.log("Lead Pokemon is OK, continuing search...")
@@ -120,7 +124,7 @@ function do_pickup()
     local items = {}
 
     while not game_state.in_game do
-        skip_dialogue()
+        press_sequence(12, "A")
     end
 
     for i = 1, #party, 1 do
@@ -192,26 +196,27 @@ end
 function use_move_at_slot(slot)
     -- Skip text to FIGHT menu
     while pointers.battle_state_value == 14 do
-        skip_dialogue()
+        press_sequence(12, "A")
     end
-    console.log("Using Subdue Move")
+
     wait_frames(60)
     touch_screen_at(128, 90) -- FIGHT
     wait_frames(30)
+
     local xpos = 80 * (((slot - 1) % 2) + 1)
     local ypos = 50 * (((slot - 1) // 2) + 1)
     touch_screen_at(xpos, ypos) -- Select move slot
+
     wait_frames(60)
 end
 
 function flee_battle()
-    while (game_state.in_battle and pointers.battle_state_value == 0) do
-        press_sequence("B", 5)
-    end
     while game_state.in_battle do
         touch_screen_at(125, 175) -- Run
         wait_frames(5)
     end
+
+    console.log("Got away safely!")
 end
 
 function subdue_pokemon()
@@ -428,17 +433,16 @@ function swap_lead_battle()
             touch_screen_at(xpos, ypos)
         end
         while (pointers.battle_state_value ~= 0x01) do
-            skip_dialogue()
+            press_sequence(12, "A")
         end
     end
 end
 
 function catch_pokemon()
-    while (game_state.in_battle and (pointers.battle_state_value == 0)) do
+    while game_state.in_battle and pointers.battle_state_value == 0 do
         press_sequence("B", 5)
     end
     if config.auto_catch then
-        console.log("Attempting to catch pokemon now...")
         if config.inflict_status or config.false_swipe then
             subdue_pokemon()
         end
@@ -446,10 +450,12 @@ function catch_pokemon()
             press_sequence("B", 5)
         end
         wait_frames(60)
+        
         ::retry::
         while pointers.battle_state_value ~= 01 do
             press_sequence("B", 5)
         end
+
         wait_frames(10)
         touch_screen_at(40, 170)
         wait_frames(50)
@@ -459,21 +465,19 @@ function catch_pokemon()
         wait_frames(20)
         touch_screen_at(100, 170)
         wait_frames(750)
+        
         if mbyte(0x02101DF0) == 0x01 then
-            console.log("Pokemon caught!!!")
             skip_nickname()
             wait_frames(200)
         else
-            console.log("Failed catch trying again...")
             if pointers.foe_status == 0 then
-                console.log("Foe not asleep reapplying")
                 subdue_pokemon()
             else
                 goto retry
             end
         end
     else
-        pause_bot("Wild Pokemon meets target specs!")
+        abort("Wild Pokemon meets target specs!")
     end
 end
 
@@ -487,7 +491,6 @@ function process_wild_encounter()
     wait_frames(30)
     
     if foe_is_target then
-        console.log("Wild " .. foe[1].name .. " is a target!!! Catching Now")
         catch_pokemon()
     else
         while game_state.in_battle do
@@ -513,7 +516,7 @@ end
 function mode_static_encounters()
     console.log("Waiting for battle to start...")
     
-    while not foe and not game_state.in_battle do
+    while not game_state.in_battle do
         local delay = math.random(6, 21) -- Mimic imperfect human inputs
         press_sequence("A", delay)
     end
@@ -526,7 +529,7 @@ function mode_static_encounters()
     end
 
     if foe_is_target then
-        pause_bot("Wild Pokémon meets target specs!")
+        abort("Wild Pokémon meets target specs!")
     else
         console.log("Wild " .. foe[1].name .. " was not a target, resetting...")
         press_button("Power")
@@ -545,7 +548,7 @@ function mode_starters(starter)
         console.log("Waiting to reach overworld...")
 
         while not game_state.in_battle do
-            skip_dialogue()
+            press_sequence(12, "A")
         end
     end
 
@@ -554,7 +557,7 @@ function mode_starters(starter)
 
     -- Skip through dialogue until starter select
     while not (mdword(pointers.starters_ready) > 0) do
-        skip_dialogue()
+        press_sequence(12, "A")
     end
 
     release_button("Up")
@@ -581,10 +584,10 @@ function mode_starters(starter)
     end
 
     mon = party[1]
-    local was_target = pokemon.log(mon)
+    local was_target = pokemon.log_encounter(mon)
 
     if was_target then
-        pause_bot("Starter meets target specs!")
+        abort("Starter meets target specs!")
     else
         console.log("Starter was not a target, resetting...")
         press_button("Power")
@@ -603,7 +606,7 @@ function mode_random_encounters()
             press_sequence("Right", 3)
         end
         
-        while not foe and not game_state.in_battle do
+        while not game_state.in_battle do
             press_sequence(
                 "Down", 3,
                 "Left", 3,
@@ -630,7 +633,7 @@ function mode_random_encounters()
 
         hold_button("B")
         
-        while not foe and not game_state.in_battle do
+        while not game_state.in_battle do
             hold_button(dir1)
             wait_frames(7)
             hold_button(dir2)
@@ -648,15 +651,15 @@ function mode_random_encounters()
 end
 
 function mode_fishing()
-    while not foe and not game_state.in_battle do
+    while true do
         press_button("Y")
         wait_frames(60)
 
-        while pointers.fishOn == 0x00 do
+        while mbyte(pointers.fishing_bite_indicator) == 0x00 do
             wait_frames(1)
         end
 
-        if pointers.fishOn == 0x01 then
+        if mbyte(pointers.fishing_bite_indicator) == 0x01 then
             console.log("Landed a Pokémon!")
             break
         else
@@ -665,11 +668,109 @@ function mode_fishing()
         end
     end
 
-    while not foe and not game_state.in_battle do
+    while not game_state.in_battle do
         press_sequence("A", 5)
     end
 
     process_wild_encounter()
 
     wait_frames(90)
+end
+
+function mode_gift()
+    if not game_state.in_game then
+        console.log("Waiting to reach overworld...")
+
+        while not game_state.in_game do
+            local delay = math.random(5, 30) -- Mimic imperfect human inputs
+            press_sequence("A", delay)
+        end
+    end
+
+    wait_frames(60)
+    
+    local og_party_count = #party
+    while #party == og_party_count do
+        press_sequence("A", 5)
+    end
+
+    press_sequence(180, "B", 60) -- Decline nickname
+    
+    if not config.hax then
+        -- Party menu
+        press_sequence("X", 30)
+        touch_screen_at(65, 45)
+        wait_frames(90)
+
+        touch_screen_at(80 * ((#party - 1) % 2 + 1), 30 + 50 * ((#party - 1) // 2)) -- Select gift mon
+        wait_frames(30)
+
+        touch_screen_at(200, 105) -- SUMMARY
+        wait_frames(120)
+    end
+
+    local mon = party[#party]
+    local was_target = pokemon.log_encounter(mon)
+
+    if was_target then
+        if config.save_game_after_catch then
+            console.log("Gift Pokemon meets target specs! Saving...")
+
+            if not config.hax then
+                press_sequence("B", 120, "B", 120, "B", 60) -- Exit out of menu
+            end
+
+            save_game()
+        end
+
+        abort("Gift Pokemon meets target specs")
+    else
+        console.log("Gift Pokemon was not a target, resetting...")
+        press_button("Power")
+        wait_frames(60)
+    end
+end
+
+function read_string(input, offset)
+    local char_table = {"💰", "🗝️", "💿", "✉️", "💊", "🍓", "◓", "💥", "←", "↑", "↓", "→",
+                    "►", "＆", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F",
+                    "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y",
+                    "Z", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r",
+                    "s", "t", "u", "v", "w", "x", "y", "z", "À", "Á", "Â", "Ã", "Ä", "Å", "Æ", "Ç", "È",
+                    "É", "Ê", "Ë", "Ì", "Í", "Î", "Ï", "Ð", "Ñ", "Ò", "Ó", "Ô", "Õ", "Ö", "×", "Ø",
+                    "Ù", "Ú", "Û", "Ü", "Ý", "Þ", "ß", "à", "á", "â", "ã", "ä", "å", "æ", "ç", "è",
+                    "é", "ê", "ë", "ì", "í", "î", "ï", "ð", "ñ", "ò", "ó", "ô", "õ", "ö", "÷", "ø",
+                    "ù", "ú", "û", "ü", "ý", "þ", "ÿ", "Œ", "œ", "Ş", "ş", "ª", "º", "er", "re", "r",
+                    "₽", "¡", "¿", "!", "?", ", ", ".", "…", "･", "/", "‘", "’", "“", "”", "„",
+                    "«", "»", "(", ")", "♂", "♀", "+", "-", "*", "#", "=", "&", "~", ":", ";", "♠", "♣",
+                    "♥", "♦", "★", "◎", "○", "□", "△", "◇", "@", "♪", "%", "☀", "☁", "☂",
+                    "☃", "😑", "☺", "☹", "😠", "⤴︎", "⤵︎", "💤", " ", "PK", "MN", " ", " ",
+                    " ", " ", " ", "°", "_", "＿", "․", "‥"}
+    local text = ""
+
+    if type(input) == "table" then
+        -- Read data from an inputted table of bytes
+        for i = offset + 1, #input, 2 do
+            local value = input[i] + (input[i] << 8)
+
+            if value == 0xFFFF or value == 0x0000 then -- Null terminator
+                break
+            end
+
+            text = text .. char_table[(value - 0x112) & 0xFF]
+        end
+    else
+        -- Read data from an inputted address
+        for i = input, input + 32, 2 do
+            local value = mword(i)
+
+            if value == 0xFFFF or value == 0x0000 then -- Null terminator
+                break
+            end
+
+            text = text .. (char_table[(value - 0x112) & 0xFF] or "?")
+        end
+    end
+
+    return text
 end

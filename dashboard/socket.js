@@ -11,6 +11,7 @@ var elapsedStart;
 var lastEncounter;
 var sinceLastEncounter;
 
+const clientInactivityTimeout = 180000; // Prevent excessive pile-up of ended sessions, remove them after 3 minutes
 const rateHistorySample = 20;
 var rateHistory = [];
 var encounterRate = 0;
@@ -57,7 +58,6 @@ const configTemplate = {
     battle_non_targets: false,
     auto_catch: false,
     target_log_limit: "30",
-    inactive_client_timeout: "15000",
     dashboard_poll_interval: "330",
     inflict_status: false,
     false_swipe: false,
@@ -181,7 +181,7 @@ function getTimestamp() {
 }
 
 const server = net.createServer((socket) => {
-    console.log('[%s] Emulator %d connected', getTimestamp(), clients.length + 1)
+    console.log('[%s] Session %d connected', getTimestamp(), clients.length + 1)
     clients.push(socket);
     socketSetTimeout(socket);
 
@@ -202,11 +202,8 @@ const server = net.createServer((socket) => {
                 clearTimeout(socket.inactivityTimeout);
                 socketSetTimeout(socket);
 
-                // Separate JSON from length prefix
-                var body = response.slice(response.indexOf(' ') + 1);
-
                 try {
-                    var message = JSON.parse(body);
+                    var message = JSON.parse(response);
 
                     interpretClientMessage(socket, message);
                 } catch (error) {
@@ -228,9 +225,21 @@ const server = net.createServer((socket) => {
 });
 
 server.listen(port, () => {
-    console.log(`=======================================`);
-    console.log(`Socket server listening for clients on port ${port}`);
+    console.log(`Socket server listening for emulators on port ${port}`);
 });
+
+function socketSetTimeout(socket) {
+    socket.inactivityTimeout = setTimeout(() => {
+        const index = clients.indexOf(socket);
+        if (index > -1) {
+            clients.splice(index, 1);
+            clientData.splice(index, 1);
+        }
+
+        socket.destroy()
+        console.log('[%s] Session %d removed for inactivity', getTimestamp(), index + 1)
+    }, clientInactivityTimeout)
+}
 
 function objectSubstitute(src, sub, recursive = false) {
     for (var key in sub) {
@@ -308,9 +317,8 @@ function updateEncounterLog(mon) {
 
     stats.phase.lowest_sv = typeof (stats.phase.lowest_sv) != 'number' ? mon.shinyValue : Math.min(mon.shinyValue, stats.phase.lowest_sv);
 
-    var iv_sum = mon.hpIV + mon.attackIV + mon.defenseIV + mon.spAttackIV + mon.spDefenseIV + mon.speedIV;
-    stats.total.max_iv_sum = typeof (stats.total.max_iv_sum) != 'number' ? iv_sum : Math.max(iv_sum, stats.total.max_iv_sum);
-    stats.total.min_iv_sum = typeof (stats.total.min_iv_sum) != 'number' ? iv_sum : Math.min(iv_sum, stats.total.min_iv_sum);
+    stats.total.max_iv_sum = typeof (stats.total.max_iv_sum) != 'number' ? mon.ivSum : Math.max(mon.ivSum, stats.total.max_iv_sum);
+    stats.total.min_iv_sum = typeof (stats.total.min_iv_sum) != 'number' ? mon.ivSum : Math.min(mon.ivSum, stats.total.min_iv_sum);
 
     if (mon.shiny == true || mon.shinyValue < 8) {
         stats.total.shiny = stats.total.shiny + 1;
@@ -334,21 +342,8 @@ function updateTargetLog(mon) {
     return targets
 }
 
-function socketSetTimeout(socket) {
-    socket.inactivityTimeout = setTimeout(() => {
-        const index = clients.indexOf(socket);
-        if (index > -1) {
-            clients.splice(index, 1);
-            clientData.splice(index, 1);
-        }
-
-        socket.destroy()
-        console.log('[%s] Emulator %d removed for inactivity', getTimestamp(), index + 1)
-    }, config.inactive_client_timeout)
-}
-
 function formatClientMessage(type, data) {
-    var msg = JSON.stringify({
+    return JSON.stringify({
         'type': type,
         'data': data
     });
@@ -404,8 +399,8 @@ function webhookLogPokemon(mon, client) {
     webhookClient.send(messageContents);
 }
 
-function webhookTest() {
-    const webhookClient = new WebhookClient({ url: config.webhook_url });
+function webhookTest(url) {
+    const webhookClient = new WebhookClient({ url: url });
     webhookClient.send({
         username: 'Pokébot NDS',
         avatarURL: 'https://i.imgur.com/7tJPLRX.png',
@@ -439,7 +434,7 @@ function interpretClientMessage(socket, message) {
             client.party = data.party;
             break;
         case 'load_game':
-            console.log('[%s] Emulator %d loaded %s', getTimestamp(), clientData.length + 1, data.name);
+            console.log('[%s] Session %d loaded %s', getTimestamp(), clientData.length + 1, data.name);
 
             clientData[index] = {
                 gen: data.gen,
@@ -454,16 +449,22 @@ function interpretClientMessage(socket, message) {
         case 'game_state':
             client.map = data.map_name + " (" + data.map_header.toString() + ")";
             client.map_name = data.map_name;
-            client.position = data.trainer_x.toString() + ", " + data.trainer_y.toString() + ", " + data.trainer_z.toString();
+            client.position = (data.trainer_x || '--').toString() + ", " + (data.trainer_y || '--').toString() + ", " + (data.trainer_z || '--').toString();
             
             // Values displayed on the game instance's tab on the dashboard
+            client.trainer = {
+                Name: data.trainer_name || '--',
+                TID: data.trainer_id || '--',
+                SID: data.trainer_sid || '--'
+            }
+
             var shownValues = {
-                Map: client.map,
-                Position: client.position
+                Map: client.map || '--',
+                Position: client.position || '--, --, --'
             }
             
             if ('phenomenon_x' in data) {
-                shownValues.Phenomenon = data.phenomenon_x.toString() + ", --, " + data.phenomenon_z.toString();
+                shownValues.Phenomenon = (data.phenomenon_x || '--').toString() + ", --, " + (data.phenomenon_z || '--').toString();
             }
             
             client.shownValues = shownValues

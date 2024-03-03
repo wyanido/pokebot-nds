@@ -47,7 +47,10 @@ function update_pointers()
         text_interrupt = 0x2172BA0 + offset,
 
         fishing_bite_indicator = 0x20A8362 + offset,
-        fishing_no_bite = 0x21509DB + offset
+        fishing_no_bite = 0x21509DB + offset,
+
+        trainer_name = 0x2234FB0 + offset,
+        trainer_id = 0x2234FC0 + offset
     }
 end
 
@@ -274,10 +277,7 @@ function do_battle()
         else
             console.log("Lead Pokemon has no valid moves left to battle! Fleeing...")
 
-            while game_state.in_battle do
-                touch_screen_at(125, 175) -- Run
-                wait_frames(5)
-            end
+            flee_battle()
         end
     else
         -- Wait another frame for valid battle data
@@ -329,7 +329,7 @@ function check_party_status()
             end
 
             if most_usable_pp == 0 then
-                pause_bot("No suitable Pokemon left to battle")
+                abort("No suitable Pokemon left to battle")
             else
                 console.debug("Best replacement was " .. party[best_index].name .. " (Slot " .. best_index .. ")")
                 -- Party menu
@@ -349,7 +349,7 @@ function check_party_status()
                 press_sequence(30, "B", 120, "B", 60) -- Exit out of menu
             end
         else
-            pause_bot("Lead Pokemon can no longer battle, and current config disallows cycling lead")
+            abort("Lead Pokemon can no longer battle, and current config disallows cycling lead")
         end
     end
 
@@ -603,7 +603,7 @@ function catch_pokemon()
 
     local ball_index = find_usable_ball()
     if ball_index == -1 then
-        pause_bot("No valid Poké Balls to catch the target with")
+        abort("No valid Poké Balls to catch the target with")
     end
 
     while mbyte(pointers.battle_menu_state) ~= 1 do
@@ -643,7 +643,7 @@ function catch_pokemon()
         press_sequence("B", 5)
 
         if mbyte(pointers.battle_menu_state) == 4 then
-            pause_bot("Lead fainted while trying to catch target")
+            abort("Lead fainted while trying to catch target")
         end
     end
 
@@ -681,14 +681,14 @@ function process_wild_encounter()
     if foe_is_target then
         if double then
             wait_frames(120)
-            pause_bot("Wild Pokemon meets target specs! There are multiple foes, so pausing for manual catch")
+            abort("Wild Pokemon meets target specs! There are multiple foes, so pausing for manual catch")
         else
             if config.auto_catch then
                 while game_state.in_battle do
                     catch_pokemon()
                 end
             else
-                pause_bot("Wild Pokemon meets target specs, but Auto-catch is disabled")
+                abort("Wild Pokemon meets target specs, but Auto-catch is disabled")
             end
         end
     else
@@ -788,7 +788,7 @@ function mode_starters(starter)
     local was_target = pokemon.log_encounter(mon)
 
     if was_target then
-        pause_bot("Starter meets target specs")
+        abort("Starter meets target specs")
     else
         console.log("Starter was not a target, resetting...")
         press_button("Power")
@@ -827,10 +827,10 @@ function mode_random_encounters()
         local dir2 = config.move_direction == "horizontal" and "Right" or "Down"
         
         wait_frames(60) -- Wait to regain control post-battle
-        pathfind_to(home)
-        wait_frames(8)
+        -- pathfind_to(home)
+        -- wait_frames(8)
 
-        while not foe and not game_state.in_battle do
+        while not game_state.in_battle do
             move_in_direction(dir1)
             move_in_direction(dir2)
         end
@@ -838,7 +838,6 @@ function mode_random_encounters()
         release_button(dir2)
 
         process_wild_encounter()
-
     end
 end
 
@@ -892,7 +891,7 @@ function mode_gift()
             save_game()
         end
 
-        pause_bot("Gift Pokemon meets target specs")
+        abort("Gift Pokemon meets target specs")
     else
         console.log("Gift Pokemon was not a target, resetting...")
         press_button("Power")
@@ -947,7 +946,7 @@ function mode_phenomenon_encounters()
 
         console.log("Phenomenon spawned! Attempting to reach it...")
 
-        while not foe and not game_state.in_battle do
+        while not game_state.in_battle do
             if game_state.phenomenon_x == 0 then -- Phenomenon was an item
                 goto begin
             end
@@ -986,7 +985,7 @@ function mode_daycare_eggs()
     end
 
     if game_state.map_header ~= 321 then
-        pause_bot("Please place the bot on Route 3")
+        abort("Please place the bot on Route 3")
     end
 
     -- If the party is full, assert that at least one is still unhatched
@@ -1043,7 +1042,7 @@ function mode_daycare_eggs()
                 -- Unfinished
                 press_sequence("A", 120)
 
-                pause_bot("This code shouldn't be running right now")
+                abort("This code shouldn't be running right now")
             end
 
             press_sequence("B", 30, "B", 30, "B", 30, "B", 150, "B", 90) -- Exit PC
@@ -1155,7 +1154,7 @@ function mode_daycare_eggs()
                     save_game()
                 end
 
-                pause_bot("Hatched a target Pokemon")
+                abort("Hatched a target Pokemon")
             end
 
             console.debug("Egg finished hatching.")
@@ -1166,7 +1165,7 @@ function mode_daycare_eggs()
 end
 
 function mode_static_encounters()
-    while not foe and not game_state.in_battle do
+    while not game_state.in_battle do
         if mword(pointers.map_header) == 152 then -- Dreamyard, Eon duo encounter
             press_button("Right")
         end
@@ -1193,9 +1192,9 @@ function mode_static_encounters()
                 save_game()
             end
 
-            pause_bot("Target Pokémon was caught!")
+            abort("Target Pokémon was caught!")
         else
-            pause_bot("Pokemon meets target specs, but Auto-catch is disabled")
+            abort("Pokemon meets target specs, but Auto-catch is disabled")
         end
     else
         console.log("Wild " .. foe[1].name .. " was not a target, resetting...")
@@ -1205,7 +1204,7 @@ function mode_static_encounters()
 end
 
 function mode_fishing()
-    while not foe and not game_state.in_battle do
+    while not game_state.in_battle do
         press_button("Y")
         wait_frames(60)
 
@@ -1221,11 +1220,39 @@ function mode_fishing()
         end
     end
 
-    while not foe and not game_state.in_battle do
+    while not game_state.in_battle do
         press_sequence("A", 5)
     end
 
     process_wild_encounter()
 
     wait_frames(90)
+end
+
+function read_string(input, offset)
+    local text = ""
+
+    if type(input) == "table" then
+        for i = offset + 1, #input, 2 do
+            local value = input[i] + (input[i] << 8)
+
+            if value == 0xFFFF or value == 0x0000 then -- Null terminator
+                break
+            end
+
+            text = text .. utf8.char(value & 0xFF)
+        end
+    else
+        for i = input, input + 32, 2 do
+            local value = mword(i)
+
+            if value == 0xFFFF or value == 0x0000 then -- Null terminator
+                break
+            end
+
+            text = text .. utf8.char(value & 0xFF)
+        end
+    end
+    
+    return text
 end

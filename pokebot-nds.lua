@@ -1,7 +1,7 @@
 -----------------------
 -- INITIALIZATION
 -----------------------
-local BOT_VERSION = "v0.6.0-alpha"
+local BOT_VERSION = "v0.7.0-alpha"
 
 console.clear()
 -- console.log("Running " .. _VERSION)
@@ -27,7 +27,7 @@ console.warning = function(message)
 end
 
 -- Requirements
-json = require("lua\\json")
+json = require("lua\\modules\\json")
 dofile("lua\\input.lua")
 dofile("lua\\game_setup.lua")
 
@@ -40,7 +40,7 @@ dofile("lua\\dashboard.lua")
 -----------------------
 
 -- Send game info to the dashboard
-comm.socketServerSend(json.encode({
+dashboard:send(json.encode({
     type = "load_game",
     data = _ROM
 }) .. "\x00")
@@ -94,7 +94,7 @@ function update_party(is_reattempt)
     party = new_party
 
     -- Update party on the node server
-    comm.socketServerSend(json.encode({
+    dashboard:send(json.encode({
         type = "party",
         data = {
             party = party,
@@ -107,7 +107,7 @@ end
 
 function update_foes()
     -- Make sure it's not reading garbage non-battle data
-    if mbyte(pointers.battle_indicator) ~= 0x41 or mbyte(pointers.foe_count) == 0 then
+    if mbyte(pointers.battle_indicator) ~= 0x41 then
         foe = nil
     elseif not foe then -- Only update foe on battle start
         ::retry::
@@ -119,10 +119,6 @@ function update_foes()
             
             if mon_data then
                 local mon = pokemon.parse_data(mon_data, true)
-                
-                if config.save_pkx and pokemon.matches_ruleset(mon, config.target_traits) then
-                    pokemon.export_pkx(mon_data)
-                end
                 
                 table.insert(foe_table, mon)
             else
@@ -149,24 +145,21 @@ function get_game_state()
                 trainer_x = mword(pointers.trainer_x + 2),
                 trainer_y = to_signed(mword(pointers.trainer_y + 2)),
                 trainer_z = mword(pointers.trainer_z + 2),
-                in_battle = mbyte(pointers.battle_indicator) == 0x41 and mbyte(pointers.foe_count) > 0,
-                in_starter_battle = mbyte(pointers.battle_indicator) == 0x41,
-                in_game = true
+                in_battle = mbyte(pointers.battle_indicator) == 0x41 and foe,
+                in_game = true,
+                trainer_name = read_string(pointers.trainer_name),
+                trainer_id = string.format("%05d", mword(pointers.trainer_id)),
+                trainer_sid = string.format("%05d", mword(pointers.trainer_id + 2)),
             }
         else
             return {
                 map_header = 0,
-                map_name = "--",
-                trainer_x = 0,
-                trainer_y = 0,
-                trainer_z = 0,
-                in_game = false
+                in_game = false,
             }
         end
     else
         if in_game then
             return {
-                -- map_matrix = mdword(pointers.map_matrix),
                 map_header = map,
                 map_name = map_names[map + 1],
                 trainer_x = mword(pointers.trainer_x + 2),
@@ -174,21 +167,17 @@ function get_game_state()
                 trainer_z = mword(pointers.trainer_z + 2),
                 phenomenon_x = mword(pointers.phenomenon_x + 2),
                 phenomenon_z = mword(pointers.phenomenon_z + 2),
-                -- trainer_dir = mdword(pointers.trainer_direction),
-                in_battle = mbyte(pointers.battle_indicator) == 0x41 and mbyte(pointers.foe_count) > 0,
-                in_game = true
+                in_battle = mbyte(pointers.battle_indicator) == 0x41 and foe,
+                in_game = true,
+                trainer_name = read_string(pointers.trainer_name),
+                trainer_id = string.format("%05d", mword(pointers.trainer_id)),
+                trainer_sid = string.format("%05d", mword(pointers.trainer_id + 2)),
             }
         else
             -- Set minimum required values for the dashboard
             return {
                 map_header = 0,
-                map_name = "--",
-                trainer_x = 0,
-                trainer_y = 0,
-                trainer_z = 0,
-                phenomenon_x = 0,
-                phenomenon_z = 0,
-                in_game = false
+                in_game = false,
             }
         end
     end
@@ -214,7 +203,7 @@ function update_game_info(force)
 
     if emu.framecount() % refresh_frames == 0 or force then
         game_state = get_game_state()
-        comm.socketServerSend(json.encode({
+        dashboard:send(json.encode({
             type = "game_state",
             data = game_state
         }) .. "\x00")
@@ -225,17 +214,12 @@ function update_game_info(force)
     update_party()
 end
 
-function pause_bot(reason)
+function abort(reason)
     clear_all_inputs()
     client.clearautohold()
 
-    console.log("###################################")
-    console.log(reason .. ". Pausing bot! (Make sure to disable the lua script before intervening)")
-
-    -- Do nothing ever again
-    while true do
-        emu.frameadvance()
-    end
+    console.log("##### MODE FINISHED #####")
+    assert(false, "\n" .. reason .. ". Stopping bot!")
 end
 
 function cycle_starter_choice(starter)
@@ -269,7 +253,7 @@ end
 -----------------------
 -- PREPARATION
 -----------------------
-console.write("Waiting for dashboard to relay bot configuration...")
+console.write("Waiting for dashboard to relay bot configuration... ")
 ::poll_config::
 
 emu.frameadvance()

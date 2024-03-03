@@ -124,26 +124,6 @@ local mon_nature = {"Hardy", "Lonely", "Brave", "Adamant", "Naughty", "Bold", "D
 
 -- Parses decrypted data into a human-readable table of key value pairs
 function pokemon.parse_data(data, enrich)
-    local read_string = function(start, length)
-        local text = ""
-
-        for i = start + 1, start + length, 2 do
-            local value = data[i] + (data[i] << 8)
-
-            if value == 0xFFFF or value == 0x0000 then -- Null terminator
-                break
-            end
-
-            if _ROM.gen == 4 then -- Gen 4 characters have a different byte offset
-                value = value + 0x16
-            end
-
-            text = text .. utf8.char(value & 0xFF)
-        end
-        
-        return text
-    end
-
     local read_real = function(start, length)
         local bytes = 0
         local j = 0
@@ -240,13 +220,13 @@ function pokemon.parse_data(data, enrich)
     end
 
     -- Block C
-    mon.nickname         = read_string(0x48, 21)
+    mon.nickname         = read_string(data, 0x48)
     -- mon.originGame		 = read_real(0x5F, 1)
     -- mon.sinnohRibbonSet3 = read_real(0x60, 2)
     -- mon.sinnohRibbonSet3 = read_real(0x62, 2)
 
     -- Block D
-    -- mon.otName          = read_string(0x68, 16)
+    -- mon.otName          = read_string(data, 0x68)
     -- mon.dateEggReceived	= read_real(0x78, 3)
     -- mon.dateMet			= read_real(0x7B, 3)
     -- mon.eggLocation		= read_real(0x7E, 2)
@@ -268,7 +248,7 @@ function pokemon.parse_data(data, enrich)
     mon.spDefense    = read_real(0x9A, 2)
     -- mon.mailMessage	 = read_real(0x9C, 37)
 
-    -- -- Substitute property IDs with ingame names
+    -- Substitute property IDs with ingame names
     if enrich then
         mon.name = mon_dex[mon.species + 1].name
         mon.type = mon_dex[mon.species + 1].type
@@ -287,6 +267,24 @@ function pokemon.parse_data(data, enrich)
         for _, move in ipairs(move_id) do
             table.insert(mon.moves, mon_move[move + 1])
         end
+
+        mon.ivSum = mon.hpIV + mon.attackIV + mon.defenseIV + mon.spAttackIV + mon.spDefenseIV + mon.speedIV
+        
+        local hpTypeList = { 
+            "fighting", "flying", "poison", "ground", 
+            "rock", "bug", "ghost", "steel", "fire", 
+            "water", "grass", "electric", "psychic", 
+            "ice", "dragon", "dark",
+        }
+
+        local lsb = (mon.hpIV % 2) + (mon.attackIV % 2) * 2 + (mon.defenseIV % 2) * 4 + (mon.speedIV % 2) * 8 + (mon.spAttackIV % 2) * 16 + (mon.spDefenseIV % 2) * 32
+        local slsb = ((mon.hpIV & 2) >> 1) + ((mon.attackIV & 2) >> 1) * 2 + ((mon.defenseIV & 2) >> 1) * 4 + ((mon.speedIV & 2) >> 1) * 8 + ((mon.spAttackIV & 2) >> 1) * 16 + ((mon.spDefenseIV & 2) >> 1) * 32
+        
+        mon.hpType = hpTypeList[math.floor((lsb * 15) / 63) + 1]
+        mon.hpPower = math.floor((slsb * 40) / 63) + 30
+        
+        -- Keep a reference of the original data, necessary for export_pkx
+        mon.raw = data
     end
 
     return mon
@@ -312,7 +310,9 @@ function pokemon.export_pkx(data)
     
     -- Write Pokémon data to file and save in /user/targets
     local file = io.open("user/targets/" .. filename .. ".pk" .. _ROM.gen, "wb")
-    
+
+    console.log("Saved " .. mon.nickname .. " to disk as " .. filename)
+
     file:write(string.char(table.unpack(data)))
     file:close()
 end
@@ -344,8 +344,8 @@ function pokemon.log_encounter(mon)
 
     local key_whitelist = {
         "pid", "species", "name", "level", "gender", "nature", "heldItem",
-        "shiny", "shinyValue", "ability", "hpIV", "attackIV", "defenseIV",
-        "spAttackIV", "spDefenseIV", "speedIV", "altForm"
+        "hpIV", "attackIV", "defenseIV", "spAttackIV", "spDefenseIV", "speedIV", 
+        "shiny", "shinyValue", "ability", "altForm", "ivSum", "hpType", "hpPower",
     }
     
     for k, v in pairs(mon_new) do
@@ -368,10 +368,14 @@ function pokemon.log_encounter(mon)
     local msg_type = was_target and "seen_target" or "seen"
 
     if was_target then
-        console.log("Wild " .. mon.name .. " is a target!")
+        console.log(mon.name .. " is a target!")
+
+        if config.save_pkx then
+            pokemon.export_pkx(mon.raw)
+        end
     end
 
-    comm.socketServerSend(json.encode({
+    dashboard:send(json.encode({
         type = msg_type,
         data = mon_new
     }) .. "\x00")
@@ -462,9 +466,11 @@ function pokemon.matches_ruleset(mon, ruleset)
     end
 
     -- Default trait comparison
-    if ruleset.shiny ~= mon.shiny then
-        console.debug("Mon shininess does not match ruleset")
-        return false
+    if ruleset.shiny then
+        if ruleset.shiny ~= mon.shiny then
+            console.debug("Mon shininess does not match ruleset")
+            return false
+        end
     end
 
     if ruleset.species then
@@ -510,10 +516,8 @@ function pokemon.matches_ruleset(mon, ruleset)
 
     -- Check that individual IVs meet target thresholds
     local ivs = {"hpIV", "attackIV", "defenseIV", "spAttackIV", "spDefenseIV", "speedIV"}
-    local sum = 0
 
     for _, key in ipairs(ivs) do
-        sum = sum + mon[key]
         if ruleset[key] and mon[key] < ruleset[key] then
             console.debug("Mon " .. key .. " " .. mon.hpIV .. " does not meet ruleset " .. ruleset.hpIV)
             return false
@@ -521,8 +525,8 @@ function pokemon.matches_ruleset(mon, ruleset)
     end
 
     if ruleset.iv_sum then
-        if sum < ruleset.iv_sum then
-            console.debug("Mon IV sum of " .. sum .. " does not meet threshold " .. ruleset.iv_sum)
+        if mon.ivSum < ruleset.iv_sum then
+            console.debug("Mon IV sum of " .. mon.ivSum .. " does not meet threshold " .. ruleset.iv_sum)
             return false
         end
     end
