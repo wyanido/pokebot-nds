@@ -4,8 +4,16 @@
 function update_pointers()
     local offset = 0
     
-    if _ROM.language == language.GERMAN then
+    if _ROM.language == language.JAPANESE then
+        offset = 0x1860
+    elseif _ROM.language == language.FRENCH then
+        offset = 0x180
+    elseif _ROM.language == language.ITALIAN then
+        offset = 0xE0
+    elseif _ROM.language == language.GERMAN then
         offset = 0x140
+    elseif _ROM.language == language.SPANISH then
+        offset = 0x1A0
     end
     
     local mem_shift = mdword(0x21C489C + offset)
