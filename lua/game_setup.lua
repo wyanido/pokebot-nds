@@ -29,7 +29,7 @@ local roms = {
         gen = 4,
         version = version.DIAMOND,
         region = {
-            [0x4A41] = { language.JAPANESE, "ポケットモンスター ダイヤモンド" },
+            [0x4A41] = { language.JAPANESE, "ポケットモンスター　ダイヤモンド" },
             [0x4541] = { language.ENGLISH,  "Pokemon Diamond Version" },
             [0x4641] = { language.FRENCH,   "Pokemon Version Diamant" },
             [0x4941] = { language.ITALIAN,  "Pokemon Versione Diamante" },
@@ -41,14 +41,24 @@ local roms = {
         gen = 4,
         version = version.PEARL,
         region = {
-            [0x4541] = { language.ENGLISH, "Pokemon Pearl Version" }
+            [0x4A41] = { language.JAPANESE, "ポケットモンスター　パール"},
+            [0x4541] = { language.ENGLISH,  "Pokemon Pearl Version" },
+            [0x4641] = { language.FRENCH,   "Pokemon Version Perle" },
+            [0x4941] = { language.ITALIAN,  "Pokemon Versione Perle"},
+            [0x4441] = { language.GERMAN,   "Pokemon Perl-Edition" },
+            [0x5341] = { language.SPANISH,  "Pokemon Edicion Perla" },
         }
     },
     [0x4C50] = {
         gen = 4,
         version = version.PLATINUM,
         region = {
-            [0x4555] = { language.ENGLISH, "Pokemon Platinum Version" }
+            [0x4A55] = { language.JAPANESE, "ポケットモンスター　プラチナ"},
+            [0x4555] = { language.ENGLISH,  "Pokemon Platinum Version" },
+            [0x4655] = { language.FRENCH,   "Pokemon Version Platine" },
+            [0x4955] = { language.ITALIAN,  "Pokemon Versione Platino" },
+            [0x4455] = { language.GERMAN,   "Pokemon Platin-Edition" },
+            [0x5355] = { language.SPANISH,  "Pokemon Edicion Platino" },
         }
     },
     [0x4748] = {
@@ -102,6 +112,7 @@ local region = mword(0x023FFE0E)
 if not roms[game] or not roms[game].region[region] then
     error("Unsupported ROM (game: 0x" .. string.format("%04X", game) .. ", region: 0x" .. string.format("%04X", region) .. ")")
 end
+
 _ROM = roms[game]
 _ROM.language = _ROM.region[region][1]
 _ROM.name = _ROM.region[region][2]

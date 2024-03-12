@@ -3,9 +3,23 @@
 -----------------------
 
 function update_pointers()
-	local mem_shift = mdword(0x21C0794)
+    local offset = 0
+
+    if _ROM.language == language.JAPANESE then
+        offset = -0xC00
+    elseif _ROM.language == language.FRENCH then
+        offset = 0x1E0
+    elseif _ROM.language == language.ITALIAN then
+        offset = 0x160
+    elseif _ROM.language == language.GERMAN then
+        offset = 0x1A0
+    elseif _ROM.language == language.SPANISH then
+        offset = 0x200
+    end
+
+	local mem_shift = mdword(0x21C0794 + offset)
 	-- Static Pokemon data is inconsistent between locations & resets,
-    -- so find the current offset using a relative value	
+    -- so find the current offset using a separate relative value	
 	local foe_offset = mdword(mem_shift + 0x217A8)
 	
 	pointers = {
