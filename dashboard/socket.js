@@ -19,7 +19,6 @@ var encounterRate = 0;
 // === FILE SETUP ===
 // Default config
 const configTemplate = {
-    save_game_on_start: false,
     mode: "random_encounters",
     starter0: true,
     starter1: true,

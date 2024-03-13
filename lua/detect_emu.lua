@@ -17,6 +17,7 @@ if _EMU == "BizHawk" then
 
     function soft_reset()
         press_button("Power")
+        randomise_reset()
     end
 else
     mbyte = function(addr) return memory.readbyte(math.max(addr, 0)) end
@@ -27,6 +28,7 @@ else
     
     function soft_reset()
         emu.reset()
+        randomise_reset()
     end
 
     -- Lua 5.1 compatability

@@ -124,7 +124,6 @@ function mode_starters(starter)
     else
         print("Starter was not a target, resetting...")
         soft_reset()
-        wait_frames(60)
     end
 end
 

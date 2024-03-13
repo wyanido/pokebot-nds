@@ -92,13 +92,6 @@ function mode_starters()
 
     -- Soft reset otherwise
     soft_reset()
-    wait_frames(30)
-
-    -- Wait a random number of frames before mashing A next reset
-    -- to decrease the odds of hitting similar seeds
-    local delay = math.random(1, 90)
-    print_debug("Delaying " .. delay .. " frames...")
-    wait_frames(delay)
 end
 
 function mode_voltorb_flip()

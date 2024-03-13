@@ -56,7 +56,7 @@ end
 -- Adjust for differences in d-pad key names between emulators
 function adjust_case(button)
     if _EMU == "DeSmuME" then
-        if button == "Up" or button == "Down" or button == "Left" or button == "Right" then 
+        if button == "Up" or button == "Down" or button == "Left" or button == "Right" or button == "Start" or button == "Select" then 
             return string.lower(button)
         end
     end
@@ -106,14 +106,7 @@ function clear_all_inputs()
     joypad.set(input)
 end
 
-function input_init()
-    input = joypad.get()
+input = joypad.get()
+held_input = input
 
-    -- Initialise with no held inputs
-    held_input = input
-    for k, _ in pairs(held_input) do held_input[k] = false end
-
-    clear_unheld_inputs()
-
-    return input
-end
+clear_all_inputs()

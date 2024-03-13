@@ -31,6 +31,14 @@ end
 -- MISC. BOT ACTIONS
 -----------------------
 
+-- Wait a random delay after SRing to decrease the odds of hitting similar seeds on loading save
+function randomise_reset()
+    local delay = math.random(60, 200)
+
+    print_debug("Delaying " .. delay .. " frames...")
+    wait_frames(delay)
+end
+
 function save_game()
     print("Saving game...")
     hold_button("X")
@@ -527,14 +535,7 @@ function mode_static_encounters()
     else
         print("Wild " .. foe[1].name .. " was not a target, resetting...")
         soft_reset()
-        wait_frames(30)
     end
-
-    -- Wait a random number of frames before mashing A next reset
-    -- to decrease the odds of hitting similar seeds
-    local delay = math.random(1, 90)
-    print_debug("Delaying " .. delay .. " frames...")
-    wait_frames(delay)
 end
 
 function mode_starters(starter)
@@ -585,7 +586,6 @@ function mode_starters(starter)
     else
         print("Starter was not a target, resetting...")
         soft_reset()
-        wait_frames(180)
     end
 end
 
@@ -721,7 +721,6 @@ function mode_gift()
     else
         print("Gift Pokemon was not a target, resetting...")
         soft_reset()
-        wait_frames(60)
     end
 end
 

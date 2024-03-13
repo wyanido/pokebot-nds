@@ -13,6 +13,8 @@ dofile("lua\\input.lua")
 pokemon = require("lua\\pokemon")
 dofile("lua\\detect_game.lua")
 
+config = nil
+foe = nil
 party_hash = ""
 party = {}
 
@@ -248,16 +250,8 @@ end
 -----------------------
 print("Bot mode set to " .. config.mode)
 
-input = input_init()
-foe = nil -- Prevents logging old Pokemon when re-enabling the script in a different battle than the one it was disabled in
 update_pointers()
 update_game_info(true)
-
-clear_all_inputs()
-
-if config.save_game_on_start then
-    save_game()
-end
 
 local mode = string.lower(config.mode)
 local mode_function = _G["mode_" .. mode] -- Get the respective global scope function for the current bot mode

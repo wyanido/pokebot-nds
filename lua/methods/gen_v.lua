@@ -68,6 +68,27 @@ take_button = { x = 200, y = 155 }
 -- MISC. BOT ACTIONS
 -----------------------
 
+-- Press random key combo after SRing to increase seed randomness
+-- https://www.smogon.com/ingame/rng/bw_rng_part2
+function randomise_reset()
+    local inputs = { "Up", "Down", "Left", "Right", "A", "B", "X", "Y", "L", "R", "Start", "Select" }
+    local press = {}
+
+    for i = 1, math.random(3, 7), 1 do
+        table.insert(press, #press + 1, inputs[math.random(1, #inputs)])
+    end
+
+    for _, v in ipairs(press) do
+        hold_button(v)
+    end
+
+    wait_frames(200)
+
+    for _, v in ipairs(press) do
+        release_button(v)
+    end
+end
+
 function pathfind_to(target)
     -- Use local position if one axis isn't specified
     if not target.x then
@@ -792,7 +813,6 @@ function mode_starters(starter)
     else
         print("Starter was not a target, resetting...")
         soft_reset()
-        wait_frames(60)
     end
 end
 
@@ -895,7 +915,6 @@ function mode_gift()
     else
         print("Gift Pokemon was not a target, resetting...")
         soft_reset()
-        wait_frames(60)
     end
 end
 
@@ -1203,7 +1222,6 @@ function mode_static_encounters()
     else
         print("Wild " .. foe[1].name .. " was not a target, resetting...")
         soft_reset()
-        wait_frames(60)
     end
 end
 
