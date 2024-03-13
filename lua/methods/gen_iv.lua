@@ -2,42 +2,28 @@
 -- BASE GEN IV FUNCTIONS
 -----------------------
 function update_pointers()
-    local offset = 0
-    
-    if _ROM.language == language.JAPANESE then
-        offset = 0x1860
-    elseif _ROM.language == language.FRENCH then
-        offset = 0x180
-    elseif _ROM.language == language.ITALIAN then
-        offset = 0xE0
-    elseif _ROM.language == language.GERMAN then
-        offset = 0x140
-    elseif _ROM.language == language.SPANISH then
-        offset = 0x1A0
-    end
-    
-    local mem_shift = mdword(0x21C489C + offset)
-    local foe_offset = mdword(mem_shift + 0x226FE)
+    local anchor = mdword(0x21C489C + _ROM.mem_shift)
+    local foe_offset = mdword(anchor + 0x226FE)
 
     pointers = {
-        party_count = mem_shift + 0xE,
-        party_data  = mem_shift + 0x12,
+        party_count = anchor + 0xE,
+        party_data  = anchor + 0x12,
 
         foe_count   = foe_offset - 0x2B74,
         current_foe = foe_offset - 0x2B70,
 
-        map_header  = mem_shift + 0x11B2,
-        trainer_x   = mem_shift + 0x11B8,
-        trainer_z   = mem_shift + 0x11BC,
-        trainer_y   = mem_shift + 0x11C0,
-        facing      = mem_shift + 0x247C6,
+        map_header  = anchor + 0x11B2,
+        trainer_x   = anchor + 0x11B8,
+        trainer_z   = anchor + 0x11BC,
+        trainer_y   = anchor + 0x11C0,
+        facing      = anchor + 0x247C6,
 
-        battle_state_value  = mem_shift + 0x44878,        
+        battle_state_value  = anchor + 0x44878,        
         battle_indicator    = 0x021A1B2A + offset, -- mostly static
         fishing_bite_indicator = 0x21D5E16,
 
-        trainer_name = mem_shift - 0x22,
-        trainer_id = mem_shift - 0x12
+        trainer_name = anchor - 0x22,
+        trainer_id = anchor - 0x12
     }
 end
 
