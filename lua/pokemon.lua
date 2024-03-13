@@ -2,22 +2,23 @@ local pokemon = {}
 
 -- Interprets a region of RAM as Pokemon data and decrypts it as such
 function pokemon.decrypt_data(address)
-    local rand = function(old_seed)
-        local new_seed = (0x41C64E6D * old_seed) + 0x6073
-        seed = new_seed
-        return seed
+    local rand = function(seed) -- Thanks Kaphotics
+        return (0x4e6d * (seed % 0x10000) + ((0x41c6 * (seed % 0x10000) + 0x4e6d * math.floor(seed / 0x10000)) % 0x10000) * 0x10000 + 0x6073) % 0x100000000
     end
 
     local decrypt_block = function(start, finish)
         local data = {}
 
         for i = start, finish, 0x2 do
-            local word = mword(address + i)
-            local decrypted = word ~ (rand(seed) >> 16)
-            local end_word = decrypted & 0xFFFF
+            seed = rand(seed)
 
-            table.insert(data, end_word & 0xFF)
-            table.insert(data, (end_word >> 8) & 0xFF)
+            local rs = bit.rshift(seed, 16)
+            local word = mword(address + i)
+            local decrypted = bit.bxor(word, rs)
+            local end_word = bit.band(decrypted, 0xFFFF)
+            
+            table.insert(data, bit.band(end_word, 0xFF))
+            table.insert(data, bit.band(bit.rshift(end_word, 8), 0xFF))
         end
 
         return data
@@ -27,10 +28,10 @@ function pokemon.decrypt_data(address)
         local sum = 0
 
         for i = 0x09, 0x88, 2 do
-            sum = sum + data[i] + (data[i + 1] << 8)
+            sum = sum + data[i] + bit.lshift(data[i + 1], 8)
         end
 
-        sum = sum & 0xFFFF
+        sum = bit.band(sum, 0xFFFF)
 
         return sum == checksum
     end
@@ -67,16 +68,16 @@ function pokemon.decrypt_data(address)
     }
 
     data = {} 
-    concat_table(data, memory.read_bytes_as_array(address, 0x4))
-    concat_table(data, {0x0, 0x0})
-    concat_table(data, memory.read_bytes_as_array(address + 0x06, 0x2))
+    concat_table(data, { mbyte(address), mbyte(address + 1), mbyte(address + 2), mbyte(address + 3) }) -- PID
+    concat_table(data, {0x0, 0x0}) -- Unused Bytes
+    concat_table(data, { mbyte(address + 6), mbyte(address + 7) } ) -- Checksum
 
     -- Unencrypted bytes
     local pid = mdword(address)
     local checksum = mword(address + 0x06)
     
     -- Find intended order of the shuffled data blocks
-    local shift = ((pid & 0x3E000) >> 0xD) % 24
+    local shift = bit.rshift(bit.band(pid, 0x3E000), 0xD) % 24
     local block_order = substruct[shift]
 
     -- Decrypt blocks A,B,C,D and rearrange according to the order
@@ -111,11 +112,12 @@ function pokemon.decrypt_data(address)
     return data
 end
 
-local mon_ability = json.load("lua/data/abilities.json")
-local mon_item = json.load("lua/data/items.json")
-local mon_move = json.load("lua/data/moves.json")
-local mon_type = json.load("lua/data/type_matchups.json")
-local mon_dex = json.load("lua/data/dex.json")
+
+local mon_ability = json.load("lua\\data\\abilities.json")
+local mon_item = json.load("lua\\data\\items.json")
+local mon_move = json.load("lua\\data\\moves.json")
+local mon_type = json.load("lua\\data\\type_matchups.json")
+local mon_dex = json.load("lua\\data\\dex.json")
 local mon_lang = {"none", "日本語", "English", "Français", "Italiano", "Deutsch", "Español", "한국어"}
 local mon_gender = {"Male", "Female", "Genderless"}
 local mon_nature = {"Hardy", "Lonely", "Brave", "Adamant", "Naughty", "Bold", "Docile", "Relaxed", "Impish", "Lax",
@@ -129,7 +131,7 @@ function pokemon.parse_data(data, enrich)
         local j = 0
 
         for i = start + 1, start + length do
-            bytes = bytes + (data[i] << j * 8)
+            bytes = bytes + bit.lshift(data[i], j * 8)
             j = j + 1
         end
         
@@ -137,7 +139,7 @@ function pokemon.parse_data(data, enrich)
     end
 
     if data == nil then
-        console.warning("Tried to parse data of a non-existent Pokemon!")
+        print_warn("Tried to parse data of a non-existent Pokemon!")
         return nil
     end
 
@@ -169,8 +171,9 @@ function pokemon.parse_data(data, enrich)
     -- mon.sheen 			 = read_real(0x23, 1)
     -- mon.sinnohRibbonSet1 = read_real(0x24, 2)
     -- mon.unovaRibbonSet 	 = read_real(0x26, 2)
+    
 
-    mon.shinyValue = mon.otID ~ mon.otSID ~ ((mon.pid >> 16) & 0xFFFF) ~ (mon.pid & 0xFFFF)
+    mon.shinyValue = bit.bxor(bit.bxor(bit.bxor(mon.otID, mon.otSID), (bit.band(bit.rshift(mon.pid, 16), 0xFFFF))), bit.band(mon.pid, 0xFFFF))
     mon.shiny = mon.shinyValue < 8
 
     -- Block B
@@ -191,13 +194,13 @@ function pokemon.parse_data(data, enrich)
     mon.ppUps = read_real(0x34, 4)
 
     local value = read_real(0x38, 5)
-    mon.hpIV        = (value >>  0) & 0x1F
-    mon.attackIV    = (value >>  5) & 0x1F
-    mon.defenseIV   = (value >> 10) & 0x1F
-    mon.speedIV     = (value >> 15) & 0x1F
-    mon.spAttackIV  = (value >> 20) & 0x1F
-    mon.spDefenseIV = (value >> 25) & 0x1F
-    mon.isEgg       = (value >> 30) & 0x01
+    mon.hpIV        = bit.band(value, 0x1F)
+    mon.attackIV    = bit.band(bit.rshift(value,  5), 0x1F)
+    mon.defenseIV   = bit.band(bit.rshift(value, 10), 0x1F)
+    mon.speedIV     = bit.band(bit.rshift(value, 15), 0x1F)
+    mon.spAttackIV  = bit.band(bit.rshift(value, 20), 0x1F)
+    mon.spDefenseIV = bit.band(bit.rshift(value, 25), 0x1F)
+    mon.isEgg       = bit.band(bit.rshift(value, 30), 0x01)
     -- mon.isNicknamed = (value >> 31) & 0x01
     
     -- mon.hoennRibbonSet1		= read_real(0x3C, 2)
@@ -205,8 +208,8 @@ function pokemon.parse_data(data, enrich)
 
     local value = read_real(0x40, 1)
     -- mon.fatefulEncounter = (value >> 0) & 0x01
-    mon.gender           = (value >> 1) & 0x03
-    mon.altForm	         = (value >> 3) & 0x1F
+    mon.gender           = bit.band(bit.rshift(value, 1), 0x03)
+    mon.altForm	         = bit.band(bit.rshift(value, 3), 0x1F)
 
     if _ROM.gen == 4 then
         -- mon.leaf_crown = read_real(0x41, 1)
@@ -278,7 +281,7 @@ function pokemon.parse_data(data, enrich)
         }
 
         local lsb = (mon.hpIV % 2) + (mon.attackIV % 2) * 2 + (mon.defenseIV % 2) * 4 + (mon.speedIV % 2) * 8 + (mon.spAttackIV % 2) * 16 + (mon.spDefenseIV % 2) * 32
-        local slsb = ((mon.hpIV & 2) >> 1) + ((mon.attackIV & 2) >> 1) * 2 + ((mon.defenseIV & 2) >> 1) * 4 + ((mon.speedIV & 2) >> 1) * 8 + ((mon.spAttackIV & 2) >> 1) * 16 + ((mon.spDefenseIV & 2) >> 1) * 32
+        local slsb = bit.rshift((bit.band(mon.hpIV, 2)), 1) + bit.rshift(bit.band(mon.attackIV, 2), 1) * 2 + bit.rshift(bit.band(mon.defenseIV, 2), 1) * 4 + bit.rshift(bit.band(mon.speedIV, 2), 1) * 8 + bit.rshift(bit.band(mon.spAttackIV, 2), 1) * 16 + bit.rshift(bit.band(mon.spDefenseIV, 2), 1) * 32
         
         mon.hpType = hpTypeList[math.floor((lsb * 15) / 63) + 1]
         mon.hpPower = math.floor((slsb * 40) / 63) + 30
@@ -311,7 +314,7 @@ function pokemon.export_pkx(data)
     -- Write Pokémon data to file and save in /user/targets
     local file = io.open("user/targets/" .. filename .. ".pk" .. _ROM.gen, "wb")
 
-    console.log("Saved " .. mon.nickname .. " to disk as " .. filename)
+    print("Saved " .. mon.nickname .. " to disk as " .. filename)
 
     file:write(string.char(table.unpack(data)))
     file:close()
@@ -333,7 +336,7 @@ end
 
 function pokemon.log_encounter(mon)
     if not mon then
-        console.debug("Tried to log a non-existent Pokémon!")
+        print_debug("Tried to log a non-existent Pokémon!")
         return false
     end
 
@@ -378,7 +381,7 @@ function pokemon.log_encounter(mon)
     dashboard:send(json.encode({
         type = msg_type,
         data = mon_new
-    }) .. "\x00")
+    }) .. "\0")
 
     return was_target
 end
@@ -386,7 +389,7 @@ end
 local function table_contains(table_, item)
     if type(table_) ~= "table" then
         table_ = {table_}
-        -- console.debug("Ruleset entry was not a table. Fixing.")
+        -- print_debug("Ruleset entry was not a table. Fixing.")
     end
 
     for _, table_item in pairs(table_) do
@@ -405,7 +408,7 @@ function pokemon.find_best_move(ally, foe)
     -- Sometimes, beyond all reasonable explanation, key values are completely missing
     -- Do nothing in this case to prevent crashes
     if not foe or not ally or not foe.type or not ally.moves then
-        console.warning("Pokemon values were completely absent, couldn't determine best move")
+        print_warn("Pokemon values were completely absent, couldn't determine best move")
         return nil
     end
 
@@ -456,7 +459,7 @@ end
 
 function pokemon.matches_ruleset(mon, ruleset)
     if not ruleset then
-        console.warning("Can't check Pokemon against an empty ruleset")
+        print_warn("Can't check Pokemon against an empty ruleset")
         return false
     end
 
@@ -468,14 +471,14 @@ function pokemon.matches_ruleset(mon, ruleset)
     -- Default trait comparison
     if ruleset.shiny then
         if ruleset.shiny ~= mon.shiny then
-            console.debug("Mon shininess does not match ruleset")
+            print_debug("Mon shininess does not match ruleset")
             return false
         end
     end
 
     if ruleset.species then
         if not table_contains(ruleset.species, mon.name) then
-            console.debug("Mon species " .. mon.name .. " is not in ruleset")
+            print_debug("Mon species " .. mon.name .. " is not in ruleset")
             return false
         end
     end
@@ -485,7 +488,7 @@ function pokemon.matches_ruleset(mon, ruleset)
         local target_gender = string.lower(ruleset.gender)
 
         if mon_gender ~= target_gender then
-            console.debug("Mon gender " .. mon_gender .. " does not match rule" .. target_gender)
+            print_debug("Mon gender " .. mon_gender .. " does not match rule" .. target_gender)
             return false
         end
     end
@@ -495,21 +498,21 @@ function pokemon.matches_ruleset(mon, ruleset)
         local target_level = tonumber(ruleset.level)
 
         if mon_level < target_level then
-            console.debug("Mon level " .. tostring(mon.level) .. " does not meet rule " .. ruleset.level)
+            print_debug("Mon level " .. tostring(mon.level) .. " does not meet rule " .. ruleset.level)
             return false
         end
     end
     
     if ruleset.ability then
         if not table_contains(ruleset.ability, mon.ability) then
-            console.debug("Mon ability " .. mon.ability .. " is not in ruleset")
+            print_debug("Mon ability " .. mon.ability .. " is not in ruleset")
             return false
         end
     end
 
     if ruleset.nature then
         if not table_contains(ruleset.nature, mon.nature) then
-            console.debug("Mon nature " .. mon.nature .. " is not in ruleset")
+            print_debug("Mon nature " .. mon.nature .. " is not in ruleset")
             return false
         end
     end
@@ -519,14 +522,14 @@ function pokemon.matches_ruleset(mon, ruleset)
 
     for _, key in ipairs(ivs) do
         if ruleset[key] and mon[key] < ruleset[key] then
-            console.debug("Mon " .. key .. " " .. mon.hpIV .. " does not meet ruleset " .. ruleset.hpIV)
+            print_debug("Mon " .. key .. " " .. mon.hpIV .. " does not meet ruleset " .. ruleset.hpIV)
             return false
         end
     end
 
     if ruleset.iv_sum then
         if mon.ivSum < ruleset.iv_sum then
-            console.debug("Mon IV sum of " .. mon.ivSum .. " does not meet threshold " .. ruleset.iv_sum)
+            print_debug("Mon IV sum of " .. mon.ivSum .. " does not meet threshold " .. ruleset.iv_sum)
             return false
         end
     end
@@ -542,7 +545,7 @@ function pokemon.matches_ruleset(mon, ruleset)
         end
 
         if not has_move then
-            console.debug("Mon moveset does not contain ruleset")
+            print_debug("Mon moveset does not contain ruleset")
             return false
         end
     end
@@ -558,7 +561,7 @@ function pokemon.matches_ruleset(mon, ruleset)
         end
 
         if not has_type then
-            console.debug("Mon type is not in ruleset")
+            print_debug("Mon type is not in ruleset")
             return false
         end
     end

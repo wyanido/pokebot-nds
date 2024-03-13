@@ -161,7 +161,7 @@ function use_move_at_slot(slot)
     wait_frames(30)
     touch_screen_at(128, 90) -- FIGHT
     wait_frames(30)
-    touch_screen_at(80 * ((slot - 1) % 2 + 1), 50 * (((slot - 1) // 2) + 1)) -- Select move slot
+    touch_screen_at(80 * ((slot - 1) % 2 + 1), 50 * (math.floor((slot - 1) / 2) + 1)) -- Select move slot
     wait_frames(60)
 end
 
@@ -169,7 +169,7 @@ function do_thief()
     local thief_slot = get_mon_move_slot(party[get_lead_mon_index()], "Thief")
 
     if thief_slot == 0 then
-        console.warning("Thief was enabled in config, but the lead Pokemon can't use the move")
+        print_warn("Thief was enabled in config, but the lead Pokemon can't use the move")
         return false
     end
 
@@ -203,7 +203,7 @@ function do_pickup()
 
     if pickup_count > 0 then
         if item_count < tonumber(config.pickup_threshold) then
-            console.debug("Pickup items in party: " .. item_count .. ". Collecting at threshold: " ..
+            print_debug("Pickup items in party: " .. item_count .. ". Collecting at threshold: " ..
                               config.pickup_threshold)
         else
             press_sequence(60, "X", 30)
@@ -213,7 +213,7 @@ function do_pickup()
             -- Collect items from each Pickup member
             for i = 1, #items, 1 do
                 if items[i] ~= "none" then
-                    touch_screen_at(80 * ((i - 1) % 2 + 1), 30 + 50 * ((i - 1) // 2)) -- Select Pokemon
+                    touch_screen_at(80 * ((i - 1) % 2 + 1), 30 + 50 * math.floor((i - 1) / 2)) -- Select Pokemon
 
                     wait_frames(30)
                     touch_screen_at(200, 155) -- Item
@@ -227,7 +227,7 @@ function do_pickup()
             press_sequence(30, "B", 120, "B", 60)
         end
     else
-        console.warning("Pickup is enabled in config, but no party Pokemon have the Pickup ability.")
+        print_warn("Pickup is enabled in config, but no party Pokemon have the Pickup ability.")
     end
 end
 
@@ -267,15 +267,15 @@ function do_battle()
 
             party[1].pp[best_move.index] = party[1].pp[best_move.index] - pp_dec
 
-            console.debug("Best move against foe is " .. best_move.name .. " (Effective base power is " .. best_move.power .. ")")
+            print_debug("Best move against foe is " .. best_move.name .. " (Effective base power is " .. best_move.power .. ")")
             wait_frames(30)
             touch_screen_at(128, 90) -- FIGHT
             wait_frames(30)
 
-            touch_screen_at(80 * ((best_move.index - 1) % 2 + 1), 50 * (((best_move.index - 1) // 2) + 1)) -- Select move slot
+            touch_screen_at(80 * ((best_move.index - 1) % 2 + 1), 50 * (math.floor((best_move.index - 1) / 2) + 1)) -- Select move slot
             wait_frames(30)
         else
-            console.log("Lead Pokemon has no valid moves left to battle! Fleeing...")
+            print("Lead Pokemon has no valid moves left to battle! Fleeing...")
 
             flee_battle()
         end
@@ -301,7 +301,7 @@ function check_party_status()
 
     if party[1].currentHP == 0 or (lead_pp_sum == 0 and config.battle_non_targets) then
         if config.cycle_lead_pokemon then
-            console.log("Lead Pokemon can no longer battle. Replacing...")
+            print("Lead Pokemon can no longer battle. Replacing...")
 
             -- Find suitable replacement
             local most_usable_pp = 0
@@ -331,7 +331,7 @@ function check_party_status()
             if most_usable_pp == 0 then
                 abort("No suitable Pokemon left to battle")
             else
-                console.debug("Best replacement was " .. party[best_index].name .. " (Slot " .. best_index .. ")")
+                print_debug("Best replacement was " .. party[best_index].name .. " (Slot " .. best_index .. ")")
                 -- Party menu
                 press_sequence(60, "X", 30)
                 touch_screen_at(65, 45)
@@ -343,7 +343,7 @@ function check_party_status()
                 touch_screen_at(200, 130) -- SWITCH
                 wait_frames(30)
 
-                touch_screen_at(80 * ((best_index - 1) % 2 + 1), 30 + 50 * ((best_index - 1) // 2)) -- Select Pokemon
+                touch_screen_at(80 * ((best_index - 1) % 2 + 1), 30 + 50 * math.floor((best_index - 1) / 2)) -- Select Pokemon
                 wait_frames(30)
 
                 press_sequence(30, "B", 120, "B", 60) -- Exit out of menu
@@ -359,7 +359,7 @@ function check_party_status()
         local lead_mon = get_lead_mon_index()
 
         if party[lead_mon].heldItem ~= "none" then
-            console.log("Thief Pokemon already holds an item. Removing...")
+            print("Thief Pokemon already holds an item. Removing...")
             clear_all_inputs()
 
             -- Open party menu
@@ -382,7 +382,7 @@ function check_party_status()
 end
 
 function save_game()
-    console.log("Saving game...")
+    print("Saving game...")
     press_sequence("X", 30)
 
     -- SAVE button is at a different position before choosing starter
@@ -434,7 +434,7 @@ function find_usable_ball()
     local function find_ball(balls, ball)
         for k2, v2 in pairs(balls) do
             if string.lower(k2) == string.lower(ball) then
-                console.debug("Bot will use ball " .. k2 .. " from slot " .. ((v2 - 1) % 6) .. ", page " .. math.floor(v2 / 6))
+                print_debug("Bot will use ball " .. k2 .. " from slot " .. ((v2 - 1) % 6) .. ", page " .. math.floor(v2 / 6))
                 return v2
             end
         end
@@ -492,7 +492,7 @@ function find_usable_ball()
     -- Compare with pokeball override
     if config.pokeball_override then
         for k, v in pairs(config.pokeball_override) do
-            console.debug("Checking rule " .. k .. "...")
+            print_debug("Checking rule " .. k .. "...")
             -- If config states this ball should be used
             if pokemon.matches_ruleset(foe[1], config.pokeball_override[k]) then
                 console.debug(k .. " is a valid match!")
@@ -531,7 +531,7 @@ function subdue_pokemon()
             recoil_slot = get_mon_move_slot(foe[1], v)
 
             if recoil_slot ~= 0 then
-                console.warning("The target has a recoil move. False Swipe won't be used.")
+                print_warn("The target has a recoil move. False Swipe won't be used.")
                 break
             end
         end
@@ -541,7 +541,7 @@ function subdue_pokemon()
             local false_swipe_slot = get_mon_move_slot(party[get_lead_mon_index()], "False Swipe")
 
             if false_swipe_slot == 0 then
-                console.warning("The lead Pokemon can't use False Swipe.")
+                print_warn("The lead Pokemon can't use False Swipe.")
             else
                 use_move_at_slot(false_swipe_slot)
             end
@@ -556,7 +556,7 @@ function subdue_pokemon()
 
         for i = 1, #foe[1].type, 1 do
             if foe[1].type[i] == "Ground" then
-                console.debug("Foe is Ground-type. Thunder Wave can't be used.")
+                print_debug("Foe is Ground-type. Thunder Wave can't be used.")
                 table.remove(status_moves, 8) -- Remove Thunder Wave from viable options if target is Ground type
                 break
             end
@@ -588,7 +588,7 @@ function subdue_pokemon()
             -- Bot will blindly use the status move once and hope it lands
             use_move_at_slot(status_slot)
         else
-            console.warning("The lead Pokemon has no usable status moves.")
+            print_warn("The lead Pokemon has no usable status moves.")
         end
     end
 end
@@ -632,10 +632,10 @@ function catch_pokemon()
         end
 
         wait_frames(30)
-        console.debug("Page is " .. current_page .. ", scrolling to " .. page)
+        print_debug("Page is " .. current_page .. ", scrolling to " .. page)
     end
 
-    touch_screen_at(80 * ((button - 1) % 2 + 1), 30 + 50 * ((button - 1) // 2)) -- Select Ball
+    touch_screen_at(80 * ((button - 1) % 2 + 1), 30 + 50 * math.floor((button - 1) / 2)) -- Select Ball
     wait_frames(30)
     touch_screen_at(108, 176) -- USE
 
@@ -648,7 +648,7 @@ function catch_pokemon()
     end
 
     if not game_state.in_battle then
-        console.log("Skipping through all post-battle dialogue... (This may take a few seconds)")
+        print("Skipping through all post-battle dialogue... (This may take a few seconds)")
         for i = 0, 118, 1 do
             press_button("B")
             clear_unheld_inputs()
@@ -692,13 +692,13 @@ function process_wild_encounter()
             end
         end
     else
-        console.log("Wild " .. foe[1].name .. " was not a target, attempting next action...")
+        print("Wild " .. foe[1].name .. " was not a target, attempting next action...")
 
         update_pointers()
 
         while game_state.in_battle do
             if config.thief_wild_items and foe_item and not double then
-                console.log("Wild Pokemon has a held item, trying to use Thief...")
+                print("Wild Pokemon has a held item, trying to use Thief...")
                 local success = do_thief()
 
                 if not success then
@@ -708,9 +708,9 @@ function process_wild_encounter()
                 do_battle()
             else
                 if not double and config.thief_wild_items and not foe_item then
-                    console.log("Wild Pokemon had no held item. Fleeing!")
+                    print("Wild Pokemon had no held item. Fleeing!")
                 elseif double then
-                    console.log("Won't battle two targets at once. Fleeing!")
+                    print("Won't battle two targets at once. Fleeing!")
                 end
 
                 flee_battle()
@@ -739,20 +739,20 @@ function mode_starters(starter)
     end
 
     if not game_state.in_game then
-        console.log("Waiting to reach overworld...")
+        print("Waiting to reach overworld...")
 
         while not game_state.in_game do
             press_sequence("A", 20)
         end
     end
 
-    console.log("Opening Starter Selection...")
+    print("Opening Starter Selection...")
 
     while mbyte(pointers.starter_selection_is_open) ~= 1 do
         press_sequence("A", 5, "Down", 1)
     end
 
-    console.log("Choosing Starter...")
+    print("Choosing Starter...")
 
     while mbyte(pointers.starter_selection_is_open) ~= 0 do
         if mbyte(pointers.selected_starter) ~= 4 then
@@ -771,13 +771,13 @@ function mode_starters(starter)
     end
 
     if not config.hax then
-        console.log("Waiting to start battle...")
+        print("Waiting to start battle...")
 
         while not game_state.in_battle do
             press_sequence("A", 5)
         end
 
-        console.log("Waiting to see starter...")
+        print("Waiting to see starter...")
 
         for i = 0, 118, 1 do
             press_sequence("A", 5)
@@ -790,7 +790,7 @@ function mode_starters(starter)
     if was_target then
         abort("Starter meets target specs")
     else
-        console.log("Starter was not a target, resetting...")
+        print("Starter was not a target, resetting...")
         press_button("Power")
         wait_frames(60)
     end
@@ -821,7 +821,7 @@ function mode_random_encounters()
     while true do
         check_party_status()
 
-        console.log("Attempting to start a battle...")
+        print("Attempting to start a battle...")
 
         local dir1 = config.move_direction == "horizontal" and "Left" or "Up"
         local dir2 = config.move_direction == "horizontal" and "Right" or "Down"
@@ -843,7 +843,7 @@ end
 
 function mode_gift()
     if not game_state.in_game then
-        console.log("Waiting to reach overworld...")
+        print("Waiting to reach overworld...")
 
         while not game_state.in_game do
             press_sequence("A", 20)
@@ -870,7 +870,7 @@ function mode_gift()
         touch_screen_at(65, 45)
         wait_frames(90)
 
-        touch_screen_at(80 * ((#party - 1) % 2 + 1), 30 + 50 * ((#party - 1) // 2)) -- Select gift mon
+        touch_screen_at(80 * ((#party - 1) % 2 + 1), 30 + 50 * math.floor((#party - 1) / 2)) -- Select gift mon
         wait_frames(30)
 
         touch_screen_at(200, 105) -- SUMMARY
@@ -882,7 +882,7 @@ function mode_gift()
 
     if was_target then
         if config.save_game_after_catch then
-            console.log("Gift Pokemon meets target specs! Saving...")
+            print("Gift Pokemon meets target specs! Saving...")
 
             if not config.hax then
                 press_sequence("B", 120, "B", 120, "B", 60) -- Exit out of menu
@@ -893,7 +893,7 @@ function mode_gift()
 
         abort("Gift Pokemon meets target specs")
     else
-        console.log("Gift Pokemon was not a target, resetting...")
+        print("Gift Pokemon was not a target, resetting...")
         press_button("Power")
         wait_frames(60)
     end
@@ -931,45 +931,49 @@ function mode_phenomenon_encounters()
 
     while true do
         check_party_status()
-        ::begin::
-        console.log("Running until a phenomenon spawns...")
+        
+        local do_encounter = function()
+            print("Running until a phenomenon spawns...")
 
-        local dir1 = config.move_direction == "horizontal" and "Left" or "Up"
-        local dir2 = config.move_direction == "horizontal" and "Right" or "Down"
+            local dir1 = config.move_direction == "horizontal" and "Left" or "Up"
+            local dir2 = config.move_direction == "horizontal" and "Right" or "Down"
 
-        while game_state.phenomenon_x == 0 and game_state.phenomenon_z == 0 do
-            move_in_direction(dir1)
-            move_in_direction(dir2)
-        end
-
-        release_button(dir2)
-
-        console.log("Phenomenon spawned! Attempting to reach it...")
-
-        while not game_state.in_battle do
-            if game_state.phenomenon_x == 0 then -- Phenomenon was an item
-                goto begin
+            while game_state.phenomenon_x == 0 and game_state.phenomenon_z == 0 do
+                move_in_direction(dir1)
+                move_in_direction(dir2)
             end
 
-            pathfind_to({
-                x = game_state.phenomenon_x,
-                z = game_state.phenomenon_z
-            })
+            release_button(dir2)
+
+            print("Phenomenon spawned! Attempting to reach it...")
+
+            while not game_state.in_battle do
+                if game_state.phenomenon_x == 0 then -- Phenomenon was an item
+                    return
+                end
+
+                pathfind_to({
+                    x = game_state.phenomenon_x,
+                    z = game_state.phenomenon_z
+                })
+            end
+
+            if game_state.in_battle then
+                process_wild_encounter()
+            else
+                accept_interrupt_text() -- Accept repel dialogue or dust cloud item
+            end
+
+            pathfind_to(home)
         end
 
-        if game_state.in_battle then
-            process_wild_encounter()
-        else
-            accept_interrupt_text() -- Accept repel dialogue or dust cloud item
-        end
-
-        pathfind_to(home)
+        do_encounter()
     end
 end
 
 function mode_daycare_eggs()
     local function collect_daycare_egg()
-        console.debug("That's an egg!")
+        print_debug("That's an egg!")
 
         clear_all_inputs()
         press_sequence(30, "B")
@@ -1000,7 +1004,7 @@ function mode_daycare_eggs()
 
         -- Otherwise free up party slots at PC
         if not has_egg then
-            console.log("Party is clear of eggs. Depositing hatched Pokemon...")
+            print("Party is clear of eggs. Depositing hatched Pokemon...")
             
             pathfind_to({x=748}) -- Move to staircase
             pathfind_to({z=557}) -- Move to the door
@@ -1030,7 +1034,7 @@ function mode_daycare_eggs()
                 -- Release party in reverse order so the positions don't shuffle to fit empty spaces
                 for i = #party, 1, -1 do
                     if party[i].level == 1 and not pokemon.matches_ruleset(party[i], config.target_traits) then
-                        touch_screen_at(40 * ((i - 1) % 2 + 1), 72 + 30 * ((i - 1) // 2)) -- Select Pokemon
+                        touch_screen_at(40 * ((i - 1) % 2 + 1), 72 + 30 * math.floor((i - 1) / 2)) -- Select Pokemon
                         wait_frames(30)
                         touch_screen_at(211, 121) -- RELEASE
                         wait_frames(30)
@@ -1127,7 +1131,7 @@ function mode_daycare_eggs()
         end
 
         if mdword(pointers.egg_hatching) == 1 then -- Interrupted by egg hatching
-            console.log("Oh?")
+            print("Oh?")
 
             press_sequence("B", 60)
 
@@ -1157,7 +1161,7 @@ function mode_daycare_eggs()
                 abort("Hatched a target Pokemon")
             end
 
-            console.debug("Egg finished hatching.")
+            print_debug("Egg finished hatching.")
         elseif game_state.trainer_x == 748 then -- Interrupted by daycare man
             collect_daycare_egg()
         end
@@ -1188,7 +1192,7 @@ function mode_static_encounters()
             end
 
             if config.save_game_after_catch then
-                console.log("Target Pokémon was caught! Saving...")
+                print("Target Pokémon was caught! Saving...")
                 save_game()
             end
 
@@ -1197,7 +1201,7 @@ function mode_static_encounters()
             abort("Pokemon meets target specs, but Auto-catch is disabled")
         end
     else
-        console.log("Wild " .. foe[1].name .. " was not a target, resetting...")
+        print("Wild " .. foe[1].name .. " was not a target, resetting...")
         press_button("Power")
         wait_frames(60)
     end
@@ -1212,10 +1216,10 @@ function mode_fishing()
             mbyte(pointers.fishing_no_bite) == 0 do wait_frames(1) end
 
         if mword(pointers.fishing_bite_indicator) == 0xFFF1 then
-            console.log("Landed a Pokémon!")
+            print("Landed a Pokémon!")
             break
         else
-            console.log("Not even a nibble...")
+            print("Not even a nibble...")
             press_sequence(30, "A", 20)
         end
     end
@@ -1234,13 +1238,13 @@ function read_string(input, offset)
 
     if type(input) == "table" then
         for i = offset + 1, #input, 2 do
-            local value = input[i] + (input[i] << 8)
+            local value = input[i] + (bit.lshift(input[i], 8))
 
             if value == 0xFFFF or value == 0x0000 then -- Null terminator
                 break
             end
 
-            text = text .. utf8.char(value & 0xFF)
+            text = text .. utf8.char(bit.band(value, 0xFF))
         end
     else
         for i = input, input + 32, 2 do
@@ -1250,7 +1254,7 @@ function read_string(input, offset)
                 break
             end
 
-            text = text .. utf8.char(value & 0xFF)
+            text = text .. utf8.char(bit.band(value, 0xFF))
         end
     end
     

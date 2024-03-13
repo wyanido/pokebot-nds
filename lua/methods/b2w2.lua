@@ -74,18 +74,18 @@ function mode_starters(starter)
     end
 
     if not game_state.in_game then
-        console.log("Waiting to reach overworld...")
+        print("Waiting to reach overworld...")
 
         while not game_state.in_game do press_sequence("A", 20) end
     end
 
-    console.log("Opening Starter Selection...")
+    print("Opening Starter Selection...")
 
     while mbyte(pointers.starter_selection_is_open) ~= 1 do
         press_sequence("A", 5, "Left", 1)
     end
 
-    console.log("Choosing Starter...")
+    print("Choosing Starter...")
 
     while mbyte(pointers.starter_selection_is_open) ~= 0 do
         if mbyte(pointers.selected_starter) ~= 4 then
@@ -123,7 +123,7 @@ function mode_starters(starter)
     if was_target then
         abort("Starter meets target specs")
     else
-        console.log("Starter was not a target, resetting...")
+        print("Starter was not a target, resetting...")
         press_button("Power")
         wait_frames(60)
     end

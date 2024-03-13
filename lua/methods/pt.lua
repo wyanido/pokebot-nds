@@ -54,7 +54,7 @@ function update_pointers()
 end
 
 function mode_starters(starter) --starters for platinum
-    console.log("Waiting to reach overworld...")
+    print("Waiting to reach overworld...")
     wait_frames(200)
 
     while mbyte(pointers.battle_indicator) == 0x1D do
@@ -69,7 +69,7 @@ function mode_starters(starter) --starters for platinum
     --we can save right in front of the bag in platinum so all we have to do is open and select are starter
 
     -- Open briefcase and skip through dialogue until starter select
-    console.log("Skipping dialogue to briefcase...")
+    print("Skipping dialogue to briefcase...")
     local selected_starter = mdword(0x2101DEC) + 0x203E8 -- 0: Turtwig, 1: Chimchar, 2: Piplup
     local starters_ready = selected_starter + 0x84       -- 0 before hand appears, A94D afterwards
 
@@ -79,7 +79,7 @@ function mode_starters(starter) --starters for platinum
     end
 
     -- Need to wait for hand to be visible to find offset
-    console.log("Selecting starter...")
+    print("Selecting starter...")
 
     -- Highlight and select target
     while mdword(selected_starter) < starter do
@@ -90,7 +90,7 @@ function mode_starters(starter) --starters for platinum
         press_sequence("A", 6)
     end
 
-    console.log("Waiting to see starter...")
+    print("Waiting to see starter...")
     if config.hax then
         mon = party[1]
         local was_target = pokemon.log_encounter(mon)
@@ -112,7 +112,7 @@ function mode_starters(starter) --starters for platinum
         if was_target then
             abort("Starter meets target specs!")
         else
-            console.log("Starter was not a target, resetting...")
+            print("Starter was not a target, resetting...")
             selected_starter = 0
             starters_ready = 0
             press_button("Power")

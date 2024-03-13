@@ -1,49 +1,18 @@
 -----------------------
 -- INITIALIZATION
 -----------------------
-local BOT_VERSION = "v1.0-beta"
-
-console.clear()
--- console.log("Running " .. _VERSION)
-console.log("Pokébot NDS " .. BOT_VERSION .. " by NIDO (wyanido)")
-console.log("https://github.com/wyanido/pokebot-nds\n")
-
-if gameinfo.getromhash() == "" then
-    console.log("Please load a ROM before enabling the script!")
-    return
-end
-
--- Override memory functions to prevent reading out of bounds
-mbyte = function(addr) return memory.read_u8(math.max(addr, 0)) end
-mword = function(addr) return memory.read_u16_le(math.max(addr, 0)) end
-mdword = function(addr) return memory.read_u32_le(math.max(addr, 0)) end
-console.debug = function(message)
-    if config.debug then
-        console.log("- " .. message)
-    end
-end
-console.warning = function(message)
-    console.log("# " .. message .. " #")
-end
-
--- Requirements
+dofile("lua\\compatability\\detect_emu.lua")
 json = require("lua\\modules\\json")
 dofile("lua\\input.lua")
-dofile("lua\\game_setup.lua")
-
 pokemon = require("lua\\pokemon")
+dofile("lua\\detect_game.lua")
 
-dofile("lua\\dashboard.lua")
+local BOT_VERSION = "v1.0-beta"
 
------------------------
--- GAME INFO POLLING
------------------------
-
--- Send game info to the dashboard
-dashboard:send(json.encode({
-    type = "load_game",
-    data = _ROM
-}) .. "\x00")
+print("Pokebot NDS " .. BOT_VERSION .. " by NIDO (wyanido)")
+print("Running " .. _VERSION .. " on " .. _EMU)
+print("https://github.com/wyanido/pokebot-nds")
+print("")
 
 party_hash = ""
 party = {}
@@ -60,14 +29,18 @@ function update_party(is_reattempt)
     local party_size = mbyte(pointers.party_count)
 
     if not is_reattempt then
-        local new_hash = memory.hash_region(pointers.party_data, MON_DATA_SIZE * party_size)
+        -- Generate a "hash" by stringing together every checksum in the party
+        local new_hash = ""
+        for i = 1, party_size, 1 do
+            new_hash = new_hash .. mdword(pointers.party_data + 4 + MON_DATA_SIZE * i)
+        end
         
         if party_hash == new_hash then
             return false
         end
 
         party_hash = new_hash
-        console.debug("Party updated")
+        print_debug("Party updated")
     end
     
     -- Read new party data
@@ -80,13 +53,13 @@ function update_party(is_reattempt)
             
             -- Friendship value is used to store egg cycles before hatching
             if mon.isEgg == 1 then
-                mon.friendship = mon.friendship << 8
+                mon.friendship = bit.lshift(mon.friendship, 8)
             end
             
             table.insert(new_party, mon)
         else
-            -- If any party checksums fail, do not process this frame
-            console.debug("Party checksum failed at slot " .. i)
+            -- If any party checksums fail, do not process this update
+            print_debug("Party checksum failed at slot " .. i)
             return false
         end
     end
@@ -100,7 +73,7 @@ function update_party(is_reattempt)
             party = party,
             hash = party_hash
         }
-    }) .. "\x00")
+    }) .. "\0")
 
     return true
 end
@@ -110,31 +83,35 @@ function update_foes()
     if mbyte(pointers.battle_indicator) ~= 0x41 then
         foe = nil
     elseif not foe then -- Only update foe on battle start
-        ::retry::
-        local foe_table = {}
-        local foe_count = mbyte(pointers.foe_count)
-        
-        if foe_count == 0 then
-            console.debug("Foe data doesn't exist yet, retrying next frame...")
-            emu.frameadvance()
-            goto retry
-        end 
-
-        for i = 1, foe_count do
-            local mon_data = pokemon.decrypt_data(pointers.current_foe + (i - 1) * MON_DATA_SIZE)
+        local attempt_fetch = function()
+            local foe_table = {}
+            local foe_count = mbyte(pointers.foe_count)
             
-            if mon_data then
-                local mon = pokemon.parse_data(mon_data, true)
+            if foe_count == 0 then
+                print_debug("Foe data doesn't exist yet, retrying next frame...")
+                return
+            end 
+
+            for i = 1, foe_count do
+                local mon_data = pokemon.decrypt_data(pointers.current_foe + (i - 1) * MON_DATA_SIZE)
                 
-                table.insert(foe_table, mon)
-            else
-                console.debug("Foe checksum failed at slot " .. i .. ", retrying next frame...")
-                emu.frameadvance()
-                goto retry
+                if mon_data then
+                    local mon = pokemon.parse_data(mon_data, true)
+                    
+                    table.insert(foe_table, mon)
+                else
+                    print_debug("Foe checksum failed at slot " .. i .. ", retrying next frame...")
+                    return
+                end
             end
+
+            foe = foe_table
         end
 
-        foe = foe_table
+        while foe == nil do
+            attempt_fetch()
+            emu.frameadvance()
+        end
     end
 end
 
@@ -154,8 +131,7 @@ function get_game_state()
                 in_battle = type(foe) == "table" and #foe > 0,
                 in_game = true,
                 trainer_name = read_string(pointers.trainer_name),
-                trainer_id = string.format("%05d", mword(pointers.trainer_id)),
-                trainer_sid = string.format("%05d", mword(pointers.trainer_id + 2)),
+                trainer_id = string.format("%05d", mword(pointers.trainer_id)) .. " (" .. string.format("%05d", mword(pointers.trainer_id + 2)) .. ")",
             }
         else
             return {
@@ -176,8 +152,7 @@ function get_game_state()
                 in_battle = mbyte(pointers.battle_indicator) == 0x41 and foe,
                 in_game = true,
                 trainer_name = read_string(pointers.trainer_name),
-                trainer_id = string.format("%05d", mword(pointers.trainer_id)),
-                trainer_sid = string.format("%05d", mword(pointers.trainer_id + 2)),
+                trainer_id = string.format("%05d", mword(pointers.trainer_id)) .. " (" .. string.format("%05d", mword(pointers.trainer_id + 2)) .. ")",
             }
         else
             -- Set minimum required values for the dashboard
@@ -204,12 +179,12 @@ function frames_per_move()
 end
 
 function update_game_info(force)
-    if emu.framecount() % 4 == 0 or force then
+    if emu.framecount() % 20 == 0 or force then
         game_state = get_game_state()
         dashboard:send(json.encode({
             type = "game_state",
             data = game_state
-        }) .. "\x00")
+        }) .. "\0")
 
         update_foes()
     end
@@ -219,16 +194,15 @@ end
 
 function abort(reason)
     clear_all_inputs()
-    client.clearautohold()
 
-    console.log("##### BOT TASK ENDED #####")
+    print("##### BOT TASK ENDED #####")
     error(reason)
 end
 
 function cycle_starter_choice(starter)
     -- Alternate between starters specified in config and reset until one is a target
     if not config.starter0 and not config.starter1 and not config.starter2 then
-        console.warning("At least one starter selection must be enabled in config for this bot mode")
+        print_warn("At least one starter selection must be enabled in config for this bot mode")
         return
     end
 
@@ -254,33 +228,34 @@ function to_signed(u16)
 end
 
 -----------------------
--- PREPARATION
+-- CONNECT TO DASHBOARD
 -----------------------
-console.write("Waiting for dashboard to relay bot configuration... ")
-::poll_config::
+dofile("lua\\dashboard.lua")
 
-emu.frameadvance()
-poll_dashboard_response()
+-- Send game info to the dashboard
+dashboard:send(json.encode({
+    type = "load_game",
+    data = _ROM
+}) .. "\0")
 
-if config == nil then
-    goto poll_config
+print("Waiting for dashboard to relay config file... ")
+
+while config == nil do
+    poll_dashboard_response()
+    emu.frameadvance()
 end
 
 -----------------------
 -- MAIN BOT LOGIC
 -----------------------
+print("Bot mode set to " .. config.mode)
 
 input = input_init()
 foe = nil -- Prevents logging old Pokemon when re-enabling the script in a different battle than the one it was disabled in
 update_pointers()
 update_game_info(true)
 
-::begin::
 clear_all_inputs()
-client.clearautohold()
-
-console.log("Bot mode set to " .. config.mode)
-mode_real = config.mode
 
 if config.save_game_on_start then
     save_game()
@@ -303,10 +278,6 @@ while true do
             while true do
                 while not game_state.in_battle do
                     process_frame()
-                    
-                    if mode_real ~= config.mode then
-                        goto begin -- Restart if config changed
-                    end
                 end
 
                 for i = 1, #foe, 1 do
@@ -315,20 +286,11 @@ while true do
 
                 while game_state.in_battle do
                     process_frame()
-                    
-                    if mode_real ~= config.mode then
-                        goto begin -- Restart if config changed
-                    end
                 end
             end
         else
             abort("Function for mode '" .. config.mode .. "' does not exist. It may not be compatible with this game.")
         end
-    end
-
-    -- Restart if config changed
-    if mode_real ~= config.mode then
-        goto begin
     end
 
     joypad.set(input)

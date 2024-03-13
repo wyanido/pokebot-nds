@@ -116,8 +116,9 @@ end
 _ROM = roms[game]
 _ROM.language = _ROM.region[region][1]
 _ROM.name = _ROM.region[region][2]
+_ROM.region = nil
 
-console.log("Detected Game: " .. _ROM.name)
+print("Detected Game: " .. _ROM.name)
 
 pointers = {}
 map_names = {}
@@ -162,7 +163,6 @@ end
 
 -- BW
 dofile("lua\\methods\\gen_v.lua")
-
 map_names = json.load("lua\\data\\maps\\bw.json")
 MON_DATA_SIZE = 220
 

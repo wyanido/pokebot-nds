@@ -46,7 +46,7 @@ end
 -----------------------
 
 function save_game()
-    console.log("Saving game...")
+    print("Saving game...")
     hold_button("X")
     wait_frames(20)
     release_button("X")
@@ -106,14 +106,14 @@ function check_status()
     end
 
     if party[1].currentHP == 0 or party[1].currentHP < (party[1].maxHP / 5) or (lead_pp_sum == 0 and config.battle_non_targets) then
-        console.log("Lead Pokemon can no longer battle...")
+        print("Lead Pokemon can no longer battle...")
         if config.cycle_lead_pokemon then
-            console.log("Finding a suitable replacement")
+            print("Finding a suitable replacement")
         else
             abort("auto cycle off waiting for manual intervention")
         end
     end
-    console.log("Lead Pokemon is OK, continuing search...")
+    print("Lead Pokemon is OK, continuing search...")
 end
 
 function get_lead_mon_index()
@@ -149,7 +149,7 @@ function do_pickup()
 
     if pickup_count > 0 then
         if item_count < tonumber(config.pickup_threshold) then
-            console.log("Pickup items in party: " ..
+            print("Pickup items in party: " ..
                 item_count .. ". Collecting at threshold: " .. config.pickup_threshold)
         else
             press_sequence(60, "X", 30)
@@ -158,10 +158,10 @@ function do_pickup()
             end
             press_button("A")
             wait_frames(120)
-            console.log("Item count: " .. item_count)
+            print("Item count: " .. item_count)
             for i = 1, #items, 1 do
                 if items[i] ~= "none" then
-                    console.log("getting item from mon at slot: " .. i)
+                    print("getting item from mon at slot: " .. i)
                     if i % 2 == 0 then
                         press_button("Right")
                         wait_frames(5)
@@ -184,7 +184,7 @@ function do_pickup()
             press_sequence(30, "B", 150, "B", 100)
         end
     else
-        console.log("Pickup is enabled in config, but no Pokemon have the pickup ability.")
+        print("Pickup is enabled in config, but no Pokemon have the pickup ability.")
     end
 end
 
@@ -224,12 +224,12 @@ function flee_battle()
         wait_frames(5)
     end
 
-    console.log("Got away safely!")
+    print("Got away safely!")
 end
 
 function subdue_pokemon()
     wait_frames(100)
-    console.log("Attempting to subdue pokemon...")
+    print("Attempting to subdue pokemon...")
     if config.false_swipe then
         -- Ensure target has no recoil moves before attempting to weaken it
         local recoil_moves = { "Brave Bird", "Double-Edge", "Flare Blitz", "Head Charge", "Head Smash", "Self-Destruct",
@@ -240,7 +240,7 @@ function subdue_pokemon()
             recoil_slot = get_mon_move_slot(foe[1], v)
 
             if recoil_slot ~= 0 then
-                console.warning("The target has a recoil move. False Swipe won't be used.")
+                print_warn("The target has a recoil move. False Swipe won't be used.")
                 break
             end
         end
@@ -250,7 +250,7 @@ function subdue_pokemon()
             local false_swipe_slot = get_mon_move_slot(party[get_lead_mon_index()], "False Swipe")
 
             if false_swipe_slot == 0 then
-                console.warning("The lead Pokemon can't use False Swipe.")
+                print_warn("The lead Pokemon can't use False Swipe.")
             else
                 use_move_at_slot(false_swipe_slot)
             end
@@ -265,7 +265,7 @@ function subdue_pokemon()
 
         for i = 1, #foe[1].type, 1 do
             if foe[1].type[i] == "Ground" then
-                console.debug("Foe is Ground-type. Thunder Wave can't be used.")
+                print_debug("Foe is Ground-type. Thunder Wave can't be used.")
                 table.remove(status_moves, 8) -- Remove Thunder Wave from viable options if target is Ground type
                 break
             end
@@ -295,14 +295,14 @@ function subdue_pokemon()
 
         if status_slot > 0 then
             if party[1].moves[status_slot].name == "Yawn" then
-                console.log("Using First Yawn")
+                print("Using First Yawn")
                 use_move_at_slot(status_slot)
             end
             -- Bot will blindly use the status move once and hope it lands
-            console.log("Using Second Yawn")
+            print("Using Second Yawn")
             use_move_at_slot(status_slot)
         else
-            console.warning("The lead Pokemon has no usable status moves.")
+            print_warn("The lead Pokemon has no usable status moves.")
         end
     end
 end
@@ -318,7 +318,7 @@ function do_battle()
     end
 
     if (config.swap_lead_battle) then
-        console.log("Config set to swap lead.. swapping now")
+        print("Config set to swap lead.. swapping now")
         swap_lead_battle()
     end
     wait_frames(100)
@@ -339,14 +339,14 @@ function do_battle()
                 touch_screen_at(125, 135)    -- FLEE
                 wait_frames(500)
                 if game_state.in_battle then --if hit with can't flee message
-                    console.log("Could not flee battle reseting...")
+                    print("Could not flee battle reseting...")
                     press_button("Power")
                 end
                 press_sequence("B", 5)
             end
             return
         elseif pointers.foe_current_hp == 0 then
-            console.log("Enemy Pokemon fainted skipping text...")
+            print("Enemy Pokemon fainted skipping text...")
             while game_state.in_battle do
                 touch_screen_at(125, 70)
                 
@@ -384,7 +384,7 @@ function do_battle()
 
         --checks if move has pp and is a damaging move
         if (best_move.power > 0) then
-            console.debug("Best move against foe is " ..
+            print_debug("Best move against foe is " ..
                 best_move.name .. " (Effective base power is " .. best_move.power .. ")")
             touch_screen_at(128, 96) -- FIGHT
             wait_frames(60)
@@ -400,7 +400,7 @@ function do_battle()
             party[1].pp[4] = move4_pp
             do_battle()
         else
-            console.log("Lead Pokemon has no valid moves left to battle! Fleeing...")
+            print("Lead Pokemon has no valid moves left to battle! Fleeing...")
 
             while game_state.in_battle do
                 touch_screen_at(125, 175) -- Run
@@ -503,14 +503,14 @@ function process_wild_encounter()
     else
         while game_state.in_battle do
             if config.battle_non_targets then
-                console.log("Wild " .. foe[1].name .. " is not a target, and battle non tartgets is on. Battling!")
+                print("Wild " .. foe[1].name .. " is not a target, and battle non tartgets is on. Battling!")
                 do_battle()
                 return
             else
                 if config.mode_static_encounters then
                     press_button("Power")
                 else
-                    console.log("Wild " .. foe[1].name .. " is not a target, fleeing!")
+                    print("Wild " .. foe[1].name .. " is not a target, fleeing!")
                     flee_battle()
                 end
             end
@@ -522,7 +522,7 @@ end
 -- BOT ENCOUNTER MODES
 -----------------------
 function mode_static_encounters()
-    console.log("Waiting for battle to start...")
+    print("Waiting for battle to start...")
     
     while not game_state.in_battle do
         local delay = math.random(6, 21) -- Mimic imperfect human inputs
@@ -539,7 +539,7 @@ function mode_static_encounters()
     if foe_is_target then
         abort("Wild Pokémon meets target specs!")
     else
-        console.log("Wild " .. foe[1].name .. " was not a target, resetting...")
+        print("Wild " .. foe[1].name .. " was not a target, resetting...")
         press_button("Power")
         wait_frames(30)
     end
@@ -547,13 +547,13 @@ function mode_static_encounters()
     -- Wait a random number of frames before mashing A next reset
     -- to decrease the odds of hitting similar seeds
     local delay = math.random(1, 90)
-    console.debug("Delaying " .. delay .. " frames...")
+    print_debug("Delaying " .. delay .. " frames...")
     wait_frames(delay)
 end
 
 function mode_starters(starter)
     if not game_state.in_game then
-        console.log("Waiting to reach overworld...")
+        print("Waiting to reach overworld...")
 
         while not game_state.in_battle do
             press_sequence(12, "A")
@@ -561,7 +561,7 @@ function mode_starters(starter)
     end
 
     hold_button("Up") -- Enter Lake Verity
-    console.log("Waiting to reach briefcase...")
+    print("Waiting to reach briefcase...")
 
     -- Skip through dialogue until starter select
     while not (mdword(pointers.starters_ready) > 0) do
@@ -571,7 +571,7 @@ function mode_starters(starter)
     release_button("Up")
 
     -- Highlight and select target
-    console.log("Selecting starter...")
+    print("Selecting starter...")
 
     while mdword(pointers.selected_starter) < starter do
         press_sequence("Right", 5)
@@ -582,7 +582,7 @@ function mode_starters(starter)
     end
 
     if not config.hax then
-        console.log("Waiting to see starter...")
+        print("Waiting to see starter...")
 
         for i = 0, 86, 1 do
             press_button("A")
@@ -597,14 +597,14 @@ function mode_starters(starter)
     if was_target then
         abort("Starter meets target specs!")
     else
-        console.log("Starter was not a target, resetting...")
+        print("Starter was not a target, resetting...")
         press_button("Power")
         wait_frames(180)
     end
 end
 
 function mode_random_encounters()
-    console.log("Attempting to start a battle...")
+    print("Attempting to start a battle...")
     wait_frames(30)
 
     if config.move_direction == "spin" then
@@ -668,10 +668,10 @@ function mode_fishing()
         end
 
         if mbyte(pointers.fishing_bite_indicator) == 0x01 then
-            console.log("Landed a Pokémon!")
+            print("Landed a Pokémon!")
             break
         else
-            console.log("Not even a nibble...")
+            print("Not even a nibble...")
             press_sequence(30, "A", 20)
         end
     end
@@ -687,7 +687,7 @@ end
 
 function mode_gift()
     if not game_state.in_game then
-        console.log("Waiting to reach overworld...")
+        print("Waiting to reach overworld...")
 
         while not game_state.in_game do
             local delay = math.random(5, 30) -- Mimic imperfect human inputs
@@ -722,7 +722,7 @@ function mode_gift()
 
     if was_target then
         if config.save_game_after_catch then
-            console.log("Gift Pokemon meets target specs! Saving...")
+            print("Gift Pokemon meets target specs! Saving...")
 
             if not config.hax then
                 press_sequence("B", 120, "B", 120, "B", 60) -- Exit out of menu
@@ -733,7 +733,7 @@ function mode_gift()
 
         abort("Gift Pokemon meets target specs")
     else
-        console.log("Gift Pokemon was not a target, resetting...")
+        print("Gift Pokemon was not a target, resetting...")
         press_button("Power")
         wait_frames(60)
     end

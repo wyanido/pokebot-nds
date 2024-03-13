@@ -141,7 +141,7 @@ if (config.show_status) {
                 instance: false,
             }
 
-            if (clientData.length > 0) {
+            if (clientData.length > 0 && clientData[0] != undefined) {
                 const game = clientData[0].game;
                 if (!game) return;
 
@@ -193,7 +193,7 @@ const server = net.createServer((socket) => {
     let buffer = ''
     socket.on('data', (data) => {
         buffer += data.toString();
-        let responses = buffer.split('\x00');
+        let responses = buffer.split('\0');
 
         for (let i = 0; i < responses.length - 1; i++) {
             var response = responses[i].trim();
@@ -454,8 +454,7 @@ function interpretClientMessage(socket, message) {
             // Values displayed on the game instance's tab on the dashboard
             client.trainer = {
                 Name: data.trainer_name || '--',
-                TID: data.trainer_id || '--',
-                SID: data.trainer_sid || '--'
+                ID: data.trainer_id || '--'
             }
 
             var shownValues = {

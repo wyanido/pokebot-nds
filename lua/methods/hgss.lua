@@ -35,7 +35,7 @@ function update_pointers()
 end
 
 function save_game()
-    console.log("Saving game...")
+    print("Saving game...")
     touch_screen_at(125, 75)
     wait_frames(30)
     hold_button("B")
@@ -99,7 +99,7 @@ function mode_starters()
     -- Wait a random number of frames before mashing A next reset
     -- to decrease the odds of hitting similar seeds
     local delay = math.random(1, 90)
-    console.debug("Delaying " .. delay .. " frames...")
+    print_debug("Delaying " .. delay .. " frames...")
     wait_frames(delay)
 end
 
@@ -175,7 +175,7 @@ function mode_primo_gift()
             end
         end
 
-        console.debug("Found word " .. target_word .. " in category " .. category_idx .. " (position " .. word_idx .. ")")
+        print_debug("Found word " .. target_word .. " in category " .. category_idx .. " (position " .. word_idx .. ")")
 
         return { category_idx, word_idx }
     end
@@ -217,7 +217,7 @@ function mode_primo_gift()
 
         local times_to_scroll = math.ceil((word_location[2] - page_location) / 10)
 
-        console.debug("Scrolling " .. times_to_scroll .. " times and pressing index " .. page_location .. "(" .. word_location[2] .. ")")
+        print_debug("Scrolling " .. times_to_scroll .. " times and pressing index " .. page_location .. "(" .. word_location[2] .. ")")
         
         while times_to_scroll > 0 do
             touch_screen_at(240, 131)
@@ -249,7 +249,7 @@ function mode_primo_gift()
         input_word(word2)
         wait_frames(60)
 
-        console.log("Confirming input...")
+        print("Confirming input...")
         touch_screen_at(218, 118) -- CONFIRM
         wait_frames(15)
         touch_screen_at(218, 118) -- YES
@@ -270,7 +270,7 @@ function mode_primo_gift()
 
     if was_target then
         if config.save_game_after_catch then
-            console.log("Gift Pokemon meets target specs! Saving...")
+            print("Gift Pokemon meets target specs! Saving...")
 
             if not config.hax then
                 press_sequence("B", 120, "B", 120, "B", 60) -- Exit out of menu
@@ -281,7 +281,7 @@ function mode_primo_gift()
 
         abort("Gift Pokemon meets target specs")
     else
-        console.log("Gift Pokemon was not a target, resetting...")
+        print("Gift Pokemon was not a target, resetting...")
         press_button("Power")
         wait_frames(60)
     end
@@ -331,7 +331,7 @@ function mode_headbutt()
     -- Return to original position
     local dir = mbyte(pointers.facing)
 
-    if dir == 0 then     press_sequence("Down")
+    if dir == 0 then     press_button("Down")
     elseif dir == 1 then press_button("Up")
     elseif dir == 2 then press_button("Right")
     elseif dir == 3 then press_button("Left") end
