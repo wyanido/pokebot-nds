@@ -199,11 +199,12 @@ function abort(reason)
     error(reason)
 end
 
-function cycle_starter_choice(starter)
+function cycle_starter_choice()
+    if starter == nil then starter = -1 end
+    
     -- Alternate between starters specified in config and reset until one is a target
     if not config.starter0 and not config.starter1 and not config.starter2 then
-        print_warn("At least one starter selection must be enabled in config for this bot mode")
-        return
+        abort("At least one starter selection must be enabled in config for this bot mode")
     end
 
     -- Cycle to next enabled starter
@@ -255,16 +256,10 @@ update_game_info(true)
 
 local mode = string.lower(config.mode)
 local mode_function = _G["mode_" .. mode] -- Get the respective global scope function for the current bot mode
-local starter = -1
 
 while true do
     if mode_function then
-        if mode == "starters" then
-            starter = cycle_starter_choice(starter)
-            mode_starters(starter)
-        else
-            mode_function()
-        end
+        mode_function()
     else
         if mode == "manual" then -- No bot logic, just manual gameplay with a dashboard
             while true do

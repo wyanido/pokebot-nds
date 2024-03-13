@@ -18,8 +18,11 @@ function update_pointers()
         trainer_y   = anchor + 0x11C0,
         facing      = anchor + 0x247C6,
 
+        selected_starter = anchor + 0x427A6,
+        starters_ready   = anchor + 0x4282A,
+
         battle_state_value  = anchor + 0x44878,        
-        battle_indicator    = 0x021A1B2A + offset, -- mostly static
+        battle_indicator    = 0x021A1B2A + _ROM.mem_shift, -- mostly static
         fishing_bite_indicator = 0x21D5E16,
 
         trainer_name = anchor - 0x22,
@@ -33,7 +36,9 @@ end
 
 -- Wait a random delay after SRing to decrease the odds of hitting similar seeds on loading save
 function randomise_reset()
-    local delay = math.random(60, 200)
+    wait_frames(200) -- Impassable white screen
+
+    local delay = math.random(100, 420)
 
     print_debug("Delaying " .. delay .. " frames...")
     wait_frames(delay)
@@ -453,29 +458,32 @@ function catch_pokemon()
         end
         wait_frames(60)
         
-        ::retry::
-        while pointers.battle_state_value ~= 01 do
-            press_sequence("B", 5)
-        end
-
-        wait_frames(10)
-        touch_screen_at(40, 170)
-        wait_frames(50)
-        touch_screen_at(190, 45)
-        wait_frames(20)
-        touch_screen_at(60, 30)
-        wait_frames(20)
-        touch_screen_at(100, 170)
-        wait_frames(750)
+        local do_battle = true
         
-        if mbyte(0x02101DF0) == 0x01 then
-            skip_nickname()
-            wait_frames(200)
-        else
-            if pointers.foe_status == 0 then
-                subdue_pokemon()
+        while do_battle do
+            while pointers.battle_state_value ~= 01 do
+                press_sequence("B", 5)
+            end
+
+            wait_frames(10)
+            touch_screen_at(40, 170)
+            wait_frames(50)
+            touch_screen_at(190, 45)
+            wait_frames(20)
+            touch_screen_at(60, 30)
+            wait_frames(20)
+            touch_screen_at(100, 170)
+            wait_frames(750)
+            
+            if mbyte(0x02101DF0) == 0x01 then
+                skip_nickname()
+                wait_frames(200)
+                do_battle = false
             else
-                goto retry
+                if pointers.foe_status == 0 then
+                    subdue_pokemon()
+                    do_battle = false
+                end
             end
         end
     else
@@ -538,48 +546,52 @@ function mode_static_encounters()
     end
 end
 
-function mode_starters(starter)
-    if not game_state.in_game then
-        print("Waiting to reach overworld...")
+function mode_starters()
+    cycle_starter_choice()
+    
+    -- Diamond and Pearl need to skip through a cutscene before the briefcase
+    local platinum = _ROM.version == version.PLATINUM
 
-        while not game_state.in_battle do
-            press_sequence(12, "A")
+    if not platinum then 
+        hold_button("Up")
+
+        while game_state.map_name ~= "Lake Verity" do
+            press_sequence("A", 12)
         end
+        
+        release_button("Up")
+    end
+    
+    print("Waiting to open briefcase...")
+    
+    -- Skip until starter selection is available
+    local ready_value = platinum and 0x4D or 0x75
+
+    while mbyte(pointers.starters_ready) ~= ready_value do
+        press_sequence("A", 12)
     end
 
-    hold_button("Up") -- Enter Lake Verity
-    print("Waiting to reach briefcase...")
-
-    -- Skip through dialogue until starter select
-    while not (mdword(pointers.starters_ready) > 0) do
-        press_sequence(12, "A")
-    end
-
-    release_button("Up")
-
-    -- Highlight and select target
     print("Selecting starter...")
 
-    while mdword(pointers.selected_starter) < starter do
+    while mbyte(pointers.selected_starter) < starter do
         press_sequence("Right", 5)
     end
 
+    -- Wait until starter is added to party
     while #party == 0 do
         press_sequence("A", 6)
     end
 
     if not config.hax then
-        print("Waiting to see starter...")
+        print("Waiting until starter is visible...")
 
         for i = 0, 86, 1 do
-            press_button("A")
-            clear_unheld_inputs()
-            wait_frames(6)
+            press_sequence("A", 6)
         end
     end
 
-    mon = party[1]
-    local was_target = pokemon.log_encounter(mon)
+    -- Log encounter, stopping if necessary
+    local was_target = pokemon.log_encounter(party[1])
 
     if was_target then
         abort("Starter meets target specs!")
@@ -763,7 +775,7 @@ function read_string(input, offset)
     if type(input) == "table" then
         -- Read data from an inputted table of bytes
         for i = offset + 1, #input, 2 do
-            local value = input[i] + (input[i + 1] << 8)
+            local value = input[i] + bit.lshift(input[i + 1], 8)
 
             if value == 0xFFFF or value == 0x0000 then -- Null terminator
                 break

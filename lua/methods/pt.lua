@@ -19,6 +19,9 @@ function update_pointers()
 		trainer_y 	= anchor + 0x12A2,
 		facing		= anchor + 0x238A4,
 		
+        selected_starter = anchor + 0x41850,
+        starters_ready   = anchor + 0x418D4,
+
 		battle_state_value = anchor + 0x44878, -- 01 is FIGHT menu, 04 is Move Select, 08 is Bag,
 		battle_indicator   = 0x021D18F2, -- static
         fishing_bite_indicator = 0x021CF636,
@@ -35,71 +38,4 @@ function update_pointers()
 	pointers.level			   = mbyte(pointers.current_pokemon + 0x34)
 	pointers.foe_current_hp	   = mword(pointers.foe_in_battle + 0x4C)
 	pointers.saveFlag		   = mbyte(anchor + 0x2832A)
-end
-
-function mode_starters(starter) --starters for platinum
-    print("Waiting to reach overworld...")
-    wait_frames(200)
-
-    while mbyte(pointers.battle_indicator) == 0x1D do
-        local delay = math.random(6, 21) -- Mimic imperfect human inputs
-        press_sequence("A", delay)
-    end
-
-    while mbyte(pointers.battle_indicator) ~= 0xFF do
-        local delay = math.random(6, 21) -- Mimic imperfect human inputs
-        press_sequence("A", delay)
-    end
-    --we can save right in front of the bag in platinum so all we have to do is open and select are starter
-
-    -- Open briefcase and skip through dialogue until starter select
-    print("Skipping dialogue to briefcase...")
-    local selected_starter = mdword(0x2101DEC) + 0x203E8 -- 0: Turtwig, 1: Chimchar, 2: Piplup
-    local starters_ready = selected_starter + 0x84       -- 0 before hand appears, A94D afterwards
-
-    while not (mdword(starters_ready) > 0) do
-        press_button("B")
-        wait_frames(2)
-    end
-
-    -- Need to wait for hand to be visible to find offset
-    print("Selecting starter...")
-
-    -- Highlight and select target
-    while mdword(selected_starter) < starter do
-        press_sequence("Right", 10)
-    end
-
-    while #party == 0 do
-        press_sequence("A", 6)
-    end
-
-    print("Waiting to see starter...")
-    if config.hax then
-        mon = party[1]
-        local was_target = pokemon.log_encounter(mon)
-        if was_target then
-            abort("Starter meets target specs!")
-        else
-            soft_reset()
-        end
-    else
-        while game_state.in_battle do
-            press_sequence(12, "A")
-        end
-        while game_state.in_battle and pointers.battle_state_value == 0 do
-            press_sequence("B", 5)
-        end
-        wait_frames(50)
-        mon = party[1]
-        local was_target = pokemon.log_encounter(mon)
-        if was_target then
-            abort("Starter meets target specs!")
-        else
-            print("Starter was not a target, resetting...")
-            selected_starter = 0
-            starters_ready = 0
-            soft_reset()
-        end
-    end
 end

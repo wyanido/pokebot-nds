@@ -15,13 +15,13 @@ version = {
 }
 
 language = {
-    JAPANESE = 0,
-    ENGLISH = 1,
-    FRENCH = 2,
-    ITALIAN = 3,
-    GERMAN = 4,
-    SPANISH = 5,
-    KOREAN = 6
+    JAPANESE = "JP",
+    ENGLISH = "EN",
+    FRENCH = "FR",
+    ITALIAN = "IT",
+    GERMAN = "DE",
+    SPANISH = "ES",
+    KOREAN = "KO",
 }
 
 local roms = {
@@ -137,7 +137,7 @@ _ROM.language = _ROM.region[region][1]
 _ROM.mem_shift = _ROM.region[region][2]
 _ROM.region = nil
 
-print("Detected Game: " .. _ROM.name)
+print("Detected Game: " .. _ROM.name .. " (" .. _ROM.language .. ")")
 
 pointers = {}
 map_names = {}

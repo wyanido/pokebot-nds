@@ -57,11 +57,6 @@ end
 -----------------------
 -- MODE VARIABLES
 -----------------------
-
-snivy_ball = { x = 60, y = 100 }
-tepig_ball = { x = 128, y = 75 }
-oshawott_ball = { x = 185, y = 100 }
-
 take_button = { x = 200, y = 155 }
 
 -----------------------
@@ -748,16 +743,14 @@ end
 -- BOT MODES
 -----------------------
 
-function mode_starters(starter)
-    local ball
-
-    if starter == 0 then
-        ball = snivy_ball
-    elseif starter == 1 then
-        ball = tepig_ball
-    elseif starter == 2 then
-        ball = oshawott_ball
-    end
+function mode_starters()
+    cycle_starter_choice()
+    
+    local balls = {
+        [0] = { x = 60, y = 100 }, -- Snivy
+        [1] = { x = 128, y = 75 }, -- tepig
+        [2] = { x = 185, y = 100 }, -- Oshawott
+    }
 
     if not game_state.in_game then
         print("Waiting to reach overworld...")
@@ -782,7 +775,7 @@ function mode_starters(starter)
             touch_screen_at(240, 100) -- Yes
             wait_frames(5)
         else
-            touch_screen_at(ball.x, ball.y) -- Starter
+            touch_screen_at(balls[starter].x, balls[starter].y) -- Starter
             wait_frames(5)
         end
     end
@@ -1256,7 +1249,7 @@ function read_string(input, offset)
 
     if type(input) == "table" then
         for i = offset + 1, #input, 2 do
-            local value = input[i] + (bit.lshift(input[i], 8))
+            local value = input[i] + (bit.lshift(input[i + 1], 8))
 
             if value == 0xFFFF or value == 0x0000 then -- Null terminator
                 break

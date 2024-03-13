@@ -1,10 +1,6 @@
 -----------------------
 -- BW FUNCTION OVERRIDES
 -----------------------
-snivy_ball.x = 40
-tepig_ball.y = 100
-oshawott_ball.x = 210
-take_button.y = 130
 
 function update_pointers()
     local offset = (_ROM.version == version.WHITE2) and 0x40 or 0x0 -- White version is offset slightly, moreso than original BW
@@ -62,16 +58,14 @@ function update_pointers()
     }
 end
 
-function mode_starters(starter)
-    local ball
-
-    if starter == 0 then
-        ball = snivy_ball
-    elseif starter == 1 then
-        ball = tepig_ball
-    elseif starter == 2 then
-        ball = oshawott_ball
-    end
+function mode_starters()
+    cycle_starter_choice()
+    
+    local balls = {
+        [0] = { x = 40, y = 100 }, -- Snivy
+        [1] = { x = 128, y = 100 }, -- tepig
+        [2] = { x = 210, y = 100 }, -- Oshawott
+    }
 
     if not game_state.in_game then
         print("Waiting to reach overworld...")
@@ -82,7 +76,7 @@ function mode_starters(starter)
     print("Opening Starter Selection...")
 
     while mbyte(pointers.starter_selection_is_open) ~= 1 do
-        press_sequence("A", 5, "Left", 1)
+        press_sequence("A", 5)
     end
 
     print("Choosing Starter...")
@@ -94,7 +88,7 @@ function mode_starters(starter)
             touch_screen_at(240, 100) -- Yes
             wait_frames(5)
         else
-            touch_screen_at(ball.x, ball.y) -- Starter
+            touch_screen_at(balls[starter].x, balls[starter].y) -- Starter
             wait_frames(5)
         end
     end

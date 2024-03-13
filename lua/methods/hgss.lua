@@ -27,7 +27,9 @@ function update_pointers()
         easy_chat_word_list      = anchor + 0x20124,
         
         trainer_name = anchor - 0x23F74,
-        trainer_id = anchor - 0x23F64
+        trainer_id = anchor - 0x23F64,
+
+        starter_data = anchor + 0x1BC00
         -- registered_key_item_1 = anchor - 0x231FC,
     }
 end
@@ -55,32 +57,25 @@ function save_game()
 end
 
 function mode_starters()
-    -- Get starter data offset for this reset
-    local starter_pointer = mdword(0x2111938) + 0x1BF78
+    print("Waiting to see starters...")
 
-    -- Proceed until starters are loaded into RAM
-    while mdword(starter_pointer - 0x8) ~= 0 or mdword(starter_pointer - 0x4) == 0 do
-        starter_pointer = mdword(0x2111938) + 0x1BF78
-
-        local delay = math.random(6, 21) -- Mimic imperfect human inputs
-        press_sequence("A", delay)
+    while mdword(pointers.starter_data - 0x8) ~= 0 or mdword(pointers.starter_data - 0x4) == 0 do
+        press_sequence("A", 6)
     end
 
     if not config.hax then
         press_sequence(130, "A", 15)
     else
-        wait_frames(5)
+        wait_frames(9) -- Ensure all starters are loaded
     end
 
     -- Check all Pokémon
-    local is_target = false
     for i = 0, 2, 1 do
-        local mon_data = pokemon.decrypt_data(starter_pointer + i * MON_DATA_SIZE)
+        local mon_data = pokemon.decrypt_data(pointers.starter_data + i * MON_DATA_SIZE)
         local starter = pokemon.parse_data(mon_data, true)
+        local was_target = pokemon.log_encounter(starter)
 
-        is_target = pokemon.log_encounter(starter)
-
-        if is_target then
+        if was_target then
             abort("Starter " .. (i + 1) .. " meets target specs!")
         end
 
@@ -91,6 +86,7 @@ function mode_starters()
     end
 
     -- Soft reset otherwise
+    print("No starter were targets, resetting...")
     soft_reset()
 end
 
@@ -297,43 +293,42 @@ function mode_headbutt()
         abort("No Headbutt user found in party!")
     end
 
-    ::headbutt::
-    local og_dir = mbyte(pointers.facing)
-    local og_x = game_state.trainer_x
-    local og_z = game_state.trainer_z
+    while true do
+        local og_dir = mbyte(pointers.facing)
+        local og_x = game_state.trainer_x
+        local og_z = game_state.trainer_z
 
-    -- Press A until following Pokemon pushes you out of the way
-    while game_state.trainer_x == og_x and game_state.trainer_z == og_z do
-        press_sequence("A", 12)
+        -- Press A until following Pokemon pushes you out of the way
+        while game_state.trainer_x == og_x and game_state.trainer_z == og_z do
+            press_sequence("A", 12)
+        end
+
+        -- Wait for battle to start
+        wait_frames(400)
+
+        if game_state.in_battle then
+            process_wild_encounter()
+            wait_frames(90)
+        else
+            -- Headbut Trees in HGSS have a 100% encounter rate, so if
+            -- nothing is encountered, this tree will never spawn anything
+            abort("This tree doesn't yield any Pokémon!")
+        end
+        
+        -- Return to original position
+        local dir = mbyte(pointers.facing)
+
+        if dir == 0 then     press_button("Down")
+        elseif dir == 1 then press_button("Up")
+        elseif dir == 2 then press_button("Right")
+        elseif dir == 3 then press_button("Left") end
+
+        wait_frames(24)
+
+        -- Face the tree again
+        if og_dir == 0 then     press_button("Up")
+        elseif og_dir == 1 then press_button("Down")
+        elseif og_dir == 2 then press_button("Left")
+        elseif og_dir == 3 then press_button("Right") end
     end
-
-    -- Wait for battle to start
-    wait_frames(400)
-
-    if game_state.in_battle then
-        process_wild_encounter()
-        wait_frames(90)
-    else
-        -- Headbut Trees in HGSS have a 100% encounter rate, so if
-        -- nothing is encountered, this tree will never spawn anything
-        abort("This tree doesn't yield any Pokémon!")
-    end
-    
-    -- Return to original position
-    local dir = mbyte(pointers.facing)
-
-    if dir == 0 then     press_button("Down")
-    elseif dir == 1 then press_button("Up")
-    elseif dir == 2 then press_button("Right")
-    elseif dir == 3 then press_button("Left") end
-
-    wait_frames(24)
-
-    -- Face the tree again
-    if og_dir == 0 then     press_button("Up")
-    elseif og_dir == 1 then press_button("Down")
-    elseif og_dir == 2 then press_button("Left")
-    elseif og_dir == 3 then press_button("Right") end
-
-    goto headbutt
 end
