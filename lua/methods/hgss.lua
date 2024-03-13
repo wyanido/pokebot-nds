@@ -93,7 +93,7 @@ function mode_starters()
     end
 
     -- Soft reset otherwise
-    press_button("Power")
+    soft_reset()
     wait_frames(30)
 
     -- Wait a random number of frames before mashing A next reset
@@ -282,7 +282,7 @@ function mode_primo_gift()
         abort("Gift Pokemon meets target specs")
     else
         print("Gift Pokemon was not a target, resetting...")
-        press_button("Power")
+        soft_reset()
         wait_frames(60)
     end
 end

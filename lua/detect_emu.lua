@@ -14,6 +14,10 @@ if _EMU == "BizHawk" then
 
     client.clearautohold()
     event.onexit(function() client.clearautohold() end) -- Restore manual touch screen input when the script is stopped
+
+    function soft_reset()
+        press_button("Power")
+    end
 else
     mbyte = function(addr) return memory.readbyte(math.max(addr, 0)) end
     mword = function(addr) return memory.readwordunsigned(math.max(addr, 0)) end
@@ -21,6 +25,10 @@ else
     
     game_loaded = emu.emulating()
     
+    function soft_reset()
+        emu.reset()
+    end
+
     -- Lua 5.1 compatability
     require("lua\\compatability\\utf8")
     require("lua\\compatability\\table")

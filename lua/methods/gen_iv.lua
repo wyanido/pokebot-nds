@@ -212,7 +212,7 @@ function use_move_at_slot(slot)
     wait_frames(30)
 
     local xpos = 80 * (((slot - 1) % 2) + 1)
-    local ypos = 50 * (((slot - 1) // 2) + 1)
+    local ypos = 50 * (math.floor((slot - 1) / 2) + 1)
     touch_screen_at(xpos, ypos) -- Select move slot
 
     wait_frames(60)
@@ -340,7 +340,7 @@ function do_battle()
                 wait_frames(500)
                 if game_state.in_battle then --if hit with can't flee message
                     print("Could not flee battle reseting...")
-                    press_button("Power")
+                    soft_reset()
                 end
                 press_sequence("B", 5)
             end
@@ -389,7 +389,7 @@ function do_battle()
             touch_screen_at(128, 96) -- FIGHT
             wait_frames(60)
             local xpos = 80 * (((best_move.index - 1) % 2) + 1)
-            local ypos = 50 * (((best_move.index - 1) // 2) + 1)
+            local ypos = 50 * (math.floor((best_move.index - 1) / 2) + 1)
             touch_screen_at(xpos, ypos) -- Select move slot
 
             wait_frames(30)
@@ -435,7 +435,7 @@ function swap_lead_battle()
         end
         while pointers.battle_state_value == 0x0A do
             local xpos = 80 * (((strongest_mon_index - 1) % 2) + 1)
-            local ypos = (40 * (((strongest_mon_index - 1) // 3) + 1) + strongest_mon_index - 1)
+            local ypos = (40 * (math.floor((strongest_mon_index - 1) / 3) + 1) + strongest_mon_index - 1)
             touch_screen_at(xpos, ypos)
             wait_frames(5)
             touch_screen_at(xpos, ypos)
@@ -508,7 +508,7 @@ function process_wild_encounter()
                 return
             else
                 if config.mode_static_encounters then
-                    press_button("Power")
+                    soft_reset()
                 else
                     print("Wild " .. foe[1].name .. " is not a target, fleeing!")
                     flee_battle()
@@ -540,7 +540,7 @@ function mode_static_encounters()
         abort("Wild Pokémon meets target specs!")
     else
         print("Wild " .. foe[1].name .. " was not a target, resetting...")
-        press_button("Power")
+        soft_reset()
         wait_frames(30)
     end
 
@@ -598,7 +598,7 @@ function mode_starters(starter)
         abort("Starter meets target specs!")
     else
         print("Starter was not a target, resetting...")
-        press_button("Power")
+        soft_reset()
         wait_frames(180)
     end
 end
@@ -710,7 +710,7 @@ function mode_gift()
         touch_screen_at(65, 45)
         wait_frames(90)
 
-        touch_screen_at(80 * ((#party - 1) % 2 + 1), 30 + 50 * ((#party - 1) // 2)) -- Select gift mon
+        touch_screen_at(80 * ((#party - 1) % 2 + 1), 30 + 50 * math.floor((#party - 1) / 2)) -- Select gift mon
         wait_frames(30)
 
         touch_screen_at(200, 105) -- SUMMARY
@@ -734,7 +734,7 @@ function mode_gift()
         abort("Gift Pokemon meets target specs")
     else
         print("Gift Pokemon was not a target, resetting...")
-        press_button("Power")
+        soft_reset()
         wait_frames(60)
     end
 end

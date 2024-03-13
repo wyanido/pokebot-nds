@@ -97,7 +97,7 @@ function mode_starters(starter) --starters for platinum
         if was_target then
             abort("Starter meets target specs!")
         else
-            press_button("Power")
+            soft_reset()
         end
     else
         while game_state.in_battle do
@@ -115,7 +115,7 @@ function mode_starters(starter) --starters for platinum
             print("Starter was not a target, resetting...")
             selected_starter = 0
             starters_ready = 0
-            press_button("Power")
+            soft_reset()
         end
     end
 end

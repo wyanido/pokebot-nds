@@ -101,16 +101,15 @@ function mode_starters(starter)
 
     while #party == 0 do press_sequence("A", 5) end
 
-    for i = 0, 116, 1 do press_sequence("B", 10) end
-
     if not config.hax then
+        for i = 0, 116, 1 do press_sequence("B", 10) end
+
         -- Party menu
         press_sequence("X", 30)
         touch_screen_at(65, 45)
         wait_frames(90)
 
-        touch_screen_at(80 * ((#party - 1) % 2 + 1),
-                        30 + 50 * ((#party - 1) // 2)) -- Select gift mon
+        touch_screen_at(80 * ((#party - 1) % 2 + 1), 30 + 50 * math.floor((#party - 1) / 2)) -- Select gift mon
         wait_frames(30)
 
         touch_screen_at(200, 105) -- SUMMARY
@@ -124,7 +123,7 @@ function mode_starters(starter)
         abort("Starter meets target specs")
     else
         print("Starter was not a target, resetting...")
-        press_button("Power")
+        soft_reset()
         wait_frames(60)
     end
 end

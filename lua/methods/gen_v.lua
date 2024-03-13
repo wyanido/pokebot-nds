@@ -791,7 +791,7 @@ function mode_starters(starter)
         abort("Starter meets target specs")
     else
         print("Starter was not a target, resetting...")
-        press_button("Power")
+        soft_reset()
         wait_frames(60)
     end
 end
@@ -894,7 +894,7 @@ function mode_gift()
         abort("Gift Pokemon meets target specs")
     else
         print("Gift Pokemon was not a target, resetting...")
-        press_button("Power")
+        soft_reset()
         wait_frames(60)
     end
 end
@@ -1202,7 +1202,7 @@ function mode_static_encounters()
         end
     else
         print("Wild " .. foe[1].name .. " was not a target, resetting...")
-        press_button("Power")
+        soft_reset()
         wait_frames(60)
     end
 end

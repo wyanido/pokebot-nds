@@ -1,18 +1,17 @@
 -----------------------
 -- INITIALIZATION
 -----------------------
-dofile("lua\\compatability\\detect_emu.lua")
+dofile("lua\\detect_emu.lua")
+
+print("Pokebot NDS v1.0-beta by NIDO (wyanido)")
+print("Running " .. _VERSION .. " on " .. _EMU)
+print("https://github.com/wyanido/pokebot-nds")
+print("")
+
 json = require("lua\\modules\\json")
 dofile("lua\\input.lua")
 pokemon = require("lua\\pokemon")
 dofile("lua\\detect_game.lua")
-
-local BOT_VERSION = "v1.0-beta"
-
-print("Pokebot NDS " .. BOT_VERSION .. " by NIDO (wyanido)")
-print("Running " .. _VERSION .. " on " .. _EMU)
-print("https://github.com/wyanido/pokebot-nds")
-print("")
 
 party_hash = ""
 party = {}
@@ -27,10 +26,10 @@ function update_party(is_reattempt)
 
     -- Check if party data has updated
     local party_size = mbyte(pointers.party_count)
+    local new_hash = ""
 
     if not is_reattempt then
         -- Generate a "hash" by stringing together every checksum in the party
-        local new_hash = ""
         for i = 1, party_size, 1 do
             new_hash = new_hash .. mdword(pointers.party_data + 4 + MON_DATA_SIZE * i)
         end
@@ -38,9 +37,6 @@ function update_party(is_reattempt)
         if party_hash == new_hash then
             return false
         end
-
-        party_hash = new_hash
-        print_debug("Party updated")
     end
     
     -- Read new party data
@@ -58,14 +54,16 @@ function update_party(is_reattempt)
             
             table.insert(new_party, mon)
         else
-            -- If any party checksums fail, do not process this update
+            -- If any party checksums fail, do not process this frame
             print_debug("Party checksum failed at slot " .. i)
             return false
         end
     end
 
     party = new_party
-
+    party_hash = new_hash
+    print_debug("Party updated")
+    
     -- Update party on the node server
     dashboard:send(json.encode({
         type = "party",
