@@ -106,19 +106,6 @@ writeJSONToFile('../user/stats.json', stats)
 objectSubstitute(config, configTemplate)
 writeJSONToFile('../user/config.json', config)
 
-// Discord 'playing' status
-const Version = {
-    DIAMOND: 0,
-    PEARL: 1,
-    PLATINUM: 2,
-    HEARTGOLD: 3,
-    SOULSILVER: 4,
-    BLACK: 5,
-    WHITE: 6,
-    BLACK2: 7,
-    WHITE2: 8
-}
-
 process.on('uncaughtException', function (err) {
     console.log(err);
 });
@@ -141,22 +128,21 @@ if (config.show_status) {
             }
 
             if (clientData.length > 0 && clientData[0] != undefined) {
-                const game = clientData[0].game;
-                if (!game) return;
+                const version = clientData[0].version;
+                if (!version) return;
 
-                // Get game-specific icon
                 let icon;
 
-                switch (clientData[0].version) {
-                    case Version.DIAMOND: icon = "diamond"; break;
-                    case Version.PEARL: icon = "pearl"; break;
-                    case Version.PLATINUM: icon = "platinum"; break;
-                    case Version.HEARTGOLD: icon = "heartgold"; break;
-                    case Version.SOULSILVER: icon = "soulsilver"; break;
-                    case Version.BLACK: icon = "black"; break;
-                    case Version.WHITE: icon = "white"; break;
-                    case Version.BLACK2: icon = "black2"; break;
-                    case Version.WHITE2: icon = "white2"; break;
+                switch (version) {
+                    case 'D': icon = "diamond"; break;
+                    case 'P': icon = "pearl"; break;
+                    case 'PL': icon = "platinum"; break;
+                    case 'HG': icon = "heartgold"; break;
+                    case 'SS': icon = "soulsilver"; break;
+                    case 'B': icon = "black"; break;
+                    case 'W': icon = "white"; break;
+                    case 'B2': icon = "black2"; break;
+                    case 'W2': icon = "white2"; break;
                 }
 
                 const location = clientData[0].map_name;
@@ -365,7 +351,7 @@ function webhookLogPokemon(mon, client) {
     const embed = new EmbedBuilder()
         .setTitle(`Encountered Lv.${mon.level} ${mon.name} ${gender}`)
         .setThumbnail(`attachment://${mon.species}.png`)
-        .setDescription(`Found at ${client.map_name} on ${client.game}`)
+        .setDescription(`Found at ${client.map_name} (${client.version})`)
         .addFields(
             { name: 'Shiny Value', value: `${sparkle}${mon.shinyValue.toString()}`, inline: true },
             { name: 'Nature', value: mon.nature, inline: true },
@@ -433,11 +419,10 @@ function interpretClientMessage(socket, message) {
             client.party = data.party;
             break;
         case 'load_game':
-            console.log('[%s] Session %d loaded %s', getTimestamp(), clientData.length + 1, data.name);
+            console.log('[%s] Session %d loaded %s', getTimestamp(), clientData.length + 1, data.version);
 
             clientData[index] = {
                 gen: data.gen,
-                game: data.name,
                 version: data.version
             }
 
@@ -453,7 +438,7 @@ function interpretClientMessage(socket, message) {
             // Values displayed on the game instance's tab on the dashboard
             client.trainer = {
                 Name: data.trainer_name || '--',
-                ID: data.trainer_id || '--'
+                "Trainer ID": data.trainer_id || '--'
             }
 
             var shownValues = {
@@ -471,6 +456,8 @@ function interpretClientMessage(socket, message) {
 }
 
 function sendConfigToClients(new_config, target) {
+    writeJSONToFile('../user/config.json', new_config);
+    
     // Send updated config to all clients
     if (clients.length > 0) {
         var msg = formatClientMessage(
@@ -486,8 +473,6 @@ function sendConfigToClients(new_config, target) {
             clients[target].write(msg);
         }
     }
-
-    writeJSONToFile('../user/config.json', new_config);
 }
 
 module.exports = {

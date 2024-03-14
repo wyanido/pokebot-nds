@@ -36,3 +36,15 @@ function poll_dashboard_response()
         console.warning('Error: ' .. err)
     end
 end
+
+dashboard:send(json.encode({
+    type = "load_game",
+    data = _ROM
+}) .. "\0")
+
+print("Waiting for dashboard to relay config file... ")
+
+while config == nil do
+    poll_dashboard_response()
+    emu.frameadvance()
+end

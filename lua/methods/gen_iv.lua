@@ -2,15 +2,15 @@
 -- BASE GEN IV FUNCTIONS
 -----------------------
 function update_pointers()
-    local anchor = mdword(0x21C489C + _ROM.mem_shift)
-    local foe_offset = mdword(anchor + 0x226FE)
+    local anchor = mdword(0x21C489C + _ROM.offset)
+    local foe_anchor = mdword(anchor + 0x226FE)
 
     pointers = {
         party_count = anchor + 0xE,
         party_data  = anchor + 0x12,
 
-        foe_count   = foe_offset - 0x2B74,
-        current_foe = foe_offset - 0x2B70,
+        foe_count   = foe_anchor - 0x2B74,
+        current_foe = foe_anchor - 0x2B70,
 
         map_header  = anchor + 0x11B2,
         trainer_x   = anchor + 0x11B8,
@@ -21,12 +21,12 @@ function update_pointers()
         selected_starter = anchor + 0x427A6,
         starters_ready   = anchor + 0x4282A,
 
-        battle_state_value  = anchor + 0x44878,        
-        battle_indicator    = 0x021A1B2A + _ROM.mem_shift, -- mostly static
+        battle_state_value     = anchor + 0x44878,        
+        battle_indicator       = 0x021A1B2A + _ROM.offset, -- mostly static
         fishing_bite_indicator = 0x21D5E16,
 
         trainer_name = anchor - 0x22,
-        trainer_id = anchor - 0x12
+        trainer_id   = anchor - 0x12
     }
 end
 
@@ -550,7 +550,7 @@ function mode_starters()
     cycle_starter_choice()
     
     -- Diamond and Pearl need to skip through a cutscene before the briefcase
-    local platinum = _ROM.version == version.PLATINUM
+    local platinum = _ROM.version == "PL"
 
     if not platinum then 
         hold_button("Up")
@@ -656,31 +656,12 @@ function mode_random_encounters()
     end
 end
 
-function mode_fishing()
-    while true do
-        press_button("Y")
-        wait_frames(60)
+function fishing_status_changed()
+    return not (mbyte(pointers.fishing_bite_indicator) == 0)
+end
 
-        while mbyte(pointers.fishing_bite_indicator) == 0x00 do
-            wait_frames(1)
-        end
-
-        if mbyte(pointers.fishing_bite_indicator) == 0x01 then
-            print("Landed a Pokémon!")
-            break
-        else
-            print("Not even a nibble...")
-            press_sequence(30, "A", 20)
-        end
-    end
-
-    while not game_state.in_battle do
-        press_sequence("A", 5)
-    end
-
-    process_wild_encounter()
-
-    wait_frames(90)
+function fishing_has_bite()
+    return mbyte(pointers.fishing_bite_indicator) == 1
 end
 
 function mode_gift()
@@ -736,7 +717,7 @@ function mode_gift()
     end
 end
 
-function read_string(input, offset)
+function read_string(input, pointer)
     local char_table = {
         "　", "ぁ", "あ", "ぃ", "い", "ぅ", "う", "ぇ", "え", "ぉ", "お", "か", "が", "き", "ぎ",
         "く", "ぐ", "け", "げ", "こ", "ご", "さ", "ざ", "し", "じ", "す", "ず", "せ", "ぜ", "そ", "ぞ",
@@ -767,14 +748,14 @@ function read_string(input, offset)
         "œ", "Ş", "ş", "ª", "º", "er", "re", "r", "₽", "¡", "¿", "!", "?", ",", ".", "…",
         "･", "/", "‘", "’", "“", "”", "„", "«", "»", "(", ")", "♂", "♀", "+", "-", "*",
         "#", "=", "&", "~", ":", ";", "♠", "♣", "♥", "♦", "★", "◎", "○", "□", "△", "◇",
-        "@", "♪", "%", "☀", "☁", "☂", "☃", "😑", "☺", "☹", "😠", "⤴︎", "⤵︎", "💤", "", "e",
+        "@", "♪", "%", "☀", "☁", "☂", "☃", "😑", "☺", "☹", "😠", "⤴︎", "⤵︎", "💤", " ", "e",
         "PK", "MN", " ", " ", " ", "", " ", " ", "°", "_", "＿", "․", "‥",
     }
     local text = ""
 
     if type(input) == "table" then
         -- Read data from an inputted table of bytes
-        for i = offset + 1, #input, 2 do
+        for i = pointer + 1, #input, 2 do
             local value = input[i] + bit.lshift(input[i + 1], 8)
 
             if value == 0xFFFF or value == 0x0000 then -- Null terminator

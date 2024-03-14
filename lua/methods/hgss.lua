@@ -2,15 +2,15 @@
 -- DP FUNCTION OVERRIDES
 -----------------------
 function update_pointers()
-    local anchor = mdword(0x21D4158 + _ROM.mem_shift)
-    local foe_offset = mdword(anchor + 0x6930)
+    local anchor = mdword(0x21D4158 + _ROM.offset)
+    local foe_anchor = mdword(anchor + 0x6930)
 
     pointers = {
         party_count = anchor - 0x23F44,
         party_data  = anchor - 0x23F40,
         
-        foe_count   = foe_offset + 0xC14,
-        current_foe = foe_offset + 0xC18,
+        foe_count   = foe_anchor + 0xC14,
+        current_foe = foe_anchor + 0xC18,
 
         map_header  = anchor - 0x22DA4,
         trainer_x   = anchor - 0x22D9E,
@@ -18,8 +18,8 @@ function update_pointers()
         trainer_y   = anchor - 0x22D96,
         facing      = anchor + 0x1DC4,
 
-        battle_state_value = anchor + 0x470D4, -- 01 is FIGHT menu, 04 is Move Select, 08 is Bag,
-        battle_indicator   = 0x021E76D2, -- Static
+        battle_state_value     = anchor + 0x470D4, -- 01 is FIGHT menu, 04 is Move Select, 08 is Bag,
+        battle_indicator       = 0x021E76D2, -- Static
         fishing_bite_indicator = 0x21DD853,
 
         easy_chat_open           = anchor + 0x28644,
@@ -27,7 +27,7 @@ function update_pointers()
         easy_chat_word_list      = anchor + 0x20124,
         
         trainer_name = anchor - 0x23F74,
-        trainer_id = anchor - 0x23F64,
+        trainer_id   = anchor - 0x23F64,
 
         starter_data = anchor + 0x1BC00
         -- registered_key_item_1 = anchor - 0x231FC,
@@ -112,14 +112,14 @@ function mode_voltorb_flip()
     -- Iterate through board and flip safe tiles
     for y = 1, 5, 1 do
         for x = 1, 5, 1 do
-            local tile_offset = board_pointer + tile_index * 12
-            local tile_type = mdword(tile_offset)
-            local is_flipped = mdword(tile_offset + 8)
+            local tile_pointer = board_pointer + tile_index * 12
+            local tile_type = mdword(tile_pointer)
+            local is_flipped = mdword(tile_pointer + 8)
 
             if (tile_type == 2 or tile_type == 3) and is_flipped == 0 then -- a tile_type of 4 is Voltorb
                 -- Tap tile until game registers the flip
                 while is_flipped == 0 do
-                    is_flipped = mdword(tile_offset + 8)
+                    is_flipped = mdword(tile_pointer + 8)
 
                     proceed_text()
 

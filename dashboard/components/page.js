@@ -39,18 +39,6 @@ function socketServerSend(endpoint, data, callback) {
     socketServerCommunicate(method, url, callback)
 }
 
-const Version = {
-    DIAMOND: 0,
-    PEARL: 1,
-    PLATINUM: 2,
-    HEARTGOLD: 3,
-    SOULSILVER: 4,
-    BLACK: 5,
-    WHITE: 6,
-    BLACK2: 7,
-    WHITE2: 8
-}
-
 function randomisePageIcon() {
     const randomRange = (min, max) => min + Math.floor(Math.random() * (max - min));
 
@@ -65,19 +53,19 @@ function randomisePageIcon() {
             let icon = 0;
             
             switch (clients[0].version) {
-                case Version.DIAMOND:
-                case Version.PEARL:
-                case Version.PLATINUM:
+                case 'D':
+                case 'P':
+                case 'PL':
                     icon = randomRange(387, 493);
                     break;
-                case Version.HEARTGOLD:
-                case Version.SOULSILVER:
+                case 'HG':
+                case 'SS':
                     icon = randomRange(152, 251);
                     break;
-                case Version.BLACK:
-                case Version.WHITE:
-                case Version.BLACK2:
-                case Version.WHITE2:
+                case 'B':
+                case 'W':
+                case 'B2':
+                case 'W2':
                     icon = randomRange(494, 649);
                     break;
             }

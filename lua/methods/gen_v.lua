@@ -1,56 +1,56 @@
 function update_pointers()
-    local offset = (_ROM.version == version.WHITE) and 0x20 or 0x0 -- White version is offset slightly
+    local anchor = mdword(0x2146A88 + _ROM.offset)
 
     pointers = {
         -- Bag pouches, 4 byte pairs | 0001 0004 = 4x Master Ball
-        items_pouch = 0x02233FAC + offset, -- 1240 bytes long
-        key_items_pouch = 0x02234484 + offset, -- 332 bytes long
-        tms_hms_case = 0x022345D0 + offset, -- 436 bytes long
-        medicine_pouch = 0x02234784 + offset, -- 192 bytes long
-        berries_pouch = 0x02234844 + offset, -- 234 bytes long
+        items_pouch     = 0x02233FAC + _ROM.offset, -- 1240 bytes long
+        key_items_pouch = 0x02234484 + _ROM.offset, -- 332 bytes long
+        tms_hms_case    = 0x022345D0 + _ROM.offset, -- 436 bytes long
+        medicine_pouch  = 0x02234784 + _ROM.offset, -- 192 bytes long
+        berries_pouch   = 0x02234844 + _ROM.offset, -- 234 bytes long
 
-        running_shoes = 0x0223C054 + offset, -- 0 before receiving
+        running_shoes   = 0x0223C054 + _ROM.offset, -- 0 before receiving
 
         -- Party
-        party_count = 0x022349B0 + offset, -- 4 bytes before first index
-        party_data = 0x022349B4 + offset, -- PID of first party member
+        party_count = 0x022349B0 + _ROM.offset, -- 4 bytes before first index
+        party_data  = 0x022349B4 + _ROM.offset, -- PID of first party member
 
-        step_counter = 0x02235125 + offset,
-        step_cycle = 0x02235126 + offset,
+        step_counter = 0x02235125 + _ROM.offset,
+        step_cycle   = 0x02235126 + _ROM.offset,
 
         -- Location
-        map_header = 0x0224F90C + offset,
-        trainer_x = 0x0224F910 + offset,
-        trainer_y = 0x0224F914 + offset,
-        trainer_z = 0x0224F918 + offset,
-        trainer_direction = 0x0224F924 + offset, -- 0, 4, 8, 12 -> Up, Left, Down, Right
-        on_bike = 0x0224F94C + offset,
-        encounter_table = 0x0224FFE0 + offset,
-        map_matrix = 0x02250C1C + offset,
+        map_header        = 0x0224F90C + _ROM.offset,
+        trainer_x         = 0x0224F910 + _ROM.offset,
+        trainer_y         = 0x0224F914 + _ROM.offset,
+        trainer_z         = 0x0224F918 + _ROM.offset,
+        trainer_direction = 0x0224F924 + _ROM.offset, -- 0, 4, 8, 12 -> Up, Left, Down, Right
+        on_bike           = 0x0224F94C + _ROM.offset,
+        encounter_table   = 0x0224FFE0 + _ROM.offset,
+        map_matrix        = 0x02250C1C + _ROM.offset,
 
-        phenomenon_x = 0x02257018 + offset,
-        phenomenon_z = 0x0225701C + offset,
+        phenomenon_x = 0x02257018 + _ROM.offset,
+        phenomenon_z = 0x0225701C + _ROM.offset,
 
-        egg_hatching = 0x0226DF68 + offset,
+        egg_hatching = 0x0226DF68 + _ROM.offset,
 
         -- Battle
-        battle_indicator = 0x0226ACE6 + offset, -- 0x41 if during a battle
-        foe_count = 0x0226ACF0 + offset, -- 4 bytes before the first index
-        current_foe = 0x0226ACF4 + offset, -- PID of foe, set immediately after the battle transition ends
+        battle_indicator = 0x0226ACE6 + _ROM.offset, -- 0x41 if during a battle
+        foe_count        = 0x0226ACF0 + _ROM.offset, -- 4 bytes before the first index
+        current_foe      = 0x0226ACF4 + _ROM.offset, -- PID of foe, set immediately after the battle transition ends
 
         -- Misc
-        save_indicator = 0x021F0100 + offset, -- 1 while save menu is open
-        starter_selection_is_open = 0x022B0C40 + offset, -- 0 when opening gift, 1 at starter select
-        battle_menu_state = mdword(0x2146A88 + offset) + 0x1367C, -- 1 on FIGHT menu, 2 on move select, 4 on switch/run after faint, 0 otherwise
-        battle_bag_page = 0x022962C8 + offset,
-        selected_starter = 0x02269994 + offset, -- Unconfirmed selection in gift box; 0 Snivy, 1 Tepig, 2 Oshawott, 4 Nothing
-        text_interrupt = 0x2172BA0 + offset,
+        save_indicator            = 0x021F0100 + _ROM.offset, -- 1 while save menu is open
+        starter_selection_is_open = 0x022B0C40 + _ROM.offset, -- 0 when opening gift, 1 at starter select
+        battle_menu_state         = anchor + 0x1367C, -- 1 on FIGHT menu, 2 on move select, 4 on switch/run after faint, 0 otherwise
+        battle_bag_page           = 0x022962C8 + _ROM.offset,
+        selected_starter          = 0x02269994 + _ROM.offset, -- Unconfirmed selection in gift box; 0 Snivy, 1 Tepig, 2 Oshawott, 4 Nothing
+        text_interrupt            = 0x2172BA0 + _ROM.offset,
 
-        fishing_bite_indicator = 0x20A8362 + offset,
-        fishing_no_bite = 0x21509DB + offset,
+        fishing_bite_indicator    = 0x20A8362 + _ROM.offset,
+        fishing_no_bite           = 0x21509DB + _ROM.offset,
 
-        trainer_name = 0x2234FB0 + offset,
-        trainer_id = 0x2234FC0 + offset
+        trainer_name = 0x2234FB0 + _ROM.offset,
+        trainer_id   = 0x2234FC0 + _ROM.offset
     }
 end
 
@@ -62,7 +62,6 @@ take_button = { x = 200, y = 155 }
 -----------------------
 -- MISC. BOT ACTIONS
 -----------------------
-
 -- Press random key combo after SRing to increase seed randomness
 -- https://www.smogon.com/ingame/rng/bw_rng_part2
 function randomise_reset()
@@ -760,10 +759,15 @@ function mode_starters()
         end
     end
 
+    -- Ensure value has reset before trying to pick starter, otherwise the box will be assumed open too early
+    while mbyte(pointers.starter_selection_is_open) ~= 0 do
+        process_frame()
+    end
+    
     print("Opening Starter Selection...")
 
-    while mbyte(pointers.starter_selection_is_open) ~= 1 do
-        press_sequence("A", 5, "Down", 1)
+    while mbyte(pointers.starter_selection_is_open) == 0 do
+        press_sequence("A", 5)
     end
 
     print("Choosing Starter...")
@@ -871,7 +875,7 @@ function mode_gift()
     end
 
     -- Dialogue varies per gift type
-    if game_state.map_header == 152 then -- Dreamyard
+    if game_state.map_name == "Dreamyard" then
         press_sequence(300, "B", 120, "B", 150, "B", 110, "B", 30) -- Decline nickname and progress text afterwards
     else
         press_sequence(180, "B", 60) -- Decline nickname
@@ -1182,7 +1186,7 @@ end
 
 function mode_static_encounters()
     while not game_state.in_battle do
-        if mword(pointers.map_header) == 152 then -- Dreamyard, Eon duo encounter
+        if game_state.map_name == "Dreamyard" then
             press_button("Right")
         end
 
@@ -1218,44 +1222,26 @@ function mode_static_encounters()
     end
 end
 
-function mode_fishing()
-    while not game_state.in_battle do
-        press_button("Y")
-        wait_frames(60)
-
-        while mword(pointers.fishing_bite_indicator) ~= 0xFFF1 and
-            mbyte(pointers.fishing_no_bite) == 0 do wait_frames(1) end
-
-        if mword(pointers.fishing_bite_indicator) == 0xFFF1 then
-            print("Landed a Pokémon!")
-            break
-        else
-            print("Not even a nibble...")
-            press_sequence(30, "A", 20)
-        end
-    end
-
-    while not game_state.in_battle do
-        press_sequence("A", 5)
-    end
-
-    process_wild_encounter()
-
-    wait_frames(90)
+function fishing_status_changed()
+    return not (mword(pointers.fishing_bite_indicator) ~= 0xFFF1 and mbyte(pointers.fishing_no_bite) == 0)
 end
 
-function read_string(input, offset)
+function fishing_has_bite()
+    return mword(pointers.fishing_bite_indicator) == 0xFFF1
+end
+
+function read_string(input, pointer)
     local text = ""
 
     if type(input) == "table" then
-        for i = offset + 1, #input, 2 do
+        for i = pointer + 1, #input, 2 do
             local value = input[i] + (bit.lshift(input[i + 1], 8))
 
             if value == 0xFFFF or value == 0x0000 then -- Null terminator
                 break
             end
 
-            text = text .. utf8.char(bit.band(value, 0xFF))
+            text = text .. utf8.char(value)
         end
     else
         for i = input, input + 32, 2 do
@@ -1265,7 +1251,7 @@ function read_string(input, offset)
                 break
             end
 
-            text = text .. utf8.char(bit.band(value, 0xFF))
+            text = text .. utf8.char(value)
         end
     end
     

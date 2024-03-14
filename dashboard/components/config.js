@@ -122,7 +122,7 @@ function setEditableGames(clients) {
     $('#editing').append('<option value="all">All Games</option>')
 
     for (var i = 0; i < clients.length; i++) {
-        const name = clients[i].game;
+        const name = clients[i].version;
 
         $('#editing').append('<option value="' + i.toString() + '">' + name + ' </option>')
     }

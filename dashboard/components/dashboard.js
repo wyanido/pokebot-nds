@@ -185,13 +185,14 @@ function updateClientTabs(clients) {
     for (var i = 0; i < clientCount; i++) {
         const client = clients[i]
 
-        if (!client.game) continue; // Client still hasn't loaded a game
+        if (!client.version) continue; // Client still hasn't loaded a game
 
         const buttonName = 'button-template-' + i.toString(); 
         const existing = $('#' + buttonName);
 
         if (!existing.length) {
-            const button = existing.length ? existing.detach() : buttonTemplate.tmpl({ 'game': client.game.replace('Pokemon', '') });
+            console.log(client);
+            const button = existing.length ? existing.detach() : buttonTemplate.tmpl({ 'game': `${client.trainer.Name} (${client.version})` });
             button.attr('id', buttonName);
             tabContainer.append(button)
         }
