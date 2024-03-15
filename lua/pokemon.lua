@@ -314,10 +314,10 @@ function pokemon.export_pkx(data)
     -- Write Pokémon data to file and save in /user/targets
     local file = io.open("user/targets/" .. filename .. ".pk" .. _ROM.gen, "wb")
 
-    print("Saved " .. mon.nickname .. " to disk as " .. filename)
-
     file:write(string.char(table.unpack(data)))
     file:close()
+
+    print("Saved " .. mon.nickname .. " to disk as " .. filename)
 end
 
 local function shallow_copy(orig)
