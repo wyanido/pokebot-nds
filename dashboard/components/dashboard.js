@@ -231,18 +231,9 @@ function refreshPokemonList(log, doReformat, targetEle, targetsLength, hard_limi
 
     targetEle.empty();
 
-    let PIDs = [];
-    let duplicatePID;
-
     for (var i = entries; i >= entries - hard_limit; i --) {
         const mon = log[i]
         if (!mon) continue;
-
-        if (PIDs.includes(mon.pid)) {
-            duplicatePID = mon.pid;
-        }
-
-        PIDs.push(mon.pid);
 
         if (i < entries - targetsLength) continue;
 
@@ -266,8 +257,6 @@ function refreshPokemonList(log, doReformat, targetEle, targetsLength, hard_limi
 
         targetEle.append(row)
     }
-
-    return duplicatePID;
 }
 
 const recentsEle = $('#recents');
@@ -284,23 +273,26 @@ function updateRecentlySeen(reformat = true, force = false) {
         recentEncounters = encounters;
 
         if (updated || force) {
-            const duplicatePID = refreshPokemonList(
+            refreshPokemonList(
                 encounters,
                 reformat,
                 recentsEle,
                 recentsLimit.val() || 7,
                 recentsHardLimit
             )
+        }
 
-            if (duplicatePID != lastWarnedDuplicate) {
-                lastWarnedDuplicate = duplicatePID;
-
-                halfmoon.initStickyAlert({
-                    title: "Duplicate PID logged",
-                    content: 'The bot may not be running at 100% efficiency.',
-                    alertType: 'alert-secondary',
-                })
+        let uniquePIDS = [];
+        recentEncounters.forEach(mon => {
+            if (!uniquePIDS.includes(mon.pid)) {
+                uniquePIDS.push(mon.pid);
             }
+        });
+        
+        if (uniquePIDS.length < recentEncounters.length) {
+            $('#warn-duplicate').show()
+        } else {
+            $('#warn-duplicate').hide()
         }
     });
 }
@@ -467,7 +459,6 @@ rateEle.addEventListener('change', () => {
 
 let recentsHardLimit;
 let targetsHardLimit;
-let lastWarnedDuplicate;
 
 socketServerGet('config', function (error, config) {
     if (error) {

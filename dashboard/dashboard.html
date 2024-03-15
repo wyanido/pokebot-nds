@@ -261,7 +261,15 @@
             </div>
             <div class="card row-eq-spacing p-20">
                 <div class="text-center" style="flex-direction: row; height: 50px;">
-                    <h2 style="position:absolute" class="card-title text-center w-full">Recently Seen</h2>
+                    <h2 style="position:absolute" class="card-title text-center w-full">Recently Seen
+                        <div id="warn-duplicate" style="display: inline-block;">        
+                            <i class="fa fa-exclamation-triangle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
+                            <div id="tooltip" role="tooltip" style="font-weight: normal; text-align: left;">
+                                This list contains duplicate PIDs. The bot may not be running at 100% efficiency.
+                                <div id="arrow" data-popper-arrow></div>
+                            </div>
+                        </div>
+                    </h2>
                     <div class="input-group" style="width: 150px; height: 28px; float: right;">
                         <label class="input-group-text">Show latest</label>
                         <input class="form-control h-full" id="recents-limit" min="1" type="number" value="5">
