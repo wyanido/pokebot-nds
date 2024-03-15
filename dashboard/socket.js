@@ -68,7 +68,11 @@ const configTemplate = {
     show_status: true,
     save_pkx: true,
     always_catch_shinies: true,
-    auto_open_page: true
+    auto_open_page: true,
+    primo1: 1,
+    primo2: 1,
+    primo3: 1,
+    primo4: 1
 }
 const statsTemplate = {
     total: {
@@ -216,6 +220,7 @@ server.listen(port, () => {
 function socketSetTimeout(socket) {
     socket.inactivityTimeout = setTimeout(() => {
         const index = clients.indexOf(socket);
+
         if (index > -1) {
             clients.splice(index, 1);
             clientData.splice(index, 1);

@@ -5,19 +5,8 @@ const fields     = [...configForm.querySelectorAll('input, select')].map(ele => 
 const checkboxes = [...configForm.querySelectorAll('input[type="checkbox"]')].map(ele => ele.id);
 
 let config;
+let loadedPrimoPhrases = false;
 
-$.getJSON("components/data/en_easychat_iv.json", function (json) {
-    let phrases = '';
-
-    json.forEach(word => {
-        phrases += `<option value=${word[0]}>${word[1]}</option>`;
-    });
-
-    document.getElementById('primo1').innerHTML += phrases;
-    document.getElementById('primo2').innerHTML += phrases;
-    document.getElementById('primo3').innerHTML += phrases;
-    document.getElementById('primo4').innerHTML += phrases;
-});
 
 function sendConfig() {
     const sendConfigToClients = function() {
@@ -94,6 +83,28 @@ function updateOptionVisibility() {
             break;
         case 'primo_gift':
             $('#option_primo').show();
+
+            if (!loadedPrimoPhrases) {
+                $.getJSON("components/data/en_easychat_iv.json", function (json) {
+                    let phrases = '';
+                    
+                    json.forEach(word => {
+                        phrases += `<option value=${word[0]}>${word[1]}</option>`;
+                    });
+                    
+                    document.getElementById('primo1').innerHTML += phrases;
+                    document.getElementById('primo2').innerHTML += phrases;
+                    document.getElementById('primo3').innerHTML += phrases;
+                    document.getElementById('primo4').innerHTML += phrases;
+
+                    $('#primo1').val(config['primo1'])
+                    $('#primo2').val(config['primo2'])
+                    $('#primo3').val(config['primo3'])
+                    $('#primo4').val(config['primo4'])
+                });
+                
+                loadedPrimoPhrases = true;
+            }
             break;
     }
 
@@ -126,8 +137,6 @@ function setEditableGames(clients) {
 }
 
 function populateConfigForm() {
-    // originalConfig = config
-
     for (var i = 0; i < textAreas.length; i++) {
         const key = textAreas[i]
         $('#' + key).val(jsyaml.dump(config[key]))
