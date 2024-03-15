@@ -254,22 +254,6 @@ function readJSONFromFile(filePath, defaultValue) {
     }
 }
 
-function formatMonData(mon) {
-    mon.gender = mon.gender.toLowerCase();
-
-    if (mon.gender == 'genderless') {
-        mon.gender = 'none' // Blank image filename
-    }
-
-    mon.pid = mon.pid.toString(16).toUpperCase().padEnd(8, '0');
-    mon.shiny = (mon.shinyValue < 8 ? '✨ ' : '➖ ') + mon.shinyValue;
-
-    var s = '00' + mon.species.toString();
-    mon.species = s.substr(s.length - 3);
-
-    return mon
-}
-
 function updateEncounterRate() {
     var now = Date.now() / 1000
     sinceLastEncounter = now - lastEncounter
@@ -292,7 +276,7 @@ function updateEncounterRate() {
 }
 
 function updateEncounterLog(mon) {
-    recents.push(formatMonData(mon));
+    recents.push(mon);
     recents.splice(0, recents.length - config.encounter_log_limit);
 
     updateEncounterRate()
@@ -315,7 +299,7 @@ function updateEncounterLog(mon) {
 }
 
 function updateTargetLog(mon) {
-    targets.push(formatMonData(mon))
+    targets.push(mon)
     targets = targets.slice(-config.target_log_limit)
 
     // Reset target phase stats
@@ -332,8 +316,6 @@ function formatClientMessage(type, data) {
         'type': type,
         'data': data
     });
-
-    return msg.length + ' ' + msg;
 }
 
 function webhookLogPokemon(mon, client) {
@@ -452,6 +434,11 @@ function interpretClientMessage(socket, message) {
             
             client.shownValues = shownValues
             break;
+        case 'save_pkx':
+            const buffer = Int8Array.from(data);
+
+            fs.writeFileSync(`../user/targets/${message.filename}`, buffer);
+            break;
     }
 }
 
@@ -491,5 +478,5 @@ module.exports = {
     setSocketConfig: (new_config) => {
         config = new_config;
     },
-    webhookTest
+    webhookTest,
 };

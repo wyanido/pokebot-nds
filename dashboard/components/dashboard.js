@@ -1,6 +1,3 @@
-
-let elapsedStart;
-let elapsedInterval;
 let gameTab = 0;
 
 let recentEncounters;
@@ -45,7 +42,6 @@ function updateBnp() {
 
 const partyContainer = $('#game-party')
 const partyMonTemplate = $('#party-mon-template');
-const partyEggTemplate = $('#party-egg-template');
 const partyTemplate = $('#party-template');
 
 function displayClientParty(tabIndex, party) {
@@ -78,25 +74,32 @@ function displayClientParty(tabIndex, party) {
     if (!party) return
 
     for (var i = 0; i < 6; i++) {
-        const mon = party[i]
+        let mon = party[i]
 
         if (!mon) break
 
         // Format Pokemon data for readability
-        mon.folder = mon.shiny ? 'shiny/' : '';
-        mon.shiny = mon.shiny ? '✨' : '';
+        mon = enrichFurther(mon);
+        
         mon.fainted = mon.currentHP == 0 ? 'opacity: 0.5' : '';
         mon.gender = mon.gender == 'Genderless' ? 'none' : mon.gender.toLowerCase();
         mon.name = '(' + mon.name + ')';
-        mon.pid = mon.pid.toString(16).toUpperCase().padEnd(8, '0');
         mon.pokerus = getPokerusStrain(mon.pokerus);
+        
+        // Don't spoil info on unhatched eggs
+        if (mon.isEgg) {
+            mon.shiny = '';
+            mon.species = 'egg';
+            mon.folder = '';
+            mon.name = `<${mon.friendship} Steps Remaining`;
+        } else {
+            const shiny = mon.shinyValue < 8;
 
-        if (mon.altForm > 0) {
-            mon.species = mon.species + '-' + mon.altForm.toString();
+            mon.folder = shiny ? 'shiny/' : '';
+            mon.shiny = shiny ? '✨' : '';
         }
 
-        const template = mon.isEgg ? partyEggTemplate : partyMonTemplate;
-        ele.append(template.tmpl(mon))
+        ele.append(partyMonTemplate.tmpl(mon))
     }
 
     partyContainer.append(ele);
@@ -130,7 +133,7 @@ function displayClientGameInfo(tabIndex, clientData) {
                 <th>
                     ${key}
                 </th>
-                <td>
+                <td class="text-nowrap">
                     ${clientData.trainer[key]}
                 </td>
             </tr>`
@@ -149,7 +152,7 @@ function displayClientGameInfo(tabIndex, clientData) {
                 <th>
                     ${key}
                 </th>
-                <td>
+                <td class="text-nowrap">
                     ${clientData.shownValues[key]}
                 </td>
             </tr>`
@@ -226,28 +229,19 @@ function selectTab(ele) {
 
 const rowTemplate = $('#row-template');
 
-function refreshPokemonList(log, doReformat, targetEle, targetsLength, hard_limit) {
+function refreshPokemonList(log, doReformat, targetEle, targetsLength) {
     const entries = log.length;
 
     targetEle.empty();
 
-    for (var i = entries; i >= entries - hard_limit; i --) {
-        const mon = log[i]
+    for (var i = entries; i >= entries - targetsLength; i --) {
+        let mon = log[i]
+        
         if (!mon) continue;
 
-        if (i < entries - targetsLength) continue;
-
-        if (doReformat && mon.altForm > 0) {
-            mon.species = mon.species + '-' + mon.altForm.toString()
+        if (doReformat) {
+            mon = enrichFurther(mon);
         }
-
-        // Display raised/lowered stat modifiers in colour
-        mon.attackMod    = ['Lonely', 'Adamant', 'Naughty', 'Brave'].includes(mon.nature) ? 'up' : ['Bold', 'Modest', 'Calm', 'Timid'].includes(mon.nature) ? ' down' : '';
-        mon.defenseMod   = ['Bold', 'Impish', 'Lax', 'Relaxed'].includes(mon.nature) ? 'up'      : ['Lonely', 'Mild', 'Gentle', 'Hasty'].includes(mon.nature) ? ' down' : '';
-        mon.spAttackMod  = ['Modest', 'Mild', 'Rash', 'Quiet'].includes(mon.nature) ? 'up'       : ['Adamant', 'Impish', 'Careful', 'Jolly'].includes(mon.nature) ? ' down' : '';
-        mon.spDefenseMod = ['Calm', 'Gentle', 'Careful', 'Sassy',].includes(mon.nature) ? 'up'   : ['Naughty', 'Lax', 'Rash', 'Naive'].includes(mon.nature) ? ' down' : '';
-        mon.speedMod     = ['Timid', 'Hasty', 'Jolly', 'Naive',].includes(mon.nature) ? 'up'     : ['Brave', 'Relaxed', 'Quiet', 'Sassy'].includes(mon.nature) ? ' down' : '';
-
 
         const row = rowTemplate.tmpl(mon);
 
@@ -257,6 +251,27 @@ function refreshPokemonList(log, doReformat, targetEle, targetsLength, hard_limi
 
         targetEle.append(row)
     }
+}
+
+function enrichFurther(mon) {
+    // Fix filenames for display
+    const gender = mon.gender.toLowerCase();
+    mon.gender = gender == 'genderless' ? 'none' : gender;
+    mon.shiny = (mon.shinyValue < 8 ? '✨ ' : '➖ ');
+    mon.species = mon.species.toString().padStart(3, '0');
+
+    if (mon.altForm > 0) {
+        mon.species = mon.species + '-' + mon.altForm.toString()
+    }
+
+    // Display raised/lowered stat modifiers in colour
+    mon.attackMod    = ['Lonely', 'Adamant', 'Naughty', 'Brave'].includes(mon.nature) ? 'up' : ['Bold', 'Modest', 'Calm', 'Timid'].includes(mon.nature) ? ' down' : '';
+    mon.defenseMod   = ['Bold', 'Impish', 'Lax', 'Relaxed'].includes(mon.nature) ? 'up'      : ['Lonely', 'Mild', 'Gentle', 'Hasty'].includes(mon.nature) ? ' down' : '';
+    mon.spAttackMod  = ['Modest', 'Mild', 'Rash', 'Quiet'].includes(mon.nature) ? 'up'       : ['Adamant', 'Impish', 'Careful', 'Jolly'].includes(mon.nature) ? ' down' : '';
+    mon.spDefenseMod = ['Calm', 'Gentle', 'Careful', 'Sassy',].includes(mon.nature) ? 'up'   : ['Naughty', 'Lax', 'Rash', 'Naive'].includes(mon.nature) ? ' down' : '';
+    mon.speedMod     = ['Timid', 'Hasty', 'Jolly', 'Naive',].includes(mon.nature) ? 'up'     : ['Brave', 'Relaxed', 'Quiet', 'Sassy'].includes(mon.nature) ? ' down' : '';
+
+    return mon;
 }
 
 const recentsEle = $('#recents');
@@ -269,6 +284,8 @@ function updateRecentlySeen(reformat = true, force = false) {
             return;
         }
 
+        if (encounters.length == 0) return;
+
         const updated = !recentEncounters || recentEncounters.slice(-1)[0].pid != encounters.slice(-1)[0].pid
         recentEncounters = encounters;
 
@@ -277,8 +294,7 @@ function updateRecentlySeen(reformat = true, force = false) {
                 encounters,
                 reformat,
                 recentsEle,
-                recentsLimit.val() || 7,
-                recentsHardLimit
+                recentsLimit.val() || 7
             )
         }
 
@@ -307,6 +323,8 @@ function updateRecentTargets(reformat = true, force = false) {
             return;
         }
 
+        if (encounters.length == 0) return;
+
         const updated = !recentTargets || recentTargets.slice(-1)[0].pid != encounters.slice(-1)[0].pid
         recentTargets = encounters;
         
@@ -315,23 +333,10 @@ function updateRecentTargets(reformat = true, force = false) {
                 encounters,
                 reformat,
                 targetsEle,
-                targetsLimit.val() || 7,
-                targetsHardLimit
+                targetsLimit.val() || 7
             )
         }
     });
-}
-
-const elapsedTime = $('#elapsed-time');
-
-function updateElapsedTime() {
-    const elapsed = Math.floor((Date.now() - elapsedStart) / 1000);
-    const s = elapsed;
-    const m = Math.floor(s / 60);
-    const h = Math.floor(m / 60);
-    const time = `${h}h ${m % 60}m ${s % 60}s`;
-
-    elapsedTime.text(time)
 }
 
 let statsHash;
@@ -402,8 +407,8 @@ function setClients() {
 
         updateTabVisibility()
 
+        // Start elapsed timer if a game is connected
         if (!elapsedStart) {
-            // Start elapsed timer if a game is connected
             socketServerGet('elapsed_start', function (error, start) {
                 if (error) {
                     console.error(error);
@@ -412,28 +417,12 @@ function setClients() {
 
                 elapsedStart = start;
                 elapsedInterval = setInterval(updateStatBadges, 1000);
+
+                updateStatBadges();
             });
         }
     })
 };
-
-const encounterRate = $('#encounter-rate');
-
-function updateEncounterRate() {
-    socketServerGet('encounter_rate', function (error, rate) {
-        if (error) {
-            console.error(error);
-            return;
-        }
-
-        encounterRate.text(`${rate}/h`)
-    })
-}
-
-function updateStatBadges() {
-    updateEncounterRate()
-    updateElapsedTime()
-}
 
 function updatePage() {
     updateStats()
@@ -457,17 +446,11 @@ rateEle.addEventListener('change', () => {
     updateBnp()
 })
 
-let recentsHardLimit;
-let targetsHardLimit;
-
 socketServerGet('config', function (error, config) {
     if (error) {
         console.error(error);
         return;
     }
-
-    recentsHardLimit = config.encounter_log_limit;
-    targetsHardLimit = config.target_log_limit;
     
     updatePage();
     

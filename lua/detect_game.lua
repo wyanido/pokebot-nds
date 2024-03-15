@@ -145,39 +145,23 @@ dofile("lua\\methods\\global.lua")
 if _ROM.gen == 4 then
     dofile("lua\\methods\\gen_iv.lua")
     MON_DATA_SIZE = 236 -- Gen 4 has 16 extra trailing bytes of ball seals data
-
+    
     if _ROM.version == "HG" or _ROM.version == "SS" then
-        map_names = json.load("lua\\data\\maps\\hgss.json")
+        map_names = json.load("lua\\data\\hgss.json")
         dofile("lua\\methods\\hgss.lua")
     else
-        map_names = json.load("lua\\data\\maps\\pt.json")
-
-        -- DP uses Platinum headers with the name changes reverted
-        if _ROM.version == "D" or _ROM.version == "P" then
-            map_names[29] = "GTS"
-            map_names[73] = "Eterna City"
-            map_names[74] = "Eterna City"
-            map_names[75] = "Eterna City"
-            map_names[76] = "Eterna City"
-            map_names[455] = "Survival Area"
-            map_names[465] = "Resort Area"
-        else
+        dofile("lua\\data\\maps\\gen_iv.lua")
+        
+        if _ROM.version == "PL" then
             dofile("lua\\methods\\pt.lua")
         end
     end
 else
     dofile("lua\\methods\\gen_v.lua")
+    dofile("lua\\data\\maps\\gen_v.lua")
     MON_DATA_SIZE = 220
-    map_names = json.load("lua\\data\\maps\\b2w2.json")
 
-    -- BW uses B2W2 headers with the name changes reverted
-    if _ROM.version == "B" or _ROM.version == "W" then
-        map_names[58] = "Castelia City"
-        map_names[192] = "Cold Storage"
-        map_names[193] = "Cold Storage"
-        map_names[194] = "Cold Storage"
-        map_names[415] = "Undella Town"
-    else
+    if _ROM.version == "B2" or _ROM.version == "W2" then
         dofile("lua\\methods\\b2w2.lua")
     end
 end

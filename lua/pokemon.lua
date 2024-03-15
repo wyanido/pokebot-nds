@@ -112,17 +112,7 @@ function pokemon.decrypt_data(address)
     return data
 end
 
-
-local mon_ability = json.load("lua\\data\\abilities.json")
-local mon_item = json.load("lua\\data\\items.json")
-local mon_move = json.load("lua\\data\\moves.json")
-local mon_type = json.load("lua\\data\\type_matchups.json")
-local mon_dex = json.load("lua\\data\\dex.json")
-local mon_lang = {"none", "日本語", "English", "Français", "Italiano", "Deutsch", "Español", "한국어"}
-local mon_gender = {"Male", "Female", "Genderless"}
-local mon_nature = {"Hardy", "Lonely", "Brave", "Adamant", "Naughty", "Bold", "Docile", "Relaxed", "Impish", "Lax",
-                    "Timid", "Hasty", "Serious", "Jolly", "Naive", "Modest", "Mild", "Quiet", "Bashful", "Rash", "Calm",
-                    "Gentle", "Sassy", "Careful", "Quirky"}
+dofile("lua.data.misc.lua")
 
 -- Parses decrypted data into a human-readable table of key value pairs
 function pokemon.parse_data(data, enrich)
@@ -253,8 +243,9 @@ function pokemon.parse_data(data, enrich)
 
     -- Substitute property IDs with ingame names
     if enrich then
-        mon.name = mon_dex[mon.species + 1].name
-        mon.type = mon_dex[mon.species + 1].type
+        mon.pid = string.format("%08X", mon.pid)
+        mon.name = mon_dex[mon.species + 1][1]
+        mon.type = mon_dex[mon.species + 1][2]
 
         -- mon.rating = pokemon.get_rating(mon)
         mon.pokeball = mon_item[mon.pokeball + 1]
@@ -304,22 +295,6 @@ function pokemon.check_battle_moves(ally)
     end
 end
 
-function pokemon.export_pkx(data)
-    local mon = pokemon.parse_data(data, false)
-
-    -- Match PKHeX default filename format (as best as possible)
-    local hex_string = string.format("%04X", mon.checksum) .. string.format("%08X", mon.pid)
-    local filename = mon.species .. " - " .. mon.nickname .. " - " .. hex_string
-    
-    -- Write Pokémon data to file and save in /user/targets
-    local file = io.open("user/targets/" .. filename .. ".pk" .. _ROM.gen, "wb")
-
-    file:write(string.char(table.unpack(data)))
-    file:close()
-
-    print("Saved " .. mon.nickname .. " to disk as " .. filename)
-end
-
 local function shallow_copy(orig)
     local orig_type = type(orig)
     local copy
@@ -336,15 +311,13 @@ end
 
 function pokemon.log_encounter(mon)
     if not mon then
-        print_debug("Tried to log a non-existent Pokémon!")
+        print_warn("Tried to log a non-existent Pokémon!")
         return false
     end
 
     -- Create a watered down copy of the Pokemon data for logging only
     local mon_new = shallow_copy(mon)
     
-    mon_new.pid = string.format("%08X", mon_new.pid) -- Convert PID to hex
-
     local key_whitelist = {
         "pid", "species", "name", "level", "gender", "nature", "heldItem",
         "hpIV", "attackIV", "defenseIV", "spAttackIV", "spDefenseIV", "speedIV", 
@@ -374,7 +347,15 @@ function pokemon.log_encounter(mon)
         print(mon.name .. " is a target!")
 
         if config.save_pkx then
-            pokemon.export_pkx(mon.raw)
+            local shiny = mon.shiny and " ★" or ""
+            local hex_string = string.format("%04X", mon.checksum) .. mon.pid
+            local filename = string.format("%04d", mon.species) .. shiny .. " - " .. mon.nickname .. " - " .. hex_string  .. ".pk" .. _ROM.gen
+
+            dashboard:send(json.encode({
+                type = "save_pkx",
+                data = mon.raw,
+                filename = filename,
+            }) .. "\0")
         end
     end
 

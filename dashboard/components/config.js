@@ -149,10 +149,39 @@ function populateConfigForm() {
 
 function updateClientInfo() {
     socketServerGet('clients', (error, clients) => {
-        if (!error) {
-            setBadgeClientCount(clients.length);
-            setEditableGames(clients)
+        if (error) {
+            console.error(error);
+            return;
         }
+        
+        const clientCount = clients.length;
+
+        if (clientCount == 0) {
+            clearInterval(elapsedInterval);
+            elapsedStart = null;
+
+            $('#elapsed-time').text('0s');
+            $('#encounter-rate').text('0/h');
+            return;
+        }
+
+        // Start elapsed timer if a game is connected
+        if (!elapsedStart) {
+            socketServerGet('elapsed_start', function (error, start) {
+                if (error) {
+                    console.error(error);
+                    return;
+                }
+
+                elapsedStart = start;
+                elapsedInterval = setInterval(updateStatBadges, 1000);
+
+                updateStatBadges();
+            });
+        }
+
+        setBadgeClientCount(clientCount);
+        setEditableGames(clients)
     })
 };
 

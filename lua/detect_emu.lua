@@ -34,7 +34,6 @@ else
     -- Lua 5.1 compatability
     require("lua\\compatability\\utf8")
     require("lua\\compatability\\table")
-    table.unpack = table.unpack or unpack
 end
 
 if not game_loaded then

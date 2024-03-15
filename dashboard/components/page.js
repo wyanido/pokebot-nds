@@ -22,6 +22,7 @@ function socketServerCommunicate(method, url, callback) {
                 content: 'NOTE: The dashboard cannot be accessed by opening the .html pages directly in the browser. The node backend must be running.',
                 title: "Couldn't reach API endpoint",
                 alertType: 'alert-danger',
+                timeShown: 15000
             })
 
             doneOfflineWarning = true;
@@ -99,6 +100,38 @@ function setBadgeClientCount(clientCount) {
         dashboardBadge.text(value)
         dashboardBadge.show()
     }
+}
+
+const encounterRate = $('#encounter-rate');
+
+function updateEncounterRate() {
+    socketServerGet('encounter_rate', function (error, rate) {
+        if (error) {
+            console.error(error);
+            return;
+        }
+
+        encounterRate.text(`${rate}/h`)
+    })
+}
+
+let elapsedStart;
+let elapsedInterval;
+const elapsedTime = $('#elapsed-time');
+
+function updateElapsedTime() {
+    const elapsed = Math.floor((Date.now() - elapsedStart) / 1000);
+    const s = elapsed;
+    const m = Math.floor(s / 60);
+    const h = Math.floor(m / 60);
+    const time = `${h}h ${m % 60}m ${s % 60}s`;
+
+    elapsedTime.text(time)
+}
+
+function updateStatBadges() {
+    updateEncounterRate()
+    updateElapsedTime()
 }
 
 randomisePageIcon();
