@@ -191,7 +191,6 @@ function updateClientTabs(clients) {
         const existing = $('#' + buttonName);
 
         if (!existing.length) {
-            console.log(client);
             const button = existing.length ? existing.detach() : buttonTemplate.tmpl({ 'game': `${client.trainer.Name} (${client.version})` });
             button.attr('id', buttonName);
             tabContainer.append(button)
@@ -227,15 +226,25 @@ function selectTab(ele) {
 
 const rowTemplate = $('#row-template');
 
-function refreshPokemonList(log, doReformat, targetEle, limiterEle) {
-    const targetsLength = limiterEle.val() || 7;
+function refreshPokemonList(log, doReformat, targetEle, targetsLength, hard_limit) {
     const entries = log.length;
 
     targetEle.empty();
 
-    for (var i = entries; i >= entries - targetsLength; i --) {
+    let PIDs = [];
+    let duplicatePID;
+
+    for (var i = entries; i >= entries - hard_limit; i --) {
         const mon = log[i]
         if (!mon) continue;
+
+        if (PIDs.includes(mon.pid)) {
+            duplicatePID = mon.pid;
+        }
+
+        PIDs.push(mon.pid);
+
+        if (i < entries - targetsLength) continue;
 
         if (doReformat && mon.altForm > 0) {
             mon.species = mon.species + '-' + mon.altForm.toString()
@@ -248,6 +257,7 @@ function refreshPokemonList(log, doReformat, targetEle, limiterEle) {
         mon.spDefenseMod = ['Calm', 'Gentle', 'Careful', 'Sassy',].includes(mon.nature) ? 'up'   : ['Naughty', 'Lax', 'Rash', 'Naive'].includes(mon.nature) ? ' down' : '';
         mon.speedMod     = ['Timid', 'Hasty', 'Jolly', 'Naive',].includes(mon.nature) ? 'up'     : ['Brave', 'Relaxed', 'Quiet', 'Sassy'].includes(mon.nature) ? ' down' : '';
 
+
         const row = rowTemplate.tmpl(mon);
 
         if (mon.shiny == true || mon.shinyValue < 8) {
@@ -256,6 +266,8 @@ function refreshPokemonList(log, doReformat, targetEle, limiterEle) {
 
         targetEle.append(row)
     }
+
+    return duplicatePID;
 }
 
 const recentsEle = $('#recents');
@@ -272,12 +284,23 @@ function updateRecentlySeen(reformat = true, force = false) {
         recentEncounters = encounters;
 
         if (updated || force) {
-            refreshPokemonList(
+            const duplicatePID = refreshPokemonList(
                 encounters,
                 reformat,
                 recentsEle,
-                recentsLimit
+                recentsLimit.val() || 7,
+                recentsHardLimit
             )
+
+            if (duplicatePID != lastWarnedDuplicate) {
+                lastWarnedDuplicate = duplicatePID;
+
+                halfmoon.initStickyAlert({
+                    title: "Duplicate PID logged",
+                    content: 'The bot may not be running at 100% efficiency.',
+                    alertType: 'alert-secondary',
+                })
+            }
         }
     });
 }
@@ -300,7 +323,8 @@ function updateRecentTargets(reformat = true, force = false) {
                 encounters,
                 reformat,
                 targetsEle,
-                targetsLimit
+                targetsLimit.val() || 7,
+                targetsHardLimit
             )
         }
     });
@@ -332,13 +356,13 @@ function updateStats() {
 
         statsHash = hash;
 
-        document.getElementById('total-seen').innerHTML      = stats.total.seen
-        document.getElementById('total-shiny').innerHTML     = stats.total.shiny
-        document.getElementById('total-max-iv').innerHTML    = stats.total.max_iv_sum
-        document.getElementById('total-min-iv').innerHTML    = stats.total.min_iv_sum
+        document.getElementById('total-seen').innerHTML      = stats.total.seen;
+        document.getElementById('total-shiny').innerHTML     = stats.total.shiny;
+        document.getElementById('total-max-iv').innerHTML    = stats.total.max_iv_sum;
+        document.getElementById('total-min-iv').innerHTML    = stats.total.min_iv_sum;
 
-        document.getElementById('phase-seen').innerHTML      = stats.phase.seen
-        document.getElementById('phase-lowest-sv').innerHTML = stats.phase.lowest_sv
+        document.getElementById('phase-seen').innerHTML      = stats.phase.seen;
+        document.getElementById('phase-lowest-sv').innerHTML = stats.phase.lowest_sv;
 
         updateBnp();
     });
@@ -351,22 +375,22 @@ function setClients() {
             return;
         }
 
-        const clientCount = clients.length
+        const clientCount = clients.length;
 
-        setBadgeClientCount(clientCount)
+        setBadgeClientCount(clientCount);
         updateClientTabs(clients);
 
         // Refresh displays
-        if (clientCount < gameContainer.children().length) gameContainer.empty()
-        if (clientCount < partyContainer.children().length) partyContainer.empty()
+        if (clientCount < gameContainer.children().length) gameContainer.empty();
+        if (clientCount < partyContainer.children().length) partyContainer.empty();
 
         if (clientCount == 0) {
-            clearInterval(elapsedInterval)
+            clearInterval(elapsedInterval);
             elapsedStart = null;
 
-            $('#elapsed-time').text('0s')
-            $('#encounter-rate').text('0/h')
-            return
+            $('#elapsed-time').text('0s');
+            $('#encounter-rate').text('0/h');
+            return;
         }
 
         for (var i = 0; i < clientCount; i++) {
@@ -375,12 +399,12 @@ function setClients() {
             // Update client party display if data changed
             if (partyContainer.children().length != clientCount || valueHasUpdated(client.party_hash, partyHashes, i)) {
                 displayClientParty(i, client.party);
-                partyHashes[i] = client.party_hash
+                partyHashes[i] = client.party_hash;
             }
             
             if (gameContainer.children().length != clientCount || valueHasUpdated(hashObject(client.shownValues), shownValuesHashes, i)) {
                 displayClientGameInfo(i, client);
-                shownValuesHashes[i] = hashObject(client.shownValues)
+                shownValuesHashes[i] = hashObject(client.shownValues);
             }
         }
 
@@ -441,17 +465,24 @@ rateEle.addEventListener('change', () => {
     updateBnp()
 })
 
+let recentsHardLimit;
+let targetsHardLimit;
+let lastWarnedDuplicate;
+
 socketServerGet('config', function (error, config) {
     if (error) {
         console.error(error);
         return;
     }
 
+    recentsHardLimit = config.encounter_log_limit;
+    targetsHardLimit = config.target_log_limit;
+    
+    updatePage();
+    
     const interval = config.dashboard_poll_interval;
-
+    
     setInterval(() => {
         updatePage();
     }, interval);
 })
-
-updatePage();

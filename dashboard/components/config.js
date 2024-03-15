@@ -78,7 +78,6 @@ function updateOptionVisibility() {
     $('#option_auto_catch').hide();
     $('#option_webhook').hide();
     $('#option_ping_user').hide();
-    $('#option_backup_interval').hide();
     $('#option_primo').hide();
 
     const mode = $('#mode').val();
@@ -100,10 +99,6 @@ function updateOptionVisibility() {
 
     if ($('#auto_catch').prop('checked')) {
         $('#option_auto_catch').show();
-    }
-
-    if ($('#state_backup').prop('checked')) {
-        $('#option_backup_interval').show();
     }
 
     if ($('#webhook_enabled').prop('checked')) {

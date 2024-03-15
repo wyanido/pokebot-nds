@@ -18,9 +18,7 @@ function poll_dashboard_response()
         response = json.decode(data)
         
         if response.type == "apply_config" then
-            if config == nil then
-                print("---------------------------")
-            else
+            if config ~= nil then
                 print_debug("Config updated")
             end
 
@@ -33,7 +31,7 @@ function poll_dashboard_response()
         print_warn("Dashboard disconnected abruptly!")
         disconnected = true
     elseif err ~= 'timeout' then
-        console.warning('Error: ' .. err)
+        print_warn('Error: ' .. err)
     end
 end
 

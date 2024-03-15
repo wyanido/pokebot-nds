@@ -1,3 +1,7 @@
+* {
+    font-size: small;
+}
+
 #shiny {
     background: rgb(61, 125, 164);
     background: linear-gradient(309deg, rgba(61, 125, 164, 1) 0%, rgba(48, 31, 149, 1) 100%);

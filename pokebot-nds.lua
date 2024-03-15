@@ -29,6 +29,7 @@ if not mode_function then
     abort("Function for mode '" .. config.mode .. "' does not exist. It may not be compatible with this game.")
 end
 
+print("---------------------------")
 print("Bot mode set to " .. config.mode)
 
 while true do

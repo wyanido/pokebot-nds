@@ -217,7 +217,7 @@ function mode_primo_gift()
 
     local function input_easy_chat_phrase(word1, word2)
         -- Press A until Easy Chat prompt appears
-        console.log('Awaiting Easy Chat prompt...')
+        print('Awaiting Easy Chat prompt...')
         
         while mbyte(pointers.easy_chat_open) ~= 0x1 do
             press_sequence("A", math.random(5, 30))

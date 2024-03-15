@@ -510,7 +510,7 @@ function find_usable_ball()
             print_debug("Checking rule " .. k .. "...")
             -- If config states this ball should be used
             if pokemon.matches_ruleset(foe[1], config.pokeball_override[k]) then
-                console.debug(k .. " is a valid match!")
+                print_debug(k .. " is a valid match!")
 
                 ball_index = find_ball(balls, k)
 
@@ -789,21 +789,18 @@ function mode_starters()
     end
 
     if not config.hax then
-        print("Waiting to start battle...")
+        print("Waiting to see starter...")
 
         while not game_state.in_battle do
             press_sequence("A", 5)
         end
 
-        print("Waiting to see starter...")
-
-        for i = 0, 118, 1 do
+        for i = 0, 80, 1 do
             press_sequence("A", 5)
         end
     end
 
-    mon = party[1]
-    local was_target = pokemon.log_encounter(mon)
+    local was_target = pokemon.log_encounter(party[1])
 
     if was_target then
         abort("Starter meets target specs")

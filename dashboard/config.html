@@ -216,7 +216,7 @@
                         <h2 class="content-title">Other</h2>
                         <div class="custom-switch">
                             <input type="checkbox" id="hax">
-                            <label for="hax">Use hax for faster resets
+                            <label for="hax">Hax mode
                                 <i class="fa fa-info-circle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
                                 <div id="tooltip" role="tooltip">Allows the bot to do resets earlier than humanly
                                     possible by reading Pokémon data from RAM as soon as it is accessible.
@@ -231,6 +231,16 @@
                                 <i class="fa fa-info-circle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
                                 <div id="tooltip" role="tooltip">Outputs extra info to the Lua Console. Useful if you
                                     need to troubleshoot an issue.
+                                    <div id="arrow" data-popper-arrow></div>
+                                </div>
+                            </label>
+                        </div>
+                        <br>
+                        <div class="custom-switch">
+                            <input type="checkbox" id="focus_mode">
+                            <label for="focus_mode">Focus mode (DeSmuME only)
+                                <i class="fa fa-info-circle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
+                                <div id="tooltip" role="tooltip">Disables video and sound output on the emulator while active to speed up emulation. Can provide a 2x-3x increase in bot efficiency. 
                                     <div id="arrow" data-popper-arrow></div>
                                 </div>
                             </label>

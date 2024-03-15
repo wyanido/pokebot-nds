@@ -57,7 +57,7 @@ const configTemplate = {
     battle_non_targets: false,
     auto_catch: false,
     target_log_limit: "30",
-    dashboard_poll_interval: "330",
+    dashboard_poll_interval: "1000",
     inflict_status: false,
     false_swipe: false,
     debug: false,

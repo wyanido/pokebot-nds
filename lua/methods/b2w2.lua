@@ -70,7 +70,9 @@ function mode_starters()
     if not game_state.in_game then
         print("Waiting to reach overworld...")
 
-        while not game_state.in_game do press_sequence("A", 20) end
+        while not game_state.in_game do 
+            press_sequence("A", 20) 
+        end
     end
 
     print("Opening Starter Selection...")
@@ -93,10 +95,16 @@ function mode_starters()
         end
     end
 
-    while #party == 0 do press_sequence("A", 5) end
+    while #party == 0 do 
+        press_sequence("A", 5) 
+    end
 
     if not config.hax then
-        for i = 0, 116, 1 do press_sequence("B", 10) end
+        print("Waiting to see starter...")
+        
+        for i = 0, 90, 1 do 
+            press_sequence("B", 10) 
+        end
 
         -- Party menu
         press_sequence("X", 30)
@@ -110,8 +118,7 @@ function mode_starters()
         wait_frames(120)
     end
 
-    mon = party[1]
-    local was_target = pokemon.log_encounter(mon)
+    local was_target = pokemon.log_encounter(party[1])
 
     if was_target then
         abort("Starter meets target specs")

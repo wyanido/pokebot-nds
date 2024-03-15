@@ -371,7 +371,7 @@ function pokemon.log_encounter(mon)
     local msg_type = was_target and "seen_target" or "seen"
 
     if was_target then
-        console.log(mon.name .. " is a target!")
+        print(mon.name .. " is a target!")
 
         if config.save_pkx then
             pokemon.export_pkx(mon.raw)

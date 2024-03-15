@@ -1,3 +1,4 @@
+let doneOfflineWarning = false;
 
 function socketServerCommunicate(method, url, callback) {
     const http = new XMLHttpRequest();
@@ -6,20 +7,25 @@ function socketServerCommunicate(method, url, callback) {
     http.responseType = 'json';
 
     http.onload = function (e) {
-        // Handle response
         if (http.status === 200) {
+            doneOfflineWarning = false;
+
             const response = http.response;
-            callback(null, response); // Pass the response data to the callback
+            callback(null, response);
         } else {
             callback(method + ' request failed. Status: ' + http.status, null);
         }
     };
     http.onerror = function () {
-        halfmoon.initStickyAlert({
-            content: 'NOTE: The dashboard cannot be accessed by opening the .html pages directly in the browser. The node backend must be running.',
-            title: "Couldn't reach API endpoint",
-            alertType: 'alert-danger',
-        })
+        if (!doneOfflineWarning) {
+            halfmoon.initStickyAlert({
+                content: 'NOTE: The dashboard cannot be accessed by opening the .html pages directly in the browser. The node backend must be running.',
+                title: "Couldn't reach API endpoint",
+                alertType: 'alert-danger',
+            })
+
+            doneOfflineWarning = true;
+        }
     }
 
     http.send();
@@ -96,14 +102,3 @@ function setBadgeClientCount(clientCount) {
 }
 
 randomisePageIcon();
-
-let pollInterval;
-
-socketServerGet('config', function (error, config) {
-    if (error) {
-        console.error(error);
-        return;
-    }
-
-    pollInterval = config.dashboard_poll_interval;
-});

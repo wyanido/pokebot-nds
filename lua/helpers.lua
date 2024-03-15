@@ -158,8 +158,8 @@ function frames_per_move()
     return 16
 end
 
-function update_game_info(force)
-    if emu.framecount() % 20 == 0 or force then
+function update_game_info()
+    if emu.framecount() % 60 == 0 or not game_state then
         game_state = get_game_state()
         dashboard:send(json.encode({
             type = "game_state",
@@ -198,7 +198,13 @@ function cycle_starter_choice()
 end
 
 function process_frame()
-    emu.frameadvance()
+    if config.focus_mode then
+        emu.emulateframeinvisible()
+        sound.clear()
+    else
+        emu.frameadvance()
+    end
+    
     update_pointers()
     poll_dashboard_response()
     update_game_info()

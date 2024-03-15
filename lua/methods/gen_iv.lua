@@ -38,7 +38,7 @@ end
 function randomise_reset()
     wait_frames(200) -- Impassable white screen
 
-    local delay = math.random(100, 420)
+    local delay = math.random(100, 500)
 
     print_debug("Delaying " .. delay .. " frames...")
     wait_frames(delay)
@@ -535,7 +535,9 @@ function mode_static_encounters()
 
     if not config.hax then
         -- Wait for Pokémon to fully appear on screen
-        for i = 0, 22, 1 do press_sequence("A", 6) end
+        for i = 0, 22, 1 do 
+            press_sequence("A", 6) 
+        end
     end
 
     if foe_is_target then
@@ -544,6 +546,14 @@ function mode_static_encounters()
         print("Wild " .. foe[1].name .. " was not a target, resetting...")
         soft_reset()
     end
+end
+
+-- Progress text efficiently
+function skip_dialogue()
+    hold_button("A")
+    wait_frames(20)
+    release_button("A")
+    wait_frames(2)
 end
 
 function mode_starters()
@@ -556,7 +566,7 @@ function mode_starters()
         hold_button("Up")
 
         while game_state.map_name ~= "Lake Verity" do
-            press_sequence("A", 12)
+            skip_dialogue()
         end
         
         release_button("Up")
@@ -568,7 +578,7 @@ function mode_starters()
     local ready_value = platinum and 0x4D or 0x75
 
     while mbyte(pointers.starters_ready) ~= ready_value do
-        press_sequence("A", 12)
+        skip_dialogue()
     end
 
     print("Selecting starter...")
@@ -579,14 +589,14 @@ function mode_starters()
 
     -- Wait until starter is added to party
     while #party == 0 do
-        press_sequence("A", 6)
+        skip_dialogue()
     end
 
     if not config.hax then
         print("Waiting until starter is visible...")
 
         for i = 0, 86, 1 do
-            press_sequence("A", 6)
+            skip_dialogue()
         end
     end
 
