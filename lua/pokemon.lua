@@ -112,7 +112,7 @@ function pokemon.decrypt_data(address)
     return data
 end
 
-dofile("lua.data.misc.lua")
+dofile("lua\\data\\misc.lua")
 
 -- Parses decrypted data into a human-readable table of key value pairs
 function pokemon.parse_data(data, enrich)
@@ -469,7 +469,7 @@ function pokemon.matches_ruleset(mon, ruleset)
         local target_gender = string.lower(ruleset.gender)
 
         if mon_gender ~= target_gender then
-            print_debug("Mon gender " .. mon_gender .. " does not match rule" .. target_gender)
+            print_debug("Mon gender " .. mon_gender .. " does not match rule " .. target_gender)
             return false
         end
     end
@@ -502,7 +502,7 @@ function pokemon.matches_ruleset(mon, ruleset)
     local ivs = {"hpIV", "attackIV", "defenseIV", "spAttackIV", "spDefenseIV", "speedIV"}
 
     for _, key in ipairs(ivs) do
-        if ruleset[key] and mon[key] < ruleset[key] then
+        if table_contains(ruleset, key) and mon[key] < ruleset[key] then
             print_debug("Mon " .. key .. " " .. mon.hpIV .. " does not meet ruleset " .. ruleset.hpIV)
             return false
         end
