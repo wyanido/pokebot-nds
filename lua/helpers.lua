@@ -99,51 +99,30 @@ end
 
 function get_game_state()
     local map = mword(pointers.map_header)
-    local in_game = (map ~= 0x0 and map <= MAP_HEADER_COUNT)
+    local in_game = (map ~= 0x0 and map <= #map_names)
 
-    -- Update in-game values
-    if _ROM.gen == 4 then -- gen 4 is always considered "in game" even before the title screen, so it always returns real data
-        if in_game then
-            return {
-                map_header = map,
-                map_name = map_names[map + 1],
-                trainer_x = mword(pointers.trainer_x + 2),
-                trainer_y = to_signed(mword(pointers.trainer_y + 2)),
-                trainer_z = mword(pointers.trainer_z + 2),
-                in_battle = type(foe) == "table" and #foe > 0,
-                in_game = true,
-                trainer_name = read_string(pointers.trainer_name),
-                trainer_id = string.format("%05d", mword(pointers.trainer_id)) .. " (" .. string.format("%05d", mword(pointers.trainer_id + 2)) .. ")",
-            }
-        else
-            return {
-                map_header = 0,
-                in_game = false,
-            }
-        end
-    else
-        if in_game then
-            return {
-                map_header = map,
-                map_name = map_names[map + 1],
-                trainer_x = mword(pointers.trainer_x + 2),
-                trainer_y = to_signed(mword(pointers.trainer_y + 2)),
-                trainer_z = mword(pointers.trainer_z + 2),
-                phenomenon_x = mword(pointers.phenomenon_x + 2),
-                phenomenon_z = mword(pointers.phenomenon_z + 2),
-                in_battle = mbyte(pointers.battle_indicator) == 0x41 and foe,
-                in_game = true,
-                trainer_name = read_string(pointers.trainer_name),
-                trainer_id = string.format("%05d", mword(pointers.trainer_id)) .. " (" .. string.format("%05d", mword(pointers.trainer_id + 2)) .. ")",
-            }
-        else
-            -- Set minimum required values for the dashboard
-            return {
-                map_header = 0,
-                in_game = false,
-            }
-        end
+    if not in_game then
+        return {}
     end
+
+    local state = {
+        in_game = true,
+        in_battle = type(foe) == "table" and #foe > 0,
+        map_header = map,
+        map_name = map_names[map + 1],
+        trainer_name = read_string(pointers.trainer_name),
+        trainer_id = string.format("%05d", mword(pointers.trainer_id)) .. " (" .. string.format("%05d", mword(pointers.trainer_id + 2)) .. ")",
+        trainer_x = mword(pointers.trainer_x + 2),
+        trainer_y = to_signed(mword(pointers.trainer_y + 2)),
+        trainer_z = mword(pointers.trainer_z + 2),
+    }
+
+    if _ROM.gen == 5 then
+        state["phenomenon_x"] = mword(pointers.phenomenon_x + 2)
+        state["phenomenon_z"] = mword(pointers.phenomenon_z + 2)
+    end
+    
+    return state
 end
 
 function frames_per_move()
@@ -163,6 +142,7 @@ end
 function update_game_info()
     if emu.framecount() % 60 == 0 or not game_state then
         game_state = get_game_state()
+        
         dashboard:send(json.encode({
             type = "game_state",
             data = game_state
@@ -200,10 +180,14 @@ function cycle_starter_choice()
 end
 
 function process_frame()
-    if config.focus_mode then
+    if config.focus_mode and _EMU == "DeSmuME" then
         emu.emulateframeinvisible()
         sound.clear()
     else
+        if _EMU == "BizHawk" then
+            client.invisibleemulation(config.focus_mode)
+        end
+
         emu.frameadvance()
     end
     

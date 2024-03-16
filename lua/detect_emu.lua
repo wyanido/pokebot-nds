@@ -13,7 +13,12 @@ if _EMU == "BizHawk" then
     game_loaded = gameinfo.getromhash() ~= ""
 
     client.clearautohold()
-    event.onexit(function() client.clearautohold() end) -- Restore manual touch screen input when the script is stopped
+    -- When the script is stopped, restore display
+    -- and touch screen ability
+    event.onexit(function() 
+        client.clearautohold() 
+        client.invisibleemulation(false)
+    end)
 
     function soft_reset()
         press_button("Power")

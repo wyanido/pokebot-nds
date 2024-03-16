@@ -123,39 +123,18 @@ function displayClientGameInfo(tabIndex, clientData) {
         gameContainer.append(ele);
     }
 
-    // OT, TID, SID
-    const trainerFieldTable = $('#trainer-field-table', ele).detach();
-    trainerFieldTable.empty();
-    
-    for (const key in clientData.trainer) {
-        trainerFieldTable.append(`
-            <tr>
-                <th>
-                    ${key}
-                </th>
-                <td class="text-nowrap">
-                    ${clientData.trainer[key]}
-                </td>
-            </tr>`
-        );
-    }
-
-    ele.append(trainerFieldTable)
-
-    // Game-specific values the bot decides to send
-    const fieldTable = $('#field-table', ele).detach();
+    // Game-specific display values the bot decides to send
+    const fieldTable = $('#shown-values', ele).detach();
     fieldTable.empty();
 
     for (const key in clientData.shownValues) {
         fieldTable.append(`
-            <tr>
-                <th>
-                    ${key}
-                </th>
-                <td class="text-nowrap">
-                    ${clientData.shownValues[key]}
-                </td>
-            </tr>`
+            <div class="d-flex w-full p-10">
+                <div class="w-half"><b>${key}</b></div>
+                <div class="w-half">
+                ${clientData.shownValues[key]}
+                </div>
+            </div>`
         );
     }
 
@@ -194,7 +173,7 @@ function updateClientTabs(clients) {
         const existing = $('#' + buttonName);
 
         if (!existing.length) {
-            const button = existing.length ? existing.detach() : buttonTemplate.tmpl({ 'game': `${client.trainer.Name} (${client.version})` });
+            const button = existing.length ? existing.detach() : buttonTemplate.tmpl({ 'game': `${client.trainer_name} (${client.version})` });
             button.attr('id', buttonName);
             tabContainer.append(button)
         }

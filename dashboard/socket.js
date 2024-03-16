@@ -418,23 +418,23 @@ function interpretClientMessage(socket, message) {
             }
             break;
         case 'game_state':
-            client.map = data.map_name + " (" + data.map_header.toString() + ")";
-            client.map_name = data.map_name;
-            client.position = (data.trainer_x || '--').toString() + ", " + (data.trainer_y || '--').toString() + ", " + (data.trainer_z || '--').toString();
-            
-            // Values displayed on the game instance's tab on the dashboard
-            client.trainer = {
-                Name: data.trainer_name || '--',
-                "Trainer ID": data.trainer_id || '--'
-            }
+            const map = data.map_name || '--';
 
+            client.map_name = map;
+            client.position = `${(data.trainer_x || '--').toString()}, ${(data.trainer_y || '--').toString()}, ${(data.trainer_z || '--').toString()}`;
+            client.trainer_name = data.trainer_name || '--'
+            client.trainer_id = data.trainer_id || '--';
+
+            // Values displayed on the game instance's tab on the dashboard
             var shownValues = {
-                Map: client.map || '--',
-                Position: client.position || '--, --, --'
+                Name: client.trainer_name,
+                "Trainer ID": client.trainer_id,
+                Map: `${map} (${(data.map_header || 0).toString()})`,
+                Position: client.position
             }
             
             if ('phenomenon_x' in data) {
-                shownValues.Phenomenon = (data.phenomenon_x || '--').toString() + ", --, " + (data.phenomenon_z || '--').toString();
+                shownValues.Phenomenon = `${(data.phenomenon_x || '--').toString()}, --, ${(data.phenomenon_z || '--').toString()}`;
             }
             
             client.shownValues = shownValues

@@ -165,5 +165,3 @@ else
         dofile("lua\\methods\\b2w2.lua")
     end
 end
-
-MAP_HEADER_COUNT = #map_names
