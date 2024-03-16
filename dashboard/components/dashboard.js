@@ -229,7 +229,7 @@ function selectTab(ele) {
 
 const rowTemplate = $('#row-template');
 
-function refreshPokemonList(log, doReformat, targetEle, targetsLength) {
+function refreshPokemonList(log, targetEle, targetsLength) {
     const entries = log.length;
 
     targetEle.empty();
@@ -239,9 +239,7 @@ function refreshPokemonList(log, doReformat, targetEle, targetsLength) {
         
         if (!mon) continue;
 
-        if (doReformat) {
-            mon = enrichFurther(mon);
-        }
+        mon = enrichFurther(mon);
 
         const row = rowTemplate.tmpl(mon);
 
@@ -277,7 +275,7 @@ function enrichFurther(mon) {
 const recentsEle = $('#recents');
 const recentsLimit = $('#recents-limit');
 
-function updateRecentlySeen(reformat = true, force = false) {
+function updateRecentlySeen(force = false) {
     socketServerGet('recents', function (error, encounters) {
         if (error) {
             console.error(error);
@@ -292,7 +290,6 @@ function updateRecentlySeen(reformat = true, force = false) {
         if (updated || force) {
             refreshPokemonList(
                 encounters,
-                reformat,
                 recentsEle,
                 recentsLimit.val() || 7
             )
@@ -316,7 +313,7 @@ function updateRecentlySeen(reformat = true, force = false) {
 const targetsEle = $('#targets');
 const targetsLimit = $('#targets-limit');
 
-function updateRecentTargets(reformat = true, force = false) {
+function updateRecentTargets(force = false) {
     socketServerGet('targets', function (error, encounters) {
         if (error) {
             console.error(error);
@@ -331,7 +328,6 @@ function updateRecentTargets(reformat = true, force = false) {
         if (updated || force) {
             refreshPokemonList(
                 encounters,
-                reformat,
                 targetsEle,
                 targetsLimit.val() || 7
             )
@@ -433,12 +429,12 @@ function updatePage() {
 
 const recentEncountersEle = document.getElementById('recents-limit');
 recentEncountersEle.addEventListener('change', () => {
-    updateRecentlySeen(false, true)
+    updateRecentlySeen(true)
 })
 
 const recentTargetsEle = document.getElementById('targets-limit');
 recentTargetsEle.addEventListener('change', () => {
-    updateRecentTargets(false, true)
+    updateRecentTargets(true)
 })
 
 const rateEle = document.getElementById('shiny-rate');
