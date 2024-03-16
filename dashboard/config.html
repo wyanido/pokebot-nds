@@ -268,21 +268,13 @@
                         <h2 class="content-title">Target Pokémon</h2>
                         <label for="catch">Target traits
                             <i class="fa fa-info-circle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
-                            <div id="tooltip" role="tooltip">YAML format. Pokémon must meet every requirement
-                                to be considered a target. For arrays, only one item in the array must match. 
-                                Not case-sensitive.
+                            <div id="tooltip" role="tooltip">YAML format. Not case-sensitive. 
+                                A Pokémon must meet every requirement listed to be considered a target.
+                                <br> • For arrays, only one item must match
+                                <br> • For numbers, matches when (value >= rule)
                                 <br><br>
-                                Target traits and their data types include:
-                                <br> • shiny: <i>boolean</i>
-                                <br> • iv_sum: <i>int (greater than or equal)</i>
-                                <br> • hpIV, attackIV, defenseIV, spAttack, spDefenseIV, speedIV: <i>int (greater than or equal)</i>
-                                <br> • species: <i>array[str] (english name)</i>
-                                <br> • gender: <i>str</i>
-                                <br> • level: <i>int (greater than or equal)</i>
-                                <br> • ability: <i>array[str]</i>
-                                <br> • nature: <i>array[str]</i>
-                                <br> • move: <i>array[str]</i>
-                                <br> • type: <i>array[str]</i>
+                                For a full list of traits you can specify, check the pokemon.parse_data definition 
+                                inside pokemon.lua.
                                 <div id="arrow" data-popper-arrow></div>
                             </div>
                         </label>

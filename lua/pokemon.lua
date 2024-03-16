@@ -162,7 +162,6 @@ function pokemon.parse_data(data, enrich)
     -- mon.sinnohRibbonSet1 = read_real(0x24, 2)
     -- mon.unovaRibbonSet 	 = read_real(0x26, 2)
     
-
     mon.shinyValue = bit.bxor(bit.bxor(bit.bxor(mon.otID, mon.otSID), (bit.band(bit.rshift(mon.pid, 16), 0xFFFF))), bit.band(mon.pid, 0xFFFF))
     mon.shiny = mon.shinyValue < 8
 
@@ -449,105 +448,68 @@ function pokemon.matches_ruleset(mon, ruleset)
         return true
     end
 
-    -- Default trait comparison
-    if ruleset.shiny then
-        if ruleset.shiny ~= mon.shiny then
-            print_debug("Shininess does not match ruleset")
-            return false
-        end
-    end
-
-    if ruleset.species then
-        if not table_contains(ruleset.species, mon.name) then
-            print_debug("Species " .. mon.name .. " is not in ruleset")
-            return false
-        end
-    end
-
-    if ruleset.gender then
-        local mon_gender = string.lower(mon.gender)
-        local target_gender = string.lower(ruleset.gender)
-
-        if mon_gender ~= target_gender then
-            print_debug("Gender " .. mon_gender .. " does not match rule " .. target_gender)
-            return false
-        end
-    end
-
-    if ruleset.level then
-        local mon_level = tonumber(mon.level)
-        local target_level = tonumber(ruleset.level)
-
-        if mon_level < target_level then
-            print_debug("Level " .. tostring(mon.level) .. " does not meet minimum " .. ruleset.level)
-            return false
-        end
-    end
+    -- This function intentionally doesn't do an early exit
+    -- so it can print a warning when a meaningless value 
+    -- is written into target traits
+    local is_target = true
     
-    if ruleset.ability then
-        if not table_contains(ruleset.ability, mon.ability) then
-            print_debug("Ability " .. mon.ability .. " is not in ruleset")
-            return false
-        end
-    end
+    -- Check items from ruleset against values from the Pokemon's data,
+    -- dynamically changing for different data types
+    for property, rule in pairs(ruleset) do
+        local value = mon[property]
 
-    if ruleset.nature then
-        if not table_contains(ruleset.nature, mon.nature) then
-            print_debug("Nature " .. mon.nature .. " is not in ruleset")
-            return false
-        end
-    end
+        if value ~= nil then
+            if type(rule) == "boolean" then
+                -- Simple boolean check
+                if value ~= rule then
+                    print_debug(property .. "? is not " .. tostring(rule))
+                    is_target = false
+                end
+            elseif type(rule) == "table" then
+                if type(value) == "table" then
+                    -- Check every mon table entry against every rule entry
+                    -- to ensure it contains at least one entry
+                    local has_entry = false
 
-    -- Check that individual IVs meet target thresholds
-    local ivs = {"hpIV", "attackIV", "defenseIV", "spAttackIV", "spDefenseIV", "speedIV"}
+                    for _, entry in pairs(rule) do
+                        if table_contains(value, entry) then
+                            has_entry = true
+                            break
+                        end
+                    end
 
-    for _, key in ipairs(ivs) do
-        if ruleset[key] and mon[key] < ruleset[key] then
-            print_debug(key .. " of " .. mon[key] .. " does not meet minimum " .. ruleset[key])
-            return false
-        end
-    end
-
-    if ruleset.iv_sum then
-        if mon.ivSum < ruleset.iv_sum then
-            print_debug("IV sum of " .. mon.ivSum .. " does not meet minimum " .. ruleset.iv_sum)
-            return false
-        end
-    end
-
-    if ruleset.move then
-        local has_move = false
-
-        for i = 1, #ruleset.move, 1 do
-            if table_contains(mon.moves, ruleset.move[i]) then
-                has_move = true
-                break
+                    if not has_entry then
+                        print_debug(property .. " does not contain any entries from ruleset")
+                        is_target = false
+                    end
+                else
+                    -- Check value against every rule table entry
+                    if not table_contains(rule, value) then
+                        print_debug(value .. " is not in " .. property .. " ruleset")
+                        is_target = false
+                    end
+                end
+            else
+                if type(value) == "string" then 
+                    -- Case-insensitive string comparison
+                    if string.lower(value) ~= string.lower(rule) then
+                        print_debug(property .. " " .. value .. " does not match " .. rule)
+                        is_target = false
+                    end
+                else
+                    -- Numerical threshold check
+                    if value < rule then
+                        print_debug(property .. " " .. value .. " does not meet threshold " .. rule)
+                        is_target = false
+                    end
+                end
             end
-        end
-
-        if not has_move then
-            print_debug("Moveset does not contain ruleset")
-            return false
+        else
+            print_warn("Unknown field " .. property .. " in ruleset")
         end
     end
 
-    if ruleset.type then
-        local has_type = false
-
-        for i = 1, #ruleset.type, 1 do
-            if table_contains(mon.type, ruleset.type[i]) then
-                has_type = true
-                break
-            end
-        end
-
-        if not has_type then
-            print_debug("Type is not in ruleset")
-            return false
-        end
-    end
-
-    return true
+    return is_target
 end
 
 return pokemon
