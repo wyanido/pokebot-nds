@@ -60,7 +60,9 @@ end
 
 function update_foes()
     -- Make sure it's not reading garbage non-battle data
-    if mbyte(pointers.battle_indicator) ~= 0x41 then
+    local battle_value = mbyte(pointers.battle_indicator)
+
+    if battle_value ~= 0x41 and battle_value ~= 0x97 then
         foe = nil
     elseif not foe then -- Only update foe on battle start
         local attempt_fetch = function()

@@ -525,13 +525,18 @@ end
 -----------------------
 function mode_static_encounters()
     print("Waiting for battle to start...")
-    
+
     while not game_state.in_battle do
-        local delay = math.random(6, 21) -- Mimic imperfect human inputs
-        press_sequence("A", delay)
+        if game_state.map_name == "Spear Pillar" then
+            hold_button("Up")
+        end
+
+        press_sequence("A", 5)
     end
 
-    foe_is_target = pokemon.log_encounter(foe[1])
+    release_button("Up")
+
+    local was_target = pokemon.log_encounter(foe[1])
 
     if not config.hax then
         -- Wait for Pokémon to fully appear on screen
@@ -540,7 +545,7 @@ function mode_static_encounters()
         end
     end
 
-    if foe_is_target then
+    if was_target then
         abort("Wild Pokémon meets target specs!")
     else
         print("Wild " .. foe[1].name .. " was not a target, resetting...")
