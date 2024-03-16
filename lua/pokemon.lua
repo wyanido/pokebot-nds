@@ -452,14 +452,14 @@ function pokemon.matches_ruleset(mon, ruleset)
     -- Default trait comparison
     if ruleset.shiny then
         if ruleset.shiny ~= mon.shiny then
-            print_debug("Mon shininess does not match ruleset")
+            print_debug("Shininess does not match ruleset")
             return false
         end
     end
 
     if ruleset.species then
         if not table_contains(ruleset.species, mon.name) then
-            print_debug("Mon species " .. mon.name .. " is not in ruleset")
+            print_debug("Species " .. mon.name .. " is not in ruleset")
             return false
         end
     end
@@ -469,7 +469,7 @@ function pokemon.matches_ruleset(mon, ruleset)
         local target_gender = string.lower(ruleset.gender)
 
         if mon_gender ~= target_gender then
-            print_debug("Mon gender " .. mon_gender .. " does not match rule " .. target_gender)
+            print_debug("Gender " .. mon_gender .. " does not match rule " .. target_gender)
             return false
         end
     end
@@ -479,21 +479,21 @@ function pokemon.matches_ruleset(mon, ruleset)
         local target_level = tonumber(ruleset.level)
 
         if mon_level < target_level then
-            print_debug("Mon level " .. tostring(mon.level) .. " does not meet rule " .. ruleset.level)
+            print_debug("Level " .. tostring(mon.level) .. " does not meet minimum " .. ruleset.level)
             return false
         end
     end
     
     if ruleset.ability then
         if not table_contains(ruleset.ability, mon.ability) then
-            print_debug("Mon ability " .. mon.ability .. " is not in ruleset")
+            print_debug("Ability " .. mon.ability .. " is not in ruleset")
             return false
         end
     end
 
     if ruleset.nature then
         if not table_contains(ruleset.nature, mon.nature) then
-            print_debug("Mon nature " .. mon.nature .. " is not in ruleset")
+            print_debug("Nature " .. mon.nature .. " is not in ruleset")
             return false
         end
     end
@@ -502,15 +502,15 @@ function pokemon.matches_ruleset(mon, ruleset)
     local ivs = {"hpIV", "attackIV", "defenseIV", "spAttackIV", "spDefenseIV", "speedIV"}
 
     for _, key in ipairs(ivs) do
-        if table_contains(ruleset, key) and mon[key] < ruleset[key] then
-            print_debug("Mon " .. key .. " " .. mon.hpIV .. " does not meet ruleset " .. ruleset.hpIV)
+        if ruleset[key] and mon[key] < ruleset[key] then
+            print_debug(key .. " of " .. mon[key] .. " does not meet minimum " .. ruleset[key])
             return false
         end
     end
 
     if ruleset.iv_sum then
         if mon.ivSum < ruleset.iv_sum then
-            print_debug("Mon IV sum of " .. mon.ivSum .. " does not meet threshold " .. ruleset.iv_sum)
+            print_debug("IV sum of " .. mon.ivSum .. " does not meet minimum " .. ruleset.iv_sum)
             return false
         end
     end
@@ -526,7 +526,7 @@ function pokemon.matches_ruleset(mon, ruleset)
         end
 
         if not has_move then
-            print_debug("Mon moveset does not contain ruleset")
+            print_debug("Moveset does not contain ruleset")
             return false
         end
     end
@@ -542,7 +542,7 @@ function pokemon.matches_ruleset(mon, ruleset)
         end
 
         if not has_type then
-            print_debug("Mon type is not in ruleset")
+            print_debug("Type is not in ruleset")
             return false
         end
     end
