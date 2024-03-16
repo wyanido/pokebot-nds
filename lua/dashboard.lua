@@ -1,10 +1,5 @@
 
 local socket = require('lua\\modules\\socket')
-print("Connecting to the dashboard... ")
-
-dashboard = assert(socket.connect('127.0.0.1', 51055), "Failed to connect to the dashboard! Make sure the node.js server is running before starting this script.")
-dashboard:settimeout(0)
-
 local disconnected = false
 
 function poll_dashboard_response()
@@ -35,6 +30,24 @@ function poll_dashboard_response()
     end
 end
 
+print("Connecting to the dashboard... ")
+
+local status, err = pcall(function () 
+    dashboard = assert(socket.connect('127.0.0.1', 51055)) 
+end)
+if err then
+    print("WARNING: Failed to connect! The bot will function as normal, but logging and realtime config updates will be unavailable.")
+
+    config = json.load("user\\config.json")
+    disconnected = true
+    
+    dashboard = {
+        send = function() end
+    }
+    return
+end
+
+dashboard:settimeout(0)
 dashboard:send(json.encode({
     type = "load_game",
     data = _ROM
