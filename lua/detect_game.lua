@@ -147,7 +147,7 @@ if _ROM.gen == 4 then
     MON_DATA_SIZE = 236 -- Gen 4 has 16 extra trailing bytes of ball seals data
     
     if _ROM.version == "HG" or _ROM.version == "SS" then
-        map_names = json.load("lua\\data\\hgss.json")
+        dofile("lua\\data\\maps\\hgss.lua")
         dofile("lua\\methods\\hgss.lua")
     else
         dofile("lua\\data\\maps\\gen_iv.lua")
