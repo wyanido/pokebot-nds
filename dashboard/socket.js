@@ -25,13 +25,14 @@ const configTemplate = {
     starter2: true,
     move_direction: "horizontal",
     target_traits: {
-        iv_sum: 180
+        ivSum: 180
     },
     pokeball_override: {
         'Repeat Ball': {
             species: [
                 "Lillipup",
-                "Patrat"
+                "Bidoof",
+                "Sentret"
             ]
         },
         'Net Ball': {
