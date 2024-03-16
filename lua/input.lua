@@ -14,6 +14,17 @@ else
     end
 end 
 
+-- Adjust for differences in d-pad key names between emulators
+local function adjust_case(button)
+    if _EMU == "DeSmuME" then
+        if button == "Up" or button == "Down" or button == "Left" or button == "Right" or button == "Start" or button == "Select" then 
+            return string.lower(button)
+        end
+    end
+
+    return button
+end
+
 function press_button(button)
     button = adjust_case(button)
     input[button] = true
@@ -50,18 +61,6 @@ function release_button(button)
     held_input[button] = false
     input[button] = false
     joypad.set(input)
-    clear_unheld_inputs()
-end
-
--- Adjust for differences in d-pad key names between emulators
-function adjust_case(button)
-    if _EMU == "DeSmuME" then
-        if button == "Up" or button == "Down" or button == "Left" or button == "Right" or button == "Start" or button == "Select" then 
-            return string.lower(button)
-        end
-    end
-
-    return button
 end
 
 function press_sequence(...)

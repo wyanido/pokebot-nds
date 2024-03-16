@@ -140,10 +140,7 @@ function pathfind_to(target)
 
         wait_frames(1) -- Makes movement more precise by reducing timing inconsistencies between directions
 
-        -- Re-apply repel if necessary
-        while mdword(pointers.text_interrupt) == 2 do
-            press_sequence("Up", 1, "A", 1)
-        end
+        dismiss_repel()
     end
     release_button("B")
 end
@@ -816,14 +813,8 @@ function mode_random_encounters()
         z = game_state.trainer_z
     }
 
-    local function accept_interrupt_text()
-        while mdword(pointers.text_interrupt) == 2 do
-            press_sequence("Up", 1, "A", 1)
-        end
-    end
-
     local function move_in_direction(dir)
-        accept_interrupt_text()
+        dismiss_repel()
 
         hold_button("B")
         hold_button(dir)

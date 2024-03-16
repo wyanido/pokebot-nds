@@ -8,6 +8,8 @@ print("Running " .. _VERSION .. " on " .. _EMU)
 print("https://github.com/wyanido/pokebot-nds")
 print("")
 
+-- Clear values that might linger after restarting script
+game_state = nil
 config = nil
 foe = nil
 party_hash = ""

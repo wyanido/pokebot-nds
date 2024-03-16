@@ -27,7 +27,7 @@ function update_pointers()
         trainer_x         = 0x0223B448 + _ROM.offset,
         trainer_y         = 0x0223B44C + _ROM.offset,
         trainer_z         = 0x0223B450 + _ROM.offset,
-        trainer_direction = 0x0223B462 + _ROM.offset, -- 0, 4, 8, 12 -> Up, Left, Down, Right
+        trainer_direction = 0x0223B45D + _ROM.offset, -- 0, 0x40, 0x80, 0xC0 -> Up, Left, Down, Right
         on_bike           = 0x0223B484 + _ROM.offset,
         encounter_table   = 0x0223B7B8 + _ROM.offset,
         map_matrix        = 0x0223C3D4 + _ROM.offset,
@@ -54,7 +54,10 @@ function update_pointers()
         battle_menu_state = anchor + 0x1367C, -- 1 on FIGHT menu, 2 on move select, 4 on switch/run after faint, 0 otherwise
     
         trainer_name = 0x221E9E8 + _ROM.offset,
-        trainer_id   = 0x221E9F8 + _ROM.offset
+        trainer_id   = 0x221E9F8 + _ROM.offset,
+
+        hidden_grottos = 0x22291B0 + _ROM.offset,
+        pass_power_1_duration = 0x21410B8 + _ROM.offset,
     }
 end
 
@@ -128,16 +131,119 @@ function mode_starters()
     end
 end
 
-function mode_hidden_grottos()
-    if game_state.map_header ~= 518 then -- All Hidden Grottos share the same map ID
-        abort("Please start the script inside of a Hidden Grotto!")
+function dismiss_repel()
+    local interrupted = false 
+    
+    while mdword(pointers.text_interrupt) == 2 do
+        press_sequence("A", 6)
+        interrupted = true
     end
 
-    hold_button("Down")
+    return interrupted
+end
 
-    while game_state.map_header == 518 do
+function bike_back_and_forth()
+    local horizontal = config.move_direction == "horizontal"
+    local axis = horizontal and pointers.trainer_x or pointers.trainer_z
+    local dir1 = horizontal and "Right" or "Down"
+    local dir2 = horizontal and "Left" or "Up"
+
+    local move_in_direction = function(dir)
+        hold_button(dir)
         wait_frames(2)
+
+        local z = mword(axis)
+        while mword(axis) == z do
+            hold_button(dir)
+            dismiss_repel()
+
+            if game_state.in_battle then
+                return
+            end
+        end
     end
 
-    release_button("Down")
+    -- Use registered bike if not already riding
+    if mbyte(pointers.on_bike) ~= 1 then
+        press_sequence("Y", 30, "A")
+    end
+
+    move_in_direction(dir1)
+    move_in_direction(dir2)
+
+    release_button(dir2)
+end
+
+function mode_hidden_grottos()
+    local grotto_has_regenerated = function()
+        local grotto_value = mbyte(pointers.hidden_grottos + config.grotto)
+        return bit.band(grotto_value, 1) == 1
+    end
+
+    local exit_grotto = function()
+        hold_button("B")
+        hold_button("Down")
+        
+        while game_state.map_name == "Hidden Grotto" do
+            wait_frames(1)
+            dismiss_repel()
+        end
+        
+        release_button("Down")
+        release_button("B")
+        wait_frames(180)
+    end
+
+    local enter_grotto = function()
+        press_sequence(4, "A")
+
+        while game_state.map_name ~= "Hidden Grotto" do
+            press_sequence("A", 4)
+        end
+
+        wait_frames(120)
+
+        hold_button("B")
+        hold_button("Up")
+        
+        while game_state.trainer_z > 13 do
+            wait_frames(1)
+            dismiss_repel()
+        end
+        
+        release_button("B")
+        release_button("Up")
+    end
+
+    if game_state.map_name == "Hidden Grotto" then
+        exit_grotto()
+    end
+
+    while true do
+        print("Waiting for grotto to regenerate...")
+
+        while not grotto_has_regenerated() do
+            bike_back_and_forth()
+
+            if game_state.in_battle then
+                abort("Please a Repel while hunting this grotto!")
+            end
+        end
+        
+        print("Grotto regenerated!")
+        
+        enter_grotto()
+        
+        -- Interact and wait for potential battle
+        press_sequence("A")
+        wait_frames(300)
+
+        if game_state.in_battle then
+            process_wild_encounter()
+        else
+            press_sequence("A", 50, "A") -- Item dialogue
+        end
+
+        exit_grotto()
+    end
 end

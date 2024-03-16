@@ -147,27 +147,17 @@ const buttonTemplate = $('#button-template');
 function updateClientTabs(clients) {
     const clientCount = clients.length;
 
-    if (clientCount == 0) {
-        tabContainer.empty();
-        const button = buttonTemplate.tmpl({ 'game': 'Load pokebot-nds.lua in an emulator to begin!' })
-        button.attr('class', 'btn btn-primary col text-truncate')
-
-        tabContainer.append(button)
-
-        displayClientParty(0, {});
-        displayClientGameInfo(0, {});
-        return
-    }
-
     // Refresh display
     if (tabContainer.children().length != clientCount) {
         tabContainer.empty()
+        partyContainer.empty()
+        gameContainer.empty()
     }
 
     for (var i = 0; i < clientCount; i++) {
         const client = clients[i]
 
-        if (!client.version) continue; // Client still hasn't loaded a game
+        if (!client.version || !client.trainer_name) continue; // Client still hasn't sent important values
 
         const buttonName = 'button-template-' + i.toString(); 
         const existing = $('#' + buttonName);
@@ -179,7 +169,30 @@ function updateClientTabs(clients) {
         }
     }
 
-    gameTab = Math.min(gameTab, clientCount - 1)
+    const tabCount = tabContainer.children().length;
+
+    if (tabCount == 0) {
+        tabContainer.empty();
+        const button = buttonTemplate.tmpl({ 'game': 'Load pokebot-nds.lua in an emulator to begin!' })
+        button.attr('class', 'btn btn-primary col text-truncate')
+
+        tabContainer.append(button)
+
+        displayClientParty(0, {});
+        displayClientGameInfo(0, {});
+    }
+
+    // Set selected tab to first valid client
+    if (!clients[gameTab] || !clients[gameTab].version || !clients[gameTab].trainer_name) {
+        for (let i = 0; i < clientCount; i++) {
+            const client = clients[i];
+            
+            if (client.version && client.trainer_name) {
+                gameTab = i;
+                break;
+            } 
+        }
+    }
 }
 
 function updateTabVisibility() {
@@ -367,6 +380,8 @@ function setClients() {
 
         for (var i = 0; i < clientCount; i++) {
             const client = clients[i];
+
+            if (!client.version || !client.trainer_name) continue; // Client still hasn't sent important values
 
             // Update client party display if data changed
             if (partyContainer.children().length != clientCount || valueHasUpdated(client.party_hash, partyHashes, i)) {

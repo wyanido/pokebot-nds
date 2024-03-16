@@ -68,6 +68,7 @@ function updateOptionVisibility() {
     $('#option_webhook').hide();
     $('#option_ping_user').hide();
     $('#option_primo').hide();
+    $('#option_grotto').hide();
 
     const mode = $('#mode').val();
 
@@ -80,6 +81,10 @@ function updateOptionVisibility() {
             break;
         case 'phenomenon_encounters':
             $('#option_moving_encounters').show();
+            break;
+        case 'hidden_grottos':
+            $('#option_moving_encounters').show();
+            $('#option_grotto').show();
             break;
         case 'primo_gift':
             $('#option_primo').show();

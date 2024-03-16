@@ -72,8 +72,10 @@ const configTemplate = {
     primo1: 1,
     primo2: 1,
     primo3: 1,
-    primo4: 1
+    primo4: 1,
+    grotto: 0
 }
+
 const statsTemplate = {
     total: {
         max_iv_sum: '--',

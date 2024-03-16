@@ -41,7 +41,7 @@ The game will then be connected to the dashboard, which you can view info for on
 | PokéRadar     | ➖ |  |  |  |
 | Headbutt Trees 		|  | ✅ |  |  |
 | Thundurus/Tornadus dex resets 			|  |  | ➖ |  |
-| Hidden Grottos 	|  |  |  | ➖ |
+| Hidden Grottos 	|  |  |  | ✅ |
 
 #### Additional Features
 |  						| DPPt | HGSS | BW | B2W2 | 

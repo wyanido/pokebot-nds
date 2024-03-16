@@ -140,14 +140,16 @@ function frames_per_move()
 end
 
 function update_game_info()
-    if emu.framecount() % 60 == 0 or not game_state then
-        game_state = get_game_state()
-        
+    game_state = get_game_state()
+    
+    if emu.framecount() % 60 == 0 then    
         dashboard:send(json.encode({
             type = "game_state",
             data = game_state
         }) .. "\0")
-
+    end
+    
+    if not foes then
         update_foes()
     end
 
