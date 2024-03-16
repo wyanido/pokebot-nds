@@ -60,7 +60,7 @@ function mode_starters()
     print("Waiting to see starters...")
 
     while mdword(pointers.starter_data - 0x8) ~= 0 or mdword(pointers.starter_data - 0x4) == 0 do
-        press_sequence("A", 6)
+        skip_dialogue()
     end
 
     if not config.hax then
@@ -95,7 +95,7 @@ function mode_voltorb_flip()
 
     local function proceed_text()
         while mdword(board_pointer - 0x4) ~= 0xA0 or mdword(board_pointer - 0x14) ~= 0 do 
-            press_sequence("A", 6) 
+            skip_dialogue()
         end
     end
 
@@ -220,7 +220,7 @@ function mode_primo_gift()
         print('Awaiting Easy Chat prompt...')
         
         while mbyte(pointers.easy_chat_open) ~= 0x1 do
-            press_sequence("A", math.random(5, 30))
+            skip_dialogue()
         end
         
         wait_frames(45)
@@ -249,7 +249,7 @@ function mode_primo_gift()
     -- Now button mash until the egg is received
     local og_party_count = #party
     while #party == og_party_count do
-        press_sequence("A", 5)
+        skip_dialogue()
     end
 
     local mon = party[#party]
@@ -300,7 +300,7 @@ function mode_headbutt()
 
         -- Press A until following Pokemon pushes you out of the way
         while game_state.trainer_x == og_x and game_state.trainer_z == og_z do
-            press_sequence("A", 12)
+            skip_dialogue()
         end
 
         -- Wait for battle to start

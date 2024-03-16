@@ -531,7 +531,7 @@ function mode_static_encounters()
             hold_button("Up")
         end
 
-        press_sequence("A", 5)
+        skip_dialogue()
     end
 
     release_button("Up")
@@ -541,7 +541,7 @@ function mode_static_encounters()
     if not config.hax then
         -- Wait for Pokémon to fully appear on screen
         for i = 0, 22, 1 do 
-            press_sequence("A", 6) 
+            skip_dialogue()
         end
     end
 
@@ -553,12 +553,13 @@ function mode_static_encounters()
     end
 end
 
--- Progress text efficiently
+-- Progress text efficiently while mimicing imperfect human inputs
+-- to increase the randomness of the frames hit
 function skip_dialogue()
     hold_button("A")
-    wait_frames(20)
+    wait_frames(math.random(5, 25))
     release_button("A")
-    wait_frames(2)
+    wait_frames(5)
 end
 
 function mode_starters()
@@ -684,8 +685,7 @@ function mode_gift()
         print("Waiting to reach overworld...")
 
         while not game_state.in_game do
-            local delay = math.random(5, 30) -- Mimic imperfect human inputs
-            press_sequence("A", delay)
+            skip_dialogue()
         end
     end
 
@@ -693,7 +693,7 @@ function mode_gift()
     
     local og_party_count = #party
     while #party == og_party_count do
-        press_sequence("A", 5)
+        skip_dialogue()
     end
 
     press_sequence(180, "B", 60) -- Decline nickname
