@@ -3,7 +3,7 @@ local pokemon = {}
 -- Interprets a region of RAM as Pokemon data and decrypts it as such
 function pokemon.decrypt_data(address)
     local rand = function(seed) -- Thanks Kaphotics
-        return (0x4e6d * (seed % 0x10000) + ((0x41c6 * (seed % 0x10000) + 0x4e6d * math.floor(seed / 0x10000)) % 0x10000) * 0x10000 + 0x6073) % 0x100000000
+        return (0x4e6d * (seed % 65536) + ((0x41c6 * (seed % 65536) + 0x4e6d * math.floor(seed / 65536)) % 65536) * 65536 + 0x6073) % 4294967296
     end
 
     local decrypt_block = function(start, finish)
@@ -36,8 +36,8 @@ function pokemon.decrypt_data(address)
         return sum == checksum
     end
 
-    local concat_table = function(dest, source)
-        table.move(source, 1, #source, #dest + 1, dest)
+    local append_bytes = function(source)
+        table.move(source, 1, #source, #data + 1, data)
     end
     
     local substruct = {
@@ -68,9 +68,9 @@ function pokemon.decrypt_data(address)
     }
 
     data = {} 
-    concat_table(data, { mbyte(address), mbyte(address + 1), mbyte(address + 2), mbyte(address + 3) }) -- PID
-    concat_table(data, {0x0, 0x0}) -- Unused Bytes
-    concat_table(data, { mbyte(address + 6), mbyte(address + 7) } ) -- Checksum
+    append_bytes({ mbyte(address), mbyte(address + 1), mbyte(address + 2), mbyte(address + 3) }) -- PID
+    append_bytes({0x0, 0x0}) -- Unused Bytes
+    append_bytes({ mbyte(address + 6), mbyte(address + 7) } ) -- Checksum
 
     -- Unencrypted bytes
     local pid = mdword(address)
@@ -90,7 +90,7 @@ function pokemon.decrypt_data(address)
     end
 
     for _, index in ipairs(block_order) do
-        concat_table(data, _block[index])
+        append_bytes(_block[index])
     end
 
     -- Re-calculate the checksum of the blocks and match it with mon.checksum
@@ -101,7 +101,7 @@ function pokemon.decrypt_data(address)
 
     -- Party-only status data
     seed = pid
-    concat_table(data, decrypt_block(0x88, 0xDB))
+    append_bytes(decrypt_block(0x88, 0xDB))
 
     if _ROM.gen == 4 then -- Write blank ball seal data
         for i = 0x1, 0x10 do
