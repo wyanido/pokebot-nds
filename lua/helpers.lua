@@ -107,7 +107,7 @@ function get_game_state()
 
     local state = {
         in_game = true,
-        in_battle = type(foe) == "table" and #foe > 0,
+        battle = nil,
         map_header = map,
         map_name = map_names[map + 1],
         trainer_name = read_string(pointers.trainer_name),
@@ -116,10 +116,23 @@ function get_game_state()
         trainer_y = to_signed(mword(pointers.trainer_y + 2)),
         trainer_z = mword(pointers.trainer_z + 2),
     }
+    
+    local in_battle
 
     if _ROM.gen == 5 then
         state["phenomenon_x"] = mword(pointers.phenomenon_x + 2)
         state["phenomenon_z"] = mword(pointers.phenomenon_z + 2)
+
+        in_battle = mword(pointers.pokeparam + 2) == 0x5544
+    else
+        local foe_id = mword(pointers.battle_foe)
+        local ally_id = mword(pointers.battle_ally)
+
+        in_battle = ally_id > 0 and ally_id < #_DEX and foe_id > 0 and foe_id < #_DEX
+    end
+    
+    if in_battle then
+        state["battle"] = get_battle_state()
     end
     
     return state

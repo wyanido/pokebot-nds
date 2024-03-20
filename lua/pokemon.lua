@@ -1,3 +1,5 @@
+dofile("lua\\data.lua")
+
 local pokemon = {}
 
 -- Interprets a region of RAM as Pokemon data and decrypts it as such
@@ -112,8 +114,6 @@ function pokemon.decrypt_data(address)
     return data
 end
 
-dofile("lua\\data\\misc.lua")
-
 -- Parses decrypted data into a human-readable table of key value pairs
 function pokemon.parse_data(data, enrich)
     local read_real = function(start, length)
@@ -190,15 +190,14 @@ function pokemon.parse_data(data, enrich)
     mon.spAttackIV  = bit.band(bit.rshift(value, 20), 0x1F)
     mon.spDefenseIV = bit.band(bit.rshift(value, 25), 0x1F)
     mon.isEgg       = bit.band(bit.rshift(value, 30), 0x01)
-    -- mon.isNicknamed = (value >> 31) & 0x01
-    
+    -- mon.isNicknamed = bit.band(bit.rshift(value, 31), 0x01)
     -- mon.hoennRibbonSet1		= read_real(0x3C, 2)
     -- mon.hoennRibbonSet2		= read_real(0x3E, 2)
 
     local value = read_real(0x40, 1)
-    -- mon.fatefulEncounter = (value >> 0) & 0x01
-    mon.gender           = bit.band(bit.rshift(value, 1), 0x03)
-    mon.altForm	         = bit.band(bit.rshift(value, 3), 0x1F)
+    -- mon.fatefulEncounter = bit.band(bit.rshift(value, 0), 0x01)
+    mon.gender  = bit.band(bit.rshift(value, 1), 0x03)
+    mon.altForm = bit.band(bit.rshift(value, 3), 0x1F)
 
     if _ROM.gen == 4 then
         -- mon.leaf_crown = read_real(0x41, 1)
@@ -243,22 +242,22 @@ function pokemon.parse_data(data, enrich)
     -- Substitute property IDs with ingame names
     if enrich then
         mon.pid = string.format("%08X", mon.pid)
-        mon.name = mon_dex[mon.species + 1][1]
-        mon.type = mon_dex[mon.species + 1][2]
+        mon.name = _DEX[mon.species + 1][1]
+        mon.type = _DEX[mon.species + 1][2]
 
         -- mon.rating = pokemon.get_rating(mon)
-        mon.pokeball = mon_item[mon.pokeball + 1]
-        mon.otLanguage = mon_lang[mon.otLanguage + 1]
-        mon.ability = mon_ability[mon.ability + 1]
-        mon.nature = mon_nature[mon.nature + 1]
-        mon.heldItem = mon_item[mon.heldItem + 1]
-        mon.gender = mon_gender[mon.gender + 1]
-        
+        mon.pokeball = _ITEM[mon.pokeball + 1]
+        mon.otLanguage = _LANG[mon.otLanguage + 1]
+        mon.ability = _ABILITY[mon.ability + 1]
+        mon.nature = _NATURE[mon.nature + 1]
+        mon.heldItem = _ITEM[mon.heldItem + 1]
+        mon.gender = _GENDER[mon.gender + 1]
+
         local move_id = mon.moves
         mon.moves = {}
 
         for _, move in ipairs(move_id) do
-            table.insert(mon.moves, mon_move[move + 1])
+            table.insert(mon.moves, _MOVE[move + 1])
         end
 
         mon.ivSum = mon.hpIV + mon.attackIV + mon.defenseIV + mon.spAttackIV + mon.spDefenseIV + mon.speedIV
@@ -381,41 +380,54 @@ local function table_contains(table_, item)
     return false
 end
 
-function pokemon.find_best_move(ally, foe)
+function pokemon.find_best_move()
     local max_power_index = 1
     local max_power = 0
+    
+    local ally = game_state.battle.ally
+    local foe = game_state.battle.foe
 
-    -- Sometimes, beyond all reasonable explanation, key values are completely missing
-    -- Do nothing in this case to prevent crashes
-    if not foe or not ally or not foe.type or not ally.moves then
-        print_warn("Pokemon values were completely absent, couldn't determine best move")
-        return nil
-    end
-
-    for i = 1, #ally.moves, 1 do
+    for i = 1, 4, 1 do
         local type = ally.moves[i].type
         local power = ally.moves[i].power
 
         -- Ignore useless moves
         if ally.pp[i] ~= 0 and power ~= nil then
-            local type_matchup = mon_type[type]
+            -- Check for ability-based immunity
+            local immunities = {
+                ["Dry Skin"] = "Water",
+                ["Flash Fire"] = "Fire",
+                ["Lightning Rod"] = "Electric",
+                ["Sap Sipper"] = "Grass",
+                ["Motor Drive"] = "Electric",
+                ["Storm Drain"] = "Water",
+                ["Water Absorb"] = "Water",
+                ["Volt Absorb"] = "Electric",
+            }
 
+            if immunities[foe.ability] == type then
+                power = 0
+            end
+
+            local type_matchup = _TYPE[type]
+            
             -- Calculate effectiveness against foe's type(s)
             for j = 1, #foe.type do
-                local foe_type = foe.type[j]
+                local type = foe.type[j]
 
-                if table_contains(type_matchup.cant_hit, foe_type) then
+                if table_contains(type_matchup.cant_hit, type) then
                     power = 0
-                elseif table_contains(type_matchup.resisted_by, foe_type) then
+                elseif table_contains(type_matchup.resisted_by, type) then
                     power = power / 2
-                elseif table_contains(type_matchup.super_effective, foe_type) then
+                elseif table_contains(type_matchup.super_effective, type) then
                     power = power * 2
                 end
             end
 
             -- STAB
-            for j = 1, #ally.type do
-                if ally.type[j] == type then
+            local ally_type = _DEX[ally.species + 1][2]
+            for j = 1, #ally_type do
+                if ally_type[j] == type then
                     power = power * 1.5
                     break
                 end
@@ -490,7 +502,7 @@ function pokemon.matches_ruleset(mon, ruleset)
                     end
                 end
             else
-                if type(value) == "string" then 
+                if type(value) == "string" then
                     -- Case-insensitive string comparison
                     if string.lower(value) ~= string.lower(rule) then
                         print_debug(property .. " " .. value .. " does not match " .. rule)

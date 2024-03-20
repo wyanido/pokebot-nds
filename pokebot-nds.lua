@@ -15,7 +15,6 @@ foe = nil
 party_hash = ""
 party = {}
 
-json = require("lua\\modules\\json")
 pokemon = require("lua\\pokemon")
 dofile("lua\\input.lua")
 dofile("lua\\detect_game.lua")

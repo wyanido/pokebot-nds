@@ -41,7 +41,9 @@ function update_pointers()
         battle_indicator = 0x02258D86 + _ROM.offset, -- 0x41 if during a battle
         foe_count        = 0x02258D90 + _ROM.offset, -- 4 bytes before the first index
         current_foe      = 0x02258D94 + _ROM.offset, -- PID of foe, set immediately after the battle transition ends
-
+        lead_index       = 0x02260010 + _ROM.offset,
+        pokeparam        = 0x0225B1B6 + _ROM.offset,
+        
         -- Misc
         save_indicator            = 0x0223B4F0 + _ROM.offset, -- 1 while save menu is open
         starter_selection_is_open = 0x0219CFE2 + _ROM.offset, -- 0 when opening gift, 1 at starter select
@@ -64,12 +66,6 @@ end
 function mode_starters()
     cycle_starter_choice()
     
-    local balls = {
-        [0] = { x = 40, y = 100 }, -- Snivy
-        [1] = { x = 128, y = 100 }, -- tepig
-        [2] = { x = 210, y = 100 }, -- Oshawott
-    }
-
     if not game_state.in_game then
         print("Waiting to reach overworld...")
 
@@ -84,23 +80,11 @@ function mode_starters()
         press_sequence("A", 5)
     end
 
-    print("Choosing Starter...")
-
-    while mbyte(pointers.starter_selection_is_open) ~= 0 do
-        if mbyte(pointers.selected_starter) ~= 4 then
-            touch_screen_at(120, 180) -- Pick this one!
-            wait_frames(5)
-            touch_screen_at(240, 100) -- Yes
-            wait_frames(5)
-        else
-            touch_screen_at(balls[starter].x, balls[starter].y) -- Starter
-            wait_frames(5)
-        end
-    end
-
-    while #party == 0 do 
-        press_sequence("A", 5) 
-    end
+    choose_starter({
+        [0] = { x = 40, y = 100 }, -- Snivy
+        [1] = { x = 128, y = 100 }, -- tepig
+        [2] = { x = 210, y = 100 }, -- Oshawott
+    })
 
     if not config.hax then
         print("Waiting to see starter...")
@@ -109,16 +93,8 @@ function mode_starters()
             press_sequence("B", 10) 
         end
 
-        -- Party menu
-        press_sequence("X", 30)
-        touch_screen_at(65, 45)
-        wait_frames(90)
-
-        touch_screen_at(80 * ((#party - 1) % 2 + 1), 30 + 50 * math.floor((#party - 1) / 2)) -- Select gift mon
-        wait_frames(30)
-
-        touch_screen_at(200, 105) -- SUMMARY
-        wait_frames(120)
+        open_menu("Pokemon")
+        manage_party(1, "Summmary")
     end
 
     local was_target = pokemon.log_encounter(party[1])
@@ -140,38 +116,6 @@ function dismiss_repel()
     end
 
     return interrupted
-end
-
-function bike_back_and_forth()
-    local horizontal = config.move_direction == "horizontal"
-    local axis = horizontal and pointers.trainer_x or pointers.trainer_z
-    local dir1 = horizontal and "Right" or "Down"
-    local dir2 = horizontal and "Left" or "Up"
-
-    local move_in_direction = function(dir)
-        hold_button(dir)
-        wait_frames(2)
-
-        local z = mword(axis)
-        while mword(axis) == z do
-            hold_button(dir)
-            dismiss_repel()
-
-            if game_state.in_battle then
-                return
-            end
-        end
-    end
-
-    -- Use registered bike if not already riding
-    if mbyte(pointers.on_bike) ~= 1 then
-        press_sequence("Y", 30, "A")
-    end
-
-    move_in_direction(dir1)
-    move_in_direction(dir2)
-
-    release_button(dir2)
 end
 
 function mode_hidden_grottos()
@@ -225,7 +169,7 @@ function mode_hidden_grottos()
         while not grotto_has_regenerated() do
             bike_back_and_forth()
 
-            if game_state.in_battle then
+            if game_state.battle then
                 abort("Please a Repel while hunting this grotto!")
             end
         end
@@ -238,7 +182,7 @@ function mode_hidden_grottos()
         press_sequence("A")
         wait_frames(300)
 
-        if game_state.in_battle then
+        if game_state.battle then
             process_wild_encounter()
         else
             press_sequence("A", 50, "A") -- Item dialogue
