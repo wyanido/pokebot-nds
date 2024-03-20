@@ -24,3 +24,7 @@
 .down {
     color: rgb(82, 137, 248);
 }
+
+#warn-duplicate {
+    display: inline-block;
+}

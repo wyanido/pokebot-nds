@@ -6,16 +6,16 @@ if _EMU == "BizHawk" then
     bit = (require "migration_helpers").EmuHawk_pre_2_9_bit(); -- Suppress deprecation warnings
     console.clear()
     
-    mbyte = function(addr) return memory.read_u8(math.max(addr, 0)) end
-    mword = function(addr) return memory.read_u16_le(math.max(addr, 0)) end
-    mdword = function(addr) return memory.read_u32_le(math.max(addr, 0)) end
+    mbyte = memory.read_u8
+    mword = memory.read_u16_le
+    mdword = memory.read_u32_le
 
     game_loaded = gameinfo.getromhash() ~= ""
 
     client.clearautohold()
-    -- When the script is stopped, restore display
-    -- and touch screen ability
+    -- When the script is stopped, restore display and manual inputs
     event.onexit(function() 
+        joypad.setanalog({['Touch X'] = nil, ['Touch Y'] = nil})
         client.clearautohold() 
         client.invisibleemulation(false)
     end)
@@ -25,9 +25,9 @@ if _EMU == "BizHawk" then
         randomise_reset()
     end
 else
-    mbyte = function(addr) return memory.readbyte(math.max(addr, 0)) end
-    mword = function(addr) return memory.readwordunsigned(math.max(addr, 0)) end
-    mdword = function(addr) return memory.readdwordunsigned(math.max(addr, 0)) end
+    mbyte = memory.readbyte
+    mword = memory.readwordunsigned
+    mdword = memory.readdwordunsigned
     
     game_loaded = emu.emulating()
     

@@ -47,13 +47,13 @@ function update_party(is_reattempt)
     print_debug("Party updated")
     
     -- Update party on the node server
-    dashboard:send(json.encode({
+    dashboard_send({
         type = "party",
         data = {
             party = party,
             hash = party_hash
         }
-    }) .. "\0")
+    })
 
     return true
 end
@@ -143,10 +143,10 @@ function update_game_info()
     game_state = get_game_state()
     
     if emu.framecount() % 60 == 0 then    
-        dashboard:send(json.encode({
+        dashboard_send({
             type = "game_state",
             data = game_state
-        }) .. "\0")
+        })
     end
     
     if not foes then
@@ -158,7 +158,6 @@ end
 
 function abort(reason)
     clear_all_inputs()
-
     print("##### BOT TASK ENDED #####")
     error(reason)
 end

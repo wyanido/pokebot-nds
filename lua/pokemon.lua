@@ -166,25 +166,13 @@ function pokemon.parse_data(data, enrich)
     mon.shiny = mon.shinyValue < 8
 
     -- Block B
-    mon.moves = {
-        read_real(0x28, 2), 
-        read_real(0x2A, 2), 
-        read_real(0x2C, 2), 
-        read_real(0x2E, 2)
-    }
-
-    mon.pp = {
-        read_real(0x30, 1), 
-        read_real(0x31, 1), 
-        read_real(0x32, 1), 
-        read_real(0x33, 1)
-    }
-
+    mon.moves = {read_real(0x28, 2), read_real(0x2A, 2), read_real(0x2C, 2), read_real(0x2E, 2)}
+    mon.pp    = {read_real(0x30, 1), read_real(0x31, 1), read_real(0x32, 1), read_real(0x33, 1)}
     mon.ppUps = read_real(0x34, 4)
 
-    local value = read_real(0x38, 5)
+    local value     = read_real(0x38, 5)
     mon.hpIV        = bit.band(value, 0x1F)
-    mon.attackIV    = bit.band(bit.rshift(value,  5), 0x1F)
+    mon.attackIV    = bit.band(bit.rshift(value, 5), 0x1F)
     mon.defenseIV   = bit.band(bit.rshift(value, 10), 0x1F)
     mon.speedIV     = bit.band(bit.rshift(value, 15), 0x1F)
     mon.spAttackIV  = bit.band(bit.rshift(value, 20), 0x1F)
@@ -202,13 +190,13 @@ function pokemon.parse_data(data, enrich)
 
     if _ROM.gen == 4 then
         -- mon.leaf_crown = read_real(0x41, 1)
-        mon.nature     = mon.pid % 25
+        mon.nature = mon.pid % 25
     else
         mon.nature = read_real(0x41, 1)
-        
-        local data = read_real(0x42, 1)
-        -- mon.dreamWorldAbility = data & 0x01
-        -- mon.isNsPokemon		  = data & 0x02
+
+        local value = read_real(0x42, 1)
+        -- mon.dreamWorldAbility = bit.band(value, 0x01)
+        -- mon.isNsPokemon		  = bit.band(value, 0x01)
     end
 
     -- Block C
@@ -262,21 +250,20 @@ function pokemon.parse_data(data, enrich)
         end
 
         mon.ivSum = mon.hpIV + mon.attackIV + mon.defenseIV + mon.spAttackIV + mon.spDefenseIV + mon.speedIV
-        
-        local hpTypeList = { 
-            "fighting", "flying", "poison", "ground", 
-            "rock", "bug", "ghost", "steel", "fire", 
-            "water", "grass", "electric", "psychic", 
-            "ice", "dragon", "dark",
-        }
 
-        local lsb = (mon.hpIV % 2) + (mon.attackIV % 2) * 2 + (mon.defenseIV % 2) * 4 + (mon.speedIV % 2) * 8 + (mon.spAttackIV % 2) * 16 + (mon.spDefenseIV % 2) * 32
-        local slsb = bit.rshift((bit.band(mon.hpIV, 2)), 1) + bit.rshift(bit.band(mon.attackIV, 2), 1) * 2 + bit.rshift(bit.band(mon.defenseIV, 2), 1) * 4 + bit.rshift(bit.band(mon.speedIV, 2), 1) * 8 + bit.rshift(bit.band(mon.spAttackIV, 2), 1) * 16 + bit.rshift(bit.band(mon.spDefenseIV, 2), 1) * 32
-        
+        local hpTypeList = {"fighting", "flying", "poison", "ground", "rock", "bug", "ghost", "steel", "fire", "water",
+                            "grass", "electric", "psychic", "ice", "dragon", "dark"}
+        local lsb = (mon.hpIV % 2) + (mon.attackIV % 2) * 2 + (mon.defenseIV % 2) * 4 + (mon.speedIV % 2) * 8 +
+                        (mon.spAttackIV % 2) * 16 + (mon.spDefenseIV % 2) * 32
+        local slsb = bit.rshift((bit.band(mon.hpIV, 2)), 1) + bit.rshift(bit.band(mon.attackIV, 2), 1) * 2 +
+                         bit.rshift(bit.band(mon.defenseIV, 2), 1) * 4 + bit.rshift(bit.band(mon.speedIV, 2), 1) * 8 +
+                         bit.rshift(bit.band(mon.spAttackIV, 2), 1) * 16 + bit.rshift(bit.band(mon.spDefenseIV, 2), 1) *
+                         32
+
         mon.hpType = hpTypeList[math.floor((lsb * 15) / 63) + 1]
         mon.hpPower = math.floor((slsb * 40) / 63) + 30
-        
-        -- Keep a reference of the original data, necessary for export_pkx
+
+        -- Keep a reference of the original data, necessary for exporting pkx
         mon.raw = data
     end
 
@@ -339,10 +326,10 @@ function pokemon.log_encounter(mon)
     end
 
     -- Send encounter to dashboard for logging
-    local was_target = pokemon.matches_ruleset(mon, config.target_traits)
-    local msg_type = was_target and "seen_target" or "seen"
+    local is_target = pokemon.matches_ruleset(mon, config.target_traits)
+    local msg_type = is_target and "seen_target" or "seen"
 
-    if was_target then
+    if is_target then
         print(mon.name .. " is a target!")
 
         if config.save_pkx then
@@ -350,20 +337,20 @@ function pokemon.log_encounter(mon)
             local hex_string = string.format("%04X", mon.checksum) .. mon.pid
             local filename = string.format("%04d", mon.species) .. shiny .. " - " .. mon.nickname .. " - " .. hex_string  .. ".pk" .. _ROM.gen
 
-            dashboard:send(json.encode({
+            dashboard_send({
                 type = "save_pkx",
                 data = mon.raw,
-                filename = filename,
-            }) .. "\0")
+                filename = filename
+            })
         end
     end
 
-    dashboard:send(json.encode({
+    dashboard_send({
         type = msg_type,
         data = mon_new
-    }) .. "\0")
+    })
 
-    return was_target
+    return is_target
 end
 
 local function table_contains(table_, item)
@@ -372,7 +359,7 @@ local function table_contains(table_, item)
         -- print_debug("Ruleset entry was not a table. Fixing.")
     end
 
-    for _, table_item in pairs(table_) do
+    for _, table_item in ipairs(table_) do
         if string.lower(table_item) == string.lower(item) then
             return true
         end

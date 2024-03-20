@@ -30,6 +30,11 @@ function poll_dashboard_response()
     end
 end
 
+function dashboard_send(data)
+    if disconnected then return end
+    dashboard:send(json.encode(data) .. "\0")
+end
+
 print("Connecting to the dashboard... ")
 
 local status, err = pcall(function () 
@@ -40,18 +45,14 @@ if err then
 
     config = json.load("user\\config.json")
     disconnected = true
-    
-    dashboard = {
-        send = function() end
-    }
     return
 end
 
 dashboard:settimeout(0)
-dashboard:send(json.encode({
+dashboard_send({
     type = "load_game",
     data = _ROM
-}) .. "\0")
+})
 
 print("Waiting for dashboard to relay config file... ")
 

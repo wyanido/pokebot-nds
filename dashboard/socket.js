@@ -302,21 +302,17 @@ function updateEncounterLog(mon) {
     }
 
     writeJSONToFile('../user/encounters.json', recents);
-
-    return recents;
 }
 
 function updateTargetLog(mon) {
     targets.push(mon)
-    targets = targets.slice(-config.target_log_limit)
+    targets = targets.slice(0, targets.length - config.target_log_limit)
 
     // Reset target phase stats
     stats.phase.seen = 0
     stats.phase.lowest_sv = '--'
 
     writeJSONToFile('../user/target_log.json', targets)
-
-    return targets
 }
 
 function formatClientMessage(type, data) {

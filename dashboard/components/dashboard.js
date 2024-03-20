@@ -157,7 +157,7 @@ function updateClientTabs(clients) {
     for (var i = 0; i < clientCount; i++) {
         const client = clients[i]
 
-        if (!client.version || !client.trainer_name) continue; // Client still hasn't sent important values
+        if (!client || !client.version || !client.trainer_name) continue; // Client still hasn't sent important values
 
         const buttonName = 'button-template-' + i.toString(); 
         const existing = $('#' + buttonName);

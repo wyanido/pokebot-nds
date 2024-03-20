@@ -121,9 +121,9 @@ function mode_starters()
         wait_frames(120)
     end
 
-    local was_target = pokemon.log_encounter(party[1])
+    local is_target = pokemon.log_encounter(party[1])
 
-    if was_target then
+    if is_target then
         abort("Starter meets target specs")
     else
         print("Starter was not a target, resetting...")

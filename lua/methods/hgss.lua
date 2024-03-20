@@ -73,9 +73,9 @@ function mode_starters()
     for i = 0, 2, 1 do
         local mon_data = pokemon.decrypt_data(pointers.starter_data + i * MON_DATA_SIZE)
         local starter = pokemon.parse_data(mon_data, true)
-        local was_target = pokemon.log_encounter(starter)
+        local is_target = pokemon.log_encounter(starter)
 
-        if was_target then
+        if is_target then
             abort("Starter " .. (i + 1) .. " meets target specs!")
         end
 
@@ -253,9 +253,9 @@ function mode_primo_gift()
     end
 
     local mon = party[#party]
-    local was_target = pokemon.log_encounter(mon)
+    local is_target = pokemon.log_encounter(mon)
 
-    if was_target then
+    if is_target then
         if config.save_game_after_catch then
             print("Gift Pokemon meets target specs! Saving...")
 
