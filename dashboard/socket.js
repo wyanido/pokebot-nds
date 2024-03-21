@@ -330,13 +330,14 @@ function webhookLogPokemon(mon, client) {
         default: gender = ''; break;
     }
 
+    const species = mon.species.toString().padStart(3, '0');
     const iv_sum = mon.hpIV + mon.attackIV + mon.defenseIV + mon.spAttackIV + mon.spDefenseIV + mon.speedIV;
     const sparkle = (mon.shinyValue < 8 || mon.shiny) ? '✨' : '';
     const folder = (mon.shinyValue < 8 || mon.shiny) ? 'shiny/' : '';
-    const file = new AttachmentBuilder(`./assets/pokemon/${folder}${mon.species}.png`);
+    const file = new AttachmentBuilder(`./assets/pokemon/${folder}${species}.png`);
     const embed = new EmbedBuilder()
         .setTitle(`Encountered Lv.${mon.level} ${mon.name} ${gender}`)
-        .setThumbnail(`attachment://${mon.species}.png`)
+        .setThumbnail(`attachment://${species}.png`)
         .setDescription(`Found at ${client.map_name} (${client.version})`)
         .addFields(
             { name: 'Shiny Value', value: `${sparkle}${mon.shinyValue.toString()}`, inline: true },
