@@ -40,7 +40,7 @@ The game will then be connected to the dashboard, which you can view info for on
 | Egg hatching			| ➖ | ➖ | ✅ | ✅ |
 | PokéRadar     | ➖ |  |  |  |
 | Headbutt Trees 		|  | ✅ |  |  |
-| Thundurus/Tornadus dex resets 			|  |  | ➖ |  |
+| Thundurus/Tornadus dex resets 			|  |  | ✅ |  |
 | Hidden Grottos 	|  |  |  | ✅ |
 
 #### Additional Features

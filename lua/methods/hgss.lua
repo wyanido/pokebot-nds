@@ -306,7 +306,7 @@ function mode_headbutt()
         -- Wait for battle to start
         wait_frames(400)
 
-        if game_state.in_battle then
+        if game_state.battle then
             process_wild_encounter()
             wait_frames(90)
         else

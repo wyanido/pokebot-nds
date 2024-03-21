@@ -1,5 +1,5 @@
-
 local socket = require('lua\\modules\\socket')
+
 local disconnected = false
 
 function poll_dashboard_response()
