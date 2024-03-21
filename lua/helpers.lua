@@ -98,6 +98,10 @@ function update_foes()
 end
 
 function get_game_state()
+    if pointers.map_header < 0 then
+        return {}
+    end
+    
     local map = mword(pointers.map_header)
     local in_game = (map ~= 0x0 and map <= #map_names)
 

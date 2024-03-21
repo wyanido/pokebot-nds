@@ -689,16 +689,14 @@ function mode_gift()
         end
     end
 
-    wait_frames(60)
-    
     local og_party_count = #party
     while #party == og_party_count do
         skip_dialogue()
     end
-
-    press_sequence(180, "B", 60) -- Decline nickname
     
     if not config.hax then
+        press_sequence(180, "B", 60) -- Decline nickname
+        
         -- Party menu
         press_sequence("X", 30)
         touch_screen_at(65, 45)
