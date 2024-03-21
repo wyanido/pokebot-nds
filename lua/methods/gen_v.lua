@@ -52,6 +52,8 @@ function update_pointers()
 
         trainer_name = 0x2234FB0 + _ROM.offset,
         trainer_id   = 0x2234FC0 + _ROM.offset,
+
+        thundurus_tornadus = 0x225960C + _ROM.offset,
     }
 end
 
@@ -806,10 +808,15 @@ function mode_thundurus_tornadus()
         press_sequence("A", 5)
     end
 
-    if dex_registered("tornadus", "shiny_male") or dex_registered("thundurus", "shiny_male") then
-        abort("Dex entry is shiny!")
+    -- Read pre-generated Pokemon from memory
+    local data = pokemon.decrypt_data(pointers.thundurus_tornadus)
+    local mon = pokemon.parse_data(data, true)
+    local is_target = pokemon.log_encounter(mon)
+
+    if is_target then
+        abort(mon.name .. " is a target!")
     else
-        print("Dex entry was not shiny, resetting...")
+        print(mon.name .. " was not a target, resetting...")
         soft_reset()
     end
 end
