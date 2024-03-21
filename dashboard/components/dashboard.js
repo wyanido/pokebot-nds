@@ -296,9 +296,9 @@ function updateRecentlySeen(force = false) {
         });
         
         if (uniquePIDS.length < recentEncounters.length) {
-            $('#warn-duplicate').show()
+            $('#warn-duplicate').css('visibility', 'visible')
         } else {
-            $('#warn-duplicate').hide()
+            $('#warn-duplicate').css('visibility', 'hidden')
         }
     });
 }
