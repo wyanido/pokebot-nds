@@ -38,10 +38,12 @@ function update_pointers()
         battle_bag_page = bag_page_anchor + 0x4E,
 
         trainer_name = anchor - 0x22,
-        trainer_id = anchor - 0x12
+        trainer_id   = anchor - 0x12,
+
+        pokeradar = anchor + 0x24542,
     }
 
-    -- print(string.format("%08X", 0x22C367C - anchor))
+    -- print(string.format("%08X", 0x2291ADC - anchor))
 end
 
 -----------------------
@@ -304,6 +306,126 @@ function mode_random_encounters()
 
     if config.pickup then
         do_pickup()
+    end
+end
+
+-- https://www.smogon.com/forums/threads/chaining-with-the-pokeradar-the-correct-way-gp-2-2.3486334/
+function mode_pokeradar()
+    local get_patches = function()
+        local patches = {}
+
+        for i = 0x18, 0xC0, 0x28 do
+            local type = mdword(pointers.pokeradar + i)
+            
+            if type == 1 then 
+                local addr = mdword(pointers.pokeradar + i + 0xC)
+
+                local patch = {
+                    type = type,
+                    speed = mdword(pointers.pokeradar + i + 0x4),
+                    x = mword(pointers.pokeradar + i + 0x12),
+                    z = mword(pointers.pokeradar + i + 0x1A),
+                    shiny = mdword(addr + 4) == 2,
+                    -- c = mdword(addr + 0x3C),
+                }
+
+                patch.distance = math.max(math.abs(game_state.trainer_x - patch.x), math.abs(game_state.trainer_z - patch.z))
+
+                -- Chances to continue chain by distance are:
+                -- 1 = 28%, 2 = 48%, 3 = 68%, 4 = 88%
+                -- If the Pokemon is caught, these odds increase by 10%
+                print(patch)
+                table.insert(patches, patch)
+            end
+        end
+
+        return patches
+    end
+
+    local recharge = function()
+        local dir1, dir2, start_face
+
+        if config.move_direction == "horizontal" then
+            dir1 = "Left"
+            dir2 = "Right"
+            start_face = 2
+        else
+            dir1 = "Up"
+            dir2 = "Down"
+            start_face = 0
+        end
+
+        hold_button("B")
+
+        if mbyte(pointers.facing) ~= start_face then
+            press_sequence(dir2, 8)
+        end
+
+        for i = 0, 50, 1 do
+            hold_button(dir1)
+            wait_frames(7)
+            hold_button(dir2)
+            wait_frames(7)                
+        end
+
+        clear_all_inputs()
+    end
+    
+    while true do
+        press_button("Y")
+        wait_frames(1)
+
+        print(string.format("%08X", pointers.foe_count))
+        print(game_state.trainer_x .. ", --, " .. game_state.trainer_z)
+        print("")
+
+        local patches = get_patches()
+        
+        if #patches > 0 then
+            local target_patch
+            
+            -- Find the best patch to go with
+            for _, patch in ipairs(patches) do
+                if patch.distance == 4 then
+                    target_patch = patch
+                    break
+                end
+            end
+
+            if target_patch then
+                while not game_state.battle do
+                    while target_patch.x > game_state.trainer_x do
+                        hold_button("Right")
+                    end
+
+                    while target_patch.x < game_state.trainer_x do
+                        hold_button("Left")
+                    end
+
+                    while target_patch.z > game_state.trainer_z do
+                        hold_button("Down")
+                    end
+
+                    while target_patch.z < game_state.trainer_z do
+                        hold_button("Up")
+                    end
+
+                    process_frame()
+                end
+                
+                clear_all_inputs()
+                
+                while game_state.battle do
+                    do_battle()
+                end
+
+                wait_frames(120)
+            else
+                recharge()
+            end
+        else
+            recharge()
+        end
     end
 end
 

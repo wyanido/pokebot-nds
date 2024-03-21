@@ -50,7 +50,9 @@ function update_pointers()
         fishing_no_bite           = 0x21509DB + _ROM.offset,
 
         trainer_name = 0x2234FB0 + _ROM.offset,
-        trainer_id   = 0x2234FC0 + _ROM.offset
+        trainer_id   = 0x2234FC0 + _ROM.offset,
+
+        thundurus_tornadus = 0x2146370 + _ROM.offset,
     }
 end
 
@@ -779,4 +781,12 @@ function get_battle_state()
     end
 
     return state
+end
+
+function mode_thundurus_tornadus()
+    press_button("Down")
+
+    while mdword(pointers.thundurus_tornadus) ~= 0xFFFFFFFF do
+        press_sequence("A", 5)
+    end
 end

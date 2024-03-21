@@ -62,6 +62,7 @@ const configTemplate = {
     inflict_status: false,
     false_swipe: false,
     debug: false,
+    focus_mode: false,
     webhook_url: "",
     webhook_enabled: false,
     ping_user: false,
