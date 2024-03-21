@@ -1,6 +1,6 @@
 const net = require('net');
 const fs = require('fs');
-const { AttachmentBuilder, EmbedBuilder, WebhookClient } = require('discord.js');
+const { AttachmentBuilder, EmbedBuilder, WebhookClient, ButtonBuilder, ButtonStyle } = require('discord.js');
 const port = 51055;
 
 var clients = [];
@@ -128,10 +128,16 @@ if (config.show_status) {
         setInterval(() => {
             // Default status
             let status = {
-                state: 'Idling',
+                state: 'Idle',
+                details: 'No games connected',
                 largeImageKey: 'none',
                 startTimestamp: null,
                 instance: false,
+                buttons: [new ButtonBuilder()
+                    .setLabel('View on GitHub')
+                    .setURL('https://github.com/wyanido/pokebot-nds')
+                    .setStyle(ButtonStyle.Link)
+                ]
             }
 
             if (clientData.length > 0 && clientData[0] != undefined) {
@@ -153,7 +159,6 @@ if (config.show_status) {
                 }
 
                 const location = clientData[0].map_name;
-                if (location == undefined) return;
                 const moreGames = (clients.length > 1) ? `+ ${clientData.length - 1} game(s)` : ''
 
                 status.largeImageKey = icon;
