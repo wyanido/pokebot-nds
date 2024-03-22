@@ -50,7 +50,9 @@ function update_pointers()
         fishing_no_bite           = 0x21509DB + _ROM.offset,
 
         trainer_name = 0x2234FB0 + _ROM.offset,
-        trainer_id   = 0x2234FC0 + _ROM.offset
+        trainer_id   = 0x2234FC0 + _ROM.offset,
+
+        thundurus_tornadus = 0x225960C + _ROM.offset
     }
 end
 
@@ -1246,4 +1248,88 @@ function read_string(input, pointer)
     end
     
     return text
+end
+
+function dismiss_repel()
+    local interrupted = false 
+    
+    while mdword(pointers.text_interrupt) == 2 do
+        press_sequence("A", 6)
+        interrupted = true
+    end
+
+    return interrupted
+end
+
+function mode_thundurus_tornadus()
+    local dex_entry_added = function()
+        local tornadus_seen = dex_registered("tornadus", "male") or dex_registered("tornadus", "shiny_male")
+        local thundurus_seen = dex_registered("thundurus", "male") or dex_registered("thundurus", "shiny_male")
+
+        return tornadus_seen or thundurus_seen
+    end
+
+    while not game_state.in_game do
+        press_sequence("A", 5)
+    end
+
+    -- Exit house
+    while game_state.map_header == 344 do
+        hold_button("Down")
+    end
+
+    release_button("Down")
+
+    -- Skip through cutscene until dex entry is registered
+    while not dex_entry_added() do
+        press_sequence("A", 5)
+    end
+
+    -- Read pre-generated Pokemon from memory
+    local data = pokemon.decrypt_data(pointers.thundurus_tornadus)
+    local mon = pokemon.parse_data(data, true)
+    local is_target = pokemon.log_encounter(mon)
+
+    if is_target then
+        abort(mon.name .. " is a target!")
+    else
+        print(mon.name .. " was not a target, resetting...")
+        soft_reset()
+    end
+end
+
+function dex_registered(name, field)
+    local dex = {
+        ["caught"]       = 0x223D1B4 + _ROM.offset,
+        ["male"]         = 0x223D208 + _ROM.offset,
+        ["female"]       = 0x223D25C + _ROM.offset,
+        ["shiny_female"] = 0x223D304 + _ROM.offset,
+        ["seen"]         = 0x223D358 + _ROM.offset,
+        ["shiny_male"]   = 0x223D2B0 + _ROM.offset,
+    }
+
+    local addr = dex[field]
+    if not addr then
+        print_warn(field .. " is not a valid dex flag")
+        return nil
+    end
+
+    for i, v in ipairs(mon_dex) do
+        if string.lower(v[1]) == string.lower(name) then
+            local idx = i - 2
+            local byte = addr + math.floor(idx / 8)
+            local value = mbyte(byte)
+            local registered = bit.band(value, bit.lshift(1, idx % 8)) > 0
+            
+            if registered then
+                print_debug(name .. " " .. field)
+            end
+
+            return registered
+        end    
+    end
+
+    print_warn("Pokemon " .. name .. " not found")
+
+    return nil
 end

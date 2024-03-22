@@ -161,6 +161,10 @@ function update_game_info()
 end
 
 function abort(reason)
+    if _EMU == "BizHawk" then
+        client.invisibleemulation(false)
+    end
+    
     clear_all_inputs()
     print("##### BOT TASK ENDED #####")
     error(reason)

@@ -311,7 +311,7 @@ function updateEncounterLog(mon) {
 
 function updateTargetLog(mon) {
     targets.push(mon)
-    targets = targets.slice(0, targets.length - config.target_log_limit)
+    targets.splice(0, targets.length - config.target_log_limit)
 
     // Reset target phase stats
     stats.phase.seen = 0

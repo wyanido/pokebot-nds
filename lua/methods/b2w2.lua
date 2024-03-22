@@ -131,17 +131,6 @@ function mode_starters()
     end
 end
 
-function dismiss_repel()
-    local interrupted = false 
-    
-    while mdword(pointers.text_interrupt) == 2 do
-        press_sequence("A", 6)
-        interrupted = true
-    end
-
-    return interrupted
-end
-
 function bike_back_and_forth()
     local horizontal = config.move_direction == "horizontal"
     local axis = horizontal and pointers.trainer_x or pointers.trainer_z

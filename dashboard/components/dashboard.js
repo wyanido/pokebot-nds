@@ -157,7 +157,7 @@ function updateClientTabs(clients) {
     for (var i = 0; i < clientCount; i++) {
         const client = clients[i]
 
-        if (!client || !client.version || !client.trainer_name) continue; // Client still hasn't sent important values
+        if (!client.version || !client.trainer_name) continue; // Client still hasn't sent important values
 
         const buttonName = 'button-template-' + i.toString(); 
         const existing = $('#' + buttonName);
@@ -187,8 +187,9 @@ function updateClientTabs(clients) {
         for (let i = 0; i < clientCount; i++) {
             const client = clients[i];
             
-            if (client.version && client.trainer_name) {
+            if (client && client.version && client.trainer_name) {
                 gameTab = i;
+                updateTabVisibility()
                 break;
             } 
         }
@@ -196,9 +197,9 @@ function updateClientTabs(clients) {
 }
 
 function updateTabVisibility() {
-    const tabCount = tabContainer.children().length
+    const gameCount = gameContainer.children().length
 
-    for (var i = 0; i <= tabCount; i++) {
+    for (var i = 0; i <= gameCount; i++) {
         const idx = i.toString()
 
         if (i == gameTab) {
@@ -295,9 +296,9 @@ function updateRecentlySeen(force = false) {
         });
         
         if (uniquePIDS.length < recentEncounters.length) {
-            $('#warn-duplicate').show()
+            $('#warn-duplicate').css('visibility', 'visible')
         } else {
-            $('#warn-duplicate').hide()
+            $('#warn-duplicate').css('visibility', 'hidden')
         }
     });
 }
@@ -381,7 +382,7 @@ function setClients() {
         for (var i = 0; i < clientCount; i++) {
             const client = clients[i];
 
-            if (!client.version || !client.trainer_name) continue; // Client still hasn't sent important values
+            if (!client || !client.version || !client.trainer_name) continue; // Client still hasn't sent important values
 
             // Update client party display if data changed
             if (partyContainer.children().length != clientCount || valueHasUpdated(client.party_hash, partyHashes, i)) {
