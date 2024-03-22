@@ -29,14 +29,14 @@ const configTemplate = {
     },
     pokeball_override: {
         'Repeat Ball': {
-            species: [
+            name: [
                 "Lillipup",
                 "Bidoof",
                 "Sentret"
             ]
         },
         'Net Ball': {
-            "type": [
+            type: [
                 "Bug",
                 "Water"
             ]

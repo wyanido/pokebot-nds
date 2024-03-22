@@ -162,7 +162,15 @@ function pokemon.parse_data(data, enrich)
     -- mon.sinnohRibbonSet1 = read_real(0x24, 2)
     -- mon.unovaRibbonSet 	 = read_real(0x26, 2)
     
-    mon.shinyValue = bit.bxor(bit.bxor(bit.bxor(mon.otID, mon.otSID), (bit.band(bit.rshift(mon.pid, 16), 0xFFFF))), bit.band(mon.pid, 0xFFFF))
+    local tid = mon.otID
+    local sid = mon.otSID
+    
+    if config.ot_override then
+        tid = tonumber(config.tid_override)
+        sid = tonumber(config.sid_override)
+    end
+
+    mon.shinyValue = bit.bxor(bit.bxor(bit.bxor(tid, sid), (bit.band(bit.rshift(mon.pid, 16), 0xFFFF))), bit.band(mon.pid, 0xFFFF))
     mon.shiny = mon.shinyValue < 8
 
     -- Block B
@@ -308,6 +316,7 @@ function pokemon.log_encounter(mon)
         "pid", "species", "name", "level", "gender", "nature", "heldItem",
         "hpIV", "attackIV", "defenseIV", "spAttackIV", "spDefenseIV", "speedIV", 
         "shiny", "shinyValue", "ability", "altForm", "ivSum", "hpType", "hpPower",
+        "isEgg",
     }
     
     for k, v in pairs(mon_new) do

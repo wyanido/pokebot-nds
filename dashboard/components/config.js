@@ -69,6 +69,7 @@ function updateOptionVisibility() {
     $('#option_ping_user').hide();
     $('#option_primo').hide();
     $('#option_grotto').hide();
+    $('#option_ot_override').hide();
 
     const mode = $('#mode').val();
 
@@ -123,6 +124,10 @@ function updateOptionVisibility() {
 
     if ($('#ping_user').prop('checked')) {
         $('#option_ping_user').show();
+    }
+
+    if ($('#ot_override').prop('checked')) {
+        $('#option_ot_override').show();
     }
 }
 

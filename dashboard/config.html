@@ -388,13 +388,34 @@
                         <br>
                         <label for="pickup_threshold">Pickup threshold
                             <i class="fa fa-info-circle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
-                            <div id="tooltip" role="tooltip">Number of party Pickup Pokémon that must have found an item
+                            <div id="tooltip" role="tooltip">Number of party Pokémon with Pickup that must find an item
                                 before collection.
                                 <div id="arrow" data-popper-arrow></div>
                             </div>
                         </label>
-                        <input id="pickup_threshold" style="width:100px" min="1" max="6" type="number"
-                            class="form-control">
+                        <input id="pickup_threshold" style="width:100px" min="1" max="6" type="number" class="form-control">
+                    </div>
+                    <div class="card">
+                        <h2 class="content-title">Advanced</h2>
+                        <div class="custom-switch">
+                            <input type="checkbox" id="ot_override">
+                            <label for="ot_override">TID/SID Override
+                                <i class="fa fa-info-circle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
+                                <div id="tooltip" role="tooltip">Uses a preset TID/SID pair to calculate Shiny Value instead of
+                                    the one present in the current game. Useful for hunting eggs that would be shiny when
+                                    hatched in a different game, especially Manaphy. 
+                                    <div id="arrow" data-popper-arrow></div>
+                                </div>
+                            </label>
+                        </div>
+                        <br>
+                        <div id="option_ot_override">
+                            <label for="tid_override">TID</label>
+                            <input id="tid_override" style="width:100px" class="form-control">
+                            <br>
+                            <label for="sid_override">SID</label>
+                            <input id="sid_override" style="width:100px" class="form-control">
+                        </div>
                     </div>
                 </div>
             </fieldset>

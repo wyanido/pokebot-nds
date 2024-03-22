@@ -83,21 +83,18 @@ function displayClientParty(tabIndex, party) {
         
         mon.fainted = mon.currentHP == 0 ? 'opacity: 0.5' : '';
         mon.gender = mon.gender == 'Genderless' ? 'none' : mon.gender.toLowerCase();
-        mon.name = '(' + mon.name + ')';
         mon.pokerus = getPokerusStrain(mon.pokerus);
         
-        // Don't spoil info on unhatched eggs
+        // Hide species of unhatched eggs
         if (mon.isEgg) {
-            mon.shiny = '';
-            mon.species = 'egg';
             mon.folder = '';
             mon.name = `<${mon.friendship} Steps Remaining`;
-        } else {
-            const shiny = mon.shinyValue < 8;
-
-            mon.folder = shiny ? 'shiny/' : '';
-            mon.shiny = shiny ? '✨' : '';
         }
+
+        const shiny = mon.shinyValue < 8;
+
+        mon.folder = shiny ? 'shiny/' : '';
+        mon.shiny = shiny ? '✨' : '';
 
         ele.append(partyMonTemplate.tmpl(mon))
     }
@@ -253,6 +250,16 @@ function enrichFurther(mon) {
 
     if (mon.altForm > 0) {
         mon.species = mon.species + '-' + mon.altForm.toString()
+    }
+
+    if (mon.isEgg) {
+        mon.species = 'egg';
+        mon.folder = '';
+        
+        if (mon.name == 'Manaphy') {
+            mon.species = 'manaphy-egg';
+            mon.nickname = 'Manaphy Egg';
+        }
     }
 
     // Display raised/lowered stat modifiers in colour
