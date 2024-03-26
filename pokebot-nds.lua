@@ -12,7 +12,6 @@ print("")
 game_state = nil
 config = nil
 foe = nil
-party_hash = ""
 party = {}
 
 json = require("lua\\modules\\json")

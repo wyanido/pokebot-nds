@@ -37,8 +37,7 @@ The game will then be connected to the dashboard, which you can view info for on
 | Gift resets 			| ✅ | ✅ | ✅ | ✅ |
 | Static encounters 	| ✅ | ✅ | ✅ | ✅ |
 | Fishing			   	| ✅ | ✅ | ✅ | ✅ |
-| Egg hatching			| ➖ | ➖ | ✅ | ✅ |
-| PokéRadar     | ➖ |  |  |  |
+| Egg hatching			| ✅ | ➖ | ✅ | ✅ |
 | Headbutt Trees 		|  | ✅ |  |  |
 | Thundurus/Tornadus dex resets 			|  |  | ✅ |  |
 | Hidden Grottos 	|  |  |  | ✅ |

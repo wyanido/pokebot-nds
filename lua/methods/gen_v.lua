@@ -801,9 +801,9 @@ function mode_starters()
         end
     end
 
-    local was_target = pokemon.log_encounter(party[1])
+    local is_target = pokemon.log_encounter(party[1])
 
-    if was_target then
+    if is_target then
         abort("Starter meets target specs")
     else
         print("Starter was not a target, resetting...")
@@ -887,9 +887,9 @@ function mode_gift()
     end
 
     local mon = party[#party]
-    local was_target = pokemon.log_encounter(mon)
+    local is_target = pokemon.log_encounter(mon)
 
-    if was_target then
+    if is_target then
         if config.save_game_after_catch then
             print("Gift Pokemon meets target specs! Saving...")
 
@@ -1156,12 +1156,12 @@ function mode_daycare_eggs()
             -- Find newly hatched party member and add to the log
             for i = 1, #party, 1 do
                 if party_eggs[i] == 1 and party[i].isEgg == 0 then
-                    local was_target = pokemon.log_encounter(party[i])
+                    local is_target = pokemon.log_encounter(party[i])
                     break
                 end
             end
 
-            if was_target then
+            if is_target then
                 if config.save_game_after_catch then
                     save_game()
                 end

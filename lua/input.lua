@@ -34,23 +34,19 @@ function press_button(button)
 end
 
 function hold_button(button)
+    -- Release previous d-pad inputs, only one is recognised at a time
+    local directions = {"Up", "Down", "Left", "Right"}
+    if table_contains(directions, button) then
+        directions[button] = nil
+
+        for _, v in ipairs(directions) do
+            release_button(v)
+        end
+    end
+
     button = adjust_case(button)
     held_input[button] = true
     input[button] = true
-
-    -- Release conflicting D-pad inputs
-    local opposite
-    if     string.lower(button) == "left"  then opposite = "Right"
-    elseif string.lower(button) == "right" then opposite = "Left"
-    elseif string.lower(button) == "down"  then opposite = "Up"
-    elseif string.lower(button) == "up"    then opposite = "Down" end
-    
-    if opposite then
-        opposite = adjust_case(opposite)
-        
-        held_input[opposite] = false
-        input[opposite] = false
-    end
 
     joypad.set(input)
     wait_frames(1)

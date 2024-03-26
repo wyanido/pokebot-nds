@@ -407,7 +407,6 @@ function interpretClientMessage(socket, message) {
             writeJSONToFile('../user/stats.json', stats);
             break;
         case 'party':
-            client.party_hash = data.hash
             client.party = data.party;
             break;
         case 'load_game':
@@ -426,7 +425,7 @@ function interpretClientMessage(socket, message) {
             const map = data.map_name || '--';
 
             client.map_name = map;
-            client.position = `${(data.trainer_x || '--').toString()}, ${(data.trainer_y || '--').toString()}, ${(data.trainer_z || '--').toString()}`;
+            client.position = `${Math.floor(data.trainer_x || 0)}, ${Math.floor(data.trainer_y || 0)}, ${Math.floor(data.trainer_z || 0)}`;
             client.trainer_name = data.trainer_name || '--'
             client.trainer_id = data.trainer_id || '--';
 

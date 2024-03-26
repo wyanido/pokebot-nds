@@ -1,59 +1,47 @@
-function update_party(is_reattempt)
+function update_party()
     -- Prevent reading out of bounds when loading gen 4 games
     if pointers.party_count < 0x02000000 then
-        party_changed = true
         party = {}
         return true
     end
 
-    -- Check if party data has updated
     local party_size = mbyte(pointers.party_count)
-    local new_hash = ""
+    local party_updated = false
 
-    if not is_reattempt then
-        -- Generate a "hash" by stringing together every checksum in the party
-        for i = 1, party_size, 1 do
-            new_hash = new_hash .. mdword(pointers.party_data + 4 + MON_DATA_SIZE * i)
-        end
+    for i = 1, 6, 1 do
+        local checksum = mword(pointers.party_data + 6 + MON_DATA_SIZE * (i - 1))
         
-        if party_hash == new_hash then
-            return false
-        end
-    end
-    
-    -- Read new party data
-    local new_party = {}
-
-    for i = 0, party_size - 1 do
-        local mon_data = pokemon.decrypt_data(pointers.party_data + i * MON_DATA_SIZE)
-        if mon_data then
-            local mon = pokemon.parse_data(mon_data, true)
-            
-            -- Friendship value is used to store egg cycles before hatching
-            if mon.isEgg == 1 then
-                mon.friendship = bit.lshift(mon.friendship, 8)
+        if i <= party_size then
+            -- If the Pokemon has changed, re-read its data
+            if party[i] == nil or checksum ~= party[i].checksum then
+                local mon_data = pokemon.decrypt_data(pointers.party_data + (i - 1) * MON_DATA_SIZE)
+                if mon_data then
+                    local mon = pokemon.parse_data(mon_data, true)
+                    
+                    party[i] = mon
+                    party_updated = true
+                else
+                    print_debug("Party checksum failed at slot " .. i)
+                end
             end
-            
-            table.insert(new_party, mon)
         else
-            -- If any party checksums fail, do not process this frame
-            print_debug("Party checksum failed at slot " .. i)
-            return false
+            if party[i] ~= nil then
+                party_updated = true
+                party[i] = nil
+            end
         end
     end
-
-    party = new_party
-    party_hash = new_hash
-    print_debug("Party updated")
     
-    -- Update party on the node server
-    dashboard_send({
-        type = "party",
-        data = {
-            party = party,
-            hash = party_hash
-        }
-    })
+    -- Only send data on change to minimize expensive DOM updates on dashboard
+    if party_updated then
+        print_debug("Party updated")
+        dashboard_send({
+            type = "party",
+            data = {
+                party = party
+            }
+        })
+    end
 
     return true
 end
@@ -116,9 +104,9 @@ function get_game_state()
         map_name = map_names[map + 1],
         trainer_name = read_string(pointers.trainer_name),
         trainer_id = string.format("%05d", mword(pointers.trainer_id)) .. " (" .. string.format("%05d", mword(pointers.trainer_id + 2)) .. ")",
-        trainer_x = mword(pointers.trainer_x + 2),
-        trainer_y = to_signed(mword(pointers.trainer_y + 2)),
-        trainer_z = mword(pointers.trainer_z + 2),
+        trainer_x = mdword(pointers.trainer_x) / 65536.0,
+        trainer_y = to_signed(mdword(pointers.trainer_y) / 65536.0),
+        trainer_z = mdword(pointers.trainer_z) / 65536.0,
     }
 
     if _ROM.gen == 5 then
@@ -127,6 +115,21 @@ function get_game_state()
     end
     
     return state
+end
+
+function table_contains(table_, item)
+    if type(table_) ~= "table" then
+        table_ = {table_}
+        -- print_debug("Ruleset entry was not a table. Fixing.")
+    end
+
+    for _, table_item in ipairs(table_) do
+        if string.lower(table_item) == string.lower(item) then
+            return true
+        end
+    end
+
+    return false
 end
 
 function frames_per_move()

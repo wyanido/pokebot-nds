@@ -14,11 +14,16 @@ function update_pointers()
 		current_foe = foe_anchor - 0x2D58,
 		
 		map_header	= anchor + 0x1294,
-		trainer_x 	= anchor + 0x129A,
-		trainer_z 	= anchor + 0x129E,
-		trainer_y 	= anchor + 0x12A2,
+		trainer_x   = 0x21C5CCC,
+        trainer_y   = 0x21C5CD0,
+        trainer_z   = 0x21C5CD4,
 		facing		= anchor + 0x238A4,
 		
+        bike_gear = anchor + 0x1320,
+        bike      = anchor + 0x1324,
+        
+        daycare_pid = anchor + 0x1840,
+
         selected_starter = anchor + 0x41850,
         starters_ready   = anchor + 0x418D4,
 
@@ -38,4 +43,32 @@ function update_pointers()
 	pointers.level			   = mbyte(pointers.current_pokemon + 0x34)
 	pointers.foe_current_hp	   = mword(pointers.foe_in_battle + 0x4C)
 	pointers.saveFlag		   = mbyte(anchor + 0x2832A)
+end
+
+function pathfind_to(target, on_step)
+    if not target.x then
+        target.x = game_state.trainer_x - 0.5
+    elseif not target.z then
+        target.z = game_state.trainer_z
+    end
+
+    while game_state.trainer_x <= target.x - 0.5 do
+        hold_button("Right")
+        if on_step then on_step() end
+    end
+    
+    while game_state.trainer_x >= target.x + 1.5 do
+        hold_button("Left")
+        if on_step then on_step() end
+    end
+    
+    while game_state.trainer_z < target.z - 1 do
+        hold_button("Down")
+        if on_step then on_step() end
+    end
+    
+    while game_state.trainer_z > target.z + 1 do
+        hold_button("Up")
+        if on_step then on_step() end
+    end
 end

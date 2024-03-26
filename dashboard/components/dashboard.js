@@ -3,13 +3,6 @@ let gameTab = 0;
 let recentEncounters;
 let recentTargets;
 
-/* 
-    Hashes are used to determine whether value changes
-    should be reflected to minimise page updates
-*/
-let partyHashes = [];
-let shownValuesHashes = [];
-
 function hashObject(obj) {
     const jsonString = JSON.stringify(obj);
     
@@ -88,7 +81,7 @@ function displayClientParty(tabIndex, party) {
         // Hide species of unhatched eggs
         if (mon.isEgg) {
             mon.folder = '';
-            mon.name = `<${mon.friendship} Steps Remaining`;
+            mon.name = `~${mon.friendship << 8} Steps Remaining`;
         }
 
         const shiny = mon.shinyValue < 8;
@@ -391,16 +384,8 @@ function setClients() {
 
             if (!client || !client.version || !client.trainer_name) continue; // Client still hasn't sent important values
 
-            // Update client party display if data changed
-            if (partyContainer.children().length != clientCount || valueHasUpdated(client.party_hash, partyHashes, i)) {
-                displayClientParty(i, client.party);
-                partyHashes[i] = client.party_hash;
-            }
-            
-            if (gameContainer.children().length != clientCount || valueHasUpdated(hashObject(client.shownValues), shownValuesHashes, i)) {
-                displayClientGameInfo(i, client);
-                shownValuesHashes[i] = hashObject(client.shownValues);
-            }
+            displayClientParty(i, client.party);        
+            displayClientGameInfo(i, client);
         }
 
         updateTabVisibility()

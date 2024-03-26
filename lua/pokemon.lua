@@ -362,21 +362,6 @@ function pokemon.log_encounter(mon)
     return is_target
 end
 
-local function table_contains(table_, item)
-    if type(table_) ~= "table" then
-        table_ = {table_}
-        -- print_debug("Ruleset entry was not a table. Fixing.")
-    end
-
-    for _, table_item in ipairs(table_) do
-        if string.lower(table_item) == string.lower(item) then
-            return true
-        end
-    end
-
-    return false
-end
-
 function pokemon.find_best_move(ally, foe)
     local max_power_index = 1
     local max_power = 0
