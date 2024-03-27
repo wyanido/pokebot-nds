@@ -204,7 +204,7 @@ function process_frame()
     end
     
     update_pointers()
-    poll_dashboard_response()
+    dashboard_poll()
     update_game_info()
 end
 

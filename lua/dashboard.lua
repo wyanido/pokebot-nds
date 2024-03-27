@@ -1,49 +1,54 @@
+local socket = require("lua\\modules\\socket")
+local json = require("lua\\modules\\json")
 
-local socket = require('lua\\modules\\socket')
 local disconnected = false
 
-function poll_dashboard_response()
+function dashboard_connect() 
+    dashboard = assert(socket.connect("127.0.0.1", 51055)) 
+end
+
+function dashboard_poll()
     if disconnected then
         return
     end
     
     local _, err, data = dashboard:receive()
     
-    if data and data ~= "" then
-        response = json.decode(data)
+    if data ~= "" then
+        local response = json.decode(data)
         
         if response.type == "apply_config" then
-            if config ~= nil then
-                print_debug("Config updated")
-            end
-
             config = response.data.config
-        elseif response.type == "disconnect" then
-            print_warn("Dashboard disconnected!")
-            disconnected = true
+            print_debug("Config updated")
         end
-    elseif err == 'closed' then
-        print_warn("Dashboard disconnected abruptly!")
+    end
+
+    if err == "closed" then
+        print_warn("Dashboard disconnected!")
         disconnected = true
-    elseif err ~= 'timeout' then
-        print_warn('Error: ' .. err)
     end
 end
 
 function dashboard_send(data)
-    if disconnected then return end
+    if disconnected then
+        return 
+    end
+
     dashboard:send(json.encode(data) .. "\0")
 end
 
 print("Connecting to the dashboard... ")
 
-local status, err = pcall(function () 
-    dashboard = assert(socket.connect('127.0.0.1', 51055)) 
-end)
-if err then
-    print("WARNING: Failed to connect! The bot will function as normal, but logging and realtime config updates will be unavailable.")
+local status, err = pcall(dashboard_connect)
 
+if err then
+    print_warn("Failed to connect! The bot will function as normal, but logging and realtime config updates will be unavailable.")
     config = json.load("user\\config.json")
+
+    if not config then
+        abort("config.json couldn't be loaded! Please connect the bot to the dashboard at least once to generate the user/ folder.")
+    end
+
     disconnected = true
     return
 end
@@ -56,7 +61,7 @@ dashboard_send({
 
 print("Waiting for dashboard to relay config file... ")
 
-while config == nil do
-    poll_dashboard_response()
+while not config do
+    dashboard_poll()
     emu.frameadvance()
 end

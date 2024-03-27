@@ -1,6 +1,7 @@
 -----------------------
 -- BW FUNCTION OVERRIDES
 -----------------------
+take_button.y = 130
 
 function update_pointers()
     local anchor = mdword(0x2141950 + _ROM.offset)

@@ -3,13 +3,13 @@ if _EMU == "BizHawk" then
     function touch_screen_at(x, y)
         joypad.setanalog({['Touch X'] = x, ['Touch Y'] = y})
         hold_button("Touch")
-        wait_frames(4) -- Hold touch briefly, single-frame touchscreen inputs may be missed
+        wait_frames(4)
         release_button("Touch")
     end
 else
     function touch_screen_at(x, y)
         stylus.set({x = x, y = y, touch = true})
-        wait_frames(4) -- Hold touch briefly, single-frame touchscreen inputs may be missed
+        wait_frames(4)
         stylus.set({touch = false})
     end
 end 

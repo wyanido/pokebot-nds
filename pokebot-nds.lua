@@ -1,6 +1,7 @@
 -----------------------
 -- INITIALISATION
 -----------------------
+package.cpath = ";.\\lua\\modules\\?.dll" -- Allows socket.core to be detected beyond the project root
 dofile("lua\\detect_emu.lua")
 
 print("Pokebot NDS v1.0-beta by NIDO (wyanido)")
@@ -14,7 +15,6 @@ config = nil
 foe = nil
 party = {}
 
-json = require("lua\\modules\\json")
 pokemon = require("lua\\pokemon")
 dofile("lua\\input.lua")
 dofile("lua\\detect_game.lua")
