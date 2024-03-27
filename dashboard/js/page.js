@@ -1,3 +1,6 @@
+document.body.classList.add("dark-mode");
+halfmoon.toggleDarkMode = function() {};
+
 let doneOfflineWarning = false;
 
 function socketServerCommunicate(method, url, callback) {

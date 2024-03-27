@@ -1,4 +1,3 @@
-
 const configForm = document.getElementById('config-form');
 const textAreas  = [...configForm.getElementsByTagName('textarea')].map(ele => ele.id);
 const fields     = [...configForm.querySelectorAll('input, select')].map(ele => ele.id);
@@ -6,7 +5,6 @@ const checkboxes = [...configForm.querySelectorAll('input[type="checkbox"]')].ma
 
 let config;
 let loadedPrimoPhrases = false;
-
 
 function sendConfig() {
     const sendConfigToClients = function() {
@@ -91,7 +89,7 @@ function updateOptionVisibility() {
             $('#option_primo').show();
 
             if (!loadedPrimoPhrases) {
-                $.getJSON("components/data/en_easychat_iv.json", function (json) {
+                $.getJSON("assets/en_easychat_iv.json", function (json) {
                     let phrases = '';
                     
                     json.forEach(word => {

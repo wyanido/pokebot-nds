@@ -6,15 +6,13 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pokébot NDS</title>
-    <link href="components/common/halfmoon-variables.min.css" rel="stylesheet" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
-        integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
-        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Halfmoon/1.0.4/css/halfmoon-variables.css" integrity="sha512-ua2VFI0tK7cQQ5b8xPt8djKW8osl0nwnhgh28hfgYWYlUatSZuVWtsB0sRBM9dwN2Gbcz+YBgrFxW/+7J5Lvew==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-templates@1.0.0/jquery.tmpl.min.js" integrity="sha256-EX43U5s1k9lc6mJ7GoHd3EDBqssRp3x/bBxccLTV99o=" crossorigin="anonymous"></script>
     <script src="https://kit.fontawesome.com/b079a6b886.js" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"
-        referrerpolicy="no-referrer"></script>
-    <link rel="stylesheet" href="components/common/tooltip.css">
-    <link rel="stylesheet" href="components/common/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js" referrerpolicy="no-referrer"></script>
+    <link rel="stylesheet" href="css/tooltip.css">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body class="with-custom-webkit-scrollbars with-custom-css-scrollbars" data-dm-shortcut-enabled="true"
@@ -31,10 +29,9 @@
                 <li class="nav-item nav-link px-10">
                     <a href="dashboard.html">
                         <button type="button" class="btn position-relative px-10">
-                            <i class="fa fa-user-circle mr-5"></i>
+                            <i class="fa fa-user-circle"></i>
                             Dashboard
-                            <span id="dashboard-badge" style="display: none; bottom:16px; right:-10px; font-size:10px"
-                                class="badge badge-primary position-absolute translate-middle text-bg-primary px-5">
+                            <span id="dashboard-badge" class="badge badge-primary translate-middle text-bg-primary px-5">
                                 0
                             </span>
                         </button>
@@ -42,13 +39,13 @@
                 </li>
                 <li class="nav-item nav-link px-10" style="cursor: default;">
                     <button type="button" class="btn position-relative px-10 active">
-                        <i class="fa fa-gear mr-5"></i>
+                        <i class="fa fa-gear"></i>
                         Config
                     </button>
                 </li>
                 <li class="nav-item nav-link px-10">
                     <button type="button" class="btn position-relative px-10 disabled">
-                        <i class="fa fa-wrench mr-5"></i>
+                        <i class="fa fa-wrench"></i>
                         Tools
                     </button>
                 </li>
@@ -72,7 +69,7 @@
                     </select>
                 </div>
                 <button class="btn btn-primary ml-auto float-right" id="post-config" onclick="sendConfig()">
-                    <i class="fa fa-save mr-5"></i>
+                    <i class="fa-solid fa-save"></i>
                     Save Changes (CTRL+S)
                 </button>
             </div>
@@ -136,7 +133,7 @@
                         <div id="option_starters">
                             <br>
                             <label for="starters">Target Starters
-                                <i class="fa fa-info-circle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
+                                <i class="fa fa-info-circle" id="tooltip-icon" aria-describedby="tooltip"></i>
                                 <div id="tooltip" role="tooltip">The bot will choose all selected starters an equal
                                     number of times, cycling through them in order. (Does not apply to HGSS)
                                     <div id="arrow" data-popper-arrow></div>
@@ -162,7 +159,7 @@
                         <div id="option_primo">
                             <br>
                             <label for="words">Secret Phrases</label>
-                            <i class="fa fa-info-circle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
+                            <i class="fa fa-info-circle" id="tooltip-icon" aria-describedby="tooltip"></i>
                                 <div id="tooltip" role="tooltip">Secret phrase the bot should tell to Primo in the Violet City Pokémon Center. Check the linked website to find a phrase that results in an egg for your Trainer ID.
                                     <div id="arrow" data-popper-arrow></div>
                                 </div>
@@ -184,7 +181,7 @@
                         <div class="custom-switch">
                             <input type="checkbox" id="webhook_enabled">
                             <label for="webhook_enabled">Enable Webhook
-                                <i class="fa fa-info-circle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
+                                <i class="fa fa-info-circle" id="tooltip-icon" aria-describedby="tooltip"></i>
                                 <div id="tooltip" role="tooltip">Sends a message through a Discord Webhook
                                     when a target Pokémon is encountered
                                     <div id="arrow" data-popper-arrow></div>
@@ -197,7 +194,7 @@
                             <input id="webhook_url" class="form-control">
                             <br>
                             <button class="btn" id="post-config" onclick="testWebhook()">
-                                <i class="fa fa-paper-plane mr-5"></i>
+                                <i class="fa fa-paper-plane"></i>
                                 Send Test Message
                             </button>
                             <br>
@@ -206,7 +203,7 @@
                             <div class="custom-switch">
                                 <input type="checkbox" id="ping_user">
                                 <label for="ping_user">Enable Announcement Ping
-                                    <i class="fa fa-info-circle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
+                                    <i class="fa fa-info-circle" id="tooltip-icon" aria-describedby="tooltip"></i>
                                     <div id="tooltip" role="tooltip">Pings a user or role when sending a message upon
                                         finding a target Pokémon
                                         <div id="arrow" data-popper-arrow></div>
@@ -231,7 +228,7 @@
                         <div class="custom-switch">
                             <input type="checkbox" id="save_pkx">
                             <label for="save_pkx">Save target Pokémon to file
-                                <i class="fa fa-info-circle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
+                                <i class="fa fa-info-circle" id="tooltip-icon" aria-describedby="tooltip"></i>
                                 <div id="tooltip" role="tooltip">Saves encountered target Pokémon to a .pk4/.pk5 file in
                                     the
                                     project's /user directory. These can be directly imported into PKHeX.
@@ -251,7 +248,7 @@
                         <div class="custom-switch">
                             <input type="checkbox" id="hax">
                             <label for="hax">Hax mode
-                                <i class="fa fa-info-circle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
+                                <i class="fa fa-info-circle" id="tooltip-icon" aria-describedby="tooltip"></i>
                                 <div id="tooltip" role="tooltip">Allows the bot to do resets earlier than humanly
                                     possible by reading Pokémon data from RAM as soon as it is accessible.
                                     <div id="arrow" data-popper-arrow></div>
@@ -262,7 +259,7 @@
                         <div class="custom-switch">
                             <input type="checkbox" id="debug">
                             <label for="debug">Debug mode
-                                <i class="fa fa-info-circle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
+                                <i class="fa fa-info-circle" id="tooltip-icon" aria-describedby="tooltip"></i>
                                 <div id="tooltip" role="tooltip">Outputs extra info to the Lua Console. Useful if you
                                     need to troubleshoot an issue.
                                     <div id="arrow" data-popper-arrow></div>
@@ -273,7 +270,7 @@
                         <div class="custom-switch">
                             <input type="checkbox" id="focus_mode">
                             <label for="focus_mode">Focus mode
-                                <i class="fa fa-info-circle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
+                                <i class="fa fa-info-circle" id="tooltip-icon" aria-describedby="tooltip"></i>
                                 <div id="tooltip" role="tooltip">Disables video and sound output on the emulator while active to speed up emulation. Can provide a 2x-3x increase in bot efficiency. 
                                     <div id="arrow" data-popper-arrow></div>
                                 </div>
@@ -293,7 +290,7 @@
                     <div class="card">
                         <h2 class="content-title">Target Pokémon</h2>
                         <label for="catch">Target traits
-                            <i class="fa fa-info-circle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
+                            <i class="fa fa-info-circle" id="tooltip-icon" aria-describedby="tooltip"></i>
                             <div id="tooltip" role="tooltip">YAML format. Not case-sensitive. 
                                 A Pokémon must meet every requirement listed to be considered a target.
                                 <br> • For arrays, only one item must match
@@ -311,7 +308,7 @@
                         <div class="custom-switch">
                             <input type="checkbox" id="always_catch_shinies">
                             <label for="always_catch_shinies">Make exceptions for shiny Pokemon
-                                <i class="fa fa-info-circle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
+                                <i class="fa fa-info-circle" id="tooltip-icon" aria-describedby="tooltip"></i>
                             <div id="tooltip" role="tooltip">When encountering a shiny Pokémon, ignore the above ruleset and always consider it a target.</div>
                             </label>
                         </div>
@@ -356,7 +353,7 @@
                             </div>
                             <br>
                             <label for="pokeball_priority">Poké Ball priority
-                                <i class="fa fa-info-circle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
+                                <i class="fa fa-info-circle" id="tooltip-icon" aria-describedby="tooltip"></i>
                                 <div id="tooltip" role="tooltip">YAML format list. Specifies the preferred Poké Ball
                                     type for the bot to use when catching a target from highest to lowest priority.
                                     <div id="arrow" data-popper-arrow></div>
@@ -367,7 +364,7 @@
                                 placeholder=""></textarea>
                             <br>
                             <label for="pokeball_override">Poké Ball override
-                                <i class="fa fa-info-circle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
+                                <i class="fa fa-info-circle" id="tooltip-icon" aria-describedby="tooltip"></i>
                                 <div id="tooltip" role="tooltip">YAML format. Specifies the target traits per Poké Ball
                                     type the bot will check for in order to use. Traits must always be in a list. Takes
                                     priority over Poké Ball priority
@@ -387,7 +384,7 @@
                         </div>
                         <br>
                         <label for="pickup_threshold">Pickup threshold
-                            <i class="fa fa-info-circle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
+                            <i class="fa fa-info-circle" id="tooltip-icon" aria-describedby="tooltip"></i>
                             <div id="tooltip" role="tooltip">Number of party Pokémon with Pickup that must find an item
                                 before collection.
                                 <div id="arrow" data-popper-arrow></div>
@@ -400,7 +397,7 @@
                         <div class="custom-switch">
                             <input type="checkbox" id="ot_override">
                             <label for="ot_override">TID/SID Override
-                                <i class="fa fa-info-circle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
+                                <i class="fa fa-info-circle" id="tooltip-icon" aria-describedby="tooltip"></i>
                                 <div id="tooltip" role="tooltip">Uses a preset TID/SID pair to calculate Shiny Value instead of
                                     the one present in the current game. Useful for hunting eggs that would be shiny when
                                     hatched in a different game, especially Manaphy. 
@@ -421,11 +418,12 @@
             </fieldset>
         </div>
     </div>
-    <script src="components/common/halfmoon.min.js"></script>
-    <script src="components/common/popper.min.js"></script>
-    <script src="components/common/tooltip.js"></script>
-    <script src="components/page.js"></script>
-    <script src="components/config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js" integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js" integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Halfmoon/1.0.4/js/halfmoon.min.js" integrity="sha512-R9gvwJKiTgw9ADz34UDXGetxd4zmcAfGWB7IKO05p79bliXyQ7Nd2PMYmxSF48pmVvj7RJNp8WXtJHF/ZRm3KA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="js/tooltip.js"></script>
+    <script src="js/page.js"></script>
+    <script src="js/config.js"></script>
 </body>
 
 </html>

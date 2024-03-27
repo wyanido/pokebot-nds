@@ -164,7 +164,7 @@ function updateClientTabs(clients) {
     if (tabCount == 0) {
         tabContainer.empty();
         const button = buttonTemplate.tmpl({ 'game': 'Load pokebot-nds.lua in an emulator to begin!' })
-        button.attr('class', 'btn btn-primary col text-truncate')
+        button.attr('class', 'btn btn-primary text-truncate')
 
         tabContainer.append(button)
 
@@ -196,10 +196,12 @@ function updateTabVisibility() {
             $('#game-template-' + idx).show()
             $('#party-template-' + idx).show()
             $('#button-template-' + idx).attr('class', 'btn btn-primary col text-truncate')
+            $('#button-template-' + idx).attr('style', 'display: inline-block')
         } else {
             $('#game-template-' + idx).hide()
             $('#party-template-' + idx).hide()
             $('#button-template-' + idx).attr('class', 'btn col text-truncate')
+            $('#button-template-' + idx).attr('style', 'display: inline-block')
         }
     }
 }

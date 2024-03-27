@@ -1,0 +1,46 @@
+* {
+  font-size: small;
+  --primary-color: #38b2ac;
+  --primary-color-light: #5fc0bd;
+  --primary-color-very-light: #d2efee;
+  --primary-color-dark: #265758;
+  --primary-color-very-dark: #1b2a2d;
+}
+
+#shiny {
+  background: linear-gradient(309deg, transparent 0%, rgb(41, 87, 150) 100%);
+}
+
+.primo-phrase {
+  text-transform: uppercase;
+  display: inline-block;
+  width: auto;
+}
+
+.iv {
+  padding: 3px;
+}
+
+.up {
+  color: rgb(242, 99, 123);
+}
+
+.down {
+  color: rgb(82, 137, 248);
+}
+
+#warn-duplicate {
+  display: inline-block;
+}
+
+#dashboard-badge {
+  display: none;
+  bottom: 26px;
+  margin-left: 4px;
+  font-size: 10px;
+  position: absolute;
+}
+
+i {
+    margin: 0 5px;
+}
