@@ -4,8 +4,8 @@
 dofile("lua\\detect_emu.lua")
 
 print("Pokebot NDS v1.0-beta by NIDO (wyanido)")
-print("Running " .. _VERSION .. " on " .. _EMU)
 print("https://github.com/wyanido/pokebot-nds")
+print("Running " .. _VERSION .. " on " .. _EMU)
 print("")
 
 -- Clear values that might linger after restarting script

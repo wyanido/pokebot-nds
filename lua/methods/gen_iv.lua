@@ -763,136 +763,135 @@ function pathfind_to(target, on_step)
     end
 end
 
-function mode_daycare_eggs()
-    -- Map coords shift slightly between DP and Pt
-    local map_shift = _ROM.version == "PL" and 22 or 0
-    local indoor_map_shift = _ROM.version == "PL" and 63 or 0
+function get_party_eggs()
+    local eggs = {}
 
-    local mount_bike = function()
-        if mbyte(pointers.bike) ~= 1 then press_sequence("Y", 5) end
-        if mbyte(pointers.bike_gear) ~= 1 then press_button("B") end
-    end
-    
-    local clear_party = function()
-        local release = function()
-            press_sequence("A", 5, "Up", 5, "Up", 5, "A", 5, "Up", 5, "A", 120, "A", 60, "A", 10)
+    for i = 1, 6, 1 do
+        if party[i] then
+            eggs[i] = party[i].isEgg == 1
+        else
+            eggs[i] = true
         end
-
-        clear_all_inputs()
-
-        -- Enter Daycare and release all Lv 1 Pokemon from party
-        pathfind_to({z=646 + map_shift})
-        pathfind_to({x=553})
-        
-        press_sequence("Up", 120) -- Enter door
-        
-        hold_button("B")
-        pathfind_to({z=8 + indoor_map_shift})
-        pathfind_to({x=4})
-        pathfind_to({z=4 + indoor_map_shift})
-        clear_all_inputs()
-
-        -- Navigate to MOVE POKEMON
-        wait_frames(5)
-        press_sequence("A", 90, "A", 60, "A", 60, "A", 20, "Down", 10, "Down", 10, "A", 120)
-
-        -- Navigate to PARTY POKEMON
-        press_sequence("Up", 20, "Up", 20, "A", 60)
-        press_sequence("Up", 20, "Up", 20)
-
-        -- Release Lv 1 Pokemon from back to front
-        -- to accomodate for positions shifting
-        release() -- 6
-        press_sequence("Left", 10)
-        release() -- 5
-        press_sequence("Up", 10, "Right", 10)
-        release() -- 4
-        press_sequence("Left", 10)
-        release() -- 3
-        press_sequence("Up", 10, "Right", 10)
-        release() -- 2
-
-        -- Close PC
-        press_sequence("B", 60, "B", 20, "B", 160, "B", 60, "B", 20)
-
-        -- Exit Daycare
-        hold_button("B")
-        pathfind_to({z=8 + indoor_map_shift})
-        pathfind_to({x=9})
-        pathfind_to({z=11 + indoor_map_shift})
-        wait_frames(60)
-        clear_all_inputs()
-        
-        -- Return to long vertical path
-        press_sequence(110, "Y")
-        pathfind_to({x=562})
     end
 
-    local check_hatching_eggs = function()
-        local get_party_eggs = function()
-            local eggs = {}
+    return eggs
+end
+
+function release_hatched_duds()
+    local release = function()
+        press_sequence("A", 5, "Up", 5, "Up", 5, "A", 5, "Up", 5, "A", 120, "A", 60, "A", 10)
+    end
+
+    clear_all_inputs()
+
+    -- Enter Daycare and release all Lv 1 Pokemon from party
+    pathfind_to({z=646 + map_shift})
+    pathfind_to({x=553})
     
-            for i, mon in ipairs(party) do
-                eggs[i] = mon.isEgg == 1
-            end
+    press_sequence("Up", 120) -- Enter door
     
-            return eggs
-        end
+    hold_button("B")
+    pathfind_to({z=8 + indoor_map_shift})
+    pathfind_to({x=4})
+    pathfind_to({z=4 + indoor_map_shift})
+    clear_all_inputs()
 
-        local old_eggs = get_party_eggs()
+    -- Navigate to MOVE POKEMON
+    wait_frames(5)
+    press_sequence("A", 90, "A", 60, "A", 60, "A", 20, "Down", 10, "Down", 10, "A", 120)
 
-        press_button("A")
-        wait_frames(1)
+    -- Navigate to PARTY POKEMON
+    press_sequence("Up", 20, "Up", 20, "A", 60)
+    press_sequence("Up", 20, "Up", 20)
 
-        local new_eggs = get_party_eggs()
+    -- Release Lv 1 Pokemon from back to front
+    -- to accomodate for positions shifting
+    release() -- 6
+    press_sequence("Left", 10)
+    release() -- 5
+    press_sequence("Up", 10, "Right", 10)
+    release() -- 4
+    press_sequence("Left", 10)
+    release() -- 3
+    press_sequence("Up", 10, "Right", 10)
+    release() -- 2
 
-        for i, is_egg in ipairs(new_eggs) do
-            -- Eggs are already considered "hatched" as soon as the animation starts
-            if old_eggs[i] ~= is_egg then
-                clear_all_inputs()
+    -- Close PC
+    press_sequence("B", 60, "B", 20, "B", 160, "B", 60, "B", 20)
+
+    -- Exit Daycare
+    hold_button("B")
+    pathfind_to({z=8 + indoor_map_shift})
+    pathfind_to({x=9})
+    pathfind_to({z=11 + indoor_map_shift})
+    wait_frames(60)
+    clear_all_inputs()
+    
+    -- Return to long vertical path
+    press_sequence(110, "Y")
+    pathfind_to({x=562})
+end
+
+function check_hatching_eggs()
+    press_button("A")
+    
+    local new_eggs = get_party_eggs()
+    
+    for i, is_egg in ipairs(new_eggs) do
+        -- Eggs are already considered "hatched" as soon as the animation starts
+        if party[i] and party_eggs[i] ~= is_egg then
+            clear_all_inputs()
             
-                print("Egg is hatching!")
-                press_sequence(30, "B", 30)
-                
-                -- Mon data changes again once animation finishes
-                local checksum = party[i].checksum
-                while party[i].checksum == checksum do
-                    press_sequence("B", 5)
-                end
+            print("Egg is hatching!")
+            press_sequence(30, "B", 30)
+            
+            -- Mon data changes again once animation finishes
+            local checksum = party[i].checksum
+            while party[i].checksum == checksum do
+                press_sequence("B", 5)
+            end
+            
+            local is_target = pokemon.log_encounter(party[i])
+            if is_target then
+                abort("Hatched a target Pokemon!")
+            else
+                print("Hatched " .. party[i].name .. " was not a target...")
+            end
+            
+            wait_frames(90)
+            break
+        end
+    end
 
-                local is_target = pokemon.log_encounter(party[i])
-                if is_target then
-                    abort("Hatched a target Pokemon!")
-                else
-                    print("Hatched " .. party[i].name .. " was not a target...")
-                end
-
-                wait_frames(60)
+    party_eggs = new_eggs
+    
+    -- Check party to see if it's clear of eggs
+    if #party == 6 then
+        local has_egg = false
+        
+        for _, is_egg in ipairs(new_eggs) do
+            if is_egg then
+                has_egg = true
                 break
             end
         end
 
-        -- Check party to see if it's clear of eggs
-        if #party == 6 then
-            local has_egg = false
-
-            for _, is_egg in ipairs(new_eggs) do
-                if is_egg then
-                    has_egg = true
-                    break
-                end
-            end
-
-            -- If no eggs are left and no target was found,
-            -- we can release all Level 1 Pokemon from party
-            if not has_egg then
-                print("Party has no eggs! Making room...")
-                clear_party()
-            end
+        -- If no eggs are left and no target was found,
+        -- we can release all Level 1 Pokemon from party
+        if not has_egg then
+            print("Party has no room for eggs! Releasing last 5 Pokemon...")
+            release_hatched_duds()
         end
     end
+end
 
-    local check_and_collect_egg = function()
+function mode_daycare_eggs()
+    local function mount_bike()
+        if mbyte(pointers.bike) ~= 1 then press_sequence("Y", 5) end
+        if mbyte(pointers.bike_gear) ~= 1 then press_button("B") end
+    end
+    
+    local function check_and_collect_egg()
         -- Don't bother with additional eggs if party is full
         if #party == 6 or mdword(pointers.daycare_pid) == 0 then
             return
@@ -912,6 +911,14 @@ function mode_daycare_eggs()
         -- Return to long vertical path 
         pathfind_to({x=562})
     end
+
+    -- Initialise party state for future reference
+    process_frame()
+    party_eggs = get_party_eggs()
+
+    -- Map coords shift slightly between DP and Pt
+    map_shift = _ROM.version == "PL" and 22 or 0
+    indoor_map_shift = _ROM.version == "PL" and 63 or 0
 
     mount_bike()
     pathfind_to({x=562})

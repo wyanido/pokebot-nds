@@ -13,10 +13,14 @@ function update_pointers()
         current_foe = foe_anchor + 0xC18,
 
         map_header  = anchor - 0x22DA4,
-        trainer_x   = anchor - 0x22D9E,
-        trainer_z   = anchor - 0x22D9A,
-        trainer_y   = anchor - 0x22D96,
+        trainer_x   = 0x21DA6F4,
+        trainer_y   = 0x21DA6F8,
+        trainer_z   = 0x21DA6FC,
         facing      = anchor + 0x1DC4,
+
+        bike = anchor - 0x22D34,
+
+        daycare_pid = anchor - 0x22804,
 
         battle_state_value     = anchor + 0x470D4, -- 01 is FIGHT menu, 04 is Move Select, 08 is Bag,
         battle_indicator       = 0x021E76D2, -- Static
@@ -330,5 +334,104 @@ function mode_headbutt()
         elseif og_dir == 1 then press_button("Down")
         elseif og_dir == 2 then press_button("Left")
         elseif og_dir == 3 then press_button("Right") end
+    end
+end
+
+function release_hatched_duds()
+    local release = function()
+        press_sequence("A", 5, "Up", 5, "Up", 5, "A", 5, "Up", 5, "A", 120, "A", 60, "A", 10)
+    end
+
+    clear_all_inputs()
+    
+    -- Enter Daycare and release all Lv 1 Pokemon from party
+    pathfind_to({z=411})
+    pathfind_to({x=368})
+    
+    press_sequence("Up", 120) -- Enter door
+    
+    hold_button("B")
+    pathfind_to({x=1,z=8})
+    clear_all_inputs()
+
+    -- Open PARTY PKMN menu
+    wait_frames(20)
+    press_sequence("A", 80, "A", 80, "A", 80, "A", 40)
+    touch_screen_at(62, 94)
+    wait_frames(120)
+    touch_screen_at(46, 177)
+    wait_frames(60)
+
+    for i = 6, 2, -1 do
+        local release = function(i)
+            touch_screen_at(40 + 40 * ((i - 1) % 2), 70 + 30 * math.floor((i - 1) / 2))
+        end
+
+        release(i)
+        wait_frames(30)
+        touch_screen_at(228, 144)
+        wait_frames(30)
+        touch_screen_at(222, 109)
+        wait_frames(100)
+        press_button("B")
+        wait_frames(15)
+        press_button("B")
+        wait_frames(15)
+    end
+
+    press_sequence("B", 40, "B", 20, "B", 150, "B", 60)
+
+    -- Exit Daycare
+    hold_button("B")
+    pathfind_to({x=3})
+    pathfind_to({z=12})
+    wait_frames(60)
+    clear_all_inputs()
+    
+    -- Return to long vertical path
+    press_sequence(120, "Y", 5)
+    pathfind_to({x=358})
+end
+
+function mode_daycare_eggs()
+    local function mount_bike()
+        if mbyte(pointers.bike) ~= 1 then 
+            press_sequence("Y")
+        end
+    end
+    
+    local function check_and_collect_egg()
+        -- Don't bother with additional eggs if party is full
+        if #party == 6 or mdword(pointers.daycare_pid) == 0 then
+            return
+        end
+
+        print("That's an egg!")
+
+        pathfind_to({z=410}, check_hatching_eggs)
+        pathfind_to({x=364}, check_hatching_eggs)
+        clear_all_inputs()
+
+        local party_count = #party
+        while #party == party_count do
+            press_sequence("A", 5)
+        end
+
+        -- Return to long vertical path 
+        press_sequence(30, "B")
+        pathfind_to({x=358}, check_hatching_eggs)
+    end
+
+    -- Initialise party state for future reference
+    process_frame()
+    party_eggs = get_party_eggs()
+
+    mount_bike()
+    pathfind_to({x=358})
+    
+    while true do
+        pathfind_to({z=380}, check_hatching_eggs)
+        check_and_collect_egg()
+        pathfind_to({z=409}, check_hatching_eggs)
     end
 end
