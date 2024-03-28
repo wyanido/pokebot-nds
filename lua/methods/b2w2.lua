@@ -1,6 +1,3 @@
------------------------
--- BW FUNCTION OVERRIDES
------------------------
 take_button.y = 130
 
 function update_pointers()
@@ -62,6 +59,41 @@ function update_pointers()
     }
 end
 
+function bike_back_and_forth()
+    local horizontal = config.move_direction == "horizontal"
+    local axis = horizontal and pointers.trainer_x or pointers.trainer_z
+    local dir1 = horizontal and "Right" or "Down"
+    local dir2 = horizontal and "Left" or "Up"
+
+    local move_in_direction = function(dir)
+        hold_button(dir)
+        wait_frames(2)
+
+        local z = mword(axis)
+        while mword(axis) == z do
+            hold_button(dir)
+            dismiss_repel()
+
+            if game_state.in_battle then
+                return
+            end
+        end
+    end
+
+    -- Use registered bike if not already riding
+    if mbyte(pointers.on_bike) ~= 1 then
+        press_sequence("Y", 30, "A")
+    end
+
+    move_in_direction(dir1)
+    move_in_direction(dir2)
+
+    release_button(dir2)
+end
+
+-----------------------
+-- BW MODE OVERRIDES
+-----------------------
 function mode_starters()
     cycle_starter_choice()
     
@@ -71,10 +103,10 @@ function mode_starters()
         [2] = { x = 210, y = 100 }, -- Oshawott
     }
 
-    if not game_state.in_game then
+    if not game_state then
         print("Waiting to reach overworld...")
 
-        while not game_state.in_game do 
+        while not game_state do 
             press_sequence("A", 20) 
         end
     end
@@ -130,38 +162,6 @@ function mode_starters()
         print("Starter was not a target, resetting...")
         soft_reset()
     end
-end
-
-function bike_back_and_forth()
-    local horizontal = config.move_direction == "horizontal"
-    local axis = horizontal and pointers.trainer_x or pointers.trainer_z
-    local dir1 = horizontal and "Right" or "Down"
-    local dir2 = horizontal and "Left" or "Up"
-
-    local move_in_direction = function(dir)
-        hold_button(dir)
-        wait_frames(2)
-
-        local z = mword(axis)
-        while mword(axis) == z do
-            hold_button(dir)
-            dismiss_repel()
-
-            if game_state.in_battle then
-                return
-            end
-        end
-    end
-
-    -- Use registered bike if not already riding
-    if mbyte(pointers.on_bike) ~= 1 then
-        press_sequence("Y", 30, "A")
-    end
-
-    move_in_direction(dir1)
-    move_in_direction(dir2)
-
-    release_button(dir2)
 end
 
 function mode_hidden_grottos()

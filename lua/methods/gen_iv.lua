@@ -1,6 +1,3 @@
------------------------
--- BASE GEN IV FUNCTIONS
------------------------
 function update_pointers()
     local anchor = mdword(0x21C489C + _ROM.offset)
     local foe_anchor = mdword(anchor + 0x226FE)
@@ -38,7 +35,6 @@ end
 -----------------------
 -- MISC. BOT ACTIONS
 -----------------------
-
 -- Wait a random delay after SRing to decrease the odds of hitting similar seeds on loading save
 function randomise_reset()
     wait_frames(200) -- Impassable white screen
@@ -94,48 +90,12 @@ function skip_nickname()
     save_game()
 end
 
-function check_status()
-    if #party == 0 or game_state.in_battle then -- Don't check party status if bot was started during a battle
-        return nil
-    end
-
-    -- Check how many valid move uses the lead has remaining
-    local lead_pp_sum = 0
-    for i = 1, #party[1].moves, 1 do
-        local pp = party[1].pp[i]
-        local power = party[1].moves[i].power
-        if pp ~= 0 and power ~= nil then
-            lead_pp_sum = lead_pp_sum + pp
-        end
-    end
-
-    if party[1].currentHP == 0 or party[1].currentHP < (party[1].maxHP / 5) or (lead_pp_sum == 0 and config.battle_non_targets) then
-        print("Lead Pokemon can no longer battle...")
-        if config.cycle_lead_pokemon then
-            print("Finding a suitable replacement")
-        else
-            abort("auto cycle off waiting for manual intervention")
-        end
-    end
-    print("Lead Pokemon is OK, continuing search...")
-end
-
-function get_lead_mon_index()
-    -- Returns the first non-fainted Pokémon in the party
-    local i = 1
-    while i < 6 do
-        if party[i].currentHP ~= 0 then
-            return i
-        end
-    end
-end
-
 function do_pickup()
     local pickup_count = 0
     local item_count = 0
     local items = {}
 
-    while not game_state.in_game do
+    while not game_state do
         press_sequence(12, "A")
     end
 
@@ -192,17 +152,13 @@ function do_pickup()
     end
 end
 
------------------------
--- BATTLE BOT ACTIONS
------------------------
-
-function get_mon_move_slot(mon, move_name)
-    for i, v in ipairs(mon.moves) do
-        if v.name == move_name and mon.pp[i] > 0 then
-            return i
-        end
-    end
-    return 0
+-- Progress text efficiently while mimicing imperfect human inputs
+-- to increase the randomness of the frames hit
+function skip_dialogue()
+    hold_button("A")
+    wait_frames(math.random(5, 25))
+    release_button("A")
+    wait_frames(5)
 end
 
 function use_move_at_slot(slot)
@@ -229,86 +185,6 @@ function flee_battle()
     end
 
     print("Got away safely!")
-end
-
-function subdue_pokemon()
-    wait_frames(100)
-    print("Attempting to subdue pokemon...")
-    if config.false_swipe then
-        -- Ensure target has no recoil moves before attempting to weaken it
-        local recoil_moves = { "Brave Bird", "Double-Edge", "Flare Blitz", "Head Charge", "Head Smash", "Self-Destruct",
-            "Take Down", "Volt Tackle", "Wild Charge", "Wood Hammer" }
-        local recoil_slot = 0
-
-        for _, v in ipairs(recoil_moves) do
-            recoil_slot = get_mon_move_slot(foe[1], v)
-
-            if recoil_slot ~= 0 then
-                print_warn("The target has a recoil move. False Swipe won't be used.")
-                break
-            end
-        end
-
-        if recoil_slot == 0 then
-            -- Check whether the lead actually has False Swipe
-            local false_swipe_slot = get_mon_move_slot(party[get_lead_mon_index()], "False Swipe")
-
-            if false_swipe_slot == 0 then
-                print_warn("The lead Pokemon can't use False Swipe.")
-            else
-                use_move_at_slot(false_swipe_slot)
-            end
-        end
-    end
-
-    if config.inflict_status then
-        -- Status moves in order of usefulness
-        local status_moves = { "Spore", "Sleep Powder", "Lovely Kiss", "Dark Void", "Hypnosis", "Sing", "Grass Whistle",
-            "Thunder Wave", "Glare", "Stun Spore", "Yawn" }
-        local status_slot = 0
-
-        for i = 1, #foe[1].type, 1 do
-            if foe[1].type[i] == "Ground" then
-                print_debug("Foe is Ground-type. Thunder Wave can't be used.")
-                table.remove(status_moves, 8) -- Remove Thunder Wave from viable options if target is Ground type
-                break
-            end
-        end
-
-        -- Remove Grass type status moves if target has Sap Sipper
-        if foe[1].ability == "Sap Sipper" then
-            local grass_moves = { "Spore", "Sleep Powder", "Grass Whistle", "Stun Spore" }
-
-            for i, k in ipairs(grass_moves) do
-                for i2, k2 in pairs(status_moves) do
-                    if k == k2 then
-                        table.remove(status_moves, i2)
-                        break
-                    end
-                end
-            end
-        end
-
-        for _, v in ipairs(status_moves) do
-            status_slot = get_mon_move_slot(party[get_lead_mon_index()], v)
-
-            if status_slot ~= 0 then
-                break
-            end
-        end
-
-        if status_slot > 0 then
-            if party[1].moves[status_slot].name == "Yawn" then
-                print("Using First Yawn")
-                use_move_at_slot(status_slot)
-            end
-            -- Bot will blindly use the status move once and hope it lands
-            print("Using Second Yawn")
-            use_move_at_slot(status_slot)
-        else
-            print_warn("The lead Pokemon has no usable status moves.")
-        end
-    end
 end
 
 function do_battle()
@@ -510,7 +386,7 @@ function process_wild_encounter()
     else
         while game_state.in_battle do
             if config.battle_non_targets then
-                print("Wild " .. foe[1].name .. " is not a target, and battle non tartgets is on. Battling!")
+                print("Wild " .. foe[1].name .. " is not a target, and battle non targets is on. Battling!")
                 do_battle()
                 return
             else
@@ -525,214 +401,12 @@ function process_wild_encounter()
     end
 end
 
------------------------
--- BOT ENCOUNTER MODES
------------------------
-function mode_static_encounters()
-    print("Waiting for battle to start...")
-
-    while not game_state.in_battle do
-        if game_state.map_name == "Spear Pillar" then
-            hold_button("Up")
-        end
-
-        skip_dialogue()
-    end
-
-    release_button("Up")
-
-    local is_target = pokemon.log_encounter(foe[1])
-
-    if not config.hax then
-        -- Wait for Pokémon to fully appear on screen
-        for i = 0, 22, 1 do 
-            skip_dialogue()
-        end
-    end
-
-    if is_target then
-        abort("Wild Pokémon meets target specs!")
-    else
-        print("Wild " .. foe[1].name .. " was not a target, resetting...")
-        soft_reset()
-    end
-end
-
--- Progress text efficiently while mimicing imperfect human inputs
--- to increase the randomness of the frames hit
-function skip_dialogue()
-    hold_button("A")
-    wait_frames(math.random(5, 25))
-    release_button("A")
-    wait_frames(5)
-end
-
-function mode_starters()
-    cycle_starter_choice()
-    
-    -- Diamond and Pearl need to skip through a cutscene before the briefcase
-    local platinum = _ROM.version == "PL"
-
-    if not platinum then 
-        hold_button("Up")
-
-        while game_state.map_name ~= "Lake Verity" do
-            skip_dialogue()
-        end
-        
-        release_button("Up")
-    end
-    
-    print("Waiting to open briefcase...")
-    
-    -- Skip until starter selection is available
-    local ready_value = platinum and 0x4D or 0x75
-
-    while mbyte(pointers.starters_ready) ~= ready_value do
-        skip_dialogue()
-    end
-
-    print("Selecting starter...")
-
-    while mbyte(pointers.selected_starter) < starter do
-        press_sequence("Right", 5)
-    end
-
-    -- Wait until starter is added to party
-    while #party == 0 do
-        skip_dialogue()
-    end
-
-    if not config.hax then
-        print("Waiting until starter is visible...")
-
-        for i = 0, 86, 1 do
-            skip_dialogue()
-        end
-    end
-
-    -- Log encounter, stopping if necessary
-    local is_target = pokemon.log_encounter(party[1])
-
-    if is_target then
-        abort("Starter meets target specs!")
-    else
-        print("Starter was not a target, resetting...")
-        soft_reset()
-    end
-end
-
-function mode_random_encounters()
-    print("Attempting to start a battle...")
-    wait_frames(30)
-
-    if config.move_direction == "spin" then
-        -- Prevent accidentally taking a step by
-        -- preventing a down input while facing down
-        if mbyte(pointers.facing) == 1 then
-            press_sequence("Right", 3)
-        end
-        
-        while not game_state.in_battle do
-            press_sequence(
-                "Down", 3,
-                "Left", 3,
-                "Up", 3,
-                "Right", 3
-            )
-        end
-    else
-        local dir1, dir2, start_face
-        
-        if config.move_direction == "horizontal" then
-            dir1 = "Left"
-            dir2 = "Right"
-            start_face = 2
-        else
-            dir1 = "Up"
-            dir2 = "Down"
-            start_face = 0
-        end
-
-        if mbyte(pointers.facing) ~= start_face then
-            press_sequence(dir2, 8)
-        end
-
-        hold_button("B")
-        
-        while not game_state.in_battle do
-            hold_button(dir1)
-            wait_frames(7)
-            hold_button(dir2)
-            wait_frames(7)
-        end
-
-        release_button("B")
-    end
-
-    process_wild_encounter()
-    
-    if config.pickup then
-        do_pickup()
-    end
-end
-
 function fishing_status_changed()
     return not (mbyte(pointers.fishing_bite_indicator) == 0)
 end
 
 function fishing_has_bite()
     return mbyte(pointers.fishing_bite_indicator) == 1
-end
-
-function mode_gift()
-    if not game_state.in_game then
-        print("Waiting to reach overworld...")
-
-        while not game_state.in_game do
-            skip_dialogue()
-        end
-    end
-
-    local og_party_count = #party
-    while #party == og_party_count do
-        skip_dialogue()
-    end
-    
-    if not config.hax then
-        press_sequence(180, "B", 60) -- Decline nickname
-        
-        -- Party menu
-        press_sequence("X", 30)
-        touch_screen_at(65, 45)
-        wait_frames(90)
-
-        touch_screen_at(80 * ((#party - 1) % 2 + 1), 30 + 50 * math.floor((#party - 1) / 2)) -- Select gift mon
-        wait_frames(30)
-
-        touch_screen_at(200, 105) -- SUMMARY
-        wait_frames(120)
-    end
-
-    local mon = party[#party]
-    local is_target = pokemon.log_encounter(mon)
-
-    if is_target then
-        if config.save_game_after_catch then
-            print("Gift Pokemon meets target specs! Saving...")
-
-            if not config.hax then
-                press_sequence("B", 120, "B", 120, "B", 60) -- Exit out of menu
-            end
-
-            save_game()
-        end
-
-        abort("Gift Pokemon meets target specs")
-    else
-        print("Gift Pokemon was not a target, resetting...")
-        soft_reset()
-    end
 end
 
 function pathfind_to(target, on_step)
@@ -885,52 +559,6 @@ function check_hatching_eggs()
     end
 end
 
-function mode_daycare_eggs()
-    local function mount_bike()
-        if mbyte(pointers.bike) ~= 1 then press_sequence("Y", 5) end
-        if mbyte(pointers.bike_gear) ~= 1 then press_button("B") end
-    end
-    
-    local function check_and_collect_egg()
-        -- Don't bother with additional eggs if party is full
-        if #party == 6 or mdword(pointers.daycare_pid) == 0 then
-            return
-        end
-
-        print("That's an egg!")
-
-        pathfind_to({z=648 + map_shift})
-        pathfind_to({x=556})
-        clear_all_inputs()
-
-        local party_count = #party
-        while #party == party_count do
-            press_sequence("A", 5)
-        end
-
-        -- Return to long vertical path 
-        pathfind_to({x=562})
-    end
-
-    -- Initialise party state for future reference
-    process_frame()
-    party_eggs = get_party_eggs()
-
-    -- Map coords shift slightly between DP and Pt
-    map_shift = _ROM.version == "PL" and 22 or 0
-    indoor_map_shift = _ROM.version == "PL" and 63 or 0
-
-    mount_bike()
-    pathfind_to({x=562})
-    
-    while true do
-        pathfind_to({z=630 + map_shift}, check_hatching_eggs)
-        check_and_collect_egg()
-        pathfind_to({z=675 + map_shift}, check_hatching_eggs)
-        check_and_collect_egg()
-    end
-end
-
 function read_string(input, pointer)
     local char_table = {
         "　", "ぁ", "あ", "ぃ", "い", "ぅ", "う", "ぇ", "え", "ぉ", "お", "か", "が", "き", "ぎ",
@@ -992,4 +620,243 @@ function read_string(input, pointer)
     end
 
     return text
+end
+
+-----------------------
+-- BOT ENCOUNTER MODES
+-----------------------
+function mode_static_encounters()
+    print("Waiting for battle to start...")
+
+    while not game_state.in_battle do
+        if game_state.map_name == "Spear Pillar" then
+            hold_button("Up")
+        end
+
+        skip_dialogue()
+    end
+
+    release_button("Up")
+
+    local is_target = pokemon.log_encounter(foe[1])
+
+    if not config.hax then
+        -- Wait for Pokémon to fully appear on screen
+        for i = 0, 22, 1 do 
+            skip_dialogue()
+        end
+    end
+
+    if is_target then
+        abort("Wild Pokémon meets target specs!")
+    else
+        print("Wild " .. foe[1].name .. " was not a target, resetting...")
+        soft_reset()
+    end
+end
+
+function mode_starters()
+    cycle_starter_choice()
+    
+    -- Diamond and Pearl need to skip through a cutscene before the briefcase
+    local platinum = _ROM.version == "PL"
+
+    if not platinum then 
+        hold_button("Up")
+
+        while game_state.map_name ~= "Lake Verity" do
+            skip_dialogue()
+        end
+        
+        release_button("Up")
+    end
+    
+    print("Waiting to open briefcase...")
+    
+    -- Skip until starter selection is available
+    local ready_value = platinum and 0x4D or 0x75
+
+    while mbyte(pointers.starters_ready) ~= ready_value do
+        skip_dialogue()
+    end
+
+    print("Selecting starter...")
+
+    while mbyte(pointers.selected_starter) < starter do
+        press_sequence("Right", 5)
+    end
+
+    -- Wait until starter is added to party
+    while #party == 0 do
+        skip_dialogue()
+    end
+
+    if not config.hax then
+        print("Waiting until starter is visible...")
+
+        for i = 0, 86, 1 do
+            skip_dialogue()
+        end
+    end
+
+    -- Log encounter, stopping if necessary
+    local is_target = pokemon.log_encounter(party[1])
+
+    if is_target then
+        abort("Starter meets target specs!")
+    else
+        print("Starter was not a target, resetting...")
+        soft_reset()
+    end
+end
+
+function mode_random_encounters()
+    print("Attempting to start a battle...")
+    wait_frames(30)
+
+    if config.move_direction == "spin" then
+        -- Prevent accidentally taking a step by
+        -- preventing a down input while facing down
+        if mbyte(pointers.facing) == 1 then
+            press_sequence("Right", 3)
+        end
+        
+        while not game_state.in_battle do
+            press_sequence(
+                "Down", 3,
+                "Left", 3,
+                "Up", 3,
+                "Right", 3
+            )
+        end
+    else
+        local dir1, dir2, start_face
+        
+        if config.move_direction == "horizontal" then
+            dir1 = "Left"
+            dir2 = "Right"
+            start_face = 2
+        else
+            dir1 = "Up"
+            dir2 = "Down"
+            start_face = 0
+        end
+
+        if mbyte(pointers.facing) ~= start_face then
+            press_sequence(dir2, 8)
+        end
+
+        hold_button("B")
+        
+        while not game_state.in_battle do
+            hold_button(dir1)
+            wait_frames(7)
+            hold_button(dir2)
+            wait_frames(7)
+        end
+
+        release_button("B")
+    end
+
+    process_wild_encounter()
+    
+    if config.pickup then
+        do_pickup()
+    end
+end
+
+function mode_gift()
+    if not game_state then
+        print("Waiting to reach overworld...")
+
+        while not game_state do
+            skip_dialogue()
+        end
+    end
+
+    local og_party_count = #party
+    while #party == og_party_count do
+        skip_dialogue()
+    end
+    
+    if not config.hax then
+        press_sequence(180, "B", 60) -- Decline nickname
+        
+        -- Party menu
+        press_sequence("X", 30)
+        touch_screen_at(65, 45)
+        wait_frames(90)
+
+        touch_screen_at(80 * ((#party - 1) % 2 + 1), 30 + 50 * math.floor((#party - 1) / 2)) -- Select gift mon
+        wait_frames(30)
+
+        touch_screen_at(200, 105) -- SUMMARY
+        wait_frames(120)
+    end
+
+    local mon = party[#party]
+    local is_target = pokemon.log_encounter(mon)
+
+    if is_target then
+        if config.save_game_after_catch then
+            print("Gift Pokemon meets target specs! Saving...")
+
+            if not config.hax then
+                press_sequence("B", 120, "B", 120, "B", 60) -- Exit out of menu
+            end
+
+            save_game()
+        end
+
+        abort("Gift Pokemon meets target specs")
+    else
+        print("Gift Pokemon was not a target, resetting...")
+        soft_reset()
+    end
+end
+
+function mode_daycare_eggs()
+    local function mount_bike()
+        if mbyte(pointers.bike) ~= 1 then press_sequence("Y", 5) end
+        if mbyte(pointers.bike_gear) ~= 1 then press_button("B") end
+    end
+    
+    local function check_and_collect_egg()
+        -- Don't bother with additional eggs if party is full
+        if #party == 6 or mdword(pointers.daycare_pid) == 0 then
+            return
+        end
+
+        print("That's an egg!")
+
+        pathfind_to({z=648 + map_shift})
+        pathfind_to({x=556})
+        clear_all_inputs()
+
+        local party_count = #party
+        while #party == party_count do
+            press_sequence("A", 5)
+        end
+
+        -- Return to long vertical path 
+        pathfind_to({x=562})
+    end
+
+    -- Initialise party state for future reference
+    process_frame()
+    party_eggs = get_party_eggs()
+
+    -- Map coords shift slightly between DP and Pt
+    map_shift = _ROM.version == "PL" and 22 or 0
+    indoor_map_shift = _ROM.version == "PL" and 63 or 0
+
+    mount_bike()
+    pathfind_to({x=562})
+    
+    while true do
+        pathfind_to({z=630 + map_shift}, check_hatching_eggs)
+        check_and_collect_egg()
+        pathfind_to({z=675 + map_shift}, check_hatching_eggs)
+        check_and_collect_egg()
+    end
 end

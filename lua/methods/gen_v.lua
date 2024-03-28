@@ -56,9 +56,6 @@ function update_pointers()
     }
 end
 
------------------------
--- MODE VARIABLES
------------------------
 take_button = { x = 200, y = 155 }
 
 -----------------------
@@ -147,25 +144,6 @@ function pathfind_to(target)
     release_button("B")
 end
 
-function get_mon_move_slot(mon, move_name)
-    for i, v in ipairs(mon.moves) do
-        if v.name == move_name and mon.pp[i] > 0 then
-            return i
-        end
-    end
-    return 0
-end
-
-function get_lead_mon_index()
-    -- Returns the first non-fainted Pokémon in the party
-    local i = 1
-    while i < 6 do
-        if party[i].currentHP ~= 0 then
-            return i
-        end
-    end
-end
-
 function use_move_at_slot(slot)
     -- Skip text to FIGHT menu
     while game_state.in_battle and mbyte(pointers.battle_menu_state) == 0 do
@@ -177,24 +155,6 @@ function use_move_at_slot(slot)
     wait_frames(30)
     touch_screen_at(80 * ((slot - 1) % 2 + 1), 50 * (math.floor((slot - 1) / 2) + 1)) -- Select move slot
     wait_frames(60)
-end
-
-function do_thief()
-    local thief_slot = get_mon_move_slot(party[get_lead_mon_index()], "Thief")
-
-    if thief_slot == 0 then
-        print_warn("Thief was enabled in config, but the lead Pokemon can't use the move")
-        return false
-    end
-
-    if #foe == 1 then -- Single battle
-        while game_state.in_battle do
-            use_move_at_slot(thief_slot)
-
-            -- Assume the item was stolen and flee
-            flee_battle()
-        end
-    end
 end
 
 function do_pickup()
@@ -536,79 +496,6 @@ function find_usable_ball()
     return ball_index
 end
 
-function subdue_pokemon()
-    if config.false_swipe then
-        -- Ensure target has no recoil moves before attempting to weaken it
-        local recoil_moves = {"Brave Bird", "Double-Edge", "Flare Blitz", "Head Charge", "Head Smash", "Self-Destruct",
-                              "Take Down", "Volt Tackle", "Wild Charge", "Wood Hammer"}
-        local recoil_slot = 0
-
-        for _, v in ipairs(recoil_moves) do
-            recoil_slot = get_mon_move_slot(foe[1], v)
-
-            if recoil_slot ~= 0 then
-                print_warn("The target has a recoil move. False Swipe won't be used.")
-                break
-            end
-        end
-
-        if recoil_slot == 0 then
-            -- Check whether the lead actually has False Swipe
-            local false_swipe_slot = get_mon_move_slot(party[get_lead_mon_index()], "False Swipe")
-
-            if false_swipe_slot == 0 then
-                print_warn("The lead Pokemon can't use False Swipe.")
-            else
-                use_move_at_slot(false_swipe_slot)
-            end
-        end
-    end
-
-    if config.inflict_status then
-        -- Status moves in order of usefulness
-        local status_moves = {"Spore", "Sleep Powder", "Lovely Kiss", "Dark Void", "Hypnosis", "Sing", "Grass Whistle",
-                              "Thunder Wave", "Glare", "Stun Spore"}
-        local status_slot = 0
-
-        for i = 1, #foe[1].type, 1 do
-            if foe[1].type[i] == "Ground" then
-                print_debug("Foe is Ground-type. Thunder Wave can't be used.")
-                table.remove(status_moves, 8) -- Remove Thunder Wave from viable options if target is Ground type
-                break
-            end
-        end
-
-        -- Remove Grass type status moves if target has Sap Sipper
-        if foe[1].ability == "Sap Sipper" then
-            local grass_moves = {"Spore", "Sleep Powder", "Grass Whistle", "Stun Spore"}
-
-            for i, k in ipairs(grass_moves) do
-                for i2, k2 in pairs(status_moves) do
-                    if k == k2 then
-                        table.remove(status_moves, i2)
-                        break
-                    end
-                end
-            end
-        end
-
-        for _, v in ipairs(status_moves) do
-            status_slot = get_mon_move_slot(party[get_lead_mon_index()], v)
-
-            if status_slot ~= 0 then
-                break
-            end
-        end
-
-        if status_slot > 0 then
-            -- Bot will blindly use the status move once and hope it lands
-            use_move_at_slot(status_slot)
-        else
-            print_warn("The lead Pokemon has no usable status moves.")
-        end
-    end
-end
-
 function catch_pokemon()
     clear_all_inputs()
     update_pointers()
@@ -715,11 +602,9 @@ function process_wild_encounter()
         while game_state.in_battle do
             if config.thief_wild_items and foe_item and not double then
                 print("Wild Pokemon has a held item, trying to use Thief...")
-                local success = do_thief()
-
-                if not success then
-                    flee_battle()
-                end
+                
+                do_thief()
+                flee_battle()
             elseif config.battle_non_targets and not double then
                 do_battle()
             else
@@ -739,6 +624,89 @@ function process_wild_encounter()
     end
 end
 
+function fishing_status_changed()
+    return not (mword(pointers.fishing_bite_indicator) ~= 0xFFF1 and mbyte(pointers.fishing_no_bite) == 0)
+end
+
+function fishing_has_bite()
+    return mword(pointers.fishing_bite_indicator) == 0xFFF1
+end
+
+function read_string(input, pointer)
+    local text = ""
+
+    if type(input) == "table" then
+        for i = pointer + 1, #input, 2 do
+            local value = input[i] + (bit.lshift(input[i + 1], 8))
+
+            if value == 0xFFFF or value == 0x0000 then -- Null terminator
+                break
+            end
+
+            text = text .. utf8.char(value)
+        end
+    else
+        for i = input, input + 32, 2 do
+            local value = mword(i)
+
+            if value == 0xFFFF or value == 0x0000 then -- Null terminator
+                break
+            end
+
+            text = text .. utf8.char(value)
+        end
+    end
+    
+    return text
+end
+
+function dismiss_repel()
+    local interrupted = false 
+    
+    while mdword(pointers.text_interrupt) == 2 do
+        press_sequence("A", 6)
+        interrupted = true
+    end
+
+    return interrupted
+end
+
+function dex_registered(name, field)
+    local dex = {
+        ["caught"]       = 0x223D1B4 + _ROM.offset,
+        ["male"]         = 0x223D208 + _ROM.offset,
+        ["female"]       = 0x223D25C + _ROM.offset,
+        ["shiny_female"] = 0x223D304 + _ROM.offset,
+        ["seen"]         = 0x223D358 + _ROM.offset,
+        ["shiny_male"]   = 0x223D2B0 + _ROM.offset,
+    }
+
+    local addr = dex[field]
+    if not addr then
+        print_warn(field .. " is not a valid dex flag")
+        return nil
+    end
+
+    for i, v in ipairs(_DEX) do
+        if string.lower(v[1]) == string.lower(name) then
+            local idx = i - 2
+            local byte = addr + math.floor(idx / 8)
+            local value = mbyte(byte)
+            local registered = bit.band(value, bit.lshift(1, idx % 8)) > 0
+            
+            if registered then
+                print_debug(name .. " " .. field)
+            end
+
+            return registered
+        end    
+    end
+
+    print_warn("Pokemon " .. name .. " not found")
+
+    return nil
+end
+
 -----------------------
 -- BOT MODES
 -----------------------
@@ -752,10 +720,10 @@ function mode_starters()
         [2] = { x = 185, y = 100 }, -- Oshawott
     }
 
-    if not game_state.in_game then
+    if not game_state then
         print("Waiting to reach overworld...")
 
-        while not game_state.in_game do
+        while not game_state do
             press_sequence("A", 20)
         end
     end
@@ -851,10 +819,10 @@ function mode_random_encounters()
 end
 
 function mode_gift()
-    if not game_state.in_game then
+    if not game_state then
         print("Waiting to reach overworld...")
 
-        while not game_state.in_game do
+        while not game_state do
             press_sequence("A", 20)
         end
     end
@@ -1029,32 +997,21 @@ function mode_daycare_eggs()
             -- Walk to PC
             pathfind_to({x=9,z=9})
             press_sequence("Up", 16, "A", 140, "A", 120, "A", 110, "A", 100)
+            press_sequence("Down", 5, "Down", 5, "A", 110)
 
-            -- Temporary, add this to config once I figure out PC storage limitations
-            local release_hatched_duds = true
+            touch_screen_at(45, 175)
+            wait_frames(60)
 
-            if release_hatched_duds then
-                press_sequence("Down", 5, "Down", 5, "A", 110)
-
-                touch_screen_at(45, 175)
-                wait_frames(60)
-
-                -- Release party in reverse order so the positions don't shuffle to fit empty spaces
-                for i = #party, 1, -1 do
-                    if party[i].level == 1 and not pokemon.matches_ruleset(party[i], config.target_traits) then
-                        touch_screen_at(40 * ((i - 1) % 2 + 1), 72 + 30 * math.floor((i - 1) / 2)) -- Select Pokemon
-                        wait_frames(30)
-                        touch_screen_at(211, 121) -- RELEASE
-                        wait_frames(30)
-                        touch_screen_at(220, 110) -- YES
-                        press_sequence(60, "B", 20, "B", 20) -- Bye-bye!
-                    end
+            -- Release party in reverse order so the positions don't shuffle to fit empty spaces
+            for i = #party, 1, -1 do
+                if party[i].level == 1 and not pokemon.matches_ruleset(party[i], config.target_traits) then
+                    touch_screen_at(40 * ((i - 1) % 2 + 1), 72 + 30 * math.floor((i - 1) / 2)) -- Select Pokemon
+                    wait_frames(30)
+                    touch_screen_at(211, 121) -- RELEASE
+                    wait_frames(30)
+                    touch_screen_at(220, 110) -- YES
+                    press_sequence(60, "B", 20, "B", 20) -- Bye-bye!
                 end
-            else
-                -- Unfinished
-                press_sequence("A", 120)
-
-                abort("This code shouldn't be running right now")
             end
 
             press_sequence("B", 30, "B", 30, "B", 30, "B", 150, "B", 90) -- Exit PC
@@ -1214,53 +1171,6 @@ function mode_static_encounters()
     end
 end
 
-function fishing_status_changed()
-    return not (mword(pointers.fishing_bite_indicator) ~= 0xFFF1 and mbyte(pointers.fishing_no_bite) == 0)
-end
-
-function fishing_has_bite()
-    return mword(pointers.fishing_bite_indicator) == 0xFFF1
-end
-
-function read_string(input, pointer)
-    local text = ""
-
-    if type(input) == "table" then
-        for i = pointer + 1, #input, 2 do
-            local value = input[i] + (bit.lshift(input[i + 1], 8))
-
-            if value == 0xFFFF or value == 0x0000 then -- Null terminator
-                break
-            end
-
-            text = text .. utf8.char(value)
-        end
-    else
-        for i = input, input + 32, 2 do
-            local value = mword(i)
-
-            if value == 0xFFFF or value == 0x0000 then -- Null terminator
-                break
-            end
-
-            text = text .. utf8.char(value)
-        end
-    end
-    
-    return text
-end
-
-function dismiss_repel()
-    local interrupted = false 
-    
-    while mdword(pointers.text_interrupt) == 2 do
-        press_sequence("A", 6)
-        interrupted = true
-    end
-
-    return interrupted
-end
-
 function mode_thundurus_tornadus()
     local dex_entry_added = function()
         local tornadus_seen = dex_registered("tornadus", "male") or dex_registered("tornadus", "shiny_male")
@@ -1269,7 +1179,7 @@ function mode_thundurus_tornadus()
         return tornadus_seen or thundurus_seen
     end
 
-    while not game_state.in_game do
+    while not game_state do
         press_sequence("A", 5)
     end
 
@@ -1296,40 +1206,4 @@ function mode_thundurus_tornadus()
         print(mon.name .. " was not a target, resetting...")
         soft_reset()
     end
-end
-
-function dex_registered(name, field)
-    local dex = {
-        ["caught"]       = 0x223D1B4 + _ROM.offset,
-        ["male"]         = 0x223D208 + _ROM.offset,
-        ["female"]       = 0x223D25C + _ROM.offset,
-        ["shiny_female"] = 0x223D304 + _ROM.offset,
-        ["seen"]         = 0x223D358 + _ROM.offset,
-        ["shiny_male"]   = 0x223D2B0 + _ROM.offset,
-    }
-
-    local addr = dex[field]
-    if not addr then
-        print_warn(field .. " is not a valid dex flag")
-        return nil
-    end
-
-    for i, v in ipairs(mon_dex) do
-        if string.lower(v[1]) == string.lower(name) then
-            local idx = i - 2
-            local byte = addr + math.floor(idx / 8)
-            local value = mbyte(byte)
-            local registered = bit.band(value, bit.lshift(1, idx % 8)) > 0
-            
-            if registered then
-                print_debug(name .. " " .. field)
-            end
-
-            return registered
-        end    
-    end
-
-    print_warn("Pokemon " .. name .. " not found")
-
-    return nil
 end

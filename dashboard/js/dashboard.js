@@ -1,25 +1,11 @@
 let gameTab = 0;
+let gameCount = 0;
 
 let recentEncounters;
 let recentTargets;
 
-function hashObject(obj) {
-    const jsonString = JSON.stringify(obj);
-    
-    if (!jsonString) return null
-    
-    var hash = 0;
-    for (var i = 0; i < jsonString.length; i++) {
-        var code = jsonString.charCodeAt(i);
-        hash = ((hash << 5) - hash) + code;
-        hash = hash & hash;
-    }
-    
-    return hash;
-}
-
 function updateBnp() {
-    var binomialDistribution = function (b, a) {
+    const binomialDistribution = function (b, a) {
         c = Math.pow(1 - a, b);
         return 100 * (c * Math.pow(- (1 / (a - 1)), b) - c);
     }
@@ -98,10 +84,6 @@ function displayClientParty(tabIndex, party) {
 const gameContainer = $('#game-info');
 const gameTemplate = $('#game-template');
 
-function valueHasUpdated(hash, hashArray, i) {
-    return (i > hashArray.length || hash != hashArray[i])
-}
-
 function displayClientGameInfo(tabIndex, clientData) {
     // Update existing game element, otherwise create a new template
     const eleName = 'game-template-' + tabIndex.toString();
@@ -135,19 +117,17 @@ const tabContainer = $('#game-buttons');
 const buttonTemplate = $('#button-template');
 
 function updateClientTabs(clients) {
-    const clientCount = clients.length;
-
     // Refresh display
-    if (tabContainer.children().length != clientCount) {
+    if (tabContainer.children().length != gameCount) {
         tabContainer.empty()
         partyContainer.empty()
         gameContainer.empty()
     }
 
-    for (var i = 0; i < clientCount; i++) {
-        const client = clients[i]
+    for (let i = 0; i < clients.length; i++) {
+        const client = clients[i];
 
-        if (!client.version || !client.trainer_name) continue; // Client still hasn't sent important values
+        if (!client.version || !client.trainer_name) continue; // Client still hasn't sent necessary values
 
         const buttonName = 'button-template-' + i.toString(); 
         const existing = $('#' + buttonName);
@@ -164,7 +144,7 @@ function updateClientTabs(clients) {
     if (tabCount == 0) {
         tabContainer.empty();
         const button = buttonTemplate.tmpl({ 'game': 'Load pokebot-nds.lua in an emulator to begin!' })
-        button.attr('class', 'btn btn-primary text-truncate')
+        button.attr('class', 'btn btn-primary w-full text-truncate')
 
         tabContainer.append(button)
 
@@ -174,7 +154,7 @@ function updateClientTabs(clients) {
 
     // Set selected tab to first valid client
     if (!clients[gameTab] || !clients[gameTab].version || !clients[gameTab].trainer_name) {
-        for (let i = 0; i < clientCount; i++) {
+        for (let i = 0; i < gameCount; i++) {
             const client = clients[i];
             
             if (client && client.version && client.trainer_name) {
@@ -333,6 +313,21 @@ function updateRecentTargets(force = false) {
 let statsHash;
 
 function updateStats() {
+    const hashObject = function(obj) {
+        const jsonString = JSON.stringify(obj);
+        
+        if (!jsonString) return null
+        
+        var hash = 0;
+        for (var i = 0; i < jsonString.length; i++) {
+            var code = jsonString.charCodeAt(i);
+            hash = ((hash << 5) - hash) + code;
+            hash = hash & hash;
+        }
+        
+        return hash;
+    }
+
     socketServerGet('stats', function (error, stats) {
         if (error) {
             console.error(error);
@@ -363,16 +358,16 @@ function setClients() {
             return;
         }
 
-        const clientCount = clients.length;
+        gameCount = clients.length;
 
-        setBadgeClientCount(clientCount);
+        setBadgeClientCount(gameCount);
         updateClientTabs(clients);
 
         // Refresh displays
-        if (clientCount < gameContainer.children().length) gameContainer.empty();
-        if (clientCount < partyContainer.children().length) partyContainer.empty();
+        if (gameCount < gameContainer.children().length) gameContainer.empty();
+        if (gameCount < partyContainer.children().length) partyContainer.empty();
 
-        if (clientCount == 0) {
+        if (gameCount == 0) {
             clearInterval(elapsedInterval);
             elapsedStart = null;
 
@@ -381,7 +376,7 @@ function setClients() {
             return;
         }
 
-        for (var i = 0; i < clientCount; i++) {
+        for (var i = 0; i < gameCount; i++) {
             const client = clients[i];
 
             if (!client || !client.version || !client.trainer_name) continue; // Client still hasn't sent important values

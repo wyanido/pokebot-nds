@@ -144,13 +144,13 @@ dofile("lua\\methods\\global.lua")
 
 if _ROM.gen == 4 then
     dofile("lua\\methods\\gen_iv.lua")
-    MON_DATA_SIZE = 236 -- Gen 4 has 16 extra trailing bytes of ball seals data
+    _MON_BYTE_LENGTH = 236 -- Gen 4 has 16 extra trailing bytes of ball seals data
     
     if _ROM.version == "HG" or _ROM.version == "SS" then
-        dofile("lua\\maps\\hgss.lua")
+        dofile("lua\\data\\maps\\hgss.lua")
         dofile("lua\\methods\\hgss.lua")
     else
-        dofile("lua\\maps\\gen_iv.lua")
+        dofile("lua\\data\\maps\\gen_iv.lua")
         
         if _ROM.version == "PL" then
             dofile("lua\\methods\\pt.lua")
@@ -158,8 +158,8 @@ if _ROM.gen == 4 then
     end
 else
     dofile("lua\\methods\\gen_v.lua")
-    dofile("lua\\maps\\gen_v.lua")
-    MON_DATA_SIZE = 220
+    dofile("lua\\data\\maps\\gen_v.lua")
+    _MON_BYTE_LENGTH = 220
 
     if _ROM.version == "B2" or _ROM.version == "W2" then
         dofile("lua\\methods\\b2w2.lua")

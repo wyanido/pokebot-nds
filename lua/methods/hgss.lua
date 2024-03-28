@@ -75,7 +75,7 @@ function mode_starters()
 
     -- Check all Pokémon
     for i = 0, 2, 1 do
-        local mon_data = pokemon.decrypt_data(pointers.starter_data + i * MON_DATA_SIZE)
+        local mon_data = pokemon.decrypt_data(pointers.starter_data + i * _MON_BYTE_LENGTH)
         local starter = pokemon.parse_data(mon_data, true)
         local is_target = pokemon.log_encounter(starter)
 

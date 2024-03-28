@@ -220,28 +220,8 @@
                         <h2 class="content-title">Rich Presence</h2>
                         <div class="custom-switch">
                             <input type="checkbox" id="show_status">
-                            <label for="show_status">Display Pokébot as a Discord status</label>
+                            <label for="show_status">Enable Discord status on startup</label>
                         </div>
-                    </div>
-                    <div class="card">
-                        <h2 class="content-title">Logging</h2>
-                        <div class="custom-switch">
-                            <input type="checkbox" id="save_pkx">
-                            <label for="save_pkx">Save target Pokémon to file
-                                <i class="fa fa-info-circle" id="tooltip-icon" aria-describedby="tooltip"></i>
-                                <div id="tooltip" role="tooltip">Saves encountered target Pokémon to a .pk4/.pk5 file in
-                                    the
-                                    project's /user directory. These can be directly imported into PKHeX.
-                                    <div id="arrow" data-popper-arrow></div>
-                                </div>
-                            </label>
-                        </div>
-                        <br>
-                        <label for="encounter_log_limit">Encounter Log Limit</label>
-                        <input id="encounter_log_limit" min="1" type="number" class="form-control">
-                        <br>
-                        <label for="target_log_limit">Target Log Limit</label>
-                        <input id="target_log_limit" min="1" type="number" class="form-control">
                     </div>
                     <div class="card">
                         <h2 class="content-title">Other</h2>
@@ -271,19 +251,25 @@
                             <input type="checkbox" id="focus_mode">
                             <label for="focus_mode">Focus mode
                                 <i class="fa fa-info-circle" id="tooltip-icon" aria-describedby="tooltip"></i>
-                                <div id="tooltip" role="tooltip">Disables video and sound output on the emulator while active to speed up emulation. Can provide a 2x-3x increase in bot efficiency. 
+                                <div id="tooltip" role="tooltip">Disables video and sound output on the emulator while active to speed up emulation. Boosts efficiency by 2x-3x in DeSmuME, less effective on BizHawk. 
                                     <div id="arrow" data-popper-arrow></div>
                                 </div>
                             </label>
                         </div>
                         <br>
                         <label for="dashboard_poll_interval">Dashboard refresh interval (ms)</label>
-                        <input id="dashboard_poll_interval" min="1" type="number" class="form-control">
+                        <input id="dashboard_poll_interval" style="width:100px" min="1" type="number" class="form-control">
                         <br>
                         <div class="custom-switch">
                             <input type="checkbox" id="auto_open_page">
                             <label for="auto_open_page">Open dashboard page in browser on startup</label>
                         </div>
+                        <br>
+                        <label for="encounter_log_limit">Encounter Log Limit</label>
+                        <input id="encounter_log_limit" style="width:100px" min="1" type="number" class="form-control">
+                        <br>
+                        <label for="target_log_limit">Target Log Limit</label>
+                        <input id="target_log_limit" style="width:100px" min="1" type="number" class="form-control">
                     </div>
                 </div>
                 <div class="col-6">
@@ -316,6 +302,18 @@
                         <div class="custom-switch">
                             <input type="checkbox" id="save_game_after_catch">
                             <label for="save_game_after_catch">Save game after obtaining a target</label>
+                        </div>
+                        <br>
+                        <div class="custom-switch">
+                            <input type="checkbox" id="save_pkx">
+                            <label for="save_pkx">Save target Pokémon to file
+                                <i class="fa fa-info-circle" id="tooltip-icon" aria-describedby="tooltip"></i>
+                                <div id="tooltip" role="tooltip">Saves encountered target Pokémon to a .pk4/.pk5 file in
+                                    the
+                                    project's /user directory. These can be directly imported into PKHeX.
+                                    <div id="arrow" data-popper-arrow></div>
+                                </div>
+                            </label>
                         </div>
                     </div>
                     <div class="card">
@@ -354,8 +352,9 @@
                             <br>
                             <label for="pokeball_priority">Poké Ball priority
                                 <i class="fa fa-info-circle" id="tooltip-icon" aria-describedby="tooltip"></i>
-                                <div id="tooltip" role="tooltip">YAML format list. Specifies the preferred Poké Ball
-                                    type for the bot to use when catching a target from highest to lowest priority.
+                                <div id="tooltip" role="tooltip">YAML format array. Specifies the preferred Poké Ball
+                                    type to catch a target with, from highest to lowest priority.
+                                    Entries must match an English Poké Ball name. (Without the 'é' accent)
                                     <div id="arrow" data-popper-arrow></div>
                                 </div>
                             </label>

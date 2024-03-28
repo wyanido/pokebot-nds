@@ -3,7 +3,8 @@ local pokemon = {}
 -- Interprets a region of RAM as Pokemon data and decrypts it as such
 function pokemon.decrypt_data(address)
     local rand = function(seed) -- Thanks Kaphotics
-        return (0x4e6d * (seed % 65536) + ((0x41c6 * (seed % 65536) + 0x4e6d * math.floor(seed / 65536)) % 65536) * 65536 + 0x6073) % 4294967296
+        return (0x4e6d * (seed % 65536) + ((0x41c6 * (seed % 65536) + 0x4e6d * math.floor(seed / 65536)) % 65536) *
+                   65536 + 0x6073) % 4294967296
     end
 
     local decrypt_block = function(start, finish)
@@ -16,7 +17,7 @@ function pokemon.decrypt_data(address)
             local word = mword(address + i)
             local decrypted = bit.bxor(word, rs)
             local end_word = bit.band(decrypted, 0xFFFF)
-            
+
             table.insert(data, bit.band(end_word, 0xFF))
             table.insert(data, bit.band(bit.rshift(end_word, 8), 0xFF))
         end
@@ -39,7 +40,7 @@ function pokemon.decrypt_data(address)
     local append_bytes = function(source)
         table.move(source, 1, #source, #data + 1, data)
     end
-    
+
     local substruct = {
         [0] = {1, 2, 3, 4},
         [1] = {1, 2, 4, 3},
@@ -67,15 +68,15 @@ function pokemon.decrypt_data(address)
         [23] = {4, 3, 2, 1}
     }
 
-    data = {} 
-    append_bytes({ mbyte(address), mbyte(address + 1), mbyte(address + 2), mbyte(address + 3) }) -- PID
+    data = {}
+    append_bytes({mbyte(address), mbyte(address + 1), mbyte(address + 2), mbyte(address + 3)}) -- PID
     append_bytes({0x0, 0x0}) -- Unused Bytes
-    append_bytes({ mbyte(address + 6), mbyte(address + 7) } ) -- Checksum
+    append_bytes({mbyte(address + 6), mbyte(address + 7)}) -- Checksum
 
     -- Unencrypted bytes
     local pid = mdword(address)
     local checksum = mword(address + 0x06)
-    
+
     -- Find intended order of the shuffled data blocks
     local shift = bit.rshift(bit.band(pid, 0x3E000), 0xD) % 24
     local block_order = substruct[shift]
@@ -124,7 +125,7 @@ function pokemon.parse_data(data, enrich)
             bytes = bytes + bit.lshift(data[i], j * 8)
             j = j + 1
         end
-        
+
         return bytes
     end
 
@@ -134,25 +135,25 @@ function pokemon.parse_data(data, enrich)
     end
 
     mon = {}
-    mon.pid              = read_real(0x00, 0x4)
-    mon.checksum         = read_real(0x06, 0x02)
-    
+    mon.pid = read_real(0x00, 0x4)
+    mon.checksum = read_real(0x06, 0x02)
+
     -- Block A
-    mon.species          = read_real(0x08, 2)
-    mon.heldItem         = read_real(0x0A, 2)
-    mon.otID             = read_real(0x0C, 2)
-    mon.otSID            = read_real(0x0E, 2)
-    mon.experience       = read_real(0x10, 3)
-    mon.friendship       = read_real(0x14, 1)
-    mon.ability          = read_real(0x15, 1)
+    mon.species = read_real(0x08, 2)
+    mon.heldItem = read_real(0x0A, 2)
+    mon.otID = read_real(0x0C, 2)
+    mon.otSID = read_real(0x0E, 2)
+    mon.experience = read_real(0x10, 3)
+    mon.friendship = read_real(0x14, 1)
+    mon.ability = read_real(0x15, 1)
     -- mon.markings         = read_real(0x16, 1)
-    mon.otLanguage       = read_real(0x17, 1)
-    mon.hpEV             = read_real(0x18, 1)
-    mon.attackEV         = read_real(0x19, 1)
-    mon.defenseEV        = read_real(0x1A, 1)
-    mon.speedEV          = read_real(0x1B, 1)
-    mon.spAttackEV       = read_real(0x1C, 1)
-    mon.spDefenseEV      = read_real(0x1D, 1)
+    mon.otLanguage = read_real(0x17, 1)
+    mon.hpEV = read_real(0x18, 1)
+    mon.attackEV = read_real(0x19, 1)
+    mon.defenseEV = read_real(0x1A, 1)
+    mon.speedEV = read_real(0x1B, 1)
+    mon.spAttackEV = read_real(0x1C, 1)
+    mon.spDefenseEV = read_real(0x1D, 1)
     -- mon.cool 			 = read_real(0x1E, 1)
     -- mon.beauty 			 = read_real(0x1F, 1)
     -- mon.cute 			 = read_real(0x20, 1)
@@ -161,40 +162,41 @@ function pokemon.parse_data(data, enrich)
     -- mon.sheen 			 = read_real(0x23, 1)
     -- mon.sinnohRibbonSet1 = read_real(0x24, 2)
     -- mon.unovaRibbonSet 	 = read_real(0x26, 2)
-    
+
     local tid = mon.otID
     local sid = mon.otSID
-    
+
     if config.ot_override then
         tid = tonumber(config.tid_override)
         sid = tonumber(config.sid_override)
     end
 
-    mon.shinyValue = bit.bxor(bit.bxor(bit.bxor(tid, sid), (bit.band(bit.rshift(mon.pid, 16), 0xFFFF))), bit.band(mon.pid, 0xFFFF))
+    mon.shinyValue = bit.bxor(bit.bxor(bit.bxor(tid, sid), (bit.band(bit.rshift(mon.pid, 16), 0xFFFF))),
+        bit.band(mon.pid, 0xFFFF))
     mon.shiny = mon.shinyValue < 8
 
     -- Block B
     mon.moves = {read_real(0x28, 2), read_real(0x2A, 2), read_real(0x2C, 2), read_real(0x2E, 2)}
-    mon.pp    = {read_real(0x30, 1), read_real(0x31, 1), read_real(0x32, 1), read_real(0x33, 1)}
+    mon.pp = {read_real(0x30, 1), read_real(0x31, 1), read_real(0x32, 1), read_real(0x33, 1)}
     mon.ppUps = read_real(0x34, 4)
 
-    local value     = read_real(0x38, 5)
-    mon.hpIV        = bit.band(value, 0x1F)
-    mon.attackIV    = bit.band(bit.rshift(value, 5), 0x1F)
-    mon.defenseIV   = bit.band(bit.rshift(value, 10), 0x1F)
-    mon.speedIV     = bit.band(bit.rshift(value, 15), 0x1F)
-    mon.spAttackIV  = bit.band(bit.rshift(value, 20), 0x1F)
+    local value = read_real(0x38, 5)
+    mon.hpIV = bit.band(value, 0x1F)
+    mon.attackIV = bit.band(bit.rshift(value, 5), 0x1F)
+    mon.defenseIV = bit.band(bit.rshift(value, 10), 0x1F)
+    mon.speedIV = bit.band(bit.rshift(value, 15), 0x1F)
+    mon.spAttackIV = bit.band(bit.rshift(value, 20), 0x1F)
     mon.spDefenseIV = bit.band(bit.rshift(value, 25), 0x1F)
-    mon.isEgg       = bit.band(bit.rshift(value, 30), 0x01)
+    mon.isEgg = bit.band(bit.rshift(value, 30), 0x01)
     -- mon.isNicknamed = (value >> 31) & 0x01
-    
+
     -- mon.hoennRibbonSet1		= read_real(0x3C, 2)
     -- mon.hoennRibbonSet2		= read_real(0x3E, 2)
 
     local value = read_real(0x40, 1)
     -- mon.fatefulEncounter = (value >> 0) & 0x01
-    mon.gender           = bit.band(bit.rshift(value, 1), 0x03)
-    mon.altForm	         = bit.band(bit.rshift(value, 3), 0x1F)
+    mon.gender = bit.band(bit.rshift(value, 1), 0x03)
+    mon.altForm = bit.band(bit.rshift(value, 3), 0x1F)
 
     if _ROM.gen == 4 then
         -- mon.leaf_crown = read_real(0x41, 1)
@@ -208,7 +210,7 @@ function pokemon.parse_data(data, enrich)
     end
 
     -- Block C
-    mon.nickname         = read_string(data, 0x48)
+    mon.nickname = read_string(data, 0x48)
     -- mon.originGame		 = read_real(0x5F, 1)
     -- mon.sinnohRibbonSet3 = read_real(0x60, 2)
     -- mon.sinnohRibbonSet3 = read_real(0x62, 2)
@@ -219,42 +221,42 @@ function pokemon.parse_data(data, enrich)
     -- mon.dateMet			= read_real(0x7B, 3)
     -- mon.eggLocation		= read_real(0x7E, 2)
     -- mon.metLocation		= read_real(0x80, 2)
-    mon.pokerus         = read_real(0x82, 1)
-    mon.pokeball        = read_real(0x83, 1)
+    mon.pokerus = read_real(0x82, 1)
+    mon.pokeball = read_real(0x83, 1)
     -- mon.encounterType	= read_real(0x85, 1)
 
     -- Battle Stats
     -- mon.status       = read_real(0x88, 1)
-    mon.level        = read_real(0x8C, 1)
+    mon.level = read_real(0x8C, 1)
     -- mon.capsuleIndex = read_real(0x8D, 1)
-    mon.currentHP    = read_real(0x8E, 2)
-    mon.maxHP        = read_real(0x90, 2)
-    mon.attack       = read_real(0x92, 2)
-    mon.defense      = read_real(0x94, 2)
-    mon.speed        = read_real(0x96, 2)
-    mon.spAttack     = read_real(0x98, 2)
-    mon.spDefense    = read_real(0x9A, 2)
+    mon.currentHP = read_real(0x8E, 2)
+    mon.maxHP = read_real(0x90, 2)
+    mon.attack = read_real(0x92, 2)
+    mon.defense = read_real(0x94, 2)
+    mon.speed = read_real(0x96, 2)
+    mon.spAttack = read_real(0x98, 2)
+    mon.spDefense = read_real(0x9A, 2)
     -- mon.mailMessage	 = read_real(0x9C, 37)
 
     -- Substitute property IDs with ingame names
     if enrich then
         mon.pid = string.format("%08X", mon.pid)
-        mon.name = mon_dex[mon.species + 1][1]
-        mon.type = mon_dex[mon.species + 1][2]
+        mon.name = _DEX[mon.species + 1][1]
+        mon.type = _DEX[mon.species + 1][2]
 
         -- mon.rating = pokemon.get_rating(mon)
-        mon.pokeball = mon_item[mon.pokeball + 1]
-        mon.otLanguage = mon_lang[mon.otLanguage + 1]
-        mon.ability = mon_ability[mon.ability + 1]
-        mon.nature = mon_nature[mon.nature + 1]
-        mon.heldItem = mon_item[mon.heldItem + 1]
-        mon.gender = mon_gender[mon.gender + 1]
-        
+        mon.pokeball = _ITEM[mon.pokeball + 1]
+        mon.otLanguage = _LANGUAGE[mon.otLanguage + 1]
+        mon.ability = _ABILITY[mon.ability + 1]
+        mon.nature = _NATURE[mon.nature + 1]
+        mon.heldItem = _ITEM[mon.heldItem + 1]
+        mon.gender = _GENDER[mon.gender + 1]
+
         local move_id = mon.moves
         mon.moves = {}
 
         for _, move in ipairs(move_id) do
-            table.insert(mon.moves, mon_move[move + 1])
+            table.insert(mon.moves, _MOVE[move + 1])
         end
 
         mon.ivSum = mon.hpIV + mon.attackIV + mon.defenseIV + mon.spAttackIV + mon.spDefenseIV + mon.speedIV
@@ -311,24 +313,21 @@ function pokemon.log_encounter(mon)
 
     -- Create a watered down copy of the Pokemon data for logging only
     local mon_new = shallow_copy(mon)
-    
-    local key_whitelist = {
-        "pid", "species", "name", "level", "gender", "nature", "heldItem",
-        "hpIV", "attackIV", "defenseIV", "spAttackIV", "spDefenseIV", "speedIV", 
-        "shiny", "shinyValue", "ability", "altForm", "ivSum", "hpType", "hpPower",
-        "isEgg",
-    }
-    
+
+    local key_whitelist = {"pid", "species", "name", "level", "gender", "nature", "heldItem", "hpIV", "attackIV",
+                           "defenseIV", "spAttackIV", "spDefenseIV", "speedIV", "shiny", "shinyValue", "ability",
+                           "altForm", "ivSum", "hpType", "hpPower", "isEgg"}
+
     for k, v in pairs(mon_new) do
         local allowed = false
-        
+
         for _, k2 in ipairs(key_whitelist) do
             if k2 == k then
                 allowed = true
                 break
             end
         end
-    
+
         if not allowed then
             mon_new[k] = nil
         end
@@ -344,7 +343,9 @@ function pokemon.log_encounter(mon)
         if config.save_pkx then
             local shiny = mon.shiny and " ★" or ""
             local hex_string = string.format("%04X", mon.checksum) .. mon.pid
-            local filename = string.format("%04d", mon.species) .. shiny .. " - " .. mon.nickname .. " - " .. hex_string  .. ".pk" .. _ROM.gen
+            local filename =
+                string.format("%04d", mon.species) .. shiny .. " - " .. mon.nickname .. " - " .. hex_string .. ".pk" ..
+                    _ROM.gen
 
             dashboard_send({
                 type = "save_pkx",
@@ -366,20 +367,13 @@ function pokemon.find_best_move(ally, foe)
     local max_power_index = 1
     local max_power = 0
 
-    -- Sometimes, beyond all reasonable explanation, key values are completely missing
-    -- Do nothing in this case to prevent crashes
-    if not foe or not ally or not foe.type or not ally.moves then
-        print_warn("Pokemon values were completely absent, couldn't determine best move")
-        return nil
-    end
-
     for i = 1, #ally.moves, 1 do
         local type = ally.moves[i].type
         local power = ally.moves[i].power
 
         -- Ignore useless moves
         if ally.pp[i] ~= 0 and power ~= nil then
-            local type_matchup = mon_type[type]
+            local type_matchup = _TYPE[type]
 
             -- Calculate effectiveness against foe's type(s)
             for j = 1, #foe.type do
@@ -433,7 +427,7 @@ function pokemon.matches_ruleset(mon, ruleset)
     -- so it can print a warning when a meaningless value 
     -- is written into target traits
     local is_target = true
-    
+
     -- Check items from ruleset against values from the Pokemon's data,
     -- dynamically changing for different data types
     for property, rule in pairs(ruleset) do
@@ -471,7 +465,7 @@ function pokemon.matches_ruleset(mon, ruleset)
                     end
                 end
             else
-                if type(value) == "string" then 
+                if type(value) == "string" then
                     -- Case-insensitive string comparison
                     if string.lower(value) ~= string.lower(rule) then
                         print_debug(property .. " " .. value .. " does not match " .. rule)
@@ -491,6 +485,15 @@ function pokemon.matches_ruleset(mon, ruleset)
     end
 
     return is_target
+end
+
+function pokemon.get_move_slot(mon, move_name)
+    for i, v in ipairs(mon.moves) do
+        if v.name == move_name and mon.pp[i] > 0 then
+            return i
+        end
+    end
+    return 0
 end
 
 return pokemon

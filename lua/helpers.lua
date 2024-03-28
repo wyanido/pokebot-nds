@@ -9,12 +9,12 @@ function update_party()
     local party_updated = false
 
     for i = 1, 6, 1 do
-        local checksum = mword(pointers.party_data + 6 + MON_DATA_SIZE * (i - 1))
+        local checksum = mword(pointers.party_data + 6 + _MON_BYTE_LENGTH * (i - 1))
         
         if i <= party_size then
             -- If the Pokemon has changed, re-read its data
             if party[i] == nil or checksum ~= party[i].checksum then
-                local mon_data = pokemon.decrypt_data(pointers.party_data + (i - 1) * MON_DATA_SIZE)
+                local mon_data = pokemon.decrypt_data(pointers.party_data + (i - 1) * _MON_BYTE_LENGTH)
                 if mon_data then
                     local mon = pokemon.parse_data(mon_data, true)
                     
@@ -63,7 +63,7 @@ function update_foes()
             end 
 
             for i = 1, foe_count do
-                local mon_data = pokemon.decrypt_data(pointers.current_foe + (i - 1) * MON_DATA_SIZE)
+                local mon_data = pokemon.decrypt_data(pointers.current_foe + (i - 1) * _MON_BYTE_LENGTH)
                 
                 if mon_data then
                     local mon = pokemon.parse_data(mon_data, true)
@@ -91,17 +91,16 @@ function get_game_state()
     end
     
     local map = mword(pointers.map_header)
-    local in_game = (map ~= 0x0 and map <= #map_names)
-
-    if not in_game then
-        return {}
+    
+    -- Save not loaded yet
+    if not _MAP[map] then
+        return nil
     end
 
     local state = {
-        in_game = true,
         in_battle = type(foe) == "table" and #foe > 0,
         map_header = map,
-        map_name = map_names[map + 1],
+        map_name = _MAP[map + 1],
         trainer_name = read_string(pointers.trainer_name),
         trainer_id = string.format("%05d", mword(pointers.trainer_id)) .. " (" .. string.format("%05d", mword(pointers.trainer_id + 2)) .. ")",
         trainer_x = mdword(pointers.trainer_x) / 65536.0,
