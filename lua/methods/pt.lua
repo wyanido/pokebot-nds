@@ -14,6 +14,7 @@ function update_pointers()
 		current_foe = foe_anchor - 0x2D58,
 		
 		map_header	= anchor + 0x1294,
+        menu_option = 0x21C4C86,
 		trainer_x   = 0x21C5CCC,
         trainer_y   = 0x21C5CD0,
         trainer_z   = 0x21C5CD4,
@@ -34,15 +35,6 @@ function update_pointers()
         trainer_name = anchor + 0x7C,
         trainer_id   = anchor + 0x8C
 	}
-	
-	-- TODO replace the methods that depend on these pointers
-	pointers.current_pokemon   = anchor + 0x475B8        -- 0A is POkemon menu 0E is animation
-	pointers.foe_in_battle	   = pointers.current_pokemon + 0xC0
-	pointers.foe_status		   = pointers.foe_in_battle + 0x6C
-	pointers.current_hp		   = mword(pointers.current_pokemon + 0x4C)
-	pointers.level			   = mbyte(pointers.current_pokemon + 0x34)
-	pointers.foe_current_hp	   = mword(pointers.foe_in_battle + 0x4C)
-	pointers.saveFlag		   = mbyte(anchor + 0x2832A)
 end
 
 function pathfind_to(target, on_step)

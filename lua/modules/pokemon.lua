@@ -3,8 +3,7 @@ local pokemon = {}
 -- Interprets a region of RAM as Pokemon data and decrypts it as such
 function pokemon.decrypt_data(address)
     local rand = function(seed) -- Thanks Kaphotics
-        return (0x4e6d * (seed % 65536) + ((0x41c6 * (seed % 65536) + 0x4e6d * math.floor(seed / 65536)) % 65536) *
-                   65536 + 0x6073) % 4294967296
+        return (0x4e6d * (seed % 65536) + ((0x41c6 * (seed % 65536) + 0x4e6d * math.floor(seed / 65536)) % 65536) * 65536 + 0x6073) % 4294967296
     end
 
     local decrypt_block = function(start, finish)
@@ -112,8 +111,6 @@ function pokemon.decrypt_data(address)
 
     return data
 end
-
-dofile("lua\\data\\misc.lua")
 
 -- Parses decrypted data into a human-readable table of key value pairs
 function pokemon.parse_data(data, enrich)

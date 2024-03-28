@@ -45,10 +45,10 @@ The game will then be connected to the dashboard, which you can view info for on
 #### Additional Features
 |  						| DPPt | HGSS | BW | B2W2 | 
 |--						| :-: | :-: | :-: | :-: |
-| Auto-catching			| ➖ | ➖ | ✅ | ✅ |
+| Auto-catching			| ✅ | ✅ | ✅ | ✅ |
 | Auto-battling			| ➖ | ➖ | ✅ | ✅ |
 | Thief farming			| ➖ | ➖ | ✅ | ✅ |
-| Pickup farming		| ➖ | ➖ | ✅ | ✅ |
+| Pickup farming		| ✅ | ✅ | ✅ | ✅ |
 | Voltorb Flip		|  | ✅ |  |  |
 
 ## Special Thanks
@@ -56,4 +56,3 @@ The game will then be connected to the dashboard, which you can view info for on
 - The contributors of [BizHawk](https://github.com/TASEmulators/BizHawk) and [DeSmuME](https://github.com/TASEmulators/DeSmuME) for providing a basis to make this project possible
 - [40 Cakes](https://github.com/40Cakes) for the [Gen III PokéBot](https://github.com/40Cakes/pokebot-gen3) that originally inspired this project
 - [evandixon](https://projectpokemon.org/home/profile/183-evandixon/) for demystifying the [NDS Pokemon format](https://projectpokemon.org/home/docs/gen-5/bw-save-structure-r60)
-- [VigiL](https://github.com/907VigiL) for backporting the first Gen V methods to Gen IV

@@ -157,52 +157,26 @@ function use_move_at_slot(slot)
     wait_frames(60)
 end
 
-function do_pickup()
-    local pickup_count = 0
-    local item_count = 0
-    local items = {}
-
-    for i = 1, #party, 1 do
-        -- Insert all item names, even none, to preserve party order
-        table.insert(items, party[i].heldItem)
-
-        if party[i].ability == "Pickup" then
-            pickup_count = pickup_count + 1
-
-            if party[i].heldItem ~= "none" then
-                item_count = item_count + 1
-            end
-        end
+function open_menu(menu)
+    press_sequence(60, "X", 30)
+    
+    if menu == "Pokemon" then
+        touch_screen_at(65, 45)
+        press_sequence(90, "A", 5) -- When opening party with touch screen, a Pokemon isn't highlighted on open
+        return
+    elseif menu == "Pokedex" then
+        touch_screen_at(200, 45)
+    elseif menu == "Bag" then
+        touch_screen_at(65, 95)
+    elseif menu == "Trainer" then
+        touch_screen_at(200, 95)
+    elseif menu == "Save" then
+        touch_screen_at(65, 145)
+    elseif menu == "Options" then
+        touch_screen_at(200, 145)
     end
 
-    if pickup_count > 0 then
-        if item_count < tonumber(config.pickup_threshold) then
-            print_debug("Pickup items in party: " .. item_count .. ". Collecting at threshold: " ..
-                              config.pickup_threshold)
-        else
-            press_sequence(60, "X", 30)
-            touch_screen_at(65, 45)
-            wait_frames(90)
-
-            -- Collect items from each Pickup member
-            for i = 1, #items, 1 do
-                if items[i] ~= "none" then
-                    touch_screen_at(80 * ((i - 1) % 2 + 1), 30 + 50 * math.floor((i - 1) / 2)) -- Select Pokemon
-
-                    wait_frames(30)
-                    touch_screen_at(200, 155) -- Item
-                    wait_frames(30)
-                    touch_screen_at(take_button.x, take_button.y) -- Take
-                    press_sequence(120, "B", 30)
-                end
-            end
-
-            -- Exit out of menu
-            press_sequence(30, "B", 120, "B", 60)
-        end
-    else
-        print_warn("Pickup is enabled in config, but no party Pokemon have the Pickup ability.")
-    end
+    wait_frames(90)
 end
 
 function do_battle()
@@ -406,224 +380,6 @@ function flee_battle()
     end
 end
 
-function find_usable_ball()
-    local function find_ball(balls, ball)
-        for k2, v2 in pairs(balls) do
-            if string.lower(k2) == string.lower(ball) then
-                print_debug("Bot will use ball " .. k2 .. " from slot " .. ((v2 - 1) % 6) .. ", page " .. math.floor(v2 / 6))
-                return v2
-            end
-        end
-        return -1
-    end
-
-    local mon_ball = {
-        [0] = "none",
-        [1] = "Master Ball",
-        [2] = "Ultra Ball",
-        [3] = "Great Ball",
-        [4] = "Poke Ball",
-        [5] = "Safari Ball",
-        [6] = "Net Ball",
-        [7] = "Dive Ball",
-        [8] = "Nest Ball",
-        [9] = "Repeat Ball",
-        [10] = "Timer Ball",
-        [11] = "Luxury Ball",
-        [12] = "Premier Ball",
-        [13] = "Dusk Ball",
-        [14] = "Heal Ball",
-        [15] = "Quick Ball",
-        [16] = "Cherish Ball"
-    }
-
-    -- Check bag for Pokeballs
-    local balls = {}
-    local ball_count = 0
-
-    local slot = 1
-    for i = pointers.items_pouch, pointers.items_pouch + 1240, 4 do
-        local item = mword(i)
-        local count = mword(i + 2)
-
-        -- IDs from Poke Ball to Cherish Ball
-        if item >= 0x1 and item <= 0x10 then
-            if count > 0 then
-                balls[mon_ball[item]] = slot
-                ball_count = ball_count + count
-            end
-
-            slot = slot + 1
-        elseif item == 0x0 then -- No more items beyond this byte
-            break
-        end
-    end
-
-    if ball_count == 0 then
-        return -1
-    end
-
-    local ball_index = -1
-
-    -- Compare with pokeball override
-    if config.pokeball_override then
-        for k, v in pairs(config.pokeball_override) do
-            print_debug("Checking rule " .. k .. "...")
-            -- If config states this ball should be used
-            if pokemon.matches_ruleset(foe[1], config.pokeball_override[k]) then
-                print_debug(k .. " is a valid match!")
-
-                ball_index = find_ball(balls, k)
-
-                if ball_index ~= -1 then
-                    break
-                end
-            end
-        end
-    end
-
-    -- If no override rules were matched, default to priority
-    if ball_index == -1 and config.pokeball_priority then
-        for _, key in ipairs(config.pokeball_priority) do
-            ball_index = find_ball(balls, key)
-
-            if ball_index ~= -1 then
-                break
-            end
-        end
-    end
-
-    return ball_index
-end
-
-function catch_pokemon()
-    clear_all_inputs()
-    update_pointers()
-
-    if config.false_swipe or config.inflict_status then
-        subdue_pokemon()
-    end
-
-    local ball_index = find_usable_ball()
-    if ball_index == -1 then
-        abort("No valid Poké Balls to catch the target with")
-    end
-
-    while mbyte(pointers.battle_menu_state) ~= 1 do
-        press_sequence("B", 5)
-    end
-
-    wait_frames(20)
-
-    touch_screen_at(38, 174)
-    wait_frames(90)
-
-    touch_screen_at(192, 36)
-    wait_frames(90)
-
-    local button = (ball_index - 1) % 6 + 1
-    local page = math.floor((ball_index - 1) / 6)
-    local current_page = mbyte(pointers.battle_bag_page)
-
-    while current_page ~= page do -- Scroll to page with ball
-        if current_page < page then
-            touch_screen_at(58, 180)
-            current_page = current_page + 1
-        else
-            touch_screen_at(17, 180)
-            current_page = current_page - 1
-        end
-
-        wait_frames(30)
-        print_debug("Page is " .. current_page .. ", scrolling to " .. page)
-    end
-
-    touch_screen_at(80 * ((button - 1) % 2 + 1), 30 + 50 * math.floor((button - 1) / 2)) -- Select Ball
-    wait_frames(30)
-    touch_screen_at(108, 176) -- USE
-
-    while mbyte(pointers.battle_menu_state) ~= 1 and game_state.in_battle do -- Wait until catch failed or battle ended
-        press_sequence("B", 5)
-
-        if mbyte(pointers.battle_menu_state) == 4 then
-            abort("Lead fainted while trying to catch target")
-        end
-    end
-
-    if not game_state.in_battle then
-        print("Skipping through all post-battle dialogue... (This may take a few seconds)")
-        for i = 0, 118, 1 do
-            press_button("B")
-            clear_unheld_inputs()
-            wait_frames(5)
-        end
-
-        if config.save_game_after_catch then
-            save_game()
-        end
-    end
-end
-
-function process_wild_encounter()
-    -- Check all foes in case of a double battle
-    local foe_is_target = false
-    local foe_item = false
-
-    for i = 1, #foe, 1 do
-        foe_is_target = pokemon.log_encounter(foe[i]) or foe_is_target
-
-        if foe[i].heldItem ~= "none" then
-            foe_item = true
-        end
-    end
-
-    local double = #foe == 2
-
-    wait_frames(30)
-
-    if foe_is_target then
-        if double then
-            wait_frames(120)
-            abort("Wild Pokemon meets target specs! There are multiple foes, so pausing for manual catch")
-        else
-            if config.auto_catch then
-                while game_state.in_battle do
-                    catch_pokemon()
-                end
-            else
-                abort("Wild Pokemon meets target specs, but Auto-catch is disabled")
-            end
-        end
-    else
-        print("Wild " .. foe[1].name .. " was not a target, attempting next action...")
-
-        update_pointers()
-
-        while game_state.in_battle do
-            if config.thief_wild_items and foe_item and not double then
-                print("Wild Pokemon has a held item, trying to use Thief...")
-                
-                do_thief()
-                flee_battle()
-            elseif config.battle_non_targets and not double then
-                do_battle()
-            else
-                if not double and config.thief_wild_items and not foe_item then
-                    print("Wild Pokemon had no held item. Fleeing!")
-                elseif double then
-                    print("Won't battle two targets at once. Fleeing!")
-                end
-
-                flee_battle()
-            end
-        end
-
-        if config.pickup then
-            do_pickup()
-        end
-    end
-end
-
 function fishing_status_changed()
     return not (mword(pointers.fishing_bite_indicator) ~= 0xFFF1 and mbyte(pointers.fishing_no_bite) == 0)
 end
@@ -658,6 +414,31 @@ function read_string(input, pointer)
     end
     
     return text
+end
+
+-- Get list of Poke Ball types from bag
+function get_usable_balls()
+    local balls = {}
+    local slot = 1
+
+    for i = pointers.items_pouch, pointers.items_pouch + 1240, 4 do
+        local id = mword(i)
+        
+        -- IDs from Master Ball to Cherish Ball
+        if id >= 0x1 and id <= 0x10 then
+            local count = mword(i + 2)
+            
+            if count > 0 then
+                local item_name = _ITEM[id + 1]
+
+                balls[string.lower(item_name)] = slot + 1
+            end
+
+            slot = slot + 1
+        elseif id == 0x0 then -- No more items beyond this byte
+            return balls
+        end
+    end
 end
 
 function dismiss_repel()
@@ -720,10 +501,10 @@ function mode_starters()
         [2] = { x = 185, y = 100 }, -- Oshawott
     }
 
-    if not game_state then
+    if not game_state.in_game then
         print("Waiting to reach overworld...")
 
-        while not game_state do
+        while not game_state.in_game do
             press_sequence("A", 20)
         end
     end
@@ -819,10 +600,10 @@ function mode_random_encounters()
 end
 
 function mode_gift()
-    if not game_state then
+    if not game_state.in_game then
         print("Waiting to reach overworld...")
 
-        while not game_state do
+        while not game_state.in_game do
             press_sequence("A", 20)
         end
     end
@@ -1142,7 +923,7 @@ function mode_static_encounters()
         press_sequence("A", 5)
     end
 
-    foe_is_target = pokemon.log_encounter(foe[1])
+    local is_target = pokemon.log_encounter(foe[1])
 
     if not config.hax then
         for i = 0, 22, 1 do
@@ -1150,7 +931,7 @@ function mode_static_encounters()
         end
     end
 
-    if foe_is_target then
+    if is_target then
         if config.auto_catch then
             while game_state.in_battle do
                 catch_pokemon()
@@ -1179,7 +960,7 @@ function mode_thundurus_tornadus()
         return tornadus_seen or thundurus_seen
     end
 
-    while not game_state do
+    while not game_state.in_game do
         press_sequence("A", 5)
     end
 

@@ -94,10 +94,11 @@ function get_game_state()
     
     -- Save not loaded yet
     if not _MAP[map] then
-        return nil
+        return {}
     end
 
     local state = {
+        in_game = true,
         in_battle = type(foe) == "table" and #foe > 0,
         map_header = map,
         map_name = _MAP[map + 1],

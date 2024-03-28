@@ -59,7 +59,6 @@ const configTemplate = {
     auto_catch: false,
     target_log_limit: "30",
     dashboard_poll_interval: "1000",
-    inflict_status: false,
     false_swipe: false,
     debug: false,
     webhook_url: "",

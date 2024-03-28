@@ -15,6 +15,7 @@ config = nil
 foe = nil
 party = {}
 
+dofile("lua\\data\\misc.lua")
 pokemon = require("lua\\modules\\pokemon")
 dofile("lua\\modules\\input.lua")
 dofile("lua\\detect_game.lua")

@@ -6,6 +6,15 @@ function update_pointers()
     local foe_anchor = mdword(anchor + 0x6930)
 
     pointers = {
+        -- items_pocket
+        -- medicine_pocket
+        poke_balls_pocket = anchor - 0x232D4,
+        -- tms_hms_pocket
+        -- berries_pocket
+        -- mail_pocket
+        -- battle_items_pocket
+        -- key_items_pocket 
+
         party_count = anchor - 0x23F44,
         party_data  = anchor - 0x23F40,
         
@@ -22,14 +31,14 @@ function update_pointers()
 
         daycare_pid = anchor - 0x22804,
 
-        battle_state_value     = anchor + 0x470D4, -- 01 is FIGHT menu, 04 is Move Select, 08 is Bag,
+        battle_menu_state      = anchor + 0x230EC, -- 01 is FIGHT menu, 04 is Move Select, 08 is Bag,
         battle_indicator       = 0x021E76D2, -- Static
         fishing_bite_indicator = 0x21DD853,
 
         easy_chat_open           = anchor + 0x28644,
         easy_chat_category_sizes = anchor + 0x200C4,
         easy_chat_word_list      = anchor + 0x20124,
-        
+        battle_bag_page          = mdword(anchor + 0x348C4) + 0x4E,
         trainer_name = anchor - 0x23F74,
         trainer_id   = anchor - 0x23F64,
 
@@ -38,26 +47,24 @@ function update_pointers()
     }
 end
 
-function save_game()
-    print("Saving game...")
-    touch_screen_at(125, 75)
+function open_menu(menu)
     wait_frames(30)
-    hold_button("B")
-    wait_frames(100)
-    release_button("B")
-    wait_frames(10)
-    touch_screen_at(230, 95)
-    wait_frames(30)
-    hold_button("B")
-    wait_frames(100)
-    release_button("B")
-    wait_frames(10)
-    touch_screen_at(230, 95)
-    wait_frames(800)
-
-    client.saveram() -- Flush save ram to the disk	
-
-    press_sequence("B", 10)
+    
+    if menu == "Pokedex" then
+        touch_screen_at(45, 35)
+    elseif menu == "Pokemon" then
+        touch_screen_at(45, 75)
+    elseif menu == "Bag" then
+        touch_screen_at(45, 115)
+    elseif menu == "Trainer" then
+        touch_screen_at(125, 35)
+    elseif menu == "Save" then
+        touch_screen_at(125, 75)
+    elseif menu == "Options" then
+        touch_screen_at(125, 115)
+    end
+    
+    wait_frames(90)
 end
 
 function mode_starters()

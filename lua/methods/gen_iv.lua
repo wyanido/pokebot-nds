@@ -1,8 +1,16 @@
 function update_pointers()
     local anchor = mdword(0x21C489C + _ROM.offset)
     local foe_anchor = mdword(anchor + 0x226FE)
+    local bag_page_anchor = mdword(anchor + 0x560EE)
 
     pointers = {
+        items_pocket      = anchor + 0x59E,
+        key_items_pocket  = anchor + 0x832,
+        tms_hms_pocket    = anchor + 0x8FA,
+        medicine_pocket   = anchor + 0xABA,
+        berries_pocket    = anchor + 0xB5A,
+        poke_balls_pocket = anchor + 0xC5A,
+        
         party_count = anchor + 0xE,
         party_data  = anchor + 0x12,
 
@@ -10,6 +18,7 @@ function update_pointers()
         current_foe = foe_anchor - 0x2B70,
 
         map_header  = anchor + 0x11B2,
+        menu_option = 0x21CDF22,
         trainer_x   = 0x21CEF70,
         trainer_y   = 0x21CEF74,
         trainer_z   = 0x21CEF78,
@@ -22,9 +31,10 @@ function update_pointers()
 
         selected_starter = anchor + 0x427A6,
         starters_ready   = anchor + 0x4282A,
-
-        battle_state_value     = anchor + 0x44878,        
-        battle_indicator       = 0x021A1B2A + _ROM.offset, -- mostly static
+        
+        battle_bag_page        = bag_page_anchor + 0x4E,
+        battle_menu_state      = anchor + 0x455A6,
+        battle_indicator       = 0x21A1B2A + _ROM.offset, -- mostly static
         fishing_bite_indicator = 0x21D5E16,
 
         trainer_name = anchor - 0x22,
@@ -47,109 +57,34 @@ end
 
 function save_game()
     print("Saving game...")
-    hold_button("X")
-    wait_frames(20)
-    release_button("X")
     
-    -- SAVE button is at a different position before choosing starter
-    if mword(pointers.map_header) == 0156 then -- No dex (not a perfect fix)
-        while mbyte(0x021C4C86) ~= 04 do
-            press_sequence("Up", 10)
-        end
-    else
-        while mbyte(0x021C4C86) ~= 07 do
-            press_sequence("Up", 10)
-        end
+    open_menu("Save")
+    press_sequence("A", 120, "A", 800)
+
+    if _EMU == "BizHawk" then
+        client.saveram()
     end
 
-    press_sequence("A", 10)
-    hold_button("B")
-    wait_frames(100)
-    release_button("B")
-    press_button("A")
-    wait_frames(30)
-    hold_button("B")
-    wait_frames(100)
-    release_button("B")
-    press_sequence("A", 5)
-
-    while pointers.saveFlag == 00 do
-        press_sequence("B", 5)
-    end
-
-    client.saveram() -- Flush save ram to the disk	
-    wait_frames(50)
+    press_sequence("B", 10)
 end
 
-function skip_nickname()
-    while game_state.in_battle do
-        touch_screen_at(125, 140)
-        wait_frames(20)
-    end
-    wait_frames(150)
-    save_game()
-end
+function open_menu(menu)
+    local option = {
+        Pokedex = 1,
+        Pokemon = 2,
+        Bag = 4,
+        Trainer = 5,
+        Save = 7,
+        Options = 8
+    }
 
-function do_pickup()
-    local pickup_count = 0
-    local item_count = 0
-    local items = {}
+    press_sequence(60, "X", 30)
 
-    while not game_state do
-        press_sequence(12, "A")
+    while mbyte(pointers.menu_option) ~= option[menu] do
+        press_sequence("Down", 8)
     end
 
-    for i = 1, #party, 1 do
-        table.insert(items, party[i].heldItem)
-
-        if party[i].ability == "Pickup" then
-            pickup_count = pickup_count + 1
-
-            if party[i].heldItem ~= "none" then
-                item_count = item_count + 1
-            end
-        end
-    end
-
-    if pickup_count > 0 then
-        if item_count < tonumber(config.pickup_threshold) then
-            print("Pickup items in party: " ..
-                item_count .. ". Collecting at threshold: " .. config.pickup_threshold)
-        else
-            press_sequence(60, "X", 30)
-            while mbyte(0x021C4C86) ~= 02 do
-                press_sequence("Up", 10)
-            end
-            press_button("A")
-            wait_frames(120)
-            print("Item count: " .. item_count)
-            for i = 1, #items, 1 do
-                if items[i] ~= "none" then
-                    print("getting item from mon at slot: " .. i)
-                    if i % 2 == 0 then
-                        press_button("Right")
-                        wait_frames(5)
-                    end
-                    if i == 3 or i == 4 then
-                        press_button("Down")
-                        wait_frames(5)
-                    end
-                    if i == 5 or i == 6 then
-                        press_button("Down")
-                        wait_frames(5)
-                        press_button("Down")
-                        wait_frames(5)
-                    end
-                    press_sequence("A", 5, "Down", 5, "Down", 5, "A", 5, "Down", 5, "A")
-                    wait_frames(200)
-                    press_button("B")
-                end
-            end
-            press_sequence(30, "B", 150, "B", 100)
-        end
-    else
-        print("Pickup is enabled in config, but no Pokemon have the pickup ability.")
-    end
+    press_sequence("A", 90)
 end
 
 -- Progress text efficiently while mimicing imperfect human inputs
@@ -187,222 +122,29 @@ function flee_battle()
     print("Got away safely!")
 end
 
-function do_battle()
-    -- Press B until battle state has advanced
-    while ((game_state.in_battle and (pointers.battle_state_value == 0 or pointers.battle_state_value == 14))) do
-        if (pointers.current_hp == 0 or pointers.foe_current_hp == 0) then
-            break
-        else
-            press_sequence("B", 5)
+function get_usable_balls()
+    -- Iterate bag pocket for Poke Balls
+    local balls = {}
+    local slot = 0
+
+    for i = pointers.poke_balls_pocket, pointers.poke_balls_pocket + 0x3A, 4 do
+        local count = mword(i + 2)
+
+        if count > 0 then
+            local id = mword(i)
+            local item_name = _ITEM[id + 1]
+
+            balls[string.lower(item_name)] = slot + 1
         end
+
+        slot = slot + 1
     end
 
-    if (config.swap_lead_battle) then
-        print("Config set to swap lead.. swapping now")
-        swap_lead_battle()
-    end
-    wait_frames(100)
-    local best_move = pokemon.find_best_move(party[1], foe[1])
-
-    if best_move then
-        local move1_pp = mbyte(pointers.current_pokemon + 0x2C)
-        local move2_pp = mbyte(pointers.current_pokemon + 0x2D)
-        local move3_pp = mbyte(pointers.current_pokemon + 0x2E)
-        local move4_pp = mbyte(pointers.current_pokemon + 0x2F)
-        local level = pointers.level
-
-        if not game_state.in_battle then   -- Battle over
-            return
-        elseif pointers.current_hp == 0 then -- Fainted or learning new move
-            while game_state.in_battle do
-                wait_frames(400)
-                touch_screen_at(125, 135)    -- FLEE
-                wait_frames(500)
-                if game_state.in_battle then --if hit with can't flee message
-                    print("Could not flee battle reseting...")
-                    soft_reset()
-                end
-                press_sequence("B", 5)
-            end
-            return
-        elseif pointers.foe_current_hp == 0 then
-            print("Enemy Pokemon fainted skipping text...")
-            while game_state.in_battle do
-                touch_screen_at(125, 70)
-                
-                if pointers.level ~= level then
-                    for i = 1, 50, 1 do
-                        touch_screen_at(125, 135)
-                        wait_frames(2)
-                    end
-                    for i = 1, 20, 1 do
-                        touch_screen_at(125, 70)
-                        wait_frames(2)
-                    end
-                    if pointers.battle_state_value == 0x6C or pointers.battle_state_value == 0x14 then
-                        -- Evolving
-                        for i = 0, 300, 1 do
-                            press_button("A")
-                            wait_frames(2)
-                        end
-                        for i = 0, 90, 1 do
-                            press_button("B")
-                            wait_frames(2)
-                        end
-                        for i = 0, 20, 1 do
-                            press_button("A")
-                            wait_frames(2)
-                        end
-                        return
-                    end
-                end
-                wait_frames(2)
-            end
-        end
-
-        wait_frames(60)
-
-        --checks if move has pp and is a damaging move
-        if (best_move.power > 0) then
-            print_debug("Best move against foe is " ..
-                best_move.name .. " (Effective base power is " .. best_move.power .. ")")
-            touch_screen_at(128, 96) -- FIGHT
-            wait_frames(60)
-            local xpos = 80 * (((best_move.index - 1) % 2) + 1)
-            local ypos = 50 * (math.floor((best_move.index - 1) / 2) + 1)
-            touch_screen_at(xpos, ypos) -- Select move slot
-
-            wait_frames(30)
-
-            party[1].pp[1] = move1_pp -- update moves pp for find_best_move function
-            party[1].pp[2] = move2_pp
-            party[1].pp[3] = move3_pp
-            party[1].pp[4] = move4_pp
-            do_battle()
-        else
-            print("Lead Pokemon has no valid moves left to battle! Fleeing...")
-
-            while game_state.in_battle do
-                touch_screen_at(125, 175) -- Run
-                wait_frames(5)
-            end
-        end
-    else
-        -- Wait another frame for valid battle data
-        wait_frames(1)
-    end
-end
-
-function swap_lead_battle()
-    --find strongest_mon
-    local strongest_mon_index = 1
-    local strongest_mon_first = pointers.level
-    local strongest_mon = 0
-    for i = 2, #party, 1 do
-        strongest_mon = party[i].level
-        if strongest_mon_first < strongest_mon then
-            strongest_mon_first = strongest_mon
-            strongest_mon_index = strongest_mon_index + 1
-        end
-    end
-    --select strongest_mon
-    if strongest_mon_index == 1 then
-        return
-    else
-        while pointers.battle_state_value ~= 0x0A do
-            touch_screen_at(215, 165)
-            wait_frames(5)
-        end
-        while pointers.battle_state_value == 0x0A do
-            local xpos = 80 * (((strongest_mon_index - 1) % 2) + 1)
-            local ypos = (40 * (math.floor((strongest_mon_index - 1) / 3) + 1) + strongest_mon_index - 1)
-            touch_screen_at(xpos, ypos)
-            wait_frames(5)
-            touch_screen_at(xpos, ypos)
-        end
-        while (pointers.battle_state_value ~= 0x01) do
-            press_sequence(12, "A")
-        end
-    end
-end
-
-function catch_pokemon()
-    while game_state.in_battle and pointers.battle_state_value == 0 do
-        press_sequence("B", 5)
-    end
-    if config.auto_catch then
-        if config.inflict_status or config.false_swipe then
-            subdue_pokemon()
-        end
-        while pointers.battle_state_value == 14 do
-            press_sequence("B", 5)
-        end
-        wait_frames(60)
-        
-        local do_battle = true
-        
-        while do_battle do
-            while pointers.battle_state_value ~= 01 do
-                press_sequence("B", 5)
-            end
-
-            wait_frames(10)
-            touch_screen_at(40, 170)
-            wait_frames(50)
-            touch_screen_at(190, 45)
-            wait_frames(20)
-            touch_screen_at(60, 30)
-            wait_frames(20)
-            touch_screen_at(100, 170)
-            wait_frames(750)
-            
-            if mbyte(0x02101DF0) == 0x01 then
-                skip_nickname()
-                wait_frames(200)
-                do_battle = false
-            else
-                if pointers.foe_status == 0 then
-                    subdue_pokemon()
-                    do_battle = false
-                end
-            end
-        end
-    else
-        abort("Wild Pokemon meets target specs!")
-    end
-end
-
-function process_wild_encounter()
-    -- Check all foes in case of a double battle in Eterna Forest
-    local foe_is_target = false
-    for i = 1, #foe, 1 do
-        foe_is_target = pokemon.log_encounter(foe[i]) or foe_is_target
-    end
-	
-    wait_frames(30)
-    
-    if foe_is_target then
-        catch_pokemon()
-    else
-        while game_state.in_battle do
-            if config.battle_non_targets then
-                print("Wild " .. foe[1].name .. " is not a target, and battle non targets is on. Battling!")
-                do_battle()
-                return
-            else
-                if config.mode_static_encounters then
-                    soft_reset()
-                else
-                    print("Wild " .. foe[1].name .. " is not a target, fleeing!")
-                    flee_battle()
-                end
-            end
-        end
-    end
+    return balls
 end
 
 function fishing_status_changed()
-    return not (mbyte(pointers.fishing_bite_indicator) == 0)
+    return mbyte(pointers.fishing_bite_indicator) ~= 0
 end
 
 function fishing_has_bite()
@@ -759,17 +501,13 @@ function mode_random_encounters()
     end
 
     process_wild_encounter()
-    
-    if config.pickup then
-        do_pickup()
-    end
 end
 
 function mode_gift()
-    if not game_state then
+    if not game_state.in_game then
         print("Waiting to reach overworld...")
 
-        while not game_state do
+        while not game_state.in_game do
             skip_dialogue()
         end
     end

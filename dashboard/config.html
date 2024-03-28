@@ -179,6 +179,11 @@
                     <div class="card">
                         <h2 class="content-title">Discord</h2>
                         <div class="custom-switch">
+                            <input type="checkbox" id="show_status">
+                            <label for="show_status">Enable Discord Activity status on startup</label>
+                        </div>
+                        <br>
+                        <div class="custom-switch">
                             <input type="checkbox" id="webhook_enabled">
                             <label for="webhook_enabled">Enable Webhook
                                 <i class="fa fa-info-circle" id="tooltip-icon" aria-describedby="tooltip"></i>
@@ -215,12 +220,6 @@
                                 <label for="user_id">User/Role ID</label>
                                 <input id="user_id" class="form-control">
                             </div>
-                        </div>
-                        <br>
-                        <h2 class="content-title">Rich Presence</h2>
-                        <div class="custom-switch">
-                            <input type="checkbox" id="show_status">
-                            <label for="show_status">Enable Discord status on startup</label>
                         </div>
                     </div>
                     <div class="card">
@@ -270,6 +269,28 @@
                         <br>
                         <label for="target_log_limit">Target Log Limit</label>
                         <input id="target_log_limit" style="width:100px" min="1" type="number" class="form-control">
+                    </div>
+                    <div class="card">
+                        <h2 class="content-title">Advanced</h2>
+                        <div class="custom-switch">
+                            <input type="checkbox" id="ot_override">
+                            <label for="ot_override">TID/SID Override
+                                <i class="fa fa-info-circle" id="tooltip-icon" aria-describedby="tooltip"></i>
+                                <div id="tooltip" role="tooltip">Uses a preset TID/SID pair to calculate Shiny Value instead of
+                                    the one present in the current game. Useful for hunting eggs that would be shiny when
+                                    hatched in a different game, especially Manaphy. 
+                                    <div id="arrow" data-popper-arrow></div>
+                                </div>
+                            </label>
+                        </div>
+                        <br>
+                        <div id="option_ot_override">
+                            <label for="tid_override">TID</label>
+                            <input id="tid_override" style="width:100px" class="form-control">
+                            <br>
+                            <label for="sid_override">SID</label>
+                            <input id="sid_override" style="width:100px" class="form-control">
+                        </div>
                     </div>
                 </div>
                 <div class="col-6">
@@ -342,12 +363,7 @@
                             <br>
                             <div class="custom-switch">
                                 <input type="checkbox" id="false_swipe">
-                                <label for="false_swipe">Use False Swipe</label>
-                            </div>
-                            <br>
-                            <div class="custom-switch">
-                                <input type="checkbox" id="inflict_status">
-                                <label for="inflict_status">Inflict sleep/paralysis</label>
+                                <label for="false_swipe">Subdue Pokémon before catching</label>
                             </div>
                             <br>
                             <label for="pokeball_priority">Poké Ball priority
@@ -390,28 +406,6 @@
                             </div>
                         </label>
                         <input id="pickup_threshold" style="width:100px" min="1" max="6" type="number" class="form-control">
-                    </div>
-                    <div class="card">
-                        <h2 class="content-title">Advanced</h2>
-                        <div class="custom-switch">
-                            <input type="checkbox" id="ot_override">
-                            <label for="ot_override">TID/SID Override
-                                <i class="fa fa-info-circle" id="tooltip-icon" aria-describedby="tooltip"></i>
-                                <div id="tooltip" role="tooltip">Uses a preset TID/SID pair to calculate Shiny Value instead of
-                                    the one present in the current game. Useful for hunting eggs that would be shiny when
-                                    hatched in a different game, especially Manaphy. 
-                                    <div id="arrow" data-popper-arrow></div>
-                                </div>
-                            </label>
-                        </div>
-                        <br>
-                        <div id="option_ot_override">
-                            <label for="tid_override">TID</label>
-                            <input id="tid_override" style="width:100px" class="form-control">
-                            <br>
-                            <label for="sid_override">SID</label>
-                            <input id="sid_override" style="width:100px" class="form-control">
-                        </div>
                     </div>
                 </div>
             </fieldset>

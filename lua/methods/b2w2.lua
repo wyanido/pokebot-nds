@@ -103,10 +103,10 @@ function mode_starters()
         [2] = { x = 210, y = 100 }, -- Oshawott
     }
 
-    if not game_state then
+    if not game_state.in_game then
         print("Waiting to reach overworld...")
 
-        while not game_state do 
+        while not game_state.in_game do 
             press_sequence("A", 20) 
         end
     end
