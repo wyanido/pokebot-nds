@@ -56,12 +56,7 @@ function update_pointers()
     }
 end
 
-take_button = { x = 200, y = 155 }
-
------------------------
--- MISC. BOT ACTIONS
------------------------
--- Press random key combo after SRing to increase seed randomness
+--- Press random key combo after SRing to increase seed randomness
 -- https://www.smogon.com/ingame/rng/bw_rng_part2
 function randomise_reset()
     local inputs = { "Up", "Down", "Left", "Right", "A", "B", "X", "Y", "L", "R", "Start", "Select" }
@@ -82,81 +77,40 @@ function randomise_reset()
     end
 end
 
-function pathfind_to(target)
-    -- Use local position if one axis isn't specified
+--- Moves the bot toward a position on the map.
+-- @param target Target position (x, z)
+-- @param on_move Function called each frame while moving
+-- If an axis in the target is not specified, it will be substituted with the bot's current position
+function move_to(target, on_move)
     if not target.x then
-        target.x = game_state.trainer_x
+        target.x = game_state.trainer_x - 0.5
     elseif not target.z then
-        target.z = game_state.trainer_z
+        target.z = game_state.trainer_z - 0.5
     end
 
-    local dx = target.x - game_state.trainer_x
-    local dz = target.z - game_state.trainer_z
-    local direction_priority = "x"
-    local turn_cooldown = 2
-
-    local function move_vertically()
-        local button = dz > 0 and "Down" or "Up"
-        hold_button(button)
-        wait_frames(frames_per_move() - 1)
-        release_button(button)
+    while game_state.trainer_x <= target.x - 0.5 do
+        hold_button("Right")
+        if on_move then on_move() end
     end
-
-    local function move_horizontally()
-        local button = dx > 0 and "Right" or "Left"
-        hold_button(button)
-        wait_frames(frames_per_move() - 1)
-        release_button(button)
+    
+    while game_state.trainer_x >= target.x + 1.5 do
+        hold_button("Left")
+        if on_move then on_move() end
     end
-
-    hold_button("B")
-    while game_state.trainer_x ~= target.x or game_state.trainer_z ~= target.z do
-        dx = target.x - game_state.trainer_x
-        dz = target.z - game_state.trainer_z
-
-        if direction_priority == "z" then
-            if dz ~= 0 then
-                move_vertically()
-            elseif dx ~= 0 then
-                move_horizontally()
-            end
-        else
-            if dx ~= 0 then
-                move_horizontally()
-            elseif dz ~= 0 then
-                move_vertically()
-            end
-        end
-        
-        -- Swap movement axis often to zigzag to the target,
-        -- decreasing the chance of the bot getting stuck
-        if turn_cooldown == 0 then
-            direction_priority = (direction_priority == "x") and "z" or "x"
-            turn_cooldown = 2
-        else
-            turn_cooldown = turn_cooldown - 1
-        end
-
-        wait_frames(1) -- Makes movement more precise by reducing timing inconsistencies between directions
-
-        dismiss_repel()
+    
+    while game_state.trainer_z < target.z - 0.5 do
+        hold_button("Down")
+        if on_move then on_move() end
     end
-    release_button("B")
+    
+    while game_state.trainer_z > target.z + 1.5 do
+        hold_button("Up")
+        if on_move then on_move() end
+    end
 end
 
-function use_move_at_slot(slot)
-    -- Skip text to FIGHT menu
-    while game_state.in_battle and mbyte(pointers.battle_menu_state) == 0 do
-        press_sequence("B", 5)
-    end
-
-    wait_frames(30)
-    touch_screen_at(128, 90) -- FIGHT
-    wait_frames(30)
-    touch_screen_at(80 * ((slot - 1) % 2 + 1), 50 * (math.floor((slot - 1) / 2) + 1)) -- Select move slot
-    wait_frames(60)
-end
-
+--- Opens the menu and selects the specified option.
+-- @param menu Name of the menu to open
 function open_menu(menu)
     press_sequence(60, "X", 30)
     
@@ -171,7 +125,11 @@ function open_menu(menu)
     elseif menu == "Trainer" then
         touch_screen_at(200, 95)
     elseif menu == "Save" then
-        touch_screen_at(65, 145)
+        if game_state.map_name == "Nuvema Town" then
+            touch_screen_at(200, 95) -- Button position is different before receiving Pokedex
+        else
+            touch_screen_at(65, 145)
+        end
     elseif menu == "Options" then
         touch_screen_at(200, 145)
     end
@@ -179,185 +137,7 @@ function open_menu(menu)
     wait_frames(90)
 end
 
-function do_battle()
-    local best_move = pokemon.find_best_move(party[1], foe[1])
-
-    if best_move then
-        -- Press B until battle state has advanced
-        local battle_state = 0
-
-        while game_state.in_battle and battle_state == 0 do
-            press_sequence("B", 5)
-            battle_state = mbyte(pointers.battle_menu_state)
-        end
-
-        if not game_state.in_battle then -- Battle over
-            return
-        elseif battle_state == 4 then -- Fainted or learning new move
-            wait_frames(30)
-            touch_screen_at(128, 100) -- RUN or KEEP OLD MOVES
-            wait_frames(140)
-            touch_screen_at(128, 50) -- FORGET or nothing if fainted
-
-            while game_state.in_battle do
-                press_sequence("B", 5)
-            end
-            return
-        end
-
-        if best_move.power > 0 then
-            -- Manually decrement PP count
-            -- The game only updates this itself at the end of the battle
-            local pp_dec = 1
-            if foe[1].ability == "Pressure" then
-                pp_dec = 2
-            end
-
-            party[1].pp[best_move.index] = party[1].pp[best_move.index] - pp_dec
-
-            print_debug("Best move against foe is " .. best_move.name .. " (Effective base power is " .. best_move.power .. ")")
-            wait_frames(30)
-            touch_screen_at(128, 90) -- FIGHT
-            wait_frames(30)
-
-            touch_screen_at(80 * ((best_move.index - 1) % 2 + 1), 50 * (math.floor((best_move.index - 1) / 2) + 1)) -- Select move slot
-            wait_frames(30)
-        else
-            print("Lead Pokemon has no valid moves left to battle! Fleeing...")
-
-            flee_battle()
-        end
-    else
-        -- Wait another frame for valid battle data
-        wait_frames(1)
-    end
-end
-
-function check_party_status()
-    if #party == 0 or game_state.in_battle then -- Don't check party status if bot was started during a battle
-        return nil
-    end
-
-    -- Check how many valid move uses the lead has remaining
-    local lead_pp_sum = 0
-
-    for i = 1, #party[1].moves, 1 do
-        if party[1].moves[i].power ~= nil then
-            lead_pp_sum = lead_pp_sum + party[1].pp[i]
-        end
-    end
-
-    if party[1].currentHP == 0 or (lead_pp_sum == 0 and config.battle_non_targets) then
-        if config.cycle_lead_pokemon then
-            print("Lead Pokemon can no longer battle. Replacing...")
-
-            -- Find suitable replacement
-            local most_usable_pp = 0
-            local best_index = 1
-
-            for i = 2, #party, 1 do
-                local ally = party[i]
-
-                if ally.currentHP > 0 then
-                    local pp_sum = 0
-
-                    for j = 1, #ally.moves, 1 do
-                        if ally.moves[j].power ~= nil then
-                            -- Multiply PP by level to weight selections toward
-                            -- higher level party members
-                            pp_sum = pp_sum + ally.pp[j] * ally.level
-                        end
-                    end
-
-                    if pp_sum > most_usable_pp then
-                        most_usable_pp = pp_sum
-                        best_index = i
-                    end
-                end
-            end
-
-            if most_usable_pp == 0 then
-                abort("No suitable Pokemon left to battle")
-            else
-                print_debug("Best replacement was " .. party[best_index].name .. " (Slot " .. best_index .. ")")
-                -- Party menu
-                press_sequence(60, "X", 30)
-                touch_screen_at(65, 45)
-                wait_frames(90)
-
-                touch_screen_at(80, 30) -- Select fainted lead
-
-                wait_frames(30)
-                touch_screen_at(200, 130) -- SWITCH
-                wait_frames(30)
-
-                touch_screen_at(80 * ((best_index - 1) % 2 + 1), 30 + 50 * math.floor((best_index - 1) / 2)) -- Select Pokemon
-                wait_frames(30)
-
-                press_sequence(30, "B", 120, "B", 60) -- Exit out of menu
-            end
-        else
-            abort("Lead Pokemon can no longer battle, and current config disallows cycling lead")
-        end
-    end
-
-    if config.thief_wild_items then
-        -- Check leading Pokemon for held items
-        local item_leads = {}
-        local lead_mon = get_lead_mon_index()
-
-        if party[lead_mon].heldItem ~= "none" then
-            print("Thief Pokemon already holds an item. Removing...")
-            clear_all_inputs()
-
-            -- Open party menu
-            press_sequence(60, "X", 30)
-            touch_screen_at(65, 45)
-            wait_frames(90)
-
-            -- Collect item from lead
-            touch_screen_at(80, 30) -- Select Pokemon
-
-            wait_frames(30)
-            touch_screen_at(200, 155) -- Item
-            wait_frames(30)
-            touch_screen_at(take_button.x, take_button.y) -- Take
-            press_sequence(120, "B", 30)
-
-            press_sequence(30, "B", 120, "B", 60) -- Exit out of menu
-        end
-    end
-end
-
-function save_game()
-    print("Saving game...")
-    press_sequence("X", 30)
-
-    -- SAVE button is at a different position before choosing starter
-    if #party == 0 then -- No starter, no dex
-        touch_screen_at(60, 93)
-    elseif mword(pointers.map_header) == 391 then -- No dex (not a perfect fix)
-        touch_screen_at(188, 88)
-    else -- Standard
-        touch_screen_at(60, 143)
-    end
-
-    wait_frames(90)
-
-    touch_screen_at(218, 60)
-    wait_frames(120)
-
-    while mbyte(pointers.save_indicator) ~= 0 do
-        press_sequence("A", 12)
-    end
-
-    if _EMU == "BizHawk" then
-        client.saveram() -- Flush save ram to the disk	
-    end
-
-    press_sequence("B", 10)
-end
-
+--- Presses the RUN button until the battle is over.
 function flee_battle()
     while game_state.in_battle do
         local battle_state = mbyte(pointers.battle_menu_state)
@@ -380,14 +160,19 @@ function flee_battle()
     end
 end
 
+--- Returns true if the rod state has changed from being cast.
 function fishing_status_changed()
     return not (mword(pointers.fishing_bite_indicator) ~= 0xFFF1 and mbyte(pointers.fishing_no_bite) == 0)
 end
 
+--- Returns true if a Pokemon is on the hook.
 function fishing_has_bite()
     return mword(pointers.fishing_bite_indicator) == 0xFFF1
 end
 
+--- Converts bytes into readable text using the game's respective encoding method.
+-- @param input Table of bytes or memory address to read from
+-- @param pointer Offset into the byte table if provided
 function read_string(input, pointer)
     local text = ""
 
@@ -441,17 +226,9 @@ function get_usable_balls()
     end
 end
 
-function dismiss_repel()
-    local interrupted = false 
-    
-    while mdword(pointers.text_interrupt) == 2 do
-        press_sequence("A", 6)
-        interrupted = true
-    end
-
-    return interrupted
-end
-
+--- Returns whether a Pokemon is registered in the dex under a certain form.
+-- @param name Name of the Pokemon
+-- @param field Form to check if registered
 function dex_registered(name, field)
     local dex = {
         ["caught"]       = 0x223D1B4 + _ROM.offset,
@@ -487,10 +264,6 @@ function dex_registered(name, field)
 
     return nil
 end
-
------------------------
--- BOT MODES
------------------------
 
 function mode_starters()
     cycle_starter_choice()
@@ -538,18 +311,6 @@ function mode_starters()
         press_sequence("A", 5)
     end
 
-    if not config.hax then
-        print("Waiting to see starter...")
-
-        while not game_state.in_battle do
-            press_sequence("A", 5)
-        end
-
-        for i = 0, 80, 1 do
-            press_sequence("A", 5)
-        end
-    end
-
     local is_target = pokemon.log_encounter(party[1])
 
     if is_target then
@@ -585,8 +346,6 @@ function mode_random_encounters()
         local dir2 = config.move_direction == "horizontal" and "Right" or "Down"
         
         wait_frames(60) -- Wait to regain control post-battle
-        -- pathfind_to(home)
-        -- wait_frames(8)
 
         while not game_state.in_battle do
             move_in_direction(dir1)
@@ -622,29 +381,12 @@ function mode_gift()
         press_sequence(180, "B", 60) -- Decline nickname
     end
 
-    if not config.hax then
-        -- Party menu
-        press_sequence("X", 30)
-        touch_screen_at(65, 45)
-        wait_frames(90)
-
-        touch_screen_at(80 * ((#party - 1) % 2 + 1), 30 + 50 * math.floor((#party - 1) / 2)) -- Select gift mon
-        wait_frames(30)
-
-        touch_screen_at(200, 105) -- SUMMARY
-        wait_frames(120)
-    end
-
     local mon = party[#party]
     local is_target = pokemon.log_encounter(mon)
 
     if is_target then
         if config.save_game_after_catch then
             print("Gift Pokemon meets target specs! Saving...")
-
-            if not config.hax then
-                press_sequence("B", 120, "B", 120, "B", 60) -- Exit out of menu
-            end
 
             save_game()
         end
@@ -672,7 +414,7 @@ function mode_phenomenon_encounters()
         end
 
         if interrupted then
-            pathfind_to(home)
+            move_to(home)
         end
     end
 
@@ -689,7 +431,7 @@ function mode_phenomenon_encounters()
     while true do
         check_party_status()
         
-        local do_encounter = function()
+        local function do_encounter()
             print("Running until a phenomenon spawns...")
 
             local dir1 = config.move_direction == "horizontal" and "Left" or "Up"
@@ -709,7 +451,7 @@ function mode_phenomenon_encounters()
                     return
                 end
 
-                pathfind_to({
+                move_to({
                     x = game_state.phenomenon_x,
                     z = game_state.phenomenon_z
                 })
@@ -721,7 +463,7 @@ function mode_phenomenon_encounters()
                 accept_interrupt_text() -- Accept repel dialogue or dust cloud item
             end
 
-            pathfind_to(home)
+            move_to(home)
         end
 
         do_encounter()
@@ -735,7 +477,7 @@ function mode_daycare_eggs()
         clear_all_inputs()
         press_sequence(30, "B")
         
-        pathfind_to({z=557})
+        move_to({z=557})
 
         local og_party_count = #party -- Press A until egg in party
         while #party == og_party_count do
@@ -763,9 +505,9 @@ function mode_daycare_eggs()
         if not has_egg then
             print("Party is clear of eggs. Depositing hatched Pokemon...")
             
-            pathfind_to({x=748}) -- Move to staircase
-            pathfind_to({z=557}) -- Move to the door
-            pathfind_to({x=749,z=556})
+            move_to({x=748}) -- Move to staircase
+            move_to({z=557}) -- Move to the door
+            move_to({x=749,z=556})
             
             -- Walk to daycare lady at desk
             while game_state.map_header ~= 323 do
@@ -776,7 +518,7 @@ function mode_daycare_eggs()
             release_button("Up")
 
             -- Walk to PC
-            pathfind_to({x=9,z=9})
+            move_to({x=9,z=9})
             press_sequence("Up", 16, "A", 140, "A", 120, "A", 110, "A", 100)
             press_sequence("Down", 5, "Down", 5, "A", 110)
 
@@ -925,12 +667,6 @@ function mode_static_encounters()
 
     local is_target = pokemon.log_encounter(foe[1])
 
-    if not config.hax then
-        for i = 0, 22, 1 do
-            press_sequence("A", 5)
-        end
-    end
-
     if is_target then
         if config.auto_catch then
             while game_state.in_battle do
@@ -953,7 +689,7 @@ function mode_static_encounters()
 end
 
 function mode_thundurus_tornadus()
-    local dex_entry_added = function()
+    local function dex_entry_added()
         local tornadus_seen = dex_registered("tornadus", "male") or dex_registered("tornadus", "shiny_male")
         local thundurus_seen = dex_registered("thundurus", "male") or dex_registered("thundurus", "shiny_male")
 

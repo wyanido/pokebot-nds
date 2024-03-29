@@ -46,8 +46,8 @@ The game will then be connected to the dashboard, which you can view info for on
 |  						| DPPt | HGSS | BW | B2W2 | 
 |--						| :-: | :-: | :-: | :-: |
 | Auto-catching			| ✅ | ✅ | ✅ | ✅ |
-| Auto-battling			| ➖ | ➖ | ✅ | ✅ |
-| Thief farming			| ➖ | ➖ | ✅ | ✅ |
+| Auto-battling			| ✅ | ✅ | ✅ | ✅ |
+| Thief farming			| ✅ | ✅ | ✅ | ✅ |
 | Pickup farming		| ✅ | ✅ | ✅ | ✅ |
 | Voltorb Flip		|  | ✅ |  |  |
 

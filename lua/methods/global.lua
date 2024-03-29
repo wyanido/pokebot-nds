@@ -1,4 +1,4 @@
--- No bot logic, just log encounters as the user plays
+--- Logs wild encounters without automated inputs while the user plays.
 function mode_manual()
     while true do
         while not game_state.in_battle do
@@ -15,6 +15,7 @@ function mode_manual()
     end
 end
 
+--- Continuously reels in Pokemon with the registered fishing rod.
 function mode_fishing()
     while not game_state.in_battle do
         press_button("Y")
@@ -42,7 +43,7 @@ function mode_fishing()
     wait_frames(90)
 end
 
--- Returns the index of the first non-fainted Pokémon in the party
+--- Returns the index of the first non-fainted Pokémon in the party
 function get_lead_mon_index()
     for i = 1, 6, 1 do
         if party[i].currentHP ~= 0 then
@@ -51,90 +52,77 @@ function get_lead_mon_index()
     end
 end
 
-function do_thief()
-    local lead = get_lead_mon_index()
-    local thief_slot = pokemon.get_move_slot(party[lead], "Thief")
-
-    if #foe == 2 or thief_slot == 0 then
-        return false
-    end
-
-    while game_state.in_battle do
-        use_move_at_slot(thief_slot)
-    end
-end
-
+--- Finds and uses the best available options to safely weaken the foe.
 function subdue_pokemon()
-    if config.false_swipe then
-        -- Ensure target has no recoil moves before attempting to weaken it
-        local recoil_moves = {"Brave Bird", "Double-Edge", "Flare Blitz", "Head Charge", "Head Smash", "Self-Destruct",
-                              "Take Down", "Volt Tackle", "Wild Charge", "Wood Hammer"}
-        local recoil_slot = 0
+    -- Ensure target has no recoil moves before attempting to weaken it
+    local recoil_moves = {"Brave Bird", "Double-Edge", "Flare Blitz", "Head Charge", "Head Smash", "Self-Destruct",
+                            "Take Down", "Volt Tackle", "Wild Charge", "Wood Hammer"}
+    local recoil_slot = 0
 
-        for _, v in ipairs(recoil_moves) do
-            recoil_slot = pokemon.get_move_slot(foe[1], v)
+    for _, v in ipairs(recoil_moves) do
+        recoil_slot = pokemon.get_move_slot(foe[1], v)
 
-            if recoil_slot ~= 0 then
-                print_warn("The target has a recoil move. False Swipe won't be used.")
-                break
-            end
+        if recoil_slot ~= 0 then
+            print_warn("The target has a recoil move. False Swipe won't be used.")
+            break
         end
+    end
 
-        if recoil_slot == 0 then
-            -- Check whether the lead actually has False Swipe
-            local false_swipe_slot = pokemon.get_move_slot(party[get_lead_mon_index()], "False Swipe")
+    if recoil_slot == 0 then
+        -- Check whether the lead actually has False Swipe
+        local false_swipe_slot = pokemon.get_move_slot(party[get_lead_mon_index()], "False Swipe")
 
-            if false_swipe_slot == 0 then
-                print_warn("The lead Pokemon can't use False Swipe.")
-            else
-                use_move_at_slot(false_swipe_slot)
-            end
+        if false_swipe_slot == 0 then
+            print_warn("The lead Pokemon can't use False Swipe.")
+        else
+            use_move(false_swipe_slot)
         end
-        
-        -- Status moves in order of usefulness
-        local status_moves = {"Spore", "Sleep Powder", "Lovely Kiss", "Dark Void", "Hypnosis", "Sing", "Grass Whistle",
-                              "Thunder Wave", "Glare", "Stun Spore"}
-        local status_slot = 0
+    end
+    
+    -- Status moves in order of usefulness
+    local status_moves = {"Spore", "Sleep Powder", "Lovely Kiss", "Dark Void", "Hypnosis", "Sing", "Grass Whistle",
+                            "Thunder Wave", "Glare", "Stun Spore"}
+    local status_slot = 0
 
-        for i = 1, #foe[1].type, 1 do
-            if foe[1].type[i] == "Ground" then
-                print_debug("Foe is Ground-type. Thunder Wave can't be used.")
-                table.remove(status_moves, 8) -- Remove Thunder Wave from viable options if target is Ground type
-                break
-            end
+    for i = 1, #foe[1].type, 1 do
+        if foe[1].type[i] == "Ground" then
+            print_debug("Foe is Ground-type. Thunder Wave can't be used.")
+            table.remove(status_moves, 8) -- Remove Thunder Wave from viable options if target is Ground type
+            break
         end
+    end
 
-        -- Remove Grass type status moves if target has Sap Sipper
-        if foe[1].ability == "Sap Sipper" then
-            local grass_moves = {"Spore", "Sleep Powder", "Grass Whistle", "Stun Spore"}
+    -- Remove Grass type status moves if target has Sap Sipper
+    if foe[1].ability == "Sap Sipper" then
+        local grass_moves = {"Spore", "Sleep Powder", "Grass Whistle", "Stun Spore"}
 
-            for i, k in ipairs(grass_moves) do
-                for i2, k2 in pairs(status_moves) do
-                    if k == k2 then
-                        table.remove(status_moves, i2)
-                        break
-                    end
+        for i, k in ipairs(grass_moves) do
+            for i2, k2 in pairs(status_moves) do
+                if k == k2 then
+                    table.remove(status_moves, i2)
+                    break
                 end
             end
         end
+    end
 
-        for _, v in ipairs(status_moves) do
-            status_slot = pokemon.get_move_slot(party[get_lead_mon_index()], v)
+    for _, v in ipairs(status_moves) do
+        status_slot = pokemon.get_move_slot(party[get_lead_mon_index()], v)
 
-            if status_slot ~= 0 then
-                break
-            end
+        if status_slot ~= 0 then
+            break
         end
+    end
 
-        if status_slot > 0 then
-            -- Bot will blindly use the status move once and hope it lands
-            use_move_at_slot(status_slot)
-        else
-            print_warn("The lead Pokemon has no usable status moves.")
-        end
+    if status_slot > 0 then
+        -- Bot will blindly use the status move once and hope it lands
+        use_move(status_slot)
+    else
+        print_warn("The lead Pokemon has no usable status moves.")
     end
 end
 
+--- Continuously tries to catch the foe until the battle ends, or there are no valid Poke Balls left.
 function catch_pokemon()
     local function get_preferred_ball(balls)
         -- Compare with override ruleset first
@@ -192,7 +180,7 @@ function catch_pokemon()
         touch_screen_at(108, 176) -- USE
     end
 
-    if config.false_swipe then 
+    if config.subdue_target then 
         subdue_pokemon()
     end
 
@@ -236,6 +224,7 @@ function catch_pokemon()
     end
 end
 
+--- Logs the current wild foes and decides the next actions to take.
 function process_wild_encounter()
     clear_all_inputs()
     wait_frames(30)
@@ -264,14 +253,23 @@ function process_wild_encounter()
             abort("Stopping script for manual catch")
         end
     else
-        while game_state.in_battle do
+        while game_state.in_battle and foe do
             if #foe == 2 then
                 print("Won't battle two targets at once. Fleeing!")
                 flee_battle()
             else
-                if config.thief_wild_items and foe_item then
+                -- Thief wild items (previously do_thief)
+                local lead = get_lead_mon_index()
+                local thief_slot = pokemon.get_move_slot(party[lead], "Thief")
+
+                if config.thief_wild_items and foe_item and thief_slot ~= 0 then
                     print(foe_name .. " has a held item, using Thief and fleeing...")
-                    do_thief()
+
+                    while get_battle_state() ~= "Menu" do
+                        press_sequence("B", 5)
+                    end
+
+                    use_move(thief_slot)
                     flee_battle()
                 elseif config.battle_non_targets then
                     do_battle()
@@ -288,6 +286,7 @@ function process_wild_encounter()
     end
 end
 
+--- Collects held items from Pickup Pokemon if enough have accumulated.
 function do_pickup()
     local item_count = 0
 
@@ -298,24 +297,166 @@ function do_pickup()
     end
 
     if item_count >= tonumber(config.pickup_threshold) then
-        collect_pickup_items()
+        open_menu("Pokemon")
+
+        for _, mon in ipairs(party) do
+            if mon.ability == "Pickup" and mon.heldItem ~= "none" then
+                press_sequence("A", 8, "Up", 8, "Up", 8, "A", 22, "Down", 8, "A")
+                wait_frames(90)
+                press_button("B")
+            end
+
+            press_sequence("Right", 5)
+        end
+        
+        press_sequence(30, "B", 120, "B", 60)
     else
         print_debug(item_count .. " Pickup items in party. Collecting at " .. config.pickup_threshold)
     end
 end
 
-function collect_pickup_items()
-    open_menu("Pokemon")
+--- Saves the game.
+function save_game()
+    print("Saving game...")
+    
+    open_menu("Save")
+    press_sequence("A", 90, "A", 60)
+    
+    while mbyte(pointers.save_indicator) ~= 0 do
+        press_sequence("A", 12)
+    end
 
-    for _, mon in ipairs(party) do
-        if mon.ability == "Pickup" and mon.heldItem ~= "none" then
+    if _EMU == "BizHawk" then
+        client.saveram() -- Flush save ram to the disk	
+    end
+
+    press_sequence("B", 10)
+end
+
+-- Selects a move on the FIGHT menu.
+-- @param id The move index in the moveset
+function use_move(id)
+    wait_frames(30)
+    touch_screen_at(128, 90)
+    wait_frames(30)
+
+    local x = 80 * ((id - 1) % 2 + 1)
+    local y = 50 * (math.floor((id - 1) / 2) + 1)
+    touch_screen_at(x, y)
+    wait_frames(60)
+end
+
+--- Attemps to defeat the opponent.
+function do_battle()
+    while get_battle_state() ~= "Menu" do
+        press_sequence("B", 5) -- Also cancels evolutions
+
+        if not get_battle_state() then -- Battle finished, back in the overworld
+            return
+        elseif get_battle_state() == "New Move" then -- These cases are annoying and require specific inputs to cancel
+            wait_frames(60)
+            touch_screen_at(125, 140)
+            wait_frames(90)
+            press_button("B")
+            wait_frames(90)
+            touch_screen_at(125, 65)
+        end
+    end
+    
+    local best_move = pokemon.find_best_move(party[get_lead_mon_index()], foe[1])
+    
+    if best_move.power > 0 then
+        print_debug("Best move is " .. best_move.name .. " (Avg Power: " .. best_move.power .. ")")
+        use_move(best_move.index)
+    else
+        print("Lead Pokemon has no valid moves left to battle! Fleeing...")
+        flee_battle()
+    end
+end
+
+--- Manages the party between battles to make sure the bot can proceed with its task.
+function check_party_status()
+    local function is_healthy(mon)
+        local pp = 0
+
+        for i, move in ipairs(mon.moves) do
+            if move.power ~= nil then
+                pp = pp + mon.pp[i]
+            end
+        end
+
+        return mon.currentHP > mon.maxHP / 5 and pp > 3
+    end
+
+    if #party == 0 or game_state.in_battle then -- Don't check party status if bot was started during a battle
+        return nil
+    end
+
+    if not is_healthy(party[get_lead_mon_index()]) then
+        if not config.cycle_lead_pokemon then
+            abort("Lead Pokemon can no longer battle, and the config disallows replacing it")
+        end
+    
+        print("Lead Pokemon can no longer battle. Replacing...")
+
+        local replacement
+
+        for i, ally in ipairs(party) do
+            if is_healthy(ally) then
+                replacement = i
+                break
+            end
+        end
+
+        if not replacement then
+            abort("No suitable Pokemon left to battle")
+        end
+
+        print_debug("Best replacement was " .. party[replacement].name .. " (Slot " .. replacement .. ")")
+        open_menu("Pokemon")
+        
+        -- Highlight lead
+        local i = 1
+        while i ~= get_lead_mon_index() do
+            press_sequence("Right", 5)
+            i = i + 1
+        end
+
+        -- Switch
+        press_sequence("A", 30, "Up", 8, "Up", 8, "Up", 8, "A", 30)
+        
+        -- Highlight replacement
+        local i = 1
+        while i ~= replacement do
+            press_sequence("Right", 5)
+            i = i + 1
+        end
+
+        press_sequence("A", 30, "B", 120, "B", 120, "B", 30) -- Exit out of menu
+    end
+
+    if config.thief_wild_items then
+        -- Check leading Pokemon for held items
+        local lead = get_lead_mon_index()
+
+        if party[lead].heldItem ~= "none" then
+            print("Thief Pokemon already holds an item. Removing...")
+            clear_all_inputs()
+
+            open_menu("Pokemon")
+            
+            local i = 1
+            while i ~= lead do
+                press_sequence("Right", 5)
+                i = i + 1
+            end
+            
+            -- Take item
             press_sequence("A", 8, "Up", 8, "Up", 8, "A", 22, "Down", 8, "A")
             wait_frames(90)
             press_button("B")
+            
+            press_sequence(30, "B", 120, "B", 60) -- Exit out of menu
         end
-
-        press_sequence("Right", 5)
     end
-    
-    press_sequence(30, "B", 120, "B", 60)
 end

@@ -53,7 +53,7 @@ function update_foes()
     if battle_value ~= 0x41 and battle_value ~= 0x97 then
         foe = nil
     elseif not foe then -- Only update foe on battle start
-        local attempt_fetch = function()
+        local function attempt_fetch()
             local foe_table = {}
             local foe_count = mbyte(pointers.foe_count)
             
@@ -203,6 +203,7 @@ function process_frame()
         emu.frameadvance()
     end
     
+    decrement_input_buffers()
     update_pointers()
     dashboard_poll()
     update_game_info()

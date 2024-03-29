@@ -1,5 +1,3 @@
-take_button.y = 130
-
 function update_pointers()
     local anchor = mdword(0x2141950 + _ROM.offset)
 
@@ -65,7 +63,7 @@ function bike_back_and_forth()
     local dir1 = horizontal and "Right" or "Down"
     local dir2 = horizontal and "Left" or "Up"
 
-    local move_in_direction = function(dir)
+    local function move_in_direction(dir)
         hold_button(dir)
         wait_frames(2)
 
@@ -91,9 +89,6 @@ function bike_back_and_forth()
     release_button(dir2)
 end
 
------------------------
--- BW MODE OVERRIDES
------------------------
 function mode_starters()
     cycle_starter_choice()
     
@@ -135,25 +130,6 @@ function mode_starters()
         press_sequence("A", 5) 
     end
 
-    if not config.hax then
-        print("Waiting to see starter...")
-        
-        for i = 0, 90, 1 do 
-            press_sequence("B", 10) 
-        end
-
-        -- Party menu
-        press_sequence("X", 30)
-        touch_screen_at(65, 45)
-        wait_frames(90)
-
-        touch_screen_at(80 * ((#party - 1) % 2 + 1), 30 + 50 * math.floor((#party - 1) / 2)) -- Select gift mon
-        wait_frames(30)
-
-        touch_screen_at(200, 105) -- SUMMARY
-        wait_frames(120)
-    end
-
     local is_target = pokemon.log_encounter(party[1])
 
     if is_target then
@@ -165,12 +141,12 @@ function mode_starters()
 end
 
 function mode_hidden_grottos()
-    local grotto_has_regenerated = function()
+    local function grotto_has_regenerated()
         local grotto_value = mbyte(pointers.hidden_grottos + config.grotto)
         return bit.band(grotto_value, 1) == 1
     end
 
-    local exit_grotto = function()
+    local function exit_grotto()
         hold_button("B")
         hold_button("Down")
         
@@ -184,7 +160,7 @@ function mode_hidden_grottos()
         wait_frames(180)
     end
 
-    local enter_grotto = function()
+    local function enter_grotto()
         press_sequence(4, "A")
 
         while game_state.map_name ~= "Hidden Grotto" do
@@ -209,31 +185,27 @@ function mode_hidden_grottos()
         exit_grotto()
     end
 
-    while true do
-        print("Waiting for grotto to regenerate...")
+    print("Waiting for grotto to regenerate...")
 
-        while not grotto_has_regenerated() do
-            bike_back_and_forth()
-
-            if game_state.in_battle then
-                abort("Please a Repel while hunting this grotto!")
-            end
-        end
-        
-        print("Grotto regenerated!")
-        
-        enter_grotto()
-        
-        -- Interact and wait for potential battle
-        press_sequence("A")
-        wait_frames(300)
+    while not grotto_has_regenerated() do
+        bike_back_and_forth()
 
         if game_state.in_battle then
-            process_wild_encounter()
-        else
-            press_sequence("A", 50, "A") -- Item dialogue
+            abort("Please a Repel while hunting this grotto!")
         end
+    end
+    
+    print("Grotto regenerated!")
+    
+    enter_grotto()
+    
+    -- Interact and wait for potential battle
+    press_sequence("A")
+    wait_frames(300)
 
-        exit_grotto()
+    if game_state.in_battle then
+        process_wild_encounter()
+    else
+        press_sequence("A", 50, "A") -- Item dialogue
     end
 end

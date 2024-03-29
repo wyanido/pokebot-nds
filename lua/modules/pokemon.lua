@@ -185,13 +185,13 @@ function pokemon.parse_data(data, enrich)
     mon.spAttackIV = bit.band(bit.rshift(value, 20), 0x1F)
     mon.spDefenseIV = bit.band(bit.rshift(value, 25), 0x1F)
     mon.isEgg = bit.band(bit.rshift(value, 30), 0x01)
-    -- mon.isNicknamed = (value >> 31) & 0x01
+    -- mon.isNicknamed = bit.band(bit.rshift(value, 31), 0x01)
 
     -- mon.hoennRibbonSet1		= read_real(0x3C, 2)
     -- mon.hoennRibbonSet2		= read_real(0x3E, 2)
 
     local value = read_real(0x40, 1)
-    -- mon.fatefulEncounter = (value >> 0) & 0x01
+    -- mon.fatefulEncounter = bit.band(bit.rshift(value, 0), 0x01)
     mon.gender = bit.band(bit.rshift(value, 1), 0x03)
     mon.altForm = bit.band(bit.rshift(value, 3), 0x1F)
 
@@ -364,13 +364,17 @@ function pokemon.find_best_move(ally, foe)
     local max_power_index = 1
     local max_power = 0
 
-    for i = 1, #ally.moves, 1 do
-        local type = ally.moves[i].type
-        local power = ally.moves[i].power
+    for i, move in ipairs(ally.moves) do
+        local power = move.power
+
+        -- Don't waste Thief PP when trying to farm items
+        if config.thief_wild_items and move.name == "Thief" then
+            power = nil
+        end
 
         -- Ignore useless moves
         if ally.pp[i] ~= 0 and power ~= nil then
-            local type_matchup = _TYPE[type]
+            local type_matchup = _TYPE[move.type]
 
             -- Calculate effectiveness against foe's type(s)
             for j = 1, #foe.type do
@@ -385,12 +389,17 @@ function pokemon.find_best_move(ally, foe)
                 end
             end
 
-            -- STAB
+            -- Apply STAB
             for j = 1, #ally.type do
-                if ally.type[j] == type then
+                if ally.type[j] == move.type then
                     power = power * 1.5
                     break
                 end
+            end
+
+            -- Average power by accuracy (favours more accurate moves)
+            if move.accuracy then
+                power = power * (move.accuracy / 100.0)
             end
 
             if power > max_power then

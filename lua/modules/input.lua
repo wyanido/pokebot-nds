@@ -1,3 +1,4 @@
+local input_buffer = {}
 
 if _EMU == "BizHawk" then
     function touch_screen_at(x, y)
@@ -8,8 +9,11 @@ if _EMU == "BizHawk" then
     end
 else
     function touch_screen_at(x, y)
-        stylus.set({x = x, y = y, touch = true})
-        wait_frames(4)
+        for i = 1, 4 do
+            stylus.set({x = x, y = y, touch = true})
+            process_frame()
+        end
+
         stylus.set({touch = false})
     end
 end 
@@ -78,6 +82,28 @@ function wait_frames(frames)
     end
 
     clear_unheld_inputs()
+end
+
+--- Presses a button without blocking other script actions.
+-- Useful when additional inputs are needed during precise movement
+function press_button_async(button)
+    button = adjust_case(button)
+    input_buffer[button] = 4
+    input[button] = true
+    joypad.set(input)
+end
+
+--- Decreases the timer on asynchronous button inputs.
+function decrement_input_buffers()
+    for button, frames in pairs(input_buffer) do
+        if frames > -1 then
+            input_buffer[button] = frames - 1
+        end
+
+        if frames == 0 then
+            input[button] = false
+        end 
+    end
 end
 
 function clear_unheld_inputs()

@@ -1,7 +1,3 @@
------------------------
--- DP FUNCTION OVERRIDES
------------------------
-
 function update_pointers()
     local anchor = mdword(0x21C0794 + _ROM.offset)
 	local foe_anchor = mdword(anchor + 0x217A8)
@@ -28,39 +24,11 @@ function update_pointers()
         selected_starter = anchor + 0x41850,
         starters_ready   = anchor + 0x418D4,
 
-		battle_state_value     = anchor + 0x44878, -- 01 is FIGHT menu, 04 is Move Select, 08 is Bag,
+		battle_menu_state      = anchor + 0x44878, -- 01 is FIGHT menu, 04 is Move Select, 08 is Bag,
 		battle_indicator       = 0x021D18F2, -- static
         fishing_bite_indicator = 0x021CF636,
 
         trainer_name = anchor + 0x7C,
         trainer_id   = anchor + 0x8C
 	}
-end
-
-function pathfind_to(target, on_step)
-    if not target.x then
-        target.x = game_state.trainer_x - 0.5
-    elseif not target.z then
-        target.z = game_state.trainer_z
-    end
-
-    while game_state.trainer_x <= target.x - 0.5 do
-        hold_button("Right")
-        if on_step then on_step() end
-    end
-    
-    while game_state.trainer_x >= target.x + 1.5 do
-        hold_button("Left")
-        if on_step then on_step() end
-    end
-    
-    while game_state.trainer_z < target.z - 1 do
-        hold_button("Down")
-        if on_step then on_step() end
-    end
-    
-    while game_state.trainer_z > target.z + 1 do
-        hold_button("Up")
-        if on_step then on_step() end
-    end
 end

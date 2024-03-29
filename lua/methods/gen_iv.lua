@@ -4,11 +4,11 @@ function update_pointers()
     local bag_page_anchor = mdword(anchor + 0x560EE)
 
     pointers = {
-        items_pocket      = anchor + 0x59E,
-        key_items_pocket  = anchor + 0x832,
-        tms_hms_pocket    = anchor + 0x8FA,
-        medicine_pocket   = anchor + 0xABA,
-        berries_pocket    = anchor + 0xB5A,
+        -- items_pocket      = anchor + 0x59E,
+        -- key_items_pocket  = anchor + 0x832,
+        -- tms_hms_pocket    = anchor + 0x8FA,
+        -- medicine_pocket   = anchor + 0xABA,
+        -- berries_pocket    = anchor + 0xB5A,
         poke_balls_pocket = anchor + 0xC5A,
         
         party_count = anchor + 0xE,
@@ -18,10 +18,10 @@ function update_pointers()
         current_foe = foe_anchor - 0x2B70,
 
         map_header  = anchor + 0x11B2,
-        menu_option = 0x21CDF22,
-        trainer_x   = 0x21CEF70,
-        trainer_y   = 0x21CEF74,
-        trainer_z   = 0x21CEF78,
+        menu_option = 0x21CDF22 + _ROM.offset,
+        trainer_x   = 0x21CEF70 + _ROM.offset,
+        trainer_y   = 0x21CEF74 + _ROM.offset,
+        trainer_z   = 0x21CEF78 + _ROM.offset,
         facing      = anchor + 0x247C6,
 
         bike_gear = anchor + 0x123E,
@@ -34,20 +34,20 @@ function update_pointers()
         
         battle_bag_page        = bag_page_anchor + 0x4E,
         battle_menu_state      = anchor + 0x455A6,
-        battle_indicator       = 0x21A1B2A + _ROM.offset, -- mostly static
-        fishing_bite_indicator = 0x21D5E16,
+        battle_menu_state2      = anchor - 0xD3FC,
+        battle_indicator       = 0x21A1B2A + _ROM.offset,
+        fishing_bite_indicator = 0x21D5E16 + _ROM.offset,
 
         trainer_name = anchor - 0x22,
-        trainer_id   = anchor - 0x12
+        trainer_id   = anchor - 0x12,
+
+        save_indicator = 0x21C491F + _ROM.offset,
     }
 end
 
------------------------
--- MISC. BOT ACTIONS
------------------------
--- Wait a random delay after SRing to decrease the odds of hitting similar seeds on loading save
+--- Wait a random number of frames after a reset to decrease the odds of hitting duplicate seeds.
 function randomise_reset()
-    wait_frames(200) -- Impassable white screen
+    wait_frames(200) -- White screen on startup
 
     local delay = math.random(100, 500)
 
@@ -55,19 +55,8 @@ function randomise_reset()
     wait_frames(delay)
 end
 
-function save_game()
-    print("Saving game...")
-    
-    open_menu("Save")
-    press_sequence("A", 120, "A", 800)
-
-    if _EMU == "BizHawk" then
-        client.saveram()
-    end
-
-    press_sequence("B", 10)
-end
-
+--- Opens the menu and selects the specified option.
+-- @param menu Name of the menu to open
 function open_menu(menu)
     local option = {
         Pokedex = 1,
@@ -75,20 +64,22 @@ function open_menu(menu)
         Bag = 4,
         Trainer = 5,
         Save = 7,
-        Options = 8
+        Options = 8,
+        Exit = 10
     }
 
-    press_sequence(60, "X", 30)
-
+    press_sequence("X", 8)
+    
+    -- Scroll up or down based on which navigation is shorter (doesn't acknowledge that the menu wraps around)
+    local direction = option[menu] > mbyte(pointers.menu_option) and "Down" or "Up"
     while mbyte(pointers.menu_option) ~= option[menu] do
-        press_sequence("Down", 8)
+        press_sequence(direction, 8)
     end
 
     press_sequence("A", 90)
 end
 
--- Progress text efficiently while mimicing imperfect human inputs
--- to increase the randomness of the frames hit
+--- Progress text with imperfect inputs to increase the randomness of frames hit.
 function skip_dialogue()
     hold_button("A")
     wait_frames(math.random(5, 25))
@@ -96,34 +87,18 @@ function skip_dialogue()
     wait_frames(5)
 end
 
-function use_move_at_slot(slot)
-    -- Skip text to FIGHT menu
-    while pointers.battle_state_value == 14 do
-        press_sequence(12, "A")
-    end
-
-    wait_frames(60)
-    touch_screen_at(128, 90) -- FIGHT
-    wait_frames(30)
-
-    local xpos = 80 * (((slot - 1) % 2) + 1)
-    local ypos = 50 * (math.floor((slot - 1) / 2) + 1)
-    touch_screen_at(xpos, ypos) -- Select move slot
-
-    wait_frames(60)
-end
-
+--- Presses the RUN button until the battle is over.
 function flee_battle()
     while game_state.in_battle do
-        touch_screen_at(125, 175) -- Run
+        touch_screen_at(125, 175)
         wait_frames(5)
     end
 
     print("Got away safely!")
 end
 
+--- Returns an array of all Poke Balls within the Poke Balls bag pocket 
 function get_usable_balls()
-    -- Iterate bag pocket for Poke Balls
     local balls = {}
     local slot = 0
 
@@ -143,42 +118,54 @@ function get_usable_balls()
     return balls
 end
 
+--- Returns true if the rod state has changed from being cast.
 function fishing_status_changed()
     return mbyte(pointers.fishing_bite_indicator) ~= 0
 end
 
+--- Returns true if a Pokemon is on the hook.
 function fishing_has_bite()
     return mbyte(pointers.fishing_bite_indicator) == 1
 end
 
-function pathfind_to(target, on_step)
+--- Moves the bot toward a position on the map.
+-- @param target Target position (x, z)
+-- @param on_move Function called each frame while moving
+-- If an axis in the target is not specified, it will be substituted with the bot's current position
+function move_to(target, on_move)
     if not target.x then
         target.x = game_state.trainer_x - 0.5
     elseif not target.z then
         target.z = game_state.trainer_z - 0.5
+
+        -- Adjust for different vertical behaviour in Platinum
+        if _ROM.version == "PL" then
+            target.z = target.z + 0.5
+        end
     end
 
     while game_state.trainer_x <= target.x - 0.5 do
         hold_button("Right")
-        if on_step then on_step() end
+        if on_move then on_move() end
     end
     
     while game_state.trainer_x >= target.x + 1.5 do
         hold_button("Left")
-        if on_step then on_step() end
+        if on_move then on_move() end
     end
     
     while game_state.trainer_z < target.z - 0.5 do
         hold_button("Down")
-        if on_step then on_step() end
+        if on_move then on_move() end
     end
     
     while game_state.trainer_z > target.z + 1.5 do
         hold_button("Up")
-        if on_step then on_step() end
+        if on_move then on_move() end
     end
 end
 
+-- Returns an array of the isEgg value for each party member.
 function get_party_eggs()
     local eggs = {}
 
@@ -193,23 +180,23 @@ function get_party_eggs()
     return eggs
 end
 
+-- Navigates to the Solaceon Town daycare and releases the last 5 Pokemon in the party.
 function release_hatched_duds()
-    local release = function()
+    local function release()
         press_sequence("A", 5, "Up", 5, "Up", 5, "A", 5, "Up", 5, "A", 120, "A", 60, "A", 10)
     end
 
     clear_all_inputs()
 
-    -- Enter Daycare and release all Lv 1 Pokemon from party
-    pathfind_to({z=646 + map_shift})
-    pathfind_to({x=553})
+    move_to({z=646 + map_shift})
+    move_to({x=553})
     
     press_sequence("Up", 120) -- Enter door
     
     hold_button("B")
-    pathfind_to({z=8 + indoor_map_shift})
-    pathfind_to({x=4})
-    pathfind_to({z=4 + indoor_map_shift})
+    move_to({z=8 + indoor_map_shift})
+    move_to({x=4})
+    move_to({z=4 + indoor_map_shift})
     clear_all_inputs()
 
     -- Navigate to MOVE POKEMON
@@ -220,8 +207,7 @@ function release_hatched_duds()
     press_sequence("Up", 20, "Up", 20, "A", 60)
     press_sequence("Up", 20, "Up", 20)
 
-    -- Release Lv 1 Pokemon from back to front
-    -- to accomodate for positions shifting
+    -- Release Lv 1 Pokemon from back to front to accomodate for positions shifting
     release() -- 6
     press_sequence("Left", 10)
     release() -- 5
@@ -237,19 +223,22 @@ function release_hatched_duds()
 
     -- Exit Daycare
     hold_button("B")
-    pathfind_to({z=8 + indoor_map_shift})
-    pathfind_to({x=9})
-    pathfind_to({z=11 + indoor_map_shift})
+    move_to({z=8 + indoor_map_shift})
+    move_to({x=9})
+    move_to({z=11 + indoor_map_shift})
     wait_frames(60)
     clear_all_inputs()
     
     -- Return to long vertical path
     press_sequence(110, "Y")
-    pathfind_to({x=562})
+    move_to({x=562})
 end
 
+--- Presses A to allow the egg hatch animation to finish where necessary.
 function check_hatching_eggs()
-    press_button("A")
+    if emu.framecount() % 10 == 0 then
+        press_button_async("A")
+    end
     
     local new_eggs = get_party_eggs()
     
@@ -301,6 +290,9 @@ function check_hatching_eggs()
     end
 end
 
+--- Converts bytes into readable text using the game's respective encoding method.
+-- @param input Table of bytes or memory address to read from
+-- @param pointer Offset into the byte table if provided
 function read_string(input, pointer)
     local char_table = {
         "　", "ぁ", "あ", "ぃ", "い", "ぅ", "う", "ぇ", "え", "ぉ", "お", "か", "が", "き", "ぎ",
@@ -364,9 +356,36 @@ function read_string(input, pointer)
     return text
 end
 
------------------------
--- BOT ENCOUNTER MODES
------------------------
+--- Returns the current stage of the battle as a simple string.
+function get_battle_state()
+    local state = mbyte(pointers.battle_menu_state)
+    local state2 = mbyte(pointers.battle_menu_state2)
+
+    if not game_state.in_battle then
+        return nil
+    end
+
+    if state2 == 0x2F then
+        return "New Move"
+    end
+    
+    if state == 0x0 then
+        return "Intro"
+    elseif state == 0x1 then
+        return "Menu"
+    elseif state == 0x3 then
+        return "Fight"
+    elseif state == 0x7 then
+        return "Bag"
+    elseif state == 0x9 then
+        return "Pokemon"
+    elseif state == 0xD then
+        return "Turn"
+    elseif state == 0x88 then
+        return nil
+    end
+end
+
 function mode_static_encounters()
     print("Waiting for battle to start...")
 
@@ -381,13 +400,6 @@ function mode_static_encounters()
     release_button("Up")
 
     local is_target = pokemon.log_encounter(foe[1])
-
-    if not config.hax then
-        -- Wait for Pokémon to fully appear on screen
-        for i = 0, 22, 1 do 
-            skip_dialogue()
-        end
-    end
 
     if is_target then
         abort("Wild Pokémon meets target specs!")
@@ -433,14 +445,6 @@ function mode_starters()
         skip_dialogue()
     end
 
-    if not config.hax then
-        print("Waiting until starter is visible...")
-
-        for i = 0, 86, 1 do
-            skip_dialogue()
-        end
-    end
-
     -- Log encounter, stopping if necessary
     local is_target = pokemon.log_encounter(party[1])
 
@@ -453,16 +457,13 @@ function mode_starters()
 end
 
 function mode_random_encounters()
-    print("Attempting to start a battle...")
-    wait_frames(30)
-
-    if config.move_direction == "spin" then
+    local function spin()
         -- Prevent accidentally taking a step by
         -- preventing a down input while facing down
         if mbyte(pointers.facing) == 1 then
             press_sequence("Right", 3)
         end
-        
+
         while not game_state.in_battle do
             press_sequence(
                 "Down", 3,
@@ -471,7 +472,9 @@ function mode_random_encounters()
                 "Right", 3
             )
         end
-    else
+    end
+
+    local function run_back_and_forth()
         local dir1, dir2, start_face
         
         if config.move_direction == "horizontal" then
@@ -500,6 +503,17 @@ function mode_random_encounters()
         release_button("B")
     end
 
+    check_party_status()
+    
+    print("Attempting to start a battle...")
+    wait_frames(30)
+
+    if config.move_direction == "spin" then
+        spin()
+    else
+        run_back_and_forth()
+    end
+
     process_wild_encounter()
 end
 
@@ -517,31 +531,12 @@ function mode_gift()
         skip_dialogue()
     end
     
-    if not config.hax then
-        press_sequence(180, "B", 60) -- Decline nickname
-        
-        -- Party menu
-        press_sequence("X", 30)
-        touch_screen_at(65, 45)
-        wait_frames(90)
-
-        touch_screen_at(80 * ((#party - 1) % 2 + 1), 30 + 50 * math.floor((#party - 1) / 2)) -- Select gift mon
-        wait_frames(30)
-
-        touch_screen_at(200, 105) -- SUMMARY
-        wait_frames(120)
-    end
-
     local mon = party[#party]
     local is_target = pokemon.log_encounter(mon)
 
     if is_target then
         if config.save_game_after_catch then
             print("Gift Pokemon meets target specs! Saving...")
-
-            if not config.hax then
-                press_sequence("B", 120, "B", 120, "B", 60) -- Exit out of menu
-            end
 
             save_game()
         end
@@ -567,8 +562,8 @@ function mode_daycare_eggs()
 
         print("That's an egg!")
 
-        pathfind_to({z=648 + map_shift})
-        pathfind_to({x=556})
+        move_to({z=648 + map_shift})
+        move_to({x=556})
         clear_all_inputs()
 
         local party_count = #party
@@ -577,7 +572,7 @@ function mode_daycare_eggs()
         end
 
         -- Return to long vertical path 
-        pathfind_to({x=562})
+        move_to({x=562})
     end
 
     -- Initialise party state for future reference
@@ -585,16 +580,16 @@ function mode_daycare_eggs()
     party_eggs = get_party_eggs()
 
     -- Map coords shift slightly between DP and Pt
-    map_shift = _ROM.version == "PL" and 22 or 0
-    indoor_map_shift = _ROM.version == "PL" and 63 or 0
+    map_shift = _ROM.version == "PL" and 21 or 0
+    indoor_map_shift = _ROM.version == "PL" and 62 or 0
 
     mount_bike()
-    pathfind_to({x=562})
+    move_to({x=562})
     
     while true do
-        pathfind_to({z=630 + map_shift}, check_hatching_eggs)
+        move_to({z=630 + map_shift}, check_hatching_eggs)
         check_and_collect_egg()
-        pathfind_to({z=675 + map_shift}, check_hatching_eggs)
+        move_to({z=675 + map_shift}, check_hatching_eggs)
         check_and_collect_egg()
     end
 end

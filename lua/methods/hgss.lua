@@ -74,11 +74,7 @@ function mode_starters()
         skip_dialogue()
     end
 
-    if not config.hax then
-        press_sequence(130, "A", 15)
-    else
-        wait_frames(9) -- Ensure all starters are loaded
-    end
+    wait_frames(9) -- Ensure all starters are loaded into memory
 
     -- Check all Pokémon
     for i = 0, 2, 1 do
@@ -88,11 +84,6 @@ function mode_starters()
 
         if is_target then
             abort("Starter " .. (i + 1) .. " meets target specs!")
-        end
-
-        -- Scroll through each starter and log as they become visible
-        if not config.hax and i < 2 then 
-            press_sequence("Left", 30) 
         end
     end
 
@@ -268,12 +259,7 @@ function mode_primo_gift()
 
     if is_target then
         if config.save_game_after_catch then
-            print("Gift Pokemon meets target specs! Saving...")
-
-            if not config.hax then
-                press_sequence("B", 120, "B", 120, "B", 60) -- Exit out of menu
-            end
-
+            print("Gift Pokemon meets target specs!")
             save_game()
         end
 
@@ -345,20 +331,20 @@ function mode_headbutt()
 end
 
 function release_hatched_duds()
-    local release = function()
+    local function release()
         press_sequence("A", 5, "Up", 5, "Up", 5, "A", 5, "Up", 5, "A", 120, "A", 60, "A", 10)
     end
 
     clear_all_inputs()
     
     -- Enter Daycare and release all Lv 1 Pokemon from party
-    pathfind_to({z=411})
-    pathfind_to({x=368})
+    move_to({z=411})
+    move_to({x=368})
     
     press_sequence("Up", 120) -- Enter door
     
     hold_button("B")
-    pathfind_to({x=1,z=8})
+    move_to({x=1,z=8})
     clear_all_inputs()
 
     -- Open PARTY PKMN menu
@@ -370,7 +356,7 @@ function release_hatched_duds()
     wait_frames(60)
 
     for i = 6, 2, -1 do
-        local release = function(i)
+        local function release(i)
             touch_screen_at(40 + 40 * ((i - 1) % 2), 70 + 30 * math.floor((i - 1) / 2))
         end
 
@@ -390,14 +376,14 @@ function release_hatched_duds()
 
     -- Exit Daycare
     hold_button("B")
-    pathfind_to({x=3})
-    pathfind_to({z=12})
+    move_to({x=3})
+    move_to({z=12})
     wait_frames(60)
     clear_all_inputs()
     
     -- Return to long vertical path
     press_sequence(120, "Y", 5)
-    pathfind_to({x=358})
+    move_to({x=358})
 end
 
 function mode_daycare_eggs()
@@ -415,8 +401,8 @@ function mode_daycare_eggs()
 
         print("That's an egg!")
 
-        pathfind_to({z=410}, check_hatching_eggs)
-        pathfind_to({x=364}, check_hatching_eggs)
+        move_to({z=410}, check_hatching_eggs)
+        move_to({x=364}, check_hatching_eggs)
         clear_all_inputs()
 
         local party_count = #party
@@ -426,7 +412,7 @@ function mode_daycare_eggs()
 
         -- Return to long vertical path 
         press_sequence(30, "B")
-        pathfind_to({x=358}, check_hatching_eggs)
+        move_to({x=358}, check_hatching_eggs)
     end
 
     -- Initialise party state for future reference
@@ -434,11 +420,11 @@ function mode_daycare_eggs()
     party_eggs = get_party_eggs()
 
     mount_bike()
-    pathfind_to({x=358})
+    move_to({x=358})
     
     while true do
-        pathfind_to({z=380}, check_hatching_eggs)
+        move_to({z=380}, check_hatching_eggs)
         check_and_collect_egg()
-        pathfind_to({z=409}, check_hatching_eggs)
+        move_to({z=409}, check_hatching_eggs)
     end
 end
