@@ -44,16 +44,17 @@ function update_pointers()
         battle_bag_page           = 0x022845FC + _ROM.offset,
         selected_starter          = 0x022574C4 + _ROM.offset, -- Unconfirmed selection in gift box; 0 Snivy, 1 Tepig, 2 Oshawott, 4 Nothing
         text_interrupt            = 0x216E640 + _ROM.offset, -- 2 when a repel/fishing dialogue box is open, 0 otherwise
+        battle_menu_state         = anchor + 0x1367C, -- 1 on FIGHT menu, 2 on move select, 4 on switch/run after faint, 0 otherwise
+        
         fishing_bite_indicator    = 0x209B3CA + _ROM.offset,
         fishing_no_bite           = 0x214BC62 + _ROM.offset,
-
-        battle_menu_state = anchor + 0x1367C, -- 1 on FIGHT menu, 2 on move select, 4 on switch/run after faint, 0 otherwise
     
         trainer_name = 0x221E9E8 + _ROM.offset,
         trainer_id   = 0x221E9F8 + _ROM.offset,
 
         hidden_grottos = 0x22291B0 + _ROM.offset,
-        pass_power_1_duration = 0x21410B8 + _ROM.offset,
+        daycare_egg = 0x22264AC + _ROM.offset,
+        -- pass_power_1_duration = 0x21410B8 + _ROM.offset,
     }
 end
 

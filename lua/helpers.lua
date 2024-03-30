@@ -1,8 +1,9 @@
 function update_party()
     -- Prevent reading out of bounds when loading gen 4 games
     if pointers.party_count < 0x02000000 then
+        local emptied = #party ~= 0
         party = {}
-        return true
+        return emptied
     end
 
     local party_size = mbyte(pointers.party_count)
@@ -32,18 +33,7 @@ function update_party()
         end
     end
     
-    -- Only send data on change to minimize expensive DOM updates on dashboard
-    if party_updated then
-        print_debug("Party updated")
-        dashboard_send({
-            type = "party",
-            data = {
-                party = party
-            }
-        })
-    end
-
-    return true
+    return party_updated
 end
 
 function update_foes()
@@ -85,36 +75,40 @@ function update_foes()
     end
 end
 
-function get_game_state()
+local function to_s16(u32)
+    return ((u32 / 65536) + 32768) % 65536 - 32768
+end
+
+function update_game_state()
     if pointers.map_header < 0 then
-        return {}
+        game_state = {}
+        return
     end
     
     local map = mword(pointers.map_header)
     
     -- Save not loaded yet
     if not _MAP[map] then
-        return {}
+        game_state = {}
+        return
     end
 
-    local state = {
+    game_state = {
         in_game = true,
         in_battle = type(foe) == "table" and #foe > 0,
         map_header = map,
         map_name = _MAP[map + 1],
         trainer_name = read_string(pointers.trainer_name),
         trainer_id = string.format("%05d", mword(pointers.trainer_id)) .. " (" .. string.format("%05d", mword(pointers.trainer_id + 2)) .. ")",
-        trainer_x = mdword(pointers.trainer_x) / 65536.0,
-        trainer_y = to_signed(mdword(pointers.trainer_y) / 65536.0),
-        trainer_z = mdword(pointers.trainer_z) / 65536.0,
+        trainer_x = to_s16(mdword(pointers.trainer_x)),
+        trainer_y = to_s16(mdword(pointers.trainer_y)),
+        trainer_z = to_s16(mdword(pointers.trainer_z)),
     }
 
     if _ROM.gen == 5 then
-        state["phenomenon_x"] = mword(pointers.phenomenon_x + 2)
-        state["phenomenon_z"] = mword(pointers.phenomenon_z + 2)
+        game_state["phenomenon_x"] = mword(pointers.phenomenon_x + 2)
+        game_state["phenomenon_z"] = mword(pointers.phenomenon_z + 2)
     end
-    
-    return state
 end
 
 function table_contains(table_, item)
@@ -144,23 +138,6 @@ function frames_per_move()
     end
 
     return 16
-end
-
-function update_game_info()
-    game_state = get_game_state()
-    
-    if emu.framecount() % 60 == 0 then    
-        dashboard_send({
-            type = "game_state",
-            data = game_state
-        })
-    end
-    
-    if not foes then
-        update_foes()
-    end
-
-    update_party()
 end
 
 function abort(reason)
@@ -204,11 +181,95 @@ function process_frame()
     end
     
     decrement_input_buffers()
+
     update_pointers()
-    dashboard_poll()
-    update_game_info()
+    update_foes()
+    update_game_state()
+    local party_updated = update_party()
+
+    -- Only send data on change to minimize expensive DOM updates on dashboard
+    if party_updated then
+        print_debug("Party updated")
+        dashboard_send({
+            type = "party",
+            data = {
+                party = party
+            }
+        })
+    end
+
+    -- Interact with the dashboard once per in-game second
+    if emu.framecount() % 60 == 0 then
+        dashboard_send({
+            type = "game_state",
+            data = game_state
+        })
+        
+        dashboard_poll()
+    end
 end
 
-function to_signed(u16)
-    return (u16 + 32768) % 65536 - 32768
+--- Returns an array of the isEgg value for each party member.
+function get_party_eggs()
+    local eggs = {}
+
+    for i = 1, 6, 1 do
+        if party[i] then
+            eggs[i] = party[i].isEgg == 1
+        else
+            eggs[i] = true
+        end
+    end
+
+    return eggs
+end
+
+--- Presses A to allow the egg hatch animation to finish where necessary.
+function check_hatching_eggs()
+    if emu.framecount() % 10 == 0 then
+        press_button_async("A")
+    end
+    
+    local new_eggs = get_party_eggs()
+    
+    for i, is_egg in ipairs(new_eggs) do
+        -- Eggs are already considered "hatched" as soon as the animation starts
+        if party[i] and party_eggs[i] ~= is_egg then
+            clear_all_inputs()
+            
+            print("Egg is hatching!")
+            hatch_egg()
+            
+            local is_target = pokemon.log_encounter(party[i])
+            if is_target then
+                abort("Hatched a target Pokemon!")
+            else
+                print("Hatched " .. party[i].name .. " was not a target...")
+            end
+            
+            wait_frames(90)
+            break
+        end
+    end
+
+    party_eggs = new_eggs
+    
+    -- Check party to see if it's clear of eggs
+    if #party == 6 then
+        local has_egg = false
+        
+        for _, is_egg in ipairs(new_eggs) do
+            if is_egg then
+                has_egg = true
+                break
+            end
+        end
+
+        -- If no eggs are left and no target was found,
+        -- we can release all Level 1 Pokemon from party
+        if not has_egg then
+            print("Party has no room for eggs! Releasing last 5 Pokemon...")
+            release_hatched_duds()
+        end
+    end
 end

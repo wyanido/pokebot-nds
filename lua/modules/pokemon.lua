@@ -502,4 +502,8 @@ function pokemon.get_move_slot(mon, move_name)
     return 0
 end
 
+function pokemon.is_dud(mon)
+    return mon.level == 1 and not pokemon.matches_ruleset(mon, config.target_traits)
+end
+
 return pokemon

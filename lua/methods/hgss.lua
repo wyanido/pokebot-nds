@@ -29,7 +29,7 @@ function update_pointers()
 
         bike = anchor - 0x22D34,
 
-        daycare_pid = anchor - 0x22804,
+        daycare_egg = anchor - 0x22804,
 
         battle_menu_state      = anchor + 0x230EC, -- 01 is FIGHT menu, 04 is Move Select, 08 is Bag,
         battle_indicator       = 0x021E76D2, -- Static
@@ -331,8 +331,20 @@ function mode_headbutt()
 end
 
 function release_hatched_duds()
-    local function release()
-        press_sequence("A", 5, "Up", 5, "Up", 5, "A", 5, "Up", 5, "A", 120, "A", 60, "A", 10)
+    local function release(i)
+        local x = 40 + 40 * ((i - 1) % 2)
+        local y = 70 + 30 * math.floor((i - 1) / 2)
+        
+        touch_screen_at(x, y)
+        wait_frames(30)
+        touch_screen_at(228, 144)
+        wait_frames(30)
+        touch_screen_at(222, 109)
+        wait_frames(100)
+        press_button("B")
+        wait_frames(15)
+        press_button("B")
+        wait_frames(15)
     end
 
     clear_all_inputs()
@@ -356,20 +368,9 @@ function release_hatched_duds()
     wait_frames(60)
 
     for i = 6, 2, -1 do
-        local function release(i)
-            touch_screen_at(40 + 40 * ((i - 1) % 2), 70 + 30 * math.floor((i - 1) / 2))
+        if pokemon.is_dud(party[i]) then 
+            release(i)
         end
-
-        release(i)
-        wait_frames(30)
-        touch_screen_at(228, 144)
-        wait_frames(30)
-        touch_screen_at(222, 109)
-        wait_frames(100)
-        press_button("B")
-        wait_frames(15)
-        press_button("B")
-        wait_frames(15)
     end
 
     press_sequence("B", 40, "B", 20, "B", 150, "B", 60)
@@ -395,7 +396,7 @@ function mode_daycare_eggs()
     
     local function check_and_collect_egg()
         -- Don't bother with additional eggs if party is full
-        if #party == 6 or mdword(pointers.daycare_pid) == 0 then
+        if #party == 6 or mdword(pointers.daycare_egg) == 0 then
             return
         end
 
@@ -407,7 +408,7 @@ function mode_daycare_eggs()
 
         local party_count = #party
         while #party == party_count do
-            press_sequence("A", 5)
+            press_sequence("A", 8)
         end
 
         -- Return to long vertical path 
@@ -420,7 +421,7 @@ function mode_daycare_eggs()
     party_eggs = get_party_eggs()
 
     mount_bike()
-    move_to({x=358})
+    move_to({x=358}, check_hatching_eggs)
     
     while true do
         move_to({z=380}, check_hatching_eggs)

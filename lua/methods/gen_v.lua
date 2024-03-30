@@ -9,7 +9,7 @@ function update_pointers()
         medicine_pouch  = 0x02234784 + _ROM.offset, -- 192 bytes long
         berries_pouch   = 0x02234844 + _ROM.offset, -- 234 bytes long
 
-        running_shoes   = 0x0223C054 + _ROM.offset, -- 0 before receiving
+        running_shoes = 0x0223C054 + _ROM.offset, -- 0 before receiving
 
         -- Party
         party_count = 0x022349B0 + _ROM.offset, -- 4 bytes before first index
@@ -41,10 +41,10 @@ function update_pointers()
         -- Misc
         save_indicator            = 0x021F0100 + _ROM.offset, -- 1 while save menu is open
         starter_selection_is_open = 0x022B0C40 + _ROM.offset, -- 0 when opening gift, 1 at starter select
-        battle_menu_state         = anchor + 0x1367C, -- 1 on FIGHT menu, 2 on move select, 4 on switch/run after faint, 0 otherwise
         battle_bag_page           = 0x022962C8 + _ROM.offset,
         selected_starter          = 0x02269994 + _ROM.offset, -- Unconfirmed selection in gift box; 0 Snivy, 1 Tepig, 2 Oshawott, 4 Nothing
         text_interrupt            = 0x2172BA0 + _ROM.offset,
+        battle_menu_state         = anchor + 0x1367C, -- 1 on FIGHT menu, 2 on move select, 4 on switch/run after faint, 0 otherwise
 
         fishing_bite_indicator    = 0x20A8362 + _ROM.offset,
         fishing_no_bite           = 0x21509DB + _ROM.offset,
@@ -52,7 +52,8 @@ function update_pointers()
         trainer_name = 0x2234FB0 + _ROM.offset,
         trainer_id   = 0x2234FC0 + _ROM.offset,
 
-        thundurus_tornadus = 0x225960C + _ROM.offset
+        thundurus_tornadus = 0x225960C + _ROM.offset,
+        daycare_egg = 0x223CB74 + _ROM.offset,
     }
 end
 
@@ -74,38 +75,6 @@ function randomise_reset()
 
     for _, v in ipairs(press) do
         release_button(v)
-    end
-end
-
---- Moves the bot toward a position on the map.
--- @param target Target position (x, z)
--- @param on_move Function called each frame while moving
--- If an axis in the target is not specified, it will be substituted with the bot's current position
-function move_to(target, on_move)
-    if not target.x then
-        target.x = game_state.trainer_x - 0.5
-    elseif not target.z then
-        target.z = game_state.trainer_z - 0.5
-    end
-
-    while game_state.trainer_x <= target.x - 0.5 do
-        hold_button("Right")
-        if on_move then on_move() end
-    end
-    
-    while game_state.trainer_x >= target.x + 1.5 do
-        hold_button("Left")
-        if on_move then on_move() end
-    end
-    
-    while game_state.trainer_z < target.z - 0.5 do
-        hold_button("Down")
-        if on_move then on_move() end
-    end
-    
-    while game_state.trainer_z > target.z + 1.5 do
-        hold_button("Up")
-        if on_move then on_move() end
     end
 end
 
@@ -263,6 +232,13 @@ function dex_registered(name, field)
     print_warn("Pokemon " .. name .. " not found")
 
     return nil
+end
+
+--- Proceeds until the egg hatch animation finishes
+function hatch_egg()
+    while mdword(pointers.egg_hatching) == 1 do
+        press_sequence(15, "B")
+    end
 end
 
 function mode_starters()
@@ -471,188 +447,48 @@ function mode_phenomenon_encounters()
 end
 
 function mode_daycare_eggs()
-    local function collect_daycare_egg()
-        print_debug("That's an egg!")
+    local function mount_bike()
+        if mbyte(pointers.bike) ~= 1 then 
+            press_sequence("Y")
+        end
+    end
+    
+    local function check_and_collect_egg()
+        -- Don't bother with additional eggs if party is full
+        if #party == 6 or mdword(pointers.daycare_egg) == 0 then
+            return
+        end
 
+        print("That's an egg!")
+
+        move_to({x=748}, check_hatching_eggs)
+        move_to({z=557}, check_hatching_eggs)
         clear_all_inputs()
+
+        local party_count = #party
+        while #party == party_count do
+            press_sequence("A", 8)
+        end
+
+        -- Return to long horizontal path 
         press_sequence(30, "B")
-        
-        move_to({z=557})
-
-        local og_party_count = #party -- Press A until egg in party
-        while #party == og_party_count do
-            press_sequence("A", 5)
-        end
-
-        press_sequence(200, "B", 70, "B") -- End dialogue
+        move_to({z=563}, check_hatching_eggs)
     end
 
-    if game_state.map_header ~= 321 then
-        abort("Please place the bot on Route 3")
-    end
+    -- Initialise party state for future reference
+    process_frame()
+    party_eggs = get_party_eggs()
 
-    -- If the party is full, assert that at least one is still unhatched
-    if #party == 6 then
-        local has_egg = false
-        for i = 1, #party, 1 do
-            if party[i].isEgg == 1 then
-                has_egg = true
-                break
-            end
-        end
-
-        -- Otherwise free up party slots at PC
-        if not has_egg then
-            print("Party is clear of eggs. Depositing hatched Pokemon...")
-            
-            move_to({x=748}) -- Move to staircase
-            move_to({z=557}) -- Move to the door
-            move_to({x=749,z=556})
-            
-            -- Walk to daycare lady at desk
-            while game_state.map_header ~= 323 do
-                hold_button("Up")
-                wait_frames(1)
-            end
-
-            release_button("Up")
-
-            -- Walk to PC
-            move_to({x=9,z=9})
-            press_sequence("Up", 16, "A", 140, "A", 120, "A", 110, "A", 100)
-            press_sequence("Down", 5, "Down", 5, "A", 110)
-
-            touch_screen_at(45, 175)
-            wait_frames(60)
-
-            -- Release party in reverse order so the positions don't shuffle to fit empty spaces
-            for i = #party, 1, -1 do
-                if party[i].level == 1 and not pokemon.matches_ruleset(party[i], config.target_traits) then
-                    touch_screen_at(40 * ((i - 1) % 2 + 1), 72 + 30 * math.floor((i - 1) / 2)) -- Select Pokemon
-                    wait_frames(30)
-                    touch_screen_at(211, 121) -- RELEASE
-                    wait_frames(30)
-                    touch_screen_at(220, 110) -- YES
-                    press_sequence(60, "B", 20, "B", 20) -- Bye-bye!
-                end
-            end
-
-            press_sequence("B", 30, "B", 30, "B", 30, "B", 150, "B", 90) -- Exit PC
-            
-            hold_button("B")
-            
-            while game_state.trainer_x > 6 do -- Align with door
-                hold_button("Left")
-                wait_frames(1)
-            end
-
-            release_button("Left")
-
-            while game_state.map_header ~= 321 do -- Exit daycare
-                hold_button("Down")
-                wait_frames(1)
-            end
-
-            while game_state.trainer_z ~= 558 do
-                hold_button("Down")
-                wait_frames(1)
-            end
-
-            release_button("Down")
-
-            press_sequence(20, "Left", 20, "Y") -- Mount Bicycle and with staircase
-        end
-    end
-
-    -- Move down until on the two rows used for egg hatching
-    if game_state.trainer_x >= 742 and game_state.trainer_x <= 748 and game_state.trainer_z < 563 then
-        hold_button("Down")
-
-        local stuck_frames = 0
-        local last_z = game_state.trainer_z
-        while game_state.trainer_z ~= 563 and game_state.trainer_z ~= 564 do
-            wait_frames(1)
-
-            if game_state.trainer_z == last_z then
-                stuck_frames = stuck_frames + 1
-
-                if stuck_frames > 60 then -- Interrupted by daycare man as you were JUST leaving
-                    collect_daycare_egg()
-                end
-            end
-
-            last_z = game_state.trainer_z
-        end
-
-        release_button("Down")
-    else
-        local tile_frames = frames_per_move() * 4
-
-        -- Hold left until interrupted
-        hold_button("Left")
-
-        local last_x = 0
-        while last_x ~= game_state.trainer_x do
-            last_x = game_state.trainer_x
-            wait_frames(tile_frames)
-
-            -- Reached left route boundary
-            press_button("B")
-            if game_state.trainer_x <= 681 then
-                break
-            end
-        end
-
-        -- Hold right until interrupted
-        hold_button("Right")
-
-        local last_x = 0
-        while last_x ~= game_state.trainer_x do
-            last_x = game_state.trainer_x
-            wait_frames(tile_frames)
-
-            -- Right route boundary
-            press_button("B")
-            if game_state.trainer_x >= 758 then
-                break
-            end
-        end
-
-        if mdword(pointers.egg_hatching) == 1 then -- Interrupted by egg hatching
-            print("Oh?")
-
-            press_sequence("B", 60)
-
-            -- Remember which Pokemon are currently eggs
-            local party_eggs = {}
-            for i = 1, #party, 1 do
-                party_eggs[i] = party[i].isEgg
-            end
-
-            while mdword(pointers.egg_hatching) == 1 do
-                press_sequence(15, "B")
-            end
-
-            -- Find newly hatched party member and add to the log
-            for i = 1, #party, 1 do
-                if party_eggs[i] == 1 and party[i].isEgg == 0 then
-                    local is_target = pokemon.log_encounter(party[i])
-                    break
-                end
-            end
-
-            if is_target then
-                if config.save_game_after_catch then
-                    save_game()
-                end
-
-                abort("Hatched a target Pokemon")
-            end
-
-            print_debug("Egg finished hatching.")
-        elseif game_state.trainer_x == 748 then -- Interrupted by daycare man
-            collect_daycare_egg()
-        end
+    -- mount_bike()
+    move_to({z=563}, check_hatching_eggs)
+    
+    while true do
+        move_to({x=680}, check_hatching_eggs)
+        move_to({x=748}, check_hatching_eggs)
+        check_and_collect_egg()
+        move_to({x=759}, check_hatching_eggs)
+        move_to({x=748}, check_hatching_eggs)
+        check_and_collect_egg()
     end
 end
 
@@ -723,4 +559,70 @@ function mode_thundurus_tornadus()
         print(mon.name .. " was not a target, resetting...")
         soft_reset()
     end
+end
+
+function release_hatched_duds()
+    local function release(i)
+        local x = 40 * ((i - 1) % 2 + 1)
+        local y = 72 + 30 * math.floor((i - 1) / 2)
+
+        touch_screen_at(x, y) -- Select Pokemon
+        wait_frames(30)
+        touch_screen_at(211, 121) -- RELEASE
+        wait_frames(30)
+        touch_screen_at(220, 110) -- YES
+        press_sequence(60, "B", 20, "B", 20) -- Bye-bye!
+    end
+
+    move_to({x=748}) -- Move to staircase
+    move_to({z=557}) -- Move to the door
+    move_to({x=749,z=556})
+    
+    -- Walk to daycare lady at desk
+    while game_state.map_header ~= 323 do
+        hold_button("Up")
+    end
+
+    release_button("Up")
+
+    -- Walk to PC
+    hold_button("B")
+    move_to({z=9})
+    move_to({x=9})
+    hold_button("Up")
+    wait_frames(10)
+    release_button("Up")
+    wait_frames(10)
+    release_button("B")
+    
+    press_sequence("A", 140, "A", 120, "A", 110, "A", 60)
+    press_sequence("Down", 5, "Down", 5, "A", 110)
+
+    touch_screen_at(45, 175)
+    wait_frames(60)
+
+    -- Release party in reverse order so the positions don't shuffle to fit empty spaces
+    for i = #party, 1, -1 do
+        if pokemon.is_dud(party[i]) then
+            release(i)
+        end
+    end
+
+    press_sequence("B", 25, "B", 30, "B", 30, "B", 150, "B", 90) -- Exit PC
+    hold_button("B")
+    
+    -- Exit daycare
+    move_to({x=6})
+    move_to({z=13})
+    
+    while game_state.map_header ~= 321 do
+        hold_button("Down")
+    end
+
+    release_button("B")
+    release_button("Down")
+    press_sequence(180, "Y", 30)
+    move_to({z=557})
+    move_to({x=748})
+    move_to({z=563})
 end

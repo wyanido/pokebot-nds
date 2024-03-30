@@ -27,7 +27,7 @@ function update_pointers()
         bike_gear = anchor + 0x123E,
         bike      = anchor + 0x1242,
 
-        daycare_pid = anchor + 0x156E,
+        daycare_egg = anchor + 0x156E,
 
         selected_starter = anchor + 0x427A6,
         starters_ready   = anchor + 0x4282A,
@@ -128,59 +128,7 @@ function fishing_has_bite()
     return mbyte(pointers.fishing_bite_indicator) == 1
 end
 
---- Moves the bot toward a position on the map.
--- @param target Target position (x, z)
--- @param on_move Function called each frame while moving
--- If an axis in the target is not specified, it will be substituted with the bot's current position
-function move_to(target, on_move)
-    if not target.x then
-        target.x = game_state.trainer_x - 0.5
-    elseif not target.z then
-        target.z = game_state.trainer_z - 0.5
-
-        -- Adjust for different vertical behaviour in Platinum
-        if _ROM.version == "PL" then
-            target.z = target.z + 0.5
-        end
-    end
-
-    while game_state.trainer_x <= target.x - 0.5 do
-        hold_button("Right")
-        if on_move then on_move() end
-    end
-    
-    while game_state.trainer_x >= target.x + 1.5 do
-        hold_button("Left")
-        if on_move then on_move() end
-    end
-    
-    while game_state.trainer_z < target.z - 0.5 do
-        hold_button("Down")
-        if on_move then on_move() end
-    end
-    
-    while game_state.trainer_z > target.z + 1.5 do
-        hold_button("Up")
-        if on_move then on_move() end
-    end
-end
-
--- Returns an array of the isEgg value for each party member.
-function get_party_eggs()
-    local eggs = {}
-
-    for i = 1, 6, 1 do
-        if party[i] then
-            eggs[i] = party[i].isEgg == 1
-        else
-            eggs[i] = true
-        end
-    end
-
-    return eggs
-end
-
--- Navigates to the Solaceon Town daycare and releases the last 5 Pokemon in the party.
+-- Navigates to the Solaceon Town daycare and releases the last Lv 1 Pokemon in the party.
 function release_hatched_duds()
     local function release()
         press_sequence("A", 5, "Up", 5, "Up", 5, "A", 5, "Up", 5, "A", 120, "A", 60, "A", 10)
@@ -188,15 +136,19 @@ function release_hatched_duds()
 
     clear_all_inputs()
 
-    move_to({z=646 + map_shift})
+    move_to({z=646})
     move_to({x=553})
     
-    press_sequence("Up", 120) -- Enter door
+    -- Enter door
+    hold_button("Up")
+    wait_frames(60)
+    release_button("Up")
+    wait_frames(120)
     
     hold_button("B")
-    move_to({z=8 + indoor_map_shift})
+    move_to({z=8})
     move_to({x=4})
-    move_to({z=4 + indoor_map_shift})
+    move_to({z=4})
     clear_all_inputs()
 
     -- Navigate to MOVE POKEMON
@@ -208,24 +160,24 @@ function release_hatched_duds()
     press_sequence("Up", 20, "Up", 20)
 
     -- Release Lv 1 Pokemon from back to front to accomodate for positions shifting
-    release() -- 6
+    if pokemon.is_dud(party[6]) then release() end
     press_sequence("Left", 10)
-    release() -- 5
+    if pokemon.is_dud(party[5]) then release() end
     press_sequence("Up", 10, "Right", 10)
-    release() -- 4
+    if pokemon.is_dud(party[4]) then release() end
     press_sequence("Left", 10)
-    release() -- 3
+    if pokemon.is_dud(party[3]) then release() end
     press_sequence("Up", 10, "Right", 10)
-    release() -- 2
+    if pokemon.is_dud(party[2]) then release() end
 
     -- Close PC
     press_sequence("B", 60, "B", 20, "B", 160, "B", 60, "B", 20)
 
     -- Exit Daycare
     hold_button("B")
-    move_to({z=8 + indoor_map_shift})
+    move_to({z=8})
     move_to({x=9})
-    move_to({z=11 + indoor_map_shift})
+    move_to({z=11})
     wait_frames(60)
     clear_all_inputs()
     
@@ -234,59 +186,14 @@ function release_hatched_duds()
     move_to({x=562})
 end
 
---- Presses A to allow the egg hatch animation to finish where necessary.
-function check_hatching_eggs()
-    if emu.framecount() % 10 == 0 then
-        press_button_async("A")
-    end
-    
-    local new_eggs = get_party_eggs()
-    
-    for i, is_egg in ipairs(new_eggs) do
-        -- Eggs are already considered "hatched" as soon as the animation starts
-        if party[i] and party_eggs[i] ~= is_egg then
-            clear_all_inputs()
+--- Proceeds until the egg hatch animation finishes
+function hatch_egg()
+    press_sequence(30, "B", 30)
             
-            print("Egg is hatching!")
-            press_sequence(30, "B", 30)
-            
-            -- Mon data changes again once animation finishes
-            local checksum = party[i].checksum
-            while party[i].checksum == checksum do
-                press_sequence("B", 5)
-            end
-            
-            local is_target = pokemon.log_encounter(party[i])
-            if is_target then
-                abort("Hatched a target Pokemon!")
-            else
-                print("Hatched " .. party[i].name .. " was not a target...")
-            end
-            
-            wait_frames(90)
-            break
-        end
-    end
-
-    party_eggs = new_eggs
-    
-    -- Check party to see if it's clear of eggs
-    if #party == 6 then
-        local has_egg = false
-        
-        for _, is_egg in ipairs(new_eggs) do
-            if is_egg then
-                has_egg = true
-                break
-            end
-        end
-
-        -- If no eggs are left and no target was found,
-        -- we can release all Level 1 Pokemon from party
-        if not has_egg then
-            print("Party has no room for eggs! Releasing last 5 Pokemon...")
-            release_hatched_duds()
-        end
+    -- Mon data changes again once animation finishes
+    local checksum = party[i].checksum
+    while party[i].checksum == checksum do
+        press_sequence("B", 5)
     end
 end
 
@@ -548,6 +455,9 @@ function mode_gift()
     end
 end
 
+--- Hunts for targets by hatching eggs.
+-- Bikes through Solaceon Town until the party is full of hatched eggs,
+-- then frees up party space at the PC if no targets were hatched
 function mode_daycare_eggs()
     local function mount_bike()
         if mbyte(pointers.bike) ~= 1 then press_sequence("Y", 5) end
@@ -556,40 +466,36 @@ function mode_daycare_eggs()
     
     local function check_and_collect_egg()
         -- Don't bother with additional eggs if party is full
-        if #party == 6 or mdword(pointers.daycare_pid) == 0 then
+        if #party == 6 or mdword(pointers.daycare_egg) == 0 then
             return
         end
 
         print("That's an egg!")
 
-        move_to({z=648 + map_shift})
-        move_to({x=556})
+        move_to({z=648}, check_hatching_eggs)
+        move_to({x=556}, check_hatching_eggs)
         clear_all_inputs()
 
         local party_count = #party
         while #party == party_count do
-            press_sequence("A", 5)
+            press_sequence("A", 8)
         end
 
         -- Return to long vertical path 
-        move_to({x=562})
+        move_to({x=562}, check_hatching_eggs)
     end
 
     -- Initialise party state for future reference
     process_frame()
     party_eggs = get_party_eggs()
 
-    -- Map coords shift slightly between DP and Pt
-    map_shift = _ROM.version == "PL" and 21 or 0
-    indoor_map_shift = _ROM.version == "PL" and 62 or 0
-
     mount_bike()
-    move_to({x=562})
+    move_to({x=562}, check_hatching_eggs)
     
     while true do
-        move_to({z=630 + map_shift}, check_hatching_eggs)
+        move_to({z=630}, check_hatching_eggs)
         check_and_collect_egg()
-        move_to({z=675 + map_shift}, check_hatching_eggs)
+        move_to({z=675}, check_hatching_eggs)
         check_and_collect_egg()
     end
 end

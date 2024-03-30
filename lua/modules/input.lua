@@ -18,7 +18,24 @@ else
     end
 end 
 
--- Adjust for differences in d-pad key names between emulators
+--- Releases inputs other than the one specified; only one at a time is supported on real hardware.
+-- @param direction New direction
+local function release_conflicting_directions(direction)
+    local directions = {"Up", "Down", "Left", "Right"}
+
+    if not table_contains(directions, direction) then
+        return
+    end
+
+    for _, v in ipairs(directions) do
+        if v ~= direction then
+            release_button(v)
+        end
+    end
+end
+
+--- Adjusts for differences in d-pad key names between emulators.
+-- @param button Name of the input to adjust
 local function adjust_case(button)
     if _EMU == "DeSmuME" then
         if button == "Up" or button == "Down" or button == "Left" or button == "Right" or button == "Start" or button == "Select" then 
@@ -30,6 +47,7 @@ local function adjust_case(button)
 end
 
 function press_button(button)
+    release_conflicting_directions(button)
     button = adjust_case(button)
     input[button] = true
     joypad.set(input)
@@ -38,20 +56,10 @@ function press_button(button)
 end
 
 function hold_button(button)
-    -- Release previous d-pad inputs, only one is recognised at a time
-    local directions = {"Up", "Down", "Left", "Right"}
-    if table_contains(directions, button) then
-        directions[button] = nil
-
-        for _, v in ipairs(directions) do
-            release_button(v)
-        end
-    end
-
+    release_conflicting_directions(button)
     button = adjust_case(button)
     held_input[button] = true
     input[button] = true
-
     joypad.set(input)
     wait_frames(1)
 end
@@ -73,6 +81,7 @@ function press_sequence(...)
     end
 end
 
+--- Prevents other actions from processing for a set number of frames.
 -- Most frame advances go through this function, meaning 
 -- it can update the game state for other functions without needing asynchronosity
 function wait_frames(frames)
@@ -87,6 +96,7 @@ end
 --- Presses a button without blocking other script actions.
 -- Useful when additional inputs are needed during precise movement
 function press_button_async(button)
+    release_conflicting_directions(button)
     button = adjust_case(button)
     input_buffer[button] = 4
     input[button] = true
