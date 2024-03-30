@@ -58,7 +58,7 @@ function update_pointers()
     }
 end
 
-function bike_back_and_forth()
+local function bike_back_and_forth()
     local horizontal = config.move_direction == "horizontal"
     local axis = horizontal and pointers.trainer_x or pointers.trainer_z
     local dir1 = horizontal and "Right" or "Down"
@@ -71,7 +71,10 @@ function bike_back_and_forth()
         local z = mword(axis)
         while mword(axis) == z do
             hold_button(dir)
-            dismiss_repel()
+
+            if emu.framecount() % 10 == 0 then -- Re-apply repel
+                press_button_async("A")
+            end
 
             if game_state.in_battle then
                 return
@@ -103,14 +106,14 @@ function mode_starters()
         print("Waiting to reach overworld...")
 
         while not game_state.in_game do 
-            press_sequence("A", 20) 
+            progress_text()
         end
     end
 
     print("Opening Starter Selection...")
 
     while mbyte(pointers.starter_selection_is_open) ~= 1 do
-        press_sequence("A", 5)
+        progress_text()
     end
 
     print("Choosing Starter...")
@@ -128,7 +131,7 @@ function mode_starters()
     end
 
     while #party == 0 do 
-        press_sequence("A", 5) 
+        progress_text()
     end
 
     local is_target = pokemon.log_encounter(party[1])
@@ -153,7 +156,9 @@ function mode_hidden_grottos()
         
         while game_state.map_name == "Hidden Grotto" do
             wait_frames(1)
-            dismiss_repel()
+            if emu.framecount() % 10 == 0 then -- Re-apply repel
+                press_button_async("A")
+            end
         end
         
         release_button("Down")
@@ -165,7 +170,7 @@ function mode_hidden_grottos()
         press_sequence(4, "A")
 
         while game_state.map_name ~= "Hidden Grotto" do
-            press_sequence("A", 4)
+            progress_text()
         end
 
         wait_frames(120)
@@ -175,7 +180,9 @@ function mode_hidden_grottos()
         
         while game_state.trainer_z > 13 do
             wait_frames(1)
-            dismiss_repel()
+            if emu.framecount() % 10 == 0 then -- Re-apply repel
+                press_button_async("A")
+            end
         end
         
         release_button("B")
@@ -201,8 +208,7 @@ function mode_hidden_grottos()
     enter_grotto()
     
     -- Interact and wait for potential battle
-    press_sequence("A")
-    wait_frames(300)
+    press_sequence("A", 300)
 
     if game_state.in_battle then
         process_wild_encounter()

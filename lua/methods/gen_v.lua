@@ -106,29 +106,6 @@ function open_menu(menu)
     wait_frames(90)
 end
 
---- Presses the RUN button until the battle is over.
-function flee_battle()
-    while game_state.in_battle do
-        local battle_state = mbyte(pointers.battle_menu_state)
-
-        if battle_state == 4 then -- Fainted
-            wait_frames(30)
-            touch_screen_at(128, 100) -- RUN
-            wait_frames(140)
-
-            while game_state.in_battle do
-                press_sequence("B", 5)
-            end
-            return
-        elseif battle_state ~= 1 then
-            press_sequence("B", 1)
-        else
-            touch_screen_at(125, 175) -- Run
-            wait_frames(5)
-        end
-    end
-end
-
 --- Returns true if the rod state has changed from being cast.
 function fishing_status_changed()
     return not (mword(pointers.fishing_bite_indicator) ~= 0xFFF1 and mbyte(pointers.fishing_no_bite) == 0)
@@ -254,7 +231,7 @@ function mode_starters()
         print("Waiting to reach overworld...")
 
         while not game_state.in_game do
-            press_sequence("A", 20)
+            progress_text()
         end
     end
 
@@ -266,7 +243,7 @@ function mode_starters()
     print("Opening Starter Selection...")
 
     while mbyte(pointers.starter_selection_is_open) == 0 do
-        press_sequence("A", 5)
+        progress_text()
     end
 
     print("Choosing Starter...")
@@ -284,7 +261,7 @@ function mode_starters()
     end
 
     while #party == 0 do
-        press_sequence("A", 5)
+        progress_text()
     end
 
     local is_target = pokemon.log_encounter(party[1])
@@ -304,13 +281,13 @@ function mode_random_encounters()
     }
 
     local function move_in_direction(dir)
-        dismiss_repel()
+        if emu.framecount() % 10 == 0 then -- Re-apply repel
+            press_button_async("A")
+        end
 
-        hold_button("B")
         hold_button(dir)
-        wait_frames(frames_per_move() - 2)
+        wait_frames(7)
         release_button(dir)
-        release_button("B")
     end
 
     while true do
@@ -322,55 +299,17 @@ function mode_random_encounters()
         local dir2 = config.move_direction == "horizontal" and "Right" or "Down"
         
         wait_frames(60) -- Wait to regain control post-battle
+        hold_button("B")
 
         while not game_state.in_battle do
             move_in_direction(dir1)
             move_in_direction(dir2)
         end
-
+        
+        release_button("B")
         release_button(dir2)
 
         process_wild_encounter()
-    end
-end
-
-function mode_gift()
-    if not game_state.in_game then
-        print("Waiting to reach overworld...")
-
-        while not game_state.in_game do
-            press_sequence("A", 20)
-        end
-    end
-
-    wait_frames(60)
-    
-    local og_party_count = #party
-    while #party == og_party_count do
-        press_sequence("A", 5)
-    end
-
-    -- Dialogue varies per gift type
-    if game_state.map_name == "Dreamyard" then
-        press_sequence(300, "B", 120, "B", 150, "B", 110, "B", 30) -- Decline nickname and progress text afterwards
-    else
-        press_sequence(180, "B", 60) -- Decline nickname
-    end
-
-    local mon = party[#party]
-    local is_target = pokemon.log_encounter(mon)
-
-    if is_target then
-        if config.save_game_after_catch then
-            print("Gift Pokemon meets target specs! Saving...")
-
-            save_game()
-        end
-
-        abort("Gift Pokemon meets target specs")
-    else
-        print("Gift Pokemon was not a target, resetting...")
-        soft_reset()
     end
 end
 
@@ -399,7 +338,7 @@ function mode_phenomenon_encounters()
 
         hold_button("B")
         hold_button(dir)
-        wait_frames(frames_per_move() - 2)
+        wait_frames(4)
         release_button(dir)
         release_button("B")
     end
@@ -467,7 +406,7 @@ function mode_daycare_eggs()
 
         local party_count = #party
         while #party == party_count do
-            press_sequence("A", 8)
+            progress_text()
         end
 
         -- Return to long horizontal path 
@@ -492,38 +431,6 @@ function mode_daycare_eggs()
     end
 end
 
-function mode_static_encounters()
-    while not game_state.in_battle do
-        if game_state.map_name == "Dreamyard" then
-            press_button("Right")
-        end
-
-        press_sequence("A", 5)
-    end
-
-    local is_target = pokemon.log_encounter(foe[1])
-
-    if is_target then
-        if config.auto_catch then
-            while game_state.in_battle do
-                catch_pokemon()
-            end
-
-            if config.save_game_after_catch then
-                print("Target Pokémon was caught! Saving...")
-                save_game()
-            end
-
-            abort("Target Pokémon was caught!")
-        else
-            abort("Pokemon meets target specs, but Auto-catch is disabled")
-        end
-    else
-        print("Wild " .. foe[1].name .. " was not a target, resetting...")
-        soft_reset()
-    end
-end
-
 function mode_thundurus_tornadus()
     local function dex_entry_added()
         local tornadus_seen = dex_registered("tornadus", "male") or dex_registered("tornadus", "shiny_male")
@@ -533,7 +440,7 @@ function mode_thundurus_tornadus()
     end
 
     while not game_state.in_game do
-        press_sequence("A", 5)
+        progress_text()
     end
 
     -- Exit house
@@ -545,7 +452,7 @@ function mode_thundurus_tornadus()
 
     -- Skip through cutscene until dex entry is registered
     while not dex_entry_added() do
-        press_sequence("A", 5)
+        progress_text()
     end
 
     -- Read pre-generated Pokemon from memory
@@ -561,6 +468,7 @@ function mode_thundurus_tornadus()
     end
 end
 
+--- Navigates to the Route 3 daycare and releases all hatched Pokemon in the party.
 function release_hatched_duds()
     local function release(i)
         local x = 40 * ((i - 1) % 2 + 1)
@@ -625,4 +533,23 @@ function release_hatched_duds()
     move_to({z=557})
     move_to({x=748})
     move_to({z=563})
+end
+
+--- Returns the current stage of the battle as a simple string.
+function get_battle_state()
+    if not game_state.in_battle then
+        return nil
+    end
+
+    local state = mbyte(pointers.battle_menu_state)
+    
+    if state == 0x1 then
+        return "Menu"
+    elseif state == 0x2 then
+        return "Fight"
+    elseif state == 0x4 then
+        return "New Move"
+    end
+
+    return nil
 end

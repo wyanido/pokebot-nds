@@ -1,6 +1,3 @@
------------------------
--- INITIALISATION
------------------------
 package.cpath = package.cpath .. ";.\\lua\\modules\\?.dll" -- Allows socket.core to be detected beyond the project root
 dofile("lua\\detect_emu.lua")
 
@@ -22,11 +19,7 @@ dofile("lua\\detect_game.lua")
 dofile("lua\\modules\\dashboard.lua")
 dofile("lua\\helpers.lua")
 
------------------------
--- MAIN BOT LOOP
------------------------
 local mode_function = _G["mode_" .. config.mode] -- Get the respective global scope function for the current bot mode
-    
 if not mode_function then
     abort("Function for mode '" .. config.mode .. "' does not exist. It may not be compatible with this game.")
 end

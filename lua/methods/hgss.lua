@@ -1,10 +1,8 @@
------------------------
--- DP FUNCTION OVERRIDES
------------------------
 function update_pointers()
     local anchor = mdword(0x21D4158 + _ROM.offset)
     local foe_anchor = mdword(anchor + 0x6930)
-
+    local bag_page_anchor = mdword(anchor + 0x348C4)
+    
     pointers = {
         -- items_pocket
         -- medicine_pocket
@@ -22,9 +20,9 @@ function update_pointers()
         current_foe = foe_anchor + 0xC18,
 
         map_header  = anchor - 0x22DA4,
-        trainer_x   = 0x21DA6F4,
-        trainer_y   = 0x21DA6F8,
-        trainer_z   = 0x21DA6FC,
+        trainer_x   = 0x21DA6F4 + _ROM.offset,
+        trainer_y   = 0x21DA6F8 + _ROM.offset,
+        trainer_z   = 0x21DA6FC + _ROM.offset,
         facing      = anchor + 0x1DC4,
 
         bike = anchor - 0x22D34,
@@ -32,13 +30,14 @@ function update_pointers()
         daycare_egg = anchor - 0x22804,
 
         battle_menu_state      = anchor + 0x230EC, -- 01 is FIGHT menu, 04 is Move Select, 08 is Bag,
-        battle_indicator       = 0x021E76D2, -- Static
-        fishing_bite_indicator = 0x21DD853,
+        battle_menu_state2     = anchor + 0x40281,
+        battle_indicator       = 0x21E76D2 + _ROM.offset,
+        fishing_bite_indicator = 0x21DD853 + _ROM.offset,
 
         easy_chat_open           = anchor + 0x28644,
         easy_chat_category_sizes = anchor + 0x200C4,
         easy_chat_word_list      = anchor + 0x20124,
-        battle_bag_page          = mdword(anchor + 0x348C4) + 0x4E,
+        battle_bag_page          = bag_page_anchor + 0x4E,
         trainer_name = anchor - 0x23F74,
         trainer_id   = anchor - 0x23F64,
 
@@ -47,6 +46,8 @@ function update_pointers()
     }
 end
 
+--- Opens the menu and selects the specified option.
+-- @param menu Name of the menu to open
 function open_menu(menu)
     wait_frames(30)
     
@@ -71,7 +72,7 @@ function mode_starters()
     print("Waiting to see starters...")
 
     while mdword(pointers.starter_data - 0x8) ~= 0 or mdword(pointers.starter_data - 0x4) == 0 do
-        skip_dialogue()
+        progress_text()
     end
 
     wait_frames(9) -- Ensure all starters are loaded into memory
@@ -97,7 +98,7 @@ function mode_voltorb_flip()
 
     local function proceed_text()
         while mdword(board_pointer - 0x4) ~= 0xA0 or mdword(board_pointer - 0x14) ~= 0 do 
-            skip_dialogue()
+            progress_text()
         end
     end
 
@@ -222,7 +223,7 @@ function mode_primo_gift()
         print('Awaiting Easy Chat prompt...')
         
         while mbyte(pointers.easy_chat_open) ~= 0x1 do
-            skip_dialogue()
+            progress_text()
         end
         
         wait_frames(45)
@@ -251,7 +252,7 @@ function mode_primo_gift()
     -- Now button mash until the egg is received
     local og_party_count = #party
     while #party == og_party_count do
-        skip_dialogue()
+        progress_text()
     end
 
     local mon = party[#party]
@@ -297,7 +298,7 @@ function mode_headbutt()
 
         -- Press A until following Pokemon pushes you out of the way
         while game_state.trainer_x == og_x and game_state.trainer_z == og_z do
-            skip_dialogue()
+            progress_text()
         end
 
         -- Wait for battle to start
@@ -330,6 +331,7 @@ function mode_headbutt()
     end
 end
 
+--- Navigates to the Route 34 daycare and releases all hatched Pokemon in the party.
 function release_hatched_duds()
     local function release(i)
         local x = 40 + 40 * ((i - 1) % 2)
@@ -408,7 +410,7 @@ function mode_daycare_eggs()
 
         local party_count = #party
         while #party == party_count do
-            press_sequence("A", 8)
+            progress_text()
         end
 
         -- Return to long vertical path 
@@ -428,4 +430,28 @@ function mode_daycare_eggs()
         check_and_collect_egg()
         move_to({z=409}, check_hatching_eggs)
     end
+end
+
+function get_battle_state()
+    if not game_state.in_battle then
+        return nil
+    end
+
+    if mbyte(pointers.battle_menu_state2) == 0x2F then
+        return "New Move"
+    end
+
+    local state = mbyte(pointers.battle_menu_state)
+    
+    if state == 0x1 then
+        return "Menu"
+    elseif state == 0x4 then
+        return "Fight"
+    elseif state == 0x8 then
+        return "Bag"
+    elseif state == 0xA then
+        return "Pokemon"
+    end
+
+    return nil
 end

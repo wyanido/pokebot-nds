@@ -126,20 +126,6 @@ function table_contains(table_, item)
     return false
 end
 
-function frames_per_move()
-    if _ROM.gen == 4 then -- Temporary
-        return 16
-    end
-
-    if mbyte(pointers.on_bike) == 1 then
-        return 4
-    elseif mbyte(pointers.running_shoes) > 0 then
-        return 8
-    end
-
-    return 16
-end
-
 function abort(reason)
     if _EMU == "BizHawk" then
         client.invisibleemulation(false)

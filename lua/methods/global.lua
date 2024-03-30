@@ -35,7 +35,7 @@ function mode_fishing()
     end
 
     while not game_state.in_battle do
-        press_sequence("A", 5)
+        progress_text()
     end
 
     process_wild_encounter()
@@ -355,10 +355,10 @@ function do_battle()
             return
         elseif get_battle_state() == "New Move" then -- These cases are annoying and require specific inputs to cancel
             wait_frames(60)
-            touch_screen_at(125, 140)
-            wait_frames(90)
+            touch_screen_at(125, 115)
+            wait_frames(100)
             press_button("B")
-            wait_frames(90)
+            wait_frames(100)
             touch_screen_at(125, 65)
         end
     end
@@ -394,10 +394,10 @@ function check_party_status()
 
     if not is_healthy(party[get_lead_mon_index()]) then
         if not config.cycle_lead_pokemon then
-            abort("Lead Pokemon can no longer battle, and the config disallows replacing it")
+            abort("Lead Pokemon is not suitable to battle, and the config disallows replacing it")
         end
     
-        print("Lead Pokemon can no longer battle. Replacing...")
+        print("Lead Pokemon is not suitable to battle. Replacing...")
 
         local replacement
 
@@ -412,7 +412,7 @@ function check_party_status()
             abort("No suitable Pokemon left to battle")
         end
 
-        print_debug("Best replacement was " .. party[replacement].name .. " (Slot " .. replacement .. ")")
+        print("Next replacement is " .. party[replacement].name .. " (Slot " .. replacement .. ")")
         open_menu("Pokemon")
         
         -- Highlight lead
@@ -439,7 +439,7 @@ function check_party_status()
         -- Check leading Pokemon for held items
         local lead = get_lead_mon_index()
 
-        if party[lead].heldItem ~= "none" then
+        if party[lead].heldItem ~= "none" and pokemon.get_move_slot(party[lead], "Thief") ~= 0 then
             print("Thief Pokemon already holds an item. Removing...")
             clear_all_inputs()
 
@@ -497,4 +497,87 @@ function move_to(target, on_move)
         hold_button("Up")
         if on_move then on_move() end
     end
+end
+
+function mode_gift()
+    if not game_state.in_game then
+        print("Waiting to reach overworld...")
+
+        while not game_state.in_game do
+            progress_text()
+        end
+    end
+
+    local og_party_count = #party
+    while #party == og_party_count do
+        progress_text()
+    end
+
+    local mon = party[#party]
+    local is_target = pokemon.log_encounter(mon)
+
+    if is_target then
+        if config.save_game_after_catch then
+            print("Gift Pokemon meets target specs! Saving...")
+            save_game()
+        end
+
+        abort("Gift Pokemon meets target specs")
+    else
+        print("Gift Pokemon was not a target, resetting...")
+        soft_reset()
+    end
+end
+
+--- Resets until the encountered overworld Pokemon is a target.
+function mode_static_encounters()
+    while not game_state.in_battle do
+        if game_state.map_name == "Dreamyard" then
+            hold_button("Right")
+        elseif game_state.map_name == "Spear Pillar" then
+            hold_button("Up")
+        end
+
+        progress_text()
+    end
+
+    local mon = foe[1]
+    local is_target = pokemon.log_encounter(mon)
+
+    if is_target then
+        if config.auto_catch then
+            while game_state.in_battle do
+                catch_pokemon()
+            end
+
+            if config.save_game_after_catch then
+                save_game()
+            end
+
+            abort(mon.name .. " was caught!")
+        else
+            abort(mon.name .. " meets target specs, but auto-catch is disabled")
+        end
+    else
+        print(mon.name .. " was not a target, resetting...")
+        soft_reset()
+    end
+end
+
+--- Presses the RUN button until the battle is over.
+function flee_battle()
+    while game_state.in_battle do
+        touch_screen_at(125, 175)
+        wait_frames(5)
+    end
+
+    print("Got away safely!")
+end
+
+--- Progress text with imperfect inputs to increase the randomness of frames hit.
+function progress_text()
+    hold_button("A")
+    wait_frames(math.random(5, 20))
+    release_button("A")
+    wait_frames(5)
 end

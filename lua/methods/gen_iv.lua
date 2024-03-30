@@ -34,7 +34,7 @@ function update_pointers()
         
         battle_bag_page        = bag_page_anchor + 0x4E,
         battle_menu_state      = anchor + 0x455A6,
-        battle_menu_state2      = anchor - 0xD3FC,
+        battle_menu_state2     = anchor - 0xD3FC,
         battle_indicator       = 0x21A1B2A + _ROM.offset,
         fishing_bite_indicator = 0x21D5E16 + _ROM.offset,
 
@@ -79,25 +79,7 @@ function open_menu(menu)
     press_sequence("A", 90)
 end
 
---- Progress text with imperfect inputs to increase the randomness of frames hit.
-function skip_dialogue()
-    hold_button("A")
-    wait_frames(math.random(5, 25))
-    release_button("A")
-    wait_frames(5)
-end
-
---- Presses the RUN button until the battle is over.
-function flee_battle()
-    while game_state.in_battle do
-        touch_screen_at(125, 175)
-        wait_frames(5)
-    end
-
-    print("Got away safely!")
-end
-
---- Returns an array of all Poke Balls within the Poke Balls bag pocket 
+--- Returns an array of all Poke Balls within the Poke Balls bag pocket.
 function get_usable_balls()
     local balls = {}
     local slot = 0
@@ -128,7 +110,7 @@ function fishing_has_bite()
     return mbyte(pointers.fishing_bite_indicator) == 1
 end
 
--- Navigates to the Solaceon Town daycare and releases the last Lv 1 Pokemon in the party.
+--- Navigates to the Solaceon Town daycare and releases all hatched Pokemon in the party.
 function release_hatched_duds()
     local function release()
         press_sequence("A", 5, "Up", 5, "Up", 5, "A", 5, "Up", 5, "A", 120, "A", 60, "A", 10)
@@ -186,7 +168,7 @@ function release_hatched_duds()
     move_to({x=562})
 end
 
---- Proceeds until the egg hatch animation finishes
+--- Proceeds until the egg hatch animation finishes.
 function hatch_egg()
     press_sequence(30, "B", 30)
             
@@ -265,20 +247,17 @@ end
 
 --- Returns the current stage of the battle as a simple string.
 function get_battle_state()
-    local state = mbyte(pointers.battle_menu_state)
-    local state2 = mbyte(pointers.battle_menu_state2)
-
     if not game_state.in_battle then
         return nil
     end
 
-    if state2 == 0x2F then
+    if mbyte(pointers.battle_menu_state2) == 0x2F then
         return "New Move"
     end
     
-    if state == 0x0 then
-        return "Intro"
-    elseif state == 0x1 then
+    local state = mbyte(pointers.battle_menu_state)
+
+    if state == 0x1 then
         return "Menu"
     elseif state == 0x3 then
         return "Fight"
@@ -286,36 +265,12 @@ function get_battle_state()
         return "Bag"
     elseif state == 0x9 then
         return "Pokemon"
-    elseif state == 0xD then
-        return "Turn"
-    elseif state == 0x88 then
-        return nil
     end
+
+    return nil
 end
 
-function mode_static_encounters()
-    print("Waiting for battle to start...")
-
-    while not game_state.in_battle do
-        if game_state.map_name == "Spear Pillar" then
-            hold_button("Up")
-        end
-
-        skip_dialogue()
-    end
-
-    release_button("Up")
-
-    local is_target = pokemon.log_encounter(foe[1])
-
-    if is_target then
-        abort("Wild Pokémon meets target specs!")
-    else
-        print("Wild " .. foe[1].name .. " was not a target, resetting...")
-        soft_reset()
-    end
-end
-
+--- Picks the specified starter Pokemon each reset until it's a target.
 function mode_starters()
     cycle_starter_choice()
     
@@ -326,7 +281,7 @@ function mode_starters()
         hold_button("Up")
 
         while game_state.map_name ~= "Lake Verity" do
-            skip_dialogue()
+            progress_text()
         end
         
         release_button("Up")
@@ -338,7 +293,7 @@ function mode_starters()
     local ready_value = platinum and 0x4D or 0x75
 
     while mbyte(pointers.starters_ready) ~= ready_value do
-        skip_dialogue()
+        progress_text()
     end
 
     print("Selecting starter...")
@@ -349,7 +304,7 @@ function mode_starters()
 
     -- Wait until starter is added to party
     while #party == 0 do
-        skip_dialogue()
+        progress_text()
     end
 
     -- Log encounter, stopping if necessary
@@ -363,6 +318,7 @@ function mode_starters()
     end
 end
 
+--- Encounters wild Pokemon until a target is found. Can battle and catch.
 function mode_random_encounters()
     local function spin()
         -- Prevent accidentally taking a step by
@@ -424,37 +380,6 @@ function mode_random_encounters()
     process_wild_encounter()
 end
 
-function mode_gift()
-    if not game_state.in_game then
-        print("Waiting to reach overworld...")
-
-        while not game_state.in_game do
-            skip_dialogue()
-        end
-    end
-
-    local og_party_count = #party
-    while #party == og_party_count do
-        skip_dialogue()
-    end
-    
-    local mon = party[#party]
-    local is_target = pokemon.log_encounter(mon)
-
-    if is_target then
-        if config.save_game_after_catch then
-            print("Gift Pokemon meets target specs! Saving...")
-
-            save_game()
-        end
-
-        abort("Gift Pokemon meets target specs")
-    else
-        print("Gift Pokemon was not a target, resetting...")
-        soft_reset()
-    end
-end
-
 --- Hunts for targets by hatching eggs.
 -- Bikes through Solaceon Town until the party is full of hatched eggs,
 -- then frees up party space at the PC if no targets were hatched
@@ -478,7 +403,7 @@ function mode_daycare_eggs()
 
         local party_count = #party
         while #party == party_count do
-            press_sequence("A", 8)
+            progress_text()
         end
 
         -- Return to long vertical path 
