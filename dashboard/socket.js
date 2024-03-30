@@ -211,7 +211,8 @@ const server = net.createServer((socket) => {
     });
 
     socket.on('end', () => {
-        // console.log('Client disconnected');
+        const index = killSocket(socket);
+        console.log('[%s] Session %d disconnected', getTimestamp(), index + 1);
     });
 
     socket.on('error', (_err) => {
@@ -223,17 +224,22 @@ server.listen(port, () => {
     console.log(`Socket server listening for emulators on port ${port}`);
 });
 
+function killSocket(socket) {
+    const index = clients.indexOf(socket);
+
+    if (index > -1) {
+        clients.splice(index, 1);
+        clientData.splice(index, 1);
+    }
+
+    socket.destroy()
+    return index;
+}
+
 function socketSetTimeout(socket) {
     socket.inactivityTimeout = setTimeout(() => {
-        const index = clients.indexOf(socket);
-
-        if (index > -1) {
-            clients.splice(index, 1);
-            clientData.splice(index, 1);
-        }
-
-        socket.destroy()
-        console.log('[%s] Session %d removed for inactivity', getTimestamp(), index + 1)
+        const index = killSocket(socket);
+        console.log('[%s] Session %d removed for inactivity', getTimestamp(), index + 1);
     }, clientInactivityTimeout)
 }
 
