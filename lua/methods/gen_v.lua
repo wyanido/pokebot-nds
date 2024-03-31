@@ -212,7 +212,7 @@ function dex_registered(name, field)
 end
 
 --- Proceeds until the egg hatch animation finishes
-function hatch_egg()
+function hatch_egg(slot)
     while mdword(pointers.egg_hatching) == 1 do
         press_sequence(15, "B")
     end

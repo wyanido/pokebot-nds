@@ -169,12 +169,12 @@ function release_hatched_duds()
 end
 
 --- Proceeds until the egg hatch animation finishes.
-function hatch_egg()
+function hatch_egg(slot)
     press_sequence(30, "B", 30)
             
     -- Mon data changes again once animation finishes
-    local checksum = party[i].checksum
-    while party[i].checksum == checksum do
+    local checksum = party[slot].checksum
+    while party[slot].checksum == checksum do
         press_sequence("B", 5)
     end
 end
