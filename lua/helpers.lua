@@ -224,7 +224,7 @@ function check_hatching_eggs()
             clear_all_inputs()
             
             print("Egg is hatching!")
-            hatch_egg()
+            hatch_egg(i)
             
             local is_target = pokemon.log_encounter(party[i])
             if is_target then
