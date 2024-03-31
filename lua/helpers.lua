@@ -201,7 +201,7 @@ function get_party_eggs()
 
     for i = 1, 6, 1 do
         if party[i] then
-            eggs[i] = party[i].isEgg == 1
+            eggs[i] = party[i].isEgg
         else
             eggs[i] = true
         end
