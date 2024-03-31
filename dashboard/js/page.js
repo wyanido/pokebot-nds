@@ -15,7 +15,7 @@ class Header extends HTMLElement {
                     <img src="assets/pokemon-icon/201-27.png" class="icon" id="icon">
                     PokéBot NDS
                 </div>
-                <span class="navbar-text text-monospace font-size-12">v1.0.2-beta</span>
+                <span class="navbar-text text-monospace font-size-12">v1.0.3-beta</span>
                 <ul class="navbar-nav d-flex d-md-flex">
                     <li class="nav-item nav-link px-10">
                         <a href="dashboard.html">

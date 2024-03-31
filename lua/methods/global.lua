@@ -464,38 +464,33 @@ end
 --- Moves the bot toward a position on the map.
 -- @param target Target position (x, z)
 -- @param on_move Function called each frame while moving
--- If an axis in the target is not specified, it will be substituted with the bot's current position
 function move_to(target, on_move)
-    if not target.x then
-        target.x = game_state.trainer_x
-    else
+    if target.x then
         target.x = target.x + 0.5
+
+        while game_state.trainer_x < target.x - 0.5 do
+            hold_button("Right")
+            if on_move then on_move() end
+        end
+        
+        while game_state.trainer_x > target.x + 0.5 do
+            hold_button("Left")
+            if on_move then on_move() end
+        end
     end
 
-    if not target.z then
-        target.z = game_state.trainer_z
-    else
+    if target.z then
         target.z = target.z + 0.5
-    end
-
-    while game_state.trainer_x < target.x - 0.5 do
-        hold_button("Right")
-        if on_move then on_move() end
-    end
-    
-    while game_state.trainer_x > target.x + 0.5 do
-        hold_button("Left")
-        if on_move then on_move() end
-    end
-    
-    while game_state.trainer_z < target.z - 0.5 do
-        hold_button("Down")
-        if on_move then on_move() end
-    end
-    
-    while game_state.trainer_z > target.z + 0.5 do
-        hold_button("Up")
-        if on_move then on_move() end
+        
+        while game_state.trainer_z < target.z - 0.5 do
+            hold_button("Down")
+            if on_move then on_move() end
+        end
+        
+        while game_state.trainer_z > target.z + 0.5 do
+            hold_button("Up")
+            if on_move then on_move() end
+        end
     end
 end
 

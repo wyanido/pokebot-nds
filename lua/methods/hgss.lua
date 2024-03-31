@@ -352,7 +352,10 @@ function release_hatched_duds()
     move_to({z=411})
     move_to({x=368})
     
-    press_sequence("Up", 120) -- Enter door
+    hold_button("Up")
+    wait_frames(30)
+    release_button("Up")
+    wait_frames(90)
     
     hold_button("B")
     move_to({x=1,z=8})
@@ -362,7 +365,7 @@ function release_hatched_duds()
     wait_frames(20)
     press_sequence("A", 80, "A", 80, "A", 80, "A", 40)
     touch_screen_at(62, 94)
-    wait_frames(120)
+    wait_frames(150) -- Box loading time increases with data size
     touch_screen_at(46, 177)
     wait_frames(60)
 
@@ -425,7 +428,7 @@ function mode_daycare_eggs()
     while true do
         move_to({z=380}, check_hatching_eggs)
         check_and_collect_egg()
-        move_to({z=409}, check_hatching_eggs)
+        move_to({z=410}, check_hatching_eggs)
     end
 end
 
