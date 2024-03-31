@@ -225,6 +225,8 @@ server.listen(port, () => {
 });
 
 function killSocket(socket) {
+    clearTimeout(socket.inactivityTimeout);
+    
     const index = clients.indexOf(socket);
 
     if (index > -1) {

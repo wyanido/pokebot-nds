@@ -78,14 +78,16 @@ function mode_starters()
     wait_frames(9) -- Ensure all starters are loaded into memory
 
     -- Check all Pokémon
+    local target = false
+
     for i = 0, 2, 1 do
         local mon_data = pokemon.decrypt_data(pointers.starter_data + i * _MON_BYTE_LENGTH)
         local starter = pokemon.parse_data(mon_data, true)
-        local is_target = pokemon.log_encounter(starter)
+        target = pokemon.log_encounter(starter) or target
+    end
 
-        if is_target then
-            abort("Starter " .. (i + 1) .. " meets target specs!")
-        end
+    if target then
+        abort("")
     end
 
     -- Soft reset otherwise
@@ -259,14 +261,9 @@ function mode_primo_gift()
     local is_target = pokemon.log_encounter(mon)
 
     if is_target then
-        if config.save_game_after_catch then
-            print("Gift Pokemon meets target specs!")
-            save_game()
-        end
-
-        abort("Gift Pokemon meets target specs")
+        abort(mon.name .. " is a target!")
     else
-        print("Gift Pokemon was not a target, resetting...")
+        print(mon.name .. " was not a target, resetting...")
         soft_reset()
         wait_frames(60)
     end

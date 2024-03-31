@@ -1,5 +1,5 @@
 {
-  "name": "pknds-bot-dashboard",
+  "name": "pokebot-nds-dashboard",
   "version": "1.0",
   "main": "app.js",
   "bin": "app.js",

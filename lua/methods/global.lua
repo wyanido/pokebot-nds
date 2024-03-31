@@ -517,14 +517,9 @@ function mode_gift()
     local is_target = pokemon.log_encounter(mon)
 
     if is_target then
-        if config.save_game_after_catch then
-            print("Gift Pokemon meets target specs! Saving...")
-            save_game()
-        end
-
-        abort("Gift Pokemon meets target specs")
+        abort(mon.name .. " is a target!")
     else
-        print("Gift Pokemon was not a target, resetting...")
+        print(mon.name .. " was not a target, resetting...")
         soft_reset()
     end
 end
@@ -550,13 +545,9 @@ function mode_static_encounters()
                 catch_pokemon()
             end
 
-            if config.save_game_after_catch then
-                save_game()
-            end
-
             abort(mon.name .. " was caught!")
         else
-            abort(mon.name .. " meets target specs, but auto-catch is disabled")
+            abort(mon.name .. " is a target!")
         end
     else
         print(mon.name .. " was not a target, resetting...")

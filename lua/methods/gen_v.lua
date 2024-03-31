@@ -264,12 +264,13 @@ function mode_starters()
         progress_text()
     end
 
-    local is_target = pokemon.log_encounter(party[1])
+    local mon = party[1]
+    local is_target = pokemon.log_encounter(mon)
 
     if is_target then
-        abort("Starter meets target specs")
+        abort(mon.name .. " is a target!")
     else
-        print("Starter was not a target, resetting...")
+        print(mon.name .. " was not a target, resetting...")
         soft_reset()
     end
 end
