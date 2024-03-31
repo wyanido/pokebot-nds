@@ -5,18 +5,15 @@
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pokébot NDS</title>
-    <link href="components/common/halfmoon-variables.min.css" rel="stylesheet" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
-        integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
-        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="components/common/jquery-3.6.0.min.js"></script>
-    <script src="components/common/jquery.tmpl.min.js"></script>
+    <title>PokéBot NDS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Halfmoon/1.0.4/css/halfmoon-variables.css" integrity="sha512-ua2VFI0tK7cQQ5b8xPt8djKW8osl0nwnhgh28hfgYWYlUatSZuVWtsB0sRBM9dwN2Gbcz+YBgrFxW/+7J5Lvew==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-templates@1.0.0/jquery.tmpl.min.js" integrity="sha256-EX43U5s1k9lc6mJ7GoHd3EDBqssRp3x/bBxccLTV99o=" crossorigin="anonymous"></script>
     <script src="https://kit.fontawesome.com/b079a6b886.js" crossorigin="anonymous"></script>
     <script id="party-mon-template" type="text/x-jQuery-tmpl">
         <div class="col-4 text-center">
             <div style="position:relative; display: inline-block;">
-                <div style="position:absolute;left:-20px" class="dropdown with-arrow">
+                <div style="position:absolute;left:-16px" class="dropdown with-arrow">
                     <button style="background:transparent;border:none;cursor:pointer;" data-toggle="dropdown" type="button" id="..." aria-haspopup="true" aria-expanded="false">
                     <img style="display: block; margin: auto; ${fainted}" src="assets/items/${pokeball}.png">
                     </button>
@@ -33,11 +30,19 @@
                                 </tr>
                                 <tr>
                                     <th>Shiny Value</th>
-                                    <td>${shinyValue}</td>
+                                    <td>${shiny} ${shinyValue}</td>
                                 </tr>
                                 <tr>
                                     <th>IVs</th>
-                                    <td>${hpIV} ${attackIV} ${defenseIV} ${spAttackIV} ${spDefenseIV} ${speedIV} (${ivSum})</td>
+                                    <td class="d-flex">
+                                        <div class="iv">${hpIV}</div>
+                                        <div class="iv ${attackMod}">${attackIV}</div>
+                                        <div class="iv ${defenseMod}">${defenseIV}</div>
+                                        <div class="iv ${spAttackMod}">${spAttackIV}</div>
+                                        <div class="iv ${spDefenseMod}">${spDefenseIV}</div>
+                                        <div class="iv ${speedMod}">${speedIV}</div>
+                                        <div class="iv" style="color: grey">(${ivSum})</div>
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -56,47 +61,6 @@
             ${name}
         </div>
     </script>
-    <script id="party-egg-template" type="text/x-jQuery-tmpl">
-        <div class="col-4 text-center">
-            <div style="position:relative; display: inline-block;">
-                <div style="position:absolute;left:-20px" class="dropdown with-arrow">
-                    <button style="background:transparent;border:none;cursor:pointer;" data-toggle="dropdown" type="button" id="..." aria-haspopup="true" aria-expanded="false">
-                    <img style="display: block; margin: auto;" src="assets/items/${pokeball}.png">
-                    </button>
-                    <div class="dropdown-menu" aria-labelledby="...">
-                        <table class="table" style="white-space: nowrap;">
-                            <tbody>
-                                <tr>
-                                    <th>PID</th>
-                                    <td>${pid}</td>
-                                </tr>
-                                <tr>
-                                    <th>Shiny Value</th>
-                                    <td>${shinyValue}</td>
-                                </tr>
-                                <tr>
-                                    <th>IVs</th>
-                                    <td>${hpIV} ${attackIV} ${defenseIV} ${spAttackIV} ${spDefenseIV} ${speedIV} (${ivSum})</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <img src="assets/pokemon/egg.png">
-            </div>
-            <br>
-            ${nickname}
-            <img src="assets/${gender}.png">
-            Lv ${level}
-            <br>
-            ${name}
-            <br>
-            <center>
-            <b>Hatch Steps</b>
-            <${friendship}
-            </center>
-        </div>
-    </script>
     <script id="row-template" type="text/x-jQuery-tmpl">
         <tr>
             <td style="width:0px">
@@ -106,12 +70,12 @@
             <td style="width:0px;padding:0px">
                 <img src="assets/${gender}.png">
             </td>
-            <td style="white-space:nowrap;padding-left:0px">Lv ${level}</td>
-            <td class="text-center">${pid}</td>
-            <td class="text-center">${shiny}</td>
-            <td class="text-center">${ability}</td>
-            <td class="text-center">${nature}</td>
-            <td class="w-200">
+            <td class="w-50" style="white-space:nowrap;padding-left:0px">Lv ${level}</td>
+            <td class="w-100 text-center">${pid}</td>
+            <td class="w-100 text-center text-nowrap">${shiny} ${shinyValue}</td>
+            <td class="w-200 text-center">${ability}</td>
+            <td class="w-100 text-center">${nature}</td>
+            <td class="w-100">
                 <div class="justify-content-between" style="display: flex">
                     <div class="iv">${hpIV}</div>
                     <div class="iv ${attackMod}">${attackIV}</div>
@@ -122,7 +86,7 @@
                     <div class="iv" style="color: grey">(${ivSum})</div>
                 </div>
             </td>
-            <td class="text-center"><img src="assets/type/${hpType}.png"><br>${hpPower} Power</td>
+            <td class="w-100 text-center text-nowrap"><img src="assets/type/${hpType}.png"><br>${hpPower} Power</td>
         </tr>
     </script>
     <script id="party-template" type="text/x-jQuery-tmpl">
@@ -131,137 +95,121 @@
     </script>
     <script id="game-template" type="text/x-jQuery-tmpl">
         <div class="m-15" style="display: flex">
-            <table id="trainer-field-table" class="table w-half h-full">
-            </table>
-            <table id="field-table" class="table w-half h-full">
-            </table>
+            <div id="shown-values" class="table" style="display: grid; grid-template-columns: repeat(2, 1fr);">
+            </div>
         </div>
     </script>
     <script id="button-template" type="text/x-jQuery-tmpl">
-        <button onclick="selectTab(this)" class="btn w-full text-truncate" id="nav-game">${game}</button>
+        <button onclick="selectTab(this)" id="nav-game" class="btn text-truncate inline-block">${game}</button>
     </script>
-    <link rel="stylesheet" href="components/common/tooltip.css">
-    <link rel="stylesheet" href="components/common/style.css">
+    <link rel="stylesheet" href="css/tooltip.css">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body class="with-custom-webkit-scrollbars with-custom-css-scrollbars" data-dm-shortcut-enabled="true"
     data-set-preferred-mode-onload="true">
     <div class="page-wrapper with-navbar">
         <div class="sticky-alerts"></div>
-        <nav class="navbar">
-            <div class="navbar-brand">
-                <img src="assets/pokemon-icon/201-27.png" class="icon" id="icon">
-                Pokébot NDS
-            </div>
-            <span class="navbar-text text-monospace font-size-12">v0.7.0-alpha</span>
-            <ul class="navbar-nav d-flex d-md-flex">
-                <li class="nav-item nav-link px-10">
-                    <button type="button" class="btn position-relative px-10 active">
-                        <i class="fa fa-user-circle mr-5"></i>
-                        Dashboard
-                        <span id="dashboard-badge" style="display: none; bottom:16px; right:-10px; font-size:10px"
-                            class="badge badge-primary position-absolute translate-middle text-bg-primary px-5">
-                            0
-                        </span>
-                    </button>
-                </li>
-                <li class="nav-item nav-link px-10" style="cursor: default;">
-                    <a href="config.html">
-                        <button type="button" class="btn position-relative px-10">
-                            <i class="fa fa-gear mr-5"></i>
-                            Config
-                        </button>
-                    </a>
-                </li>
-                <li class="nav-item nav-link px-10">
-                    <button type="button" class="btn position-relative px-10 disabled">
-                        <i class="fa fa-wrench mr-5"></i>
-                        Tools
-                    </button>
-                </li>
-            </ul>
-        </nav>
+        <header-component></header-component>
         <div class="content-wrapper">
             <div class="row row-eq-spacing">
-                <div class="col-6">
+                <div class="col-8">
                     <div class="card p-0 m-0">
-                        <div id="game-buttons" class="btn-group w-full" role="group"></div>
+                        <div id="game-buttons" class="btn-group w-full d-flex" role="group"></div>
                         <div id="game-party"></div>
                         <div id="game-info"></div>
                     </div>
                 </div>
-                <div class="col-6">
+                <div class="col-4">
                     <div class="card m-0 p-20">
                         <div class="row">
-                            <div class="col-6 text-center">
-                                Elapsed: <span id="elapsed-time" class="badge text-bg-secondary">0s</span>
-                            </div>
-                            <div class="col-6 text-center">
-                                Encounter Rate: <sapan id="encounter-rate" class="badge text-bg-secondary">0/h</span>
-                            </div>
-                            <br><br>
-                            <div class="col-6">
-                                <h2 class="card-title text-center">Total</h2>
-                                <table class="table">
-                                    <tr>
-                                        <th>Seen</th>
-                                        <td id="total-seen"></td>
-                                    </tr>
-                                    <tr>
-                                        <th>Shiny</th>
-                                        <td id="total-shiny"></td>
-                                    </tr>
-                                    <tr>
-                                        <th>IVs</th>
-                                        <td class="text-nowrap">
+                            <h2 class="card-title text-center w-full">Total</h2>
+                            <table class="table">
+                                <tr class="col-6">
+                                    <th class="col-6">Seen</th>
+                                    <td>
+                                        <div class="text-nowrap">
+                                            <i class="fa-solid fa-eye"></i>
+                                            <span id="total-seen"></span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th class="col-6">Shiny</th>
+                                    <td>
+                                        <div class="text-nowrap">
+                                            <i class="fa-solid fa-star"></i>
+                                            <span id="total-shiny"></span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th class="col-6">IVs</th>
+                                    <td>
+                                        <div class="text-nowrap">
                                             <i class="fa fa-arrow-circle-up"></i>
-                                            <span id="total-max-iv" style="margin-right: 10px"></span>
+                                            <span id="total-max-iv"></span>
+                                        </div>
+                                        <div class="text-nowrap">
                                             <i class="fa fa-arrow-circle-down"></i>
                                             <span id="total-min-iv"></span>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </div>
-                            <div class="col-6">
-                                <h2 class="card-title text-center">Target Phase</h2>
-                                <table class="table">
-                                    <tr>
-                                        <th>Seen</th>
-                                        <td id="phase-seen"></td>
-                                    </tr>
-                                    <tr>
-                                        <th>Lowest SV</th>
-                                        <td id="phase-lowest-sv"></td>
-                                    </tr>
-                                    <tr>
-                                        <th>B(n,p)
-                                            <i class="fa fa-info-circle ml-5" id="tooltip-icon"
-                                                aria-describedby="tooltip"></i>
-                                            <div id="tooltip" role="tooltip"
-                                                style="font-weight: normal; text-align: left;">
-                                                Binomial distribution calculator.<br><br>
-                                                For odds 1/<i>n</i>, the % represents the cumulative chance to
-                                                have encountered a target Pokémon within a 'seen' number of trials. In
-                                                most cases, <i>n</i> would represent the base shiny odds.
-                                                <div id="arrow" data-popper-arrow></div>
-                                            </div>
-                                            <div class="input-group mt-10" style="width: 80px; height: 28px;">
-                                                <label class="input-group-text p-5">1/</label>
-                                                <input class="form-control h-full p-5" id="shiny-rate" min="1"
-                                                    value="8192">
-                                            </div>
-                                        </th>
-                                        <td id="bnp"></td>
-                                    </tr>
-                                </table>
-                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                            <h2 class="card-title text-center w-full">Phase</h2>
+                            <table class="table">
+                                <tr>
+                                    <th class="col-6">Seen</th>
+                                    <td>
+                                        <div class="text-nowrap">
+                                            <i class="fa-solid fa-eye"></i>
+                                            <span id="phase-seen"></span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="col-6">
+                                    <th>Lowest SV</th>
+                                    <td>
+                                        <div class="text-nowrap">
+                                            <i class="fa fa-arrow-circle-down"></i>
+                                            <span id="phase-lowest-sv"></span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="col-6">
+                                    <th class="text-nowrap">Target Odds
+                                        <i class="fa fa-info-circle" id="tooltip-icon" aria-describedby="tooltip"></i>
+                                        <div id="tooltip" role="tooltip" style="font-weight: normal; text-align: left; text-wrap: wrap;">
+                                            Binomial distribution calculator B(n,p)<br><br>
+                                            For odds 1/<i>n</i>, the % represents the cumulative chance to
+                                            have encountered a target Pokémon within a 'seen' number of trials. In
+                                            most cases, <i>n</i> represents the current shiny odds.
+                                            <div id="arrow" data-popper-arrow></div>
+                                        </div>
+                                        <div class="input-group mt-10" style="width: 70px; height: 28px;">
+                                            <label class="input-group-text p-5">1/</label>
+                                            <input class="form-control h-full p-5" id="shiny-rate" min="1" value="8192">
+                                        </div>
+                                    </th>
+                                    <td id="bnp"></td>
+                                </tr>
+                            </table>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="card row-eq-spacing p-20">
                 <div class="text-center" style="flex-direction: row; height: 50px;">
-                    <h2 style="position:absolute" class="card-title text-center w-full">Recently Seen</h2>
+                    <h2 style="position:absolute" class="card-title text-center w-full">Recently Seen
+                        <div id="warn-duplicate" style="display: inline-block; visibility: hidden;">        
+                            <i class="fa fa-exclamation-triangle" id="tooltip-icon" aria-describedby="tooltip"></i>
+                            <div id="tooltip" role="tooltip" style="font-weight: normal; text-align: left;">
+                                This list contains duplicate PIDs. The bot may not be running at 100% efficiency.
+                                <div id="arrow" data-popper-arrow></div>
+                            </div>
+                        </div>
+                    </h2>
                     <div class="input-group" style="width: 150px; height: 28px; float: right;">
                         <label class="input-group-text">Show latest</label>
                         <input class="form-control h-full" id="recents-limit" min="1" type="number" value="5">
@@ -274,11 +222,11 @@
                             <th></th>
                             <th></th>
                             <th class="text-center">PID</th>
-                            <th class="text-center">Shiny Value (SV)</th>
+                            <th class="text-center">Shiny Value</th>
                             <th class="text-center">Ability</th>
                             <th class="text-center">Nature</th>
                             <th class="text-center">IVs
-                                <i class="fa fa-info-circle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
+                                <i class="fa fa-info-circle" id="tooltip-icon" aria-describedby="tooltip"></i>
                                 <div id="tooltip" role="tooltip" style="font-weight: normal; text-align: left;">
                                     Stats are listed in the following order:<br>
                                     HP, Attack, Defense, Sp. Atk, Sp. Def, Speed<br><br>
@@ -310,11 +258,11 @@
                             <th></th>
                             <th></th>
                             <th class="text-center">PID</th>
-                            <th class="text-center">Shiny Value (SV)</th>
+                            <th class="text-center">Shiny Value</th>
                             <th class="text-center">Ability</th>
                             <th class="text-center">Nature</th>
                             <th class="text-center">IVs
-                                <i class="fa fa-info-circle ml-5" id="tooltip-icon" aria-describedby="tooltip"></i>
+                                <i class="fa fa-info-circle" id="tooltip-icon" aria-describedby="tooltip"></i>
                                 <div id="tooltip" role="tooltip" style="font-weight: normal; text-align: left;">
                                     Stats are listed in the following order:<br>
                                     HP, Attack, Defense, Sp. Atk, Sp. Def, Speed<br><br>
@@ -333,11 +281,12 @@
             </div>
         </div>
     </div>
-    <script src="components/common/halfmoon.min.js"></script>
-    <script src="components/common/popper.min.js"></script>
-    <script src="components/common/tooltip.js"></script>
-    <script src="components/page.js"></script>
-    <script src="components/dashboard.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js" integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js" integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Halfmoon/1.0.4/js/halfmoon.min.js" integrity="sha512-R9gvwJKiTgw9ADz34UDXGetxd4zmcAfGWB7IKO05p79bliXyQ7Nd2PMYmxSF48pmVvj7RJNp8WXtJHF/ZRm3KA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="js/tooltip.js"></script>
+    <script src="js/page.js"></script>
+    <script src="js/dashboard.js"></script>
 </body>
 
 </html>

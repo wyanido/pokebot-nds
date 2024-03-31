@@ -1,6 +1,6 @@
 const net = require('net');
 const fs = require('fs');
-const { AttachmentBuilder, EmbedBuilder, WebhookClient } = require('discord.js');
+const { AttachmentBuilder, EmbedBuilder, WebhookClient, ButtonBuilder, ButtonStyle } = require('discord.js');
 const port = 51055;
 
 var clients = [];
@@ -19,24 +19,24 @@ var encounterRate = 0;
 // === FILE SETUP ===
 // Default config
 const configTemplate = {
-    save_game_on_start: false,
     mode: "random_encounters",
     starter0: true,
     starter1: true,
     starter2: true,
     move_direction: "horizontal",
     target_traits: {
-        iv_sum: 180
+        ivSum: 180
     },
     pokeball_override: {
         'Repeat Ball': {
-            species: [
+            name: [
                 "Lillipup",
-                "Patrat"
+                "Bidoof",
+                "Sentret"
             ]
         },
         'Net Ball': {
-            "type": [
+            type: [
                 "Bug",
                 "Water"
             ]
@@ -52,15 +52,13 @@ const configTemplate = {
     ],
     save_game_after_catch: false,
     pickup_threshold: "2",
-    hax: false,
     cycle_lead_pokemon: true,
     encounter_log_limit: "30",
     battle_non_targets: false,
     auto_catch: false,
     target_log_limit: "30",
-    dashboard_poll_interval: "330",
-    inflict_status: false,
-    false_swipe: false,
+    dashboard_poll_interval: "1000",
+    subdue_target: false,
     debug: false,
     webhook_url: "",
     webhook_enabled: false,
@@ -69,8 +67,14 @@ const configTemplate = {
     show_status: true,
     save_pkx: true,
     always_catch_shinies: true,
-    auto_open_page: true
+    auto_open_page: true,
+    primo1: 1,
+    primo2: 1,
+    primo3: 1,
+    primo4: 1,
+    grotto: 0
 }
+
 const statsTemplate = {
     total: {
         max_iv_sum: '--',
@@ -107,19 +111,6 @@ writeJSONToFile('../user/stats.json', stats)
 objectSubstitute(config, configTemplate)
 writeJSONToFile('../user/config.json', config)
 
-// Discord 'playing' status
-const Version = {
-    DIAMOND: 0,
-    PEARL: 1,
-    PLATINUM: 2,
-    HEARTGOLD: 3,
-    SOULSILVER: 4,
-    BLACK: 5,
-    WHITE: 6,
-    BLACK2: 7,
-    WHITE2: 8
-}
-
 process.on('uncaughtException', function (err) {
     console.log(err);
 });
@@ -135,33 +126,37 @@ if (config.show_status) {
         setInterval(() => {
             // Default status
             let status = {
-                state: 'Idling',
+                state: 'Idle',
+                details: 'No games connected',
                 largeImageKey: 'none',
                 startTimestamp: null,
                 instance: false,
+                buttons: [new ButtonBuilder()
+                    .setLabel('View on GitHub')
+                    .setURL('https://github.com/wyanido/pokebot-nds')
+                    .setStyle(ButtonStyle.Link)
+                ]
             }
 
-            if (clientData.length > 0) {
-                const game = clientData[0].game;
-                if (!game) return;
+            if (clientData.length > 0 && clientData[0] != undefined) {
+                const version = clientData[0].version;
+                if (!version) return;
 
-                // Get game-specific icon
                 let icon;
 
-                switch (clientData[0].version) {
-                    case Version.DIAMOND: icon = "diamond"; break;
-                    case Version.PEARL: icon = "pearl"; break;
-                    case Version.PLATINUM: icon = "platinum"; break;
-                    case Version.HEARTGOLD: icon = "heartgold"; break;
-                    case Version.SOULSILVER: icon = "soulsilver"; break;
-                    case Version.BLACK: icon = "black"; break;
-                    case Version.WHITE: icon = "white"; break;
-                    case Version.BLACK2: icon = "black2"; break;
-                    case Version.WHITE2: icon = "white2"; break;
+                switch (version) {
+                    case 'D': icon = "diamond"; break;
+                    case 'P': icon = "pearl"; break;
+                    case 'PL': icon = "platinum"; break;
+                    case 'HG': icon = "heartgold"; break;
+                    case 'SS': icon = "soulsilver"; break;
+                    case 'B': icon = "black"; break;
+                    case 'W': icon = "white"; break;
+                    case 'B2': icon = "black2"; break;
+                    case 'W2': icon = "white2"; break;
                 }
 
                 const location = clientData[0].map_name;
-                if (location == undefined) return;
                 const moreGames = (clients.length > 1) ? `+ ${clientData.length - 1} game(s)` : ''
 
                 status.largeImageKey = icon;
@@ -193,7 +188,7 @@ const server = net.createServer((socket) => {
     let buffer = ''
     socket.on('data', (data) => {
         buffer += data.toString();
-        let responses = buffer.split('\x00');
+        let responses = buffer.split('\0');
 
         for (let i = 0; i < responses.length - 1; i++) {
             var response = responses[i].trim();
@@ -216,7 +211,8 @@ const server = net.createServer((socket) => {
     });
 
     socket.on('end', () => {
-        // console.log('Client disconnected');
+        const index = killSocket(socket);
+        console.log('[%s] Session %d disconnected', getTimestamp(), index + 1);
     });
 
     socket.on('error', (_err) => {
@@ -228,16 +224,22 @@ server.listen(port, () => {
     console.log(`Socket server listening for emulators on port ${port}`);
 });
 
+function killSocket(socket) {
+    const index = clients.indexOf(socket);
+
+    if (index > -1) {
+        clients.splice(index, 1);
+        clientData.splice(index, 1);
+    }
+
+    socket.destroy()
+    return index;
+}
+
 function socketSetTimeout(socket) {
     socket.inactivityTimeout = setTimeout(() => {
-        const index = clients.indexOf(socket);
-        if (index > -1) {
-            clients.splice(index, 1);
-            clientData.splice(index, 1);
-        }
-
-        socket.destroy()
-        console.log('[%s] Session %d removed for inactivity', getTimestamp(), index + 1)
+        const index = killSocket(socket);
+        console.log('[%s] Session %d removed for inactivity', getTimestamp(), index + 1);
     }, clientInactivityTimeout)
 }
 
@@ -269,22 +271,6 @@ function readJSONFromFile(filePath, defaultValue) {
     }
 }
 
-function formatMonData(mon) {
-    mon.gender = mon.gender.toLowerCase();
-
-    if (mon.gender == 'genderless') {
-        mon.gender = 'none' // Blank image filename
-    }
-
-    mon.pid = mon.pid.toString(16).toUpperCase().padEnd(8, '0');
-    mon.shiny = (mon.shinyValue < 8 ? '✨ ' : '➖ ') + mon.shinyValue;
-
-    var s = '00' + mon.species.toString();
-    mon.species = s.substr(s.length - 3);
-
-    return mon
-}
-
 function updateEncounterRate() {
     var now = Date.now() / 1000
     sinceLastEncounter = now - lastEncounter
@@ -307,7 +293,7 @@ function updateEncounterRate() {
 }
 
 function updateEncounterLog(mon) {
-    recents.push(formatMonData(mon));
+    recents.push(mon);
     recents.splice(0, recents.length - config.encounter_log_limit);
 
     updateEncounterRate()
@@ -325,21 +311,17 @@ function updateEncounterLog(mon) {
     }
 
     writeJSONToFile('../user/encounters.json', recents);
-
-    return recents;
 }
 
 function updateTargetLog(mon) {
-    targets.push(formatMonData(mon))
-    targets = targets.slice(-config.target_log_limit)
+    targets.push(mon)
+    targets.splice(0, targets.length - config.target_log_limit)
 
     // Reset target phase stats
     stats.phase.seen = 0
     stats.phase.lowest_sv = '--'
 
     writeJSONToFile('../user/target_log.json', targets)
-
-    return targets
 }
 
 function formatClientMessage(type, data) {
@@ -347,8 +329,6 @@ function formatClientMessage(type, data) {
         'type': type,
         'data': data
     });
-
-    return msg.length + ' ' + msg;
 }
 
 function webhookLogPokemon(mon, client) {
@@ -359,14 +339,15 @@ function webhookLogPokemon(mon, client) {
         default: gender = ''; break;
     }
 
+    const species = mon.species.toString().padStart(3, '0');
     const iv_sum = mon.hpIV + mon.attackIV + mon.defenseIV + mon.spAttackIV + mon.spDefenseIV + mon.speedIV;
     const sparkle = (mon.shinyValue < 8 || mon.shiny) ? '✨' : '';
     const folder = (mon.shinyValue < 8 || mon.shiny) ? 'shiny/' : '';
-    const file = new AttachmentBuilder(`./assets/pokemon/${folder}${mon.species}.png`);
+    const file = new AttachmentBuilder(`./assets/pokemon/${folder}${species}.png`);
     const embed = new EmbedBuilder()
         .setTitle(`Encountered Lv.${mon.level} ${mon.name} ${gender}`)
-        .setThumbnail(`attachment://${mon.species}.png`)
-        .setDescription(`Found at ${client.map_name} on ${client.game}`)
+        .setThumbnail(`attachment://${species}.png`)
+        .setDescription(`Found at ${client.map_name} (${client.version})`)
         .addFields(
             { name: 'Shiny Value', value: `${sparkle}${mon.shinyValue.toString()}`, inline: true },
             { name: 'Nature', value: mon.nature, inline: true },
@@ -386,7 +367,7 @@ function webhookLogPokemon(mon, client) {
 
     const webhookClient = new WebhookClient({ url: config.webhook_url });
     let messageContents = {
-        username: 'Pokébot NDS',
+        username: 'PokéBot NDS',
         avatarURL: 'https://i.imgur.com/7tJPLRX.png',
         embeds: [embed],
         files: [file]
@@ -402,7 +383,7 @@ function webhookLogPokemon(mon, client) {
 function webhookTest(url) {
     const webhookClient = new WebhookClient({ url: url });
     webhookClient.send({
-        username: 'Pokébot NDS',
+        username: 'PokéBot NDS',
         avatarURL: 'https://i.imgur.com/7tJPLRX.png',
         content: 'Testing...'
     });
@@ -430,15 +411,13 @@ function interpretClientMessage(socket, message) {
             writeJSONToFile('../user/stats.json', stats);
             break;
         case 'party':
-            client.party_hash = data.hash
             client.party = data.party;
             break;
         case 'load_game':
-            console.log('[%s] Session %d loaded %s', getTimestamp(), clientData.length + 1, data.name);
+            console.log('[%s] Session %d loaded %s', getTimestamp(), clientData.length + 1, data.version);
 
             clientData[index] = {
                 gen: data.gen,
-                game: data.name,
                 version: data.version
             }
 
@@ -447,32 +426,38 @@ function interpretClientMessage(socket, message) {
             }
             break;
         case 'game_state':
-            client.map = data.map_name + " (" + data.map_header.toString() + ")";
-            client.map_name = data.map_name;
-            client.position = (data.trainer_x || '--').toString() + ", " + (data.trainer_y || '--').toString() + ", " + (data.trainer_z || '--').toString();
-            
-            // Values displayed on the game instance's tab on the dashboard
-            client.trainer = {
-                Name: data.trainer_name || '--',
-                TID: data.trainer_id || '--',
-                SID: data.trainer_sid || '--'
-            }
+            const map = data.map_name || '--';
 
+            client.map_name = map;
+            client.position = `${Math.floor(data.trainer_x || 0)}, ${Math.floor(data.trainer_y || 0)}, ${Math.floor(data.trainer_z || 0)}`;
+            client.trainer_name = data.trainer_name || '--'
+            client.trainer_id = data.trainer_id || '--';
+
+            // Values displayed on the game instance's tab on the dashboard
             var shownValues = {
-                Map: client.map || '--',
-                Position: client.position || '--, --, --'
+                Name: client.trainer_name,
+                "Trainer ID": client.trainer_id,
+                Map: `${map} (${(data.map_header || 0).toString()})`,
+                Position: client.position
             }
             
             if ('phenomenon_x' in data) {
-                shownValues.Phenomenon = (data.phenomenon_x || '--').toString() + ", --, " + (data.phenomenon_z || '--').toString();
+                shownValues.Phenomenon = `${(data.phenomenon_x || '--').toString()}, --, ${(data.phenomenon_z || '--').toString()}`;
             }
             
             client.shownValues = shownValues
+            break;
+        case 'save_pkx':
+            const buffer = Int8Array.from(data);
+
+            fs.writeFileSync(`../user/targets/${message.filename}`, buffer);
             break;
     }
 }
 
 function sendConfigToClients(new_config, target) {
+    writeJSONToFile('../user/config.json', new_config);
+    
     // Send updated config to all clients
     if (clients.length > 0) {
         var msg = formatClientMessage(
@@ -488,8 +473,6 @@ function sendConfigToClients(new_config, target) {
             clients[target].write(msg);
         }
     }
-
-    writeJSONToFile('../user/config.json', new_config);
 }
 
 module.exports = {
@@ -508,5 +491,5 @@ module.exports = {
     setSocketConfig: (new_config) => {
         config = new_config;
     },
-    webhookTest
+    webhookTest,
 };

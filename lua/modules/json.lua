@@ -248,7 +248,7 @@ function decode_scanNumber(s,startPos)
     endPos = endPos + 1
   end
   local stringValue = 'return ' .. string.sub(s,startPos, endPos-1)
-  local stringEval = load(stringValue)
+  local stringEval = _VERSION == "Lua 5.4" and load(stringValue) or loadstring(stringValue) -- Compatability fix
   assert(stringEval, 'Failed to scan number [ ' .. stringValue .. '] in JSON string at position ' .. startPos .. ' : ' .. endPos)
   return stringEval(), endPos
 end

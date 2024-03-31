@@ -1,23 +1,10 @@
-
 const configForm = document.getElementById('config-form');
 const textAreas  = [...configForm.getElementsByTagName('textarea')].map(ele => ele.id);
 const fields     = [...configForm.querySelectorAll('input, select')].map(ele => ele.id);
 const checkboxes = [...configForm.querySelectorAll('input[type="checkbox"]')].map(ele => ele.id);
 
 let config;
-
-$.getJSON("components/data/en_easychat_iv.json", function (json) {
-    let phrases = '';
-
-    json.forEach(word => {
-        phrases += `<option value=${word[0]}>${word[1]}</option>`;
-    });
-
-    document.getElementById('primo1').innerHTML += phrases;
-    document.getElementById('primo2').innerHTML += phrases;
-    document.getElementById('primo3').innerHTML += phrases;
-    document.getElementById('primo4').innerHTML += phrases;
-});
+let loadedPrimoPhrases = false;
 
 function sendConfig() {
     const sendConfigToClients = function() {
@@ -78,8 +65,9 @@ function updateOptionVisibility() {
     $('#option_auto_catch').hide();
     $('#option_webhook').hide();
     $('#option_ping_user').hide();
-    $('#option_backup_interval').hide();
     $('#option_primo').hide();
+    $('#option_grotto').hide();
+    $('#option_ot_override').hide();
 
     const mode = $('#mode').val();
 
@@ -93,17 +81,39 @@ function updateOptionVisibility() {
         case 'phenomenon_encounters':
             $('#option_moving_encounters').show();
             break;
+        case 'hidden_grottos':
+            $('#option_moving_encounters').show();
+            $('#option_grotto').show();
+            break;
         case 'primo_gift':
             $('#option_primo').show();
+
+            if (!loadedPrimoPhrases) {
+                $.getJSON("assets/en_easychat_iv.json", function (json) {
+                    let phrases = '';
+                    
+                    json.forEach(word => {
+                        phrases += `<option value=${word[0]}>${word[1]}</option>`;
+                    });
+                    
+                    document.getElementById('primo1').innerHTML += phrases;
+                    document.getElementById('primo2').innerHTML += phrases;
+                    document.getElementById('primo3').innerHTML += phrases;
+                    document.getElementById('primo4').innerHTML += phrases;
+
+                    $('#primo1').val(config['primo1'])
+                    $('#primo2').val(config['primo2'])
+                    $('#primo3').val(config['primo3'])
+                    $('#primo4').val(config['primo4'])
+                });
+                
+                loadedPrimoPhrases = true;
+            }
             break;
     }
 
     if ($('#auto_catch').prop('checked')) {
         $('#option_auto_catch').show();
-    }
-
-    if ($('#state_backup').prop('checked')) {
-        $('#option_backup_interval').show();
     }
 
     if ($('#webhook_enabled').prop('checked')) {
@@ -112,6 +122,10 @@ function updateOptionVisibility() {
 
     if ($('#ping_user').prop('checked')) {
         $('#option_ping_user').show();
+    }
+
+    if ($('#ot_override').prop('checked')) {
+        $('#option_ot_override').show();
     }
 }
 
@@ -122,7 +136,7 @@ function setEditableGames(clients) {
     $('#editing').append('<option value="all">All Games</option>')
 
     for (var i = 0; i < clients.length; i++) {
-        const name = clients[i].game;
+        const name = clients[i].version;
 
         $('#editing').append('<option value="' + i.toString() + '">' + name + ' </option>')
     }
@@ -131,8 +145,6 @@ function setEditableGames(clients) {
 }
 
 function populateConfigForm() {
-    // originalConfig = config
-
     for (var i = 0; i < textAreas.length; i++) {
         const key = textAreas[i]
         $('#' + key).val(jsyaml.dump(config[key]))
@@ -154,10 +166,39 @@ function populateConfigForm() {
 
 function updateClientInfo() {
     socketServerGet('clients', (error, clients) => {
-        if (!error) {
-            setBadgeClientCount(clients.length);
-            setEditableGames(clients)
+        if (error) {
+            console.error(error);
+            return;
         }
+        
+        const clientCount = clients.length;
+
+        if (clientCount == 0) {
+            clearInterval(elapsedInterval);
+            elapsedStart = null;
+
+            $('#elapsed-time').text('0s');
+            $('#encounter-rate').text('0/h');
+            return;
+        }
+
+        // Start elapsed timer if a game is connected
+        if (!elapsedStart) {
+            socketServerGet('elapsed_start', function (error, start) {
+                if (error) {
+                    console.error(error);
+                    return;
+                }
+
+                elapsedStart = start;
+                elapsedInterval = setInterval(updateStatBadges, 1000);
+
+                updateStatBadges();
+            });
+        }
+
+        setBadgeClientCount(clientCount);
+        setEditableGames(clients)
     })
 };
 
