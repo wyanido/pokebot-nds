@@ -3,6 +3,71 @@ halfmoon.toggleDarkMode = function() {};
 
 let doneOfflineWarning = false;
 
+class Header extends HTMLElement {
+    constructor() {
+    super();
+    }
+  
+    connectedCallback() {
+        this.innerHTML = `
+            <nav class="navbar">
+                <div class="navbar-brand text-nowrap">
+                    <img src="assets/pokemon-icon/201-27.png" class="icon" id="icon">
+                    PokéBot NDS
+                </div>
+                <span class="navbar-text text-monospace font-size-12">v1.0-beta</span>
+                <ul class="navbar-nav d-flex d-md-flex">
+                    <li class="nav-item nav-link px-10">
+                        <a href="dashboard.html">
+                            <button type="button" class="btn position-relative px-10">
+                                <i class="fa fa-user-circle"></i>
+                                Dashboard
+                                <span id="dashboard-badge" class="badge badge-primary translate-middle text-bg-primary px-5">
+                                    0
+                                </span>
+                            </button>
+                        </a>
+                    </li>
+                    <li class="nav-item nav-link px-10">
+                        <a href="config.html">
+                            <button type="button" class="btn position-relative px-10">
+                                <i class="fa fa-gear"></i>
+                                Config
+                            </button>
+                        </a>
+                    </li>
+                    <li class="nav-item nav-link px-10">
+                        <a href="https://github.com/wyanido/pokebot-nds/" target="_blank">
+                            <button type="button" class="btn position-relative px-10">
+                                <i class="fa-brands fa-github"></i>
+                                Github
+                            </button>
+                        </a>
+                    </li>
+                    <li class="nav-item nav-link px-10">
+                        <a href="https://ko-fi.com/B0B7RMWPP" target="_blank">
+                            <button type="button" class="btn position-relative px-10">
+                                <i class="fa-solid fa-heart"></i>
+                                Donate
+                            </button>
+                        </a>
+                    </li>
+                </ul>
+                <div style="position: absolute; right: 15px; display: flex;">
+                    <div class="text-center mx-5">
+                        <i class="fa fa-stopwatch mr-10" style="margin-top: 3px"></i><span id="elapsed-time" class="badge text-bg-secondary">0s</span>
+                    </div>
+                    <div class="text-center mx-5">
+                        <i class="fa fa-tachometer mr-10" style="margin-top: 3px"></i><span id="encounter-rate" class="badge text-bg-secondary">0/h</span>
+                    </div>
+                </div>
+            </nav>
+            `;
+    }
+}
+
+customElements.define('header-component', Header);
+
 function socketServerCommunicate(method, url, callback) {
     const http = new XMLHttpRequest();
 

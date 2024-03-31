@@ -1,7 +1,7 @@
 package.cpath = package.cpath .. ";.\\lua\\modules\\?.dll" -- Allows socket.core to be detected beyond the project root
 dofile("lua\\detect_emu.lua")
 
-print("Pokebot NDS v1.0-beta by NIDO (wyanido)")
+print("PokeBot NDS v1.0-beta by wyanido")
 print("https://github.com/wyanido/pokebot-nds")
 print("Running " .. _VERSION .. " on " .. _EMU)
 print("")

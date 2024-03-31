@@ -367,7 +367,7 @@ function webhookLogPokemon(mon, client) {
 
     const webhookClient = new WebhookClient({ url: config.webhook_url });
     let messageContents = {
-        username: 'Pokébot NDS',
+        username: 'PokéBot NDS',
         avatarURL: 'https://i.imgur.com/7tJPLRX.png',
         embeds: [embed],
         files: [file]
@@ -383,7 +383,7 @@ function webhookLogPokemon(mon, client) {
 function webhookTest(url) {
     const webhookClient = new WebhookClient({ url: url });
     webhookClient.send({
-        username: 'Pokébot NDS',
+        username: 'PokéBot NDS',
         avatarURL: 'https://i.imgur.com/7tJPLRX.png',
         content: 'Testing...'
     });

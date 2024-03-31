@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pokébot NDS</title>
+    <title>PokéBot NDS</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Halfmoon/1.0.4/css/halfmoon-variables.css" integrity="sha512-ua2VFI0tK7cQQ5b8xPt8djKW8osl0nwnhgh28hfgYWYlUatSZuVWtsB0sRBM9dwN2Gbcz+YBgrFxW/+7J5Lvew==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdn.jsdelivr.net/npm/jquery-templates@1.0.0/jquery.tmpl.min.js" integrity="sha256-EX43U5s1k9lc6mJ7GoHd3EDBqssRp3x/bBxccLTV99o=" crossorigin="anonymous"></script>
@@ -19,50 +19,11 @@
     data-set-preferred-mode-onload="true">
     <div class="page-wrapper with-navbar">
         <div class="sticky-alerts"></div>
-        <nav class="navbar">
-            <div class="navbar-brand">
-                <img src="assets/pokemon-icon/201-27.png" class="icon" id="icon">
-                Pokébot NDS
-            </div>
-            <span class="navbar-text text-monospace font-size-12">v1.0-beta</span>
-            <ul class="navbar-nav d-flex d-md-flex">
-                <li class="nav-item nav-link px-10">
-                    <a href="dashboard.html">
-                        <button type="button" class="btn position-relative px-10">
-                            <i class="fa fa-user-circle"></i>
-                            Dashboard
-                            <span id="dashboard-badge" class="badge badge-primary translate-middle text-bg-primary px-5">
-                                0
-                            </span>
-                        </button>
-                    </a>
-                </li>
-                <li class="nav-item nav-link px-10" style="cursor: default;">
-                    <button type="button" class="btn position-relative px-10 active">
-                        <i class="fa fa-gear"></i>
-                        Config
-                    </button>
-                </li>
-                <li class="nav-item nav-link px-10">
-                    <button type="button" class="btn position-relative px-10 disabled">
-                        <i class="fa fa-wrench"></i>
-                        Tools
-                    </button>
-                </li>
-            </ul>
-            <div style="position: absolute; right: 15px; display: flex;">
-                <div class="text-center mx-5">
-                    <i class="fa fa-stopwatch mr-10" style="margin-top: 3px"></i><span id="elapsed-time" class="badge text-bg-secondary">0s</span>
-                </div>
-                <div class="text-center mx-5">
-                    <i class="fa fa-tachometer mr-10" style="margin-top: 3px"></i><span id="encounter-rate" class="badge text-bg-secondary">0/h</span>
-                </div>
-            </div>
-        </nav>
+        <header-component></header-component>
         <div class="sticky-alerts"></div>
         <div class="content-wrapper">
             <div class="row-eq-spacing p-20">
-                <div class="input-group" style="height: 28px; float: left; width: 400px;">
+                <div class="input-group" style="height: 28px; float: left; width: 300px;">
                     <label class="input-group-text">Editing config for</label>
                     <select class="form-control h-full" id="editing">
                         <option value="all">All Games</option>

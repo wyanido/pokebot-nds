@@ -1,4 +1,4 @@
-# Pokébot NDS
+# PokéBot NDS
 <img src='https://i.imgur.com/lHaYC4z.png' width='600px'>
 
 This repository is dedicated to creating a multi-purpose automated tool for the mainline DS Pokémon games. The bot can perform most monotonous tasks in these games, with all languages supported.
