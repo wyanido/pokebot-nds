@@ -385,7 +385,7 @@ function check_party_status()
             end
         end
 
-        return mon.currentHP > mon.maxHP / 5 and pp > 3
+        return mon.currentHP > mon.maxHP / 5 and pp > 3 and not mon.isEgg
     end
 
     if #party == 0 or game_state.in_battle then -- Don't check party status if bot was started during a battle
