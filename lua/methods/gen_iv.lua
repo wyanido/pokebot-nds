@@ -135,7 +135,7 @@ function release_hatched_duds()
 
     -- Navigate to MOVE POKEMON
     wait_frames(5)
-    press_sequence("A", 90, "A", 60, "A", 60, "A", 20, "Down", 10, "Down", 10, "A", 120)
+    press_sequence("A", 90, "A", 60, "A", 60, "A", 20, "Down", 10, "Down", 10, "A", 150)
 
     -- Navigate to PARTY POKEMON
     press_sequence("Up", 20, "Up", 20, "A", 60)

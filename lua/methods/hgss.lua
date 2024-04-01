@@ -375,7 +375,7 @@ function release_hatched_duds()
         end
     end
 
-    press_sequence("B", 40, "B", 20, "B", 150, "B", 60)
+    press_sequence("B", 40, "B", 20, "B", 150, "B", 90)
 
     -- Exit Daycare
     hold_button("B")

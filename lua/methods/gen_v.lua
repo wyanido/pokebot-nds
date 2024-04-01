@@ -518,9 +518,9 @@ function release_hatched_duds()
     end
 
     press_sequence("B", 25, "B", 30, "B", 30, "B", 150, "B", 90) -- Exit PC
-    hold_button("B")
     
     -- Exit daycare
+    hold_button("B")
     move_to({x=6})
     move_to({z=13})
     
