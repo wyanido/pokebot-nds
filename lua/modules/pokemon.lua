@@ -304,7 +304,7 @@ end
 
 function pokemon.log_encounter(mon)
     if not mon then
-        print_warn("Tried to log a non-existent Pokémon!")
+        print_warn("Tried to log a non-existent Pokemon!")
         return false
     end
 

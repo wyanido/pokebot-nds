@@ -307,7 +307,7 @@ function mode_headbutt()
         else
             -- Headbut Trees in HGSS have a 100% encounter rate, so if
             -- nothing is encountered, this tree will never spawn anything
-            abort("This tree doesn't yield any Pokémon!")
+            abort("This tree doesn't yield any Pokemon!")
         end
         
         -- Return to original position

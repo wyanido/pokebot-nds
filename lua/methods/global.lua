@@ -26,7 +26,7 @@ function mode_fishing()
         end
 
         if fishing_has_bite() then
-            print("Landed a Pokémon!")
+            print("Landed a Pokemon!")
             break
         else
             print("Not even a nibble...")
@@ -189,7 +189,7 @@ function catch_pokemon()
         local ball_index = get_preferred_ball(balls)
         
         if ball_index == -1 then
-            abort("No valid Poké Balls to catch the target with")
+            abort("No valid Poke Balls to catch the target with")
         end
 
         while mbyte(pointers.battle_menu_state) ~= 1 do
