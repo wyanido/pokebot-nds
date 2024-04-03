@@ -20,5 +20,6 @@ Emulator and Version:
 Paste here
 ```
 
-**Video footage**
+**Example**
 Provide a video of the issue if possible. Both the gameplay and console log must be in view.
+*If you want to be REALLY helpful, provide a save state where the issue can be reproduced instead.*
