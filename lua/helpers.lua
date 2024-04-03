@@ -201,7 +201,7 @@ function get_party_eggs()
 
     for i = 1, 6, 1 do
         if party[i] then
-            eggs[i] = party[i].isEgg == 1
+            eggs[i] = party[i].isEgg
         else
             eggs[i] = true
         end
@@ -213,7 +213,11 @@ end
 --- Presses A to allow the egg hatch animation to finish where necessary.
 function check_hatching_eggs()
     if emu.framecount() % 10 == 0 then
-        press_button_async("A")
+        if _ROM.version == "HG" or _ROM.version == "SS" then
+            press_button_async("B") -- HGSS needs to deny phone calls a lot of the time
+        else
+            press_button_async("A")
+        end
     end
     
     local new_eggs = get_party_eggs()

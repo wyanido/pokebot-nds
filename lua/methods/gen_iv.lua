@@ -135,7 +135,7 @@ function release_hatched_duds()
 
     -- Navigate to MOVE POKEMON
     wait_frames(5)
-    press_sequence("A", 90, "A", 60, "A", 60, "A", 20, "Down", 10, "Down", 10, "A", 120)
+    press_sequence("A", 90, "A", 60, "A", 60, "A", 20, "Down", 10, "Down", 10, "A", 150)
 
     -- Navigate to PARTY POKEMON
     press_sequence("Up", 20, "Up", 20, "A", 60)
@@ -308,12 +308,13 @@ function mode_starters()
     end
 
     -- Log encounter, stopping if necessary
-    local is_target = pokemon.log_encounter(party[1])
+    local mon = party[1]
+    local is_target = pokemon.log_encounter(mon)
 
     if is_target then
-        abort("Starter meets target specs!")
+        abort(mon.name .. " is a target!")
     else
-        print("Starter was not a target, resetting...")
+        print(mon.name .. " was not a target, resetting...")
         soft_reset()
     end
 end

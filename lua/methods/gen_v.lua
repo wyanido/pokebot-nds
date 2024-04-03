@@ -264,12 +264,13 @@ function mode_starters()
         progress_text()
     end
 
-    local is_target = pokemon.log_encounter(party[1])
+    local mon = party[1]
+    local is_target = pokemon.log_encounter(mon)
 
     if is_target then
-        abort("Starter meets target specs")
+        abort(mon.name .. " is a target!")
     else
-        print("Starter was not a target, resetting...")
+        print(mon.name .. " was not a target, resetting...")
         soft_reset()
     end
 end
@@ -517,9 +518,9 @@ function release_hatched_duds()
     end
 
     press_sequence("B", 25, "B", 30, "B", 30, "B", 150, "B", 90) -- Exit PC
-    hold_button("B")
     
     -- Exit daycare
+    hold_button("B")
     move_to({x=6})
     move_to({z=13})
     

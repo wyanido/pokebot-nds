@@ -184,7 +184,7 @@ function pokemon.parse_data(data, enrich)
     mon.speedIV = bit.band(bit.rshift(value, 15), 0x1F)
     mon.spAttackIV = bit.band(bit.rshift(value, 20), 0x1F)
     mon.spDefenseIV = bit.band(bit.rshift(value, 25), 0x1F)
-    mon.isEgg = bit.band(bit.rshift(value, 30), 0x01)
+    mon.isEgg = bit.band(bit.rshift(value, 30), 0x01) == 1
     -- mon.isNicknamed = bit.band(bit.rshift(value, 31), 0x01)
 
     -- mon.hoennRibbonSet1		= read_real(0x3C, 2)

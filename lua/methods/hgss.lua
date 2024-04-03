@@ -78,14 +78,16 @@ function mode_starters()
     wait_frames(9) -- Ensure all starters are loaded into memory
 
     -- Check all Pokémon
+    local target = false
+
     for i = 0, 2, 1 do
         local mon_data = pokemon.decrypt_data(pointers.starter_data + i * _MON_BYTE_LENGTH)
         local starter = pokemon.parse_data(mon_data, true)
-        local is_target = pokemon.log_encounter(starter)
+        target = pokemon.log_encounter(starter) or target
+    end
 
-        if is_target then
-            abort("Starter " .. (i + 1) .. " meets target specs!")
-        end
+    if target then
+        abort("")
     end
 
     -- Soft reset otherwise
@@ -259,14 +261,9 @@ function mode_primo_gift()
     local is_target = pokemon.log_encounter(mon)
 
     if is_target then
-        if config.save_game_after_catch then
-            print("Gift Pokemon meets target specs!")
-            save_game()
-        end
-
-        abort("Gift Pokemon meets target specs")
+        abort(mon.name .. " is a target!")
     else
-        print("Gift Pokemon was not a target, resetting...")
+        print(mon.name .. " was not a target, resetting...")
         soft_reset()
         wait_frames(60)
     end
@@ -355,7 +352,10 @@ function release_hatched_duds()
     move_to({z=411})
     move_to({x=368})
     
-    press_sequence("Up", 120) -- Enter door
+    hold_button("Up")
+    wait_frames(30)
+    release_button("Up")
+    wait_frames(90)
     
     hold_button("B")
     move_to({x=1,z=8})
@@ -365,7 +365,7 @@ function release_hatched_duds()
     wait_frames(20)
     press_sequence("A", 80, "A", 80, "A", 80, "A", 40)
     touch_screen_at(62, 94)
-    wait_frames(120)
+    wait_frames(150) -- Box loading time increases with data size
     touch_screen_at(46, 177)
     wait_frames(60)
 
@@ -375,7 +375,7 @@ function release_hatched_duds()
         end
     end
 
-    press_sequence("B", 40, "B", 20, "B", 150, "B", 60)
+    press_sequence("B", 40, "B", 20, "B", 150, "B", 90)
 
     -- Exit Daycare
     hold_button("B")
@@ -428,7 +428,7 @@ function mode_daycare_eggs()
     while true do
         move_to({z=380}, check_hatching_eggs)
         check_and_collect_egg()
-        move_to({z=409}, check_hatching_eggs)
+        move_to({z=410}, check_hatching_eggs)
     end
 end
 
