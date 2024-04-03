@@ -44,3 +44,13 @@
 i {
     margin: 0 5px;
 }
+
+optgroup option {
+    color: inherit;
+    background-color: inherit;
+}
+
+optgroup {
+    color: rgba(255, 255, 255, 0.8);
+    background-color: var(--dark-color-medium);
+}

@@ -57,7 +57,6 @@ const configTemplate = {
     battle_non_targets: false,
     auto_catch: false,
     target_log_limit: "30",
-    dashboard_poll_interval: "1000",
     subdue_target: false,
     debug: false,
     webhook_url: "",
@@ -68,11 +67,14 @@ const configTemplate = {
     save_pkx: true,
     always_catch_shinies: true,
     auto_open_page: true,
-    primo1: 1,
-    primo2: 1,
-    primo3: 1,
-    primo4: 1,
-    grotto: 0
+    primo1: "0x0499",
+    primo2: "0x058E",
+    primo3: "0x05CF",
+    primo4: "0x05CD",
+    grotto: "2",
+    ot_override: false,
+    tid_override: "00000",
+    sid_override: "00000"
 }
 
 const statsTemplate = {

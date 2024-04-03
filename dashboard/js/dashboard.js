@@ -434,9 +434,7 @@ socketServerGet('config', function (error, config) {
     
     updatePage();
     
-    const interval = config.dashboard_poll_interval;
-    
     setInterval(() => {
         updatePage();
-    }, interval);
+    }, 1000);
 })

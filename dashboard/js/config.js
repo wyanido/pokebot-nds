@@ -256,9 +256,7 @@ socketServerGet('config', function (error, config) {
         return;
     }
 
-    const interval = config.dashboard_poll_interval;
-
     setInterval(() => {
         updateClientInfo();
-    }, interval);
+    }, 1000);
 })
