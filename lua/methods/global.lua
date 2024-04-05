@@ -263,7 +263,7 @@ function process_wild_encounter()
                 local thief_slot = pokemon.get_move_slot(party[lead], "Thief")
 
                 if config.thief_wild_items and foe_item and thief_slot ~= 0 then
-                    print(foe_name .. " has a held item, using Thief and fleeing...")
+                    print(foe_name .. " has a held item. Using Thief and fleeing...")
 
                     while get_battle_state() ~= "Menu" do
                         press_sequence("B", 5)
@@ -272,7 +272,11 @@ function process_wild_encounter()
                     use_move(thief_slot)
                     flee_battle()
                 elseif config.battle_non_targets then
-                    do_battle()
+                    print(foe_name .. " was not a target. Battling...")
+
+                    while game_state.in_battle do
+                        battle_foe()
+                    end
                 else
                     print(foe_name .. " was not a target. Fleeing!")
                     flee_battle()
@@ -347,19 +351,23 @@ function use_move(id)
 end
 
 --- Attemps to defeat the opponent.
-function do_battle()
+function battle_foe()
     while get_battle_state() ~= "Menu" do
         press_sequence("B", 5) -- Also cancels evolutions
 
         if not get_battle_state() then -- Battle finished, back in the overworld
             return
         elseif get_battle_state() == "New Move" then -- These cases are annoying and require specific inputs to cancel
-            wait_frames(60)
+            wait_frames(30)
             touch_screen_at(125, 115)
             wait_frames(100)
             press_button("B")
             wait_frames(100)
             touch_screen_at(125, 65)
+            wait_frames(60)
+            press_button("B")
+            wait_frames(120)
+            return
         end
     end
     
