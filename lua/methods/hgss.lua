@@ -81,7 +81,7 @@ function mode_starters()
     local target = false
 
     for i = 0, 2, 1 do
-        local mon_data = pokemon.decrypt_data(pointers.starter_data + i * _MON_BYTE_LENGTH)
+        local mon_data = pokemon.read_data(pointers.starter_data + i * _MON_BYTE_LENGTH)
         local starter = pokemon.parse_data(mon_data, true)
         target = pokemon.log_encounter(starter) or target
     end

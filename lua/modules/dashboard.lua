@@ -63,5 +63,11 @@ print("Waiting for dashboard to relay config file... ")
 
 while not config do
     dashboard_poll()
-    emu.frameadvance()
+
+    -- Allow BizHawk to connect to dashboard while game is paused
+    if _EMU == "BizHawk" then
+        emu.yield()
+    else
+        emu.frameadvance()
+    end
 end

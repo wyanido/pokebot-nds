@@ -26,92 +26,10 @@ local function shallow_copy(orig)
     return copy
 end
 
---- Reads unencrypted Pokemon data from an address in memory.
-function pokemon.read_raw_data(address)
-    local function read_block(start, finish)
-        local data = {}
-
-        for i = start, finish, 0x2 do
-            table.insert(data, mbyte(address + i))
-            table.insert(data, mbyte(address + i + 1))
-        end
-
-        return data
-    end
-
-    local function append_bytes(source)
-        table.move(source, 1, #source, #data + 1, data)
-    end
-
-    local substruct = {
-        [0] = {1, 2, 3, 4},
-        [1] = {1, 2, 4, 3},
-        [2] = {1, 3, 2, 4},
-        [3] = {1, 4, 2, 3},
-        [4] = {1, 3, 4, 2},
-        [5] = {1, 4, 3, 2},
-        [6] = {2, 1, 3, 4},
-        [7] = {2, 1, 4, 3},
-        [8] = {3, 1, 2, 4},
-        [9] = {4, 1, 2, 3},
-        [10] = {3, 1, 4, 2},
-        [11] = {4, 1, 3, 2},
-        [12] = {2, 3, 1, 4},
-        [13] = {2, 4, 1, 3},
-        [14] = {3, 2, 1, 4},
-        [15] = {4, 2, 1, 3},
-        [16] = {3, 4, 1, 2},
-        [17] = {4, 3, 1, 2},
-        [18] = {2, 3, 4, 1},
-        [19] = {2, 4, 3, 1},
-        [20] = {3, 2, 4, 1},
-        [21] = {4, 2, 3, 1},
-        [22] = {3, 4, 2, 1},
-        [23] = {4, 3, 2, 1}
-    }
-
-    data = {}
-    append_bytes({mbyte(address), mbyte(address + 1), mbyte(address + 2), mbyte(address + 3)}) -- PID
-    append_bytes({0x0, 0x0}) -- Unused Bytes
-    append_bytes({mbyte(address + 6), mbyte(address + 7)}) -- Checksum
-
-    local pid = mdword(address)
-    local checksum = mword(address + 0x06)
-
-    -- Find intended order of the shuffled data blocks
-    local shift = bit.rshift(bit.band(pid, 0x3E000), 0xD) % 24
-    local block_order = substruct[shift]
-
-    -- Rearrange blocks according to order
-    local _block = {}
-    for index = 1, 4 do
-        local block = (index - 1) * 0x20
-        _block[index] = read_block(0x08 + block, 0x27 + block) 
-    end
-
-    for _, index in ipairs(block_order) do
-        append_bytes(_block[index])
-    end
-
-    -- Re-calculate the checksum of the blocks and match it with mon.checksum
-    -- If the checksum fails, assume it's the data is garbage or still being written
-    if not verify_checksums(data, checksum) then
-        return nil
-    end
-
-    append_bytes(read_block(0x88, 0xDB))
-
-    if _ROM.gen == 4 then -- Write blank ball seal data
-        for i = 0x1, 0x10 do
-            table.insert(data, 0x0)
-        end
-    end
-
-    return data
-end
-
---- Reads and decrypts Pokemon data from an address in memory.
-function pokemon.decrypt_data(address)
+--- Reads and (optionally) decrypts Pokemon data from an address in memory.
+-- @param address Address to read from
+-- @param raw Whether the data is already decrypted
+function pokemon.read_data(address, raw)
     local function rand(seed) -- Thanks Kaphotics
         return (0x4e6d * (seed % 65536) + ((0x41c6 * (seed % 65536) + 0x4e6d * math.floor(seed / 65536)) % 65536) * 65536 + 0x6073) % 4294967296
     end
@@ -120,15 +38,19 @@ function pokemon.decrypt_data(address)
         local data = {}
 
         for i = start, finish, 0x2 do
-            seed = rand(seed)
-
-            local rs = bit.rshift(seed, 16)
             local word = mword(address + i)
-            local decrypted = bit.bxor(word, rs)
-            local end_word = bit.band(decrypted, 0xFFFF)
+            
+            -- Decrypt bytes
+            if not raw then
+                seed = rand(seed)
 
-            table.insert(data, bit.band(end_word, 0xFF))
-            table.insert(data, bit.band(bit.rshift(end_word, 8), 0xFF))
+                local rs = bit.rshift(seed, 16)
+                word = bit.bxor(word, rs)
+                word = bit.band(word, 0xFFFF)
+            end
+
+            table.insert(data, bit.band(word, 0xFF))
+            table.insert(data, bit.band(bit.rshift(word, 8), 0xFF))
         end
 
         return data

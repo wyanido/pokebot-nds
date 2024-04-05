@@ -5,6 +5,7 @@ function update_pointers()
     local roamer_anchor = mdword(anchor + 0x4272A)
 
     pointers = {
+        start_value = 0x21066D4, -- 0 until save has been loaded
         -- items_pocket      = anchor + 0x59E,
         -- key_items_pocket  = anchor + 0x832,
         -- tms_hms_pocket    = anchor + 0x8FA,
@@ -56,6 +57,10 @@ function randomise_reset()
 
     print_debug("Delaying " .. delay .. " frames...")
     wait_frames(delay)
+
+    while not game_state.in_game do
+        press_sequence("Start", 20, "A", math.random(8, 28))
+    end
 end
 
 --- Opens the menu and selects the specified option.
@@ -432,10 +437,10 @@ end
 function mode_roamers()
     local data
     local a_cooldown = 0
+    local is_unencrypted = _ROM.version ~= "PL" -- Only Platinum encrypts roamer data after generating it 
 
     while not data do
-        wait_frames(1)
-        data = pokemon.read_raw_data(pointers.roamer)
+        data = pokemon.read_data(pointers.roamer, is_unencrypted)
 
         if a_cooldown == 0 then
             press_button_async("A")
@@ -443,6 +448,8 @@ function mode_roamers()
         else
             a_cooldown = a_cooldown - 1
         end
+
+        wait_frames(1)
     end
 
     local mon = pokemon.parse_data(data, true)

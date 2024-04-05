@@ -1,6 +1,5 @@
 function update_party()
-    -- Prevent reading out of bounds when loading gen 4 games
-    if pointers.party_count < 0x02000000 then
+    if not game_state.in_game then
         local emptied = #party ~= 0
         party = {}
         return emptied
@@ -15,7 +14,7 @@ function update_party()
         if i <= party_size then
             -- If the Pokemon has changed, re-read its data
             if party[i] == nil or checksum ~= party[i].checksum then
-                local mon_data = pokemon.decrypt_data(pointers.party_data + (i - 1) * _MON_BYTE_LENGTH)
+                local mon_data = pokemon.read_data(pointers.party_data + (i - 1) * _MON_BYTE_LENGTH)
                 if mon_data then
                     local mon = pokemon.parse_data(mon_data, true)
                     
@@ -53,7 +52,7 @@ function update_foes()
             end
 
             for i = 1, foe_count do
-                local mon_data = pokemon.decrypt_data(pointers.current_foe + (i - 1) * _MON_BYTE_LENGTH)
+                local mon_data = pokemon.read_data(pointers.current_foe + (i - 1) * _MON_BYTE_LENGTH)
                 
                 if mon_data then
                     local mon = pokemon.parse_data(mon_data, true)
@@ -86,9 +85,14 @@ function update_game_state()
     end
     
     local map = mword(pointers.map_header)
-    
-    -- Save not loaded yet
-    if not _MAP[map] then
+    local save_loaded = _MAP[map] ~= nil
+
+    -- Don't consider game loaded if Journal page is open
+    if _ROM.version == "D" or _ROM.version == "P" or _ROM.version == "PL" then
+        save_loaded = save_loaded and mdword(pointers.start_value) ~= 0
+    end
+
+    if not save_loaded then
         game_state = {}
         return
     end

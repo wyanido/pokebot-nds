@@ -457,7 +457,7 @@ function mode_roamers()
     end
 
     -- Read pre-generated Pokemon from memory
-    local data = pokemon.decrypt_data(pointers.roamer)
+    local data = pokemon.read_data(pointers.roamer)
     local mon = pokemon.parse_data(data, true)
     local is_target = pokemon.log_encounter(mon)
 
