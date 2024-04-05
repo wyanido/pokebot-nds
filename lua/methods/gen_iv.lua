@@ -2,6 +2,7 @@ function update_pointers()
     local anchor = mdword(0x21C489C + _ROM.offset)
     local foe_anchor = mdword(anchor + 0x226FE)
     local bag_page_anchor = mdword(anchor + 0x560EE)
+    local roamer_anchor = mdword(anchor + 0x4272A)
 
     pointers = {
         -- items_pocket      = anchor + 0x59E,
@@ -42,6 +43,8 @@ function update_pointers()
         trainer_id   = anchor - 0x12,
 
         save_indicator = 0x21C491F + _ROM.offset,
+        
+        roamer = roamer_anchor + 0x20,
     }
 end
 
@@ -423,5 +426,32 @@ function mode_daycare_eggs()
         check_and_collect_egg()
         move_to({z=675}, check_hatching_eggs)
         check_and_collect_egg()
+    end
+end
+
+function mode_roamers()
+    local data
+    local a_cooldown = 0
+
+    while not data do
+        wait_frames(1)
+        data = pokemon.read_raw_data(pointers.roamer)
+
+        if a_cooldown == 0 then
+            press_button_async("A")
+            a_cooldown = math.random(5, 20)
+        else
+            a_cooldown = a_cooldown - 1
+        end
+    end
+
+    local mon = pokemon.parse_data(data, true)
+    local is_target = pokemon.log_encounter(mon)
+
+    if is_target then
+        abort(mon.name .. " is a target!")
+    else
+        print(mon.name .. " was not a target, resetting...")
+        soft_reset()
     end
 end

@@ -540,7 +540,7 @@ function mode_static_encounters()
                 catch_pokemon()
             end
 
-            abort(mon.name .. " was caught!")
+            abort("Target " .. mon.name .. " was caught!")
         else
             abort(mon.name .. " is a target!")
         end

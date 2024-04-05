@@ -52,12 +52,12 @@ function update_pointers()
         trainer_name = 0x2234FB0 + _ROM.offset,
         trainer_id   = 0x2234FC0 + _ROM.offset,
 
-        thundurus_tornadus = 0x225960C + _ROM.offset,
+        roamer = 0x225960C + _ROM.offset,
         daycare_egg = 0x223CB74 + _ROM.offset,
     }
 end
 
---- Press random key combo after SRing to increase seed randomness
+--- Press random key combo after SRing to increase seed randomness.
 -- https://www.smogon.com/ingame/rng/bw_rng_part2
 function randomise_reset()
     local inputs = { "Up", "Down", "Left", "Right", "A", "B", "X", "Y", "L", "R", "Start", "Select" }
@@ -124,7 +124,7 @@ function read_string(input, pointer)
 
     if type(input) == "table" then
         for i = pointer + 1, #input, 2 do
-            local value = input[i] + (bit.lshift(input[i + 1], 8))
+            local value = input[i] + bit.lshift(input[i + 1], 8)
 
             if value == 0xFFFF or value == 0x0000 then -- Null terminator
                 break
@@ -211,7 +211,7 @@ function dex_registered(name, field)
     return nil
 end
 
---- Proceeds until the egg hatch animation finishes
+--- Proceeds until the egg hatch animation finishes.
 function hatch_egg(slot)
     while mdword(pointers.egg_hatching) == 1 do
         press_sequence(15, "B")
@@ -432,7 +432,7 @@ function mode_daycare_eggs()
     end
 end
 
-function mode_thundurus_tornadus()
+function mode_roamers()
     local function dex_entry_added()
         local tornadus_seen = dex_registered("tornadus", "male") or dex_registered("tornadus", "shiny_male")
         local thundurus_seen = dex_registered("thundurus", "male") or dex_registered("thundurus", "shiny_male")
@@ -457,7 +457,7 @@ function mode_thundurus_tornadus()
     end
 
     -- Read pre-generated Pokemon from memory
-    local data = pokemon.decrypt_data(pointers.thundurus_tornadus)
+    local data = pokemon.decrypt_data(pointers.roamer)
     local mon = pokemon.parse_data(data, true)
     local is_target = pokemon.log_encounter(mon)
 

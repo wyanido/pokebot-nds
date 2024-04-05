@@ -1,12 +1,122 @@
 local pokemon = {}
 
--- Interprets a region of RAM as Pokemon data and decrypts it as such
+local function verify_checksums(data, checksum)
+    local sum = 0
+
+    for i = 0x09, 0x88, 2 do
+        sum = sum + data[i] + bit.lshift(data[i + 1], 8)
+    end
+
+    sum = bit.band(sum, 0xFFFF)
+
+    return sum == checksum and sum ~= 0
+end
+
+local function shallow_copy(orig)
+    local orig_type = type(orig)
+    local copy
+    if orig_type == 'table' then
+        copy = {}
+        for orig_key, orig_value in pairs(orig) do
+            copy[orig_key] = orig_value
+        end
+    else -- number, string, boolean, etc
+        copy = orig
+    end
+    return copy
+end
+
+--- Reads unencrypted Pokemon data from an address in memory.
+function pokemon.read_raw_data(address)
+    local function read_block(start, finish)
+        local data = {}
+
+        for i = start, finish, 0x2 do
+            table.insert(data, mbyte(address + i))
+            table.insert(data, mbyte(address + i + 1))
+        end
+
+        return data
+    end
+
+    local function append_bytes(source)
+        table.move(source, 1, #source, #data + 1, data)
+    end
+
+    local substruct = {
+        [0] = {1, 2, 3, 4},
+        [1] = {1, 2, 4, 3},
+        [2] = {1, 3, 2, 4},
+        [3] = {1, 4, 2, 3},
+        [4] = {1, 3, 4, 2},
+        [5] = {1, 4, 3, 2},
+        [6] = {2, 1, 3, 4},
+        [7] = {2, 1, 4, 3},
+        [8] = {3, 1, 2, 4},
+        [9] = {4, 1, 2, 3},
+        [10] = {3, 1, 4, 2},
+        [11] = {4, 1, 3, 2},
+        [12] = {2, 3, 1, 4},
+        [13] = {2, 4, 1, 3},
+        [14] = {3, 2, 1, 4},
+        [15] = {4, 2, 1, 3},
+        [16] = {3, 4, 1, 2},
+        [17] = {4, 3, 1, 2},
+        [18] = {2, 3, 4, 1},
+        [19] = {2, 4, 3, 1},
+        [20] = {3, 2, 4, 1},
+        [21] = {4, 2, 3, 1},
+        [22] = {3, 4, 2, 1},
+        [23] = {4, 3, 2, 1}
+    }
+
+    data = {}
+    append_bytes({mbyte(address), mbyte(address + 1), mbyte(address + 2), mbyte(address + 3)}) -- PID
+    append_bytes({0x0, 0x0}) -- Unused Bytes
+    append_bytes({mbyte(address + 6), mbyte(address + 7)}) -- Checksum
+
+    local pid = mdword(address)
+    local checksum = mword(address + 0x06)
+
+    -- Find intended order of the shuffled data blocks
+    local shift = bit.rshift(bit.band(pid, 0x3E000), 0xD) % 24
+    local block_order = substruct[shift]
+
+    -- Rearrange blocks according to order
+    local _block = {}
+    for index = 1, 4 do
+        local block = (index - 1) * 0x20
+        _block[index] = read_block(0x08 + block, 0x27 + block) 
+    end
+
+    for _, index in ipairs(block_order) do
+        append_bytes(_block[index])
+    end
+
+    -- Re-calculate the checksum of the blocks and match it with mon.checksum
+    -- If the checksum fails, assume it's the data is garbage or still being written
+    if not verify_checksums(data, checksum) then
+        return nil
+    end
+
+    append_bytes(read_block(0x88, 0xDB))
+
+    if _ROM.gen == 4 then -- Write blank ball seal data
+        for i = 0x1, 0x10 do
+            table.insert(data, 0x0)
+        end
+    end
+
+    return data
+end
+
+--- Reads and decrypts Pokemon data from an address in memory.
 function pokemon.decrypt_data(address)
-    local rand = function(seed) -- Thanks Kaphotics
+    local function rand(seed) -- Thanks Kaphotics
         return (0x4e6d * (seed % 65536) + ((0x41c6 * (seed % 65536) + 0x4e6d * math.floor(seed / 65536)) % 65536) * 65536 + 0x6073) % 4294967296
     end
 
-    local decrypt_block = function(start, finish)
+    local function decrypt_block(start, finish)
         local data = {}
 
         for i = start, finish, 0x2 do
@@ -24,19 +134,7 @@ function pokemon.decrypt_data(address)
         return data
     end
 
-    local verify_checksums = function(checksum)
-        local sum = 0
-
-        for i = 0x09, 0x88, 2 do
-            sum = sum + data[i] + bit.lshift(data[i + 1], 8)
-        end
-
-        sum = bit.band(sum, 0xFFFF)
-
-        return sum == checksum
-    end
-
-    local append_bytes = function(source)
+    local function append_bytes(source)
         table.move(source, 1, #source, #data + 1, data)
     end
 
@@ -95,7 +193,7 @@ function pokemon.decrypt_data(address)
 
     -- Re-calculate the checksum of the blocks and match it with mon.checksum
     -- If the checksum fails, assume it's the data is garbage or still being written
-    if not verify_checksums(checksum) then
+    if not verify_checksums(data, checksum) then
         return nil
     end
 
@@ -112,9 +210,9 @@ function pokemon.decrypt_data(address)
     return data
 end
 
--- Parses decrypted data into a human-readable table of key value pairs
+--- Parses raw Pokemon data into an easily readable table.
 function pokemon.parse_data(data, enrich)
-    local read_real = function(start, length)
+    local function read_real(start, length)
         local bytes = 0
         local j = 0
 
@@ -168,8 +266,7 @@ function pokemon.parse_data(data, enrich)
         sid = tonumber(config.sid_override)
     end
 
-    mon.shinyValue = bit.bxor(bit.bxor(bit.bxor(tid, sid), (bit.band(bit.rshift(mon.pid, 16), 0xFFFF))),
-        bit.band(mon.pid, 0xFFFF))
+    mon.shinyValue = bit.bxor(bit.bxor(bit.bxor(tid, sid), (bit.band(bit.rshift(mon.pid, 16), 0xFFFF))), bit.band(mon.pid, 0xFFFF))
     mon.shiny = mon.shinyValue < 8
 
     -- Block B
@@ -201,7 +298,7 @@ function pokemon.parse_data(data, enrich)
     else
         mon.nature = read_real(0x41, 1)
 
-        local value = read_real(0x42, 1)
+        -- local value = read_real(0x42, 1)
         -- mon.dreamWorldAbility = bit.band(value, 0x01)
         -- mon.isNsPokemon		  = bit.band(value, 0x01)
     end
@@ -286,20 +383,6 @@ function pokemon.check_battle_moves(ally)
             total_pp = total_pp + pp
         end
     end
-end
-
-local function shallow_copy(orig)
-    local orig_type = type(orig)
-    local copy
-    if orig_type == 'table' then
-        copy = {}
-        for orig_key, orig_value in pairs(orig) do
-            copy[orig_key] = orig_value
-        end
-    else -- number, string, boolean, etc
-        copy = orig
-    end
-    return copy
 end
 
 function pokemon.log_encounter(mon)

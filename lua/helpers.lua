@@ -50,7 +50,7 @@ function update_foes()
             if foe_count == 0 then
                 print_debug("Foe data doesn't exist yet, retrying next frame...")
                 return
-            end 
+            end
 
             for i = 1, foe_count do
                 local mon_data = pokemon.decrypt_data(pointers.current_foe + (i - 1) * _MON_BYTE_LENGTH)

@@ -45,12 +45,12 @@ if not game_loaded then
     error("Please load a ROM before enabling the script!")
 end
 
-print_debug = function(message)
+function print_debug(message)
     if config.debug then
         print("- " .. message)
     end
 end
 
-print_warn = function(message)
+function print_warn(message)
     print("# " .. message .. " #")
 end
