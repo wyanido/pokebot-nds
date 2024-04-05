@@ -8,7 +8,7 @@ assignees: wyanido
 ---
 
 **Describe the bug**
-A clear and concise description of what the bug is.
+A clear description of what the bug is.
 
 **Platform**
 Game:
@@ -17,9 +17,8 @@ Emulator and Version:
 
 **Debug log**
 ```
-Paste here
+Paste here (if applicable)
 ```
 
 **Example**
-Provide a video of the issue if possible. Both the gameplay and console log must be in view.
-*If you want to be REALLY helpful, provide a save state where the issue can be reproduced instead.*
+If the issue seems specific or unusual, attach either a video of the bug, or a save state where it can be reproduced to speed up the bug fix process.
