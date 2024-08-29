@@ -65,6 +65,7 @@ function updateOptionVisibility() {
     $('#option_auto_catch').hide();
     $('#option_webhook').hide();
     $('#option_ping_user').hide();
+    $("#option_encounter_milestones").hide();
     $('#option_primo').hide();
     $('#option_grotto').hide();
     $('#option_ot_override').hide();
@@ -122,6 +123,10 @@ function updateOptionVisibility() {
 
     if ($('#ping_user').prop('checked')) {
         $('#option_ping_user').show();
+    }
+
+    if ($("#encounter_milestones_enable").prop("checked")) {
+        $("#option_encounter_milestones").show();
     }
 
     if ($('#ot_override').prop('checked')) {
