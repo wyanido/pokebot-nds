@@ -512,7 +512,7 @@ function release_hatched_duds()
 
     -- Release party in reverse order so the positions don't shuffle to fit empty spaces
     for i = #party, 1, -1 do
-        if pokemon.is_dud(party[i]) then
+        if pokemon.is_hatched_dud(party[i]) then
             release(i)
         end
     end

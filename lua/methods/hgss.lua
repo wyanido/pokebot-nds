@@ -370,7 +370,7 @@ function release_hatched_duds()
     wait_frames(60)
 
     for i = 6, 2, -1 do
-        if pokemon.is_dud(party[i]) then 
+        if pokemon.is_hatched_dud(party[i]) then 
             release(i)
         end
     end

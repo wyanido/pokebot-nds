@@ -18,10 +18,9 @@ else
     end
 end 
 
---- Releases inputs other than the one specified; only one at a time is supported on real hardware.
--- @param direction New direction
+--- Releases D-pad inputs besides the one specified to match what's possible on a real D-pad
 local function release_conflicting_directions(direction)
-    local directions = {"Up", "Down", "Left", "Right"}
+    local directions = {"up", "down", "left", "right"}
 
     if not table_contains(directions, direction) then
         return
@@ -34,8 +33,7 @@ local function release_conflicting_directions(direction)
     end
 end
 
---- Adjusts for differences in d-pad key names between emulators.
--- @param button Name of the input to adjust
+--- Adjusts for differences in input names between emulators by formatting them all consistently
 local function adjust_case(button)
     if _EMU == "DeSmuME" then
         if button == "Up" or button == "Down" or button == "Left" or button == "Right" or button == "Start" or button == "Select" then 
@@ -47,8 +45,8 @@ local function adjust_case(button)
 end
 
 function press_button(button)
-    release_conflicting_directions(button)
     button = adjust_case(button)
+    release_conflicting_directions(button)
     input[button] = true
     joypad.set(input)
     wait_frames(4)
@@ -56,8 +54,8 @@ function press_button(button)
 end
 
 function hold_button(button)
-    release_conflicting_directions(button)
     button = adjust_case(button)
+    release_conflicting_directions(button)
     held_input[button] = true
     input[button] = true
     joypad.set(input)
@@ -81,9 +79,9 @@ function press_sequence(...)
     end
 end
 
---- Prevents other actions from processing for a set number of frames.
--- Most frame advances go through this function, meaning 
--- it can update the game state for other functions without needing asynchronosity
+--- Prevents other actions from processing for a set number of frames
+-- Most frame advances go through this function, meaning it can
+-- update the game state for other functions without needing asynchronosity
 function wait_frames(frames)
     for _ = 1, frames do
         joypad.set(input)
@@ -93,17 +91,17 @@ function wait_frames(frames)
     clear_unheld_inputs()
 end
 
---- Presses a button without blocking other script actions.
+--- Presses a button without delaying other actions in the script
 -- Useful when additional inputs are needed during precise movement
 function press_button_async(button)
-    release_conflicting_directions(button)
     button = adjust_case(button)
+    release_conflicting_directions(button)
     input_buffer[button] = 4
     input[button] = true
     joypad.set(input)
 end
 
---- Decreases the timer on asynchronous button inputs.
+--- Decreases the timer on asynchronous button inputs
 function decrement_input_buffers()
     for button, frames in pairs(input_buffer) do
         if frames > -1 then

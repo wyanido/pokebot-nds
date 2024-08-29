@@ -26,10 +26,8 @@ local function shallow_copy(orig)
     return copy
 end
 
---- Reads and (optionally) decrypts Pokemon data from an address in memory.
--- @param address Address to read from
--- @param raw Whether the data is already decrypted
-function pokemon.read_data(address, raw)
+--- Returns a decrypted byte table of Pokemon data from the game's memory
+function pokemon.read_data(address, is_raw)
     local function rand(seed) -- Thanks Kaphotics
         return (0x4e6d * (seed % 65536) + ((0x41c6 * (seed % 65536) + 0x4e6d * math.floor(seed / 65536)) % 65536) * 65536 + 0x6073) % 4294967296
     end
@@ -41,7 +39,7 @@ function pokemon.read_data(address, raw)
             local word = mword(address + i)
             
             -- Decrypt bytes
-            if not raw then
+            if not is_raw then
                 seed = rand(seed)
 
                 local rs = bit.rshift(seed, 16)
@@ -113,8 +111,8 @@ function pokemon.read_data(address, raw)
         append_bytes(_block[index])
     end
 
-    -- Re-calculate the checksum of the blocks and match it with mon.checksum
-    -- If the checksum fails, assume it's the data is garbage or still being written
+    -- Re-calculate checksum of the data blocks and match it with mon.checksum
+    -- If there is no match, assume the Pokemon data is garbage or still being written
     if not verify_checksums(data, checksum) then
         return nil
     end
@@ -132,7 +130,7 @@ function pokemon.read_data(address, raw)
     return data
 end
 
---- Parses raw Pokemon data into an easily readable table.
+--- Parses raw Pokemon data from bytes into a human-readable table
 function pokemon.parse_data(data, enrich)
     local function read_real(start, length)
         local bytes = 0
@@ -296,17 +294,7 @@ function pokemon.parse_data(data, enrich)
     return mon
 end
 
-function pokemon.check_battle_moves(ally)
-    for i = 1, #ally.moves, 1 do
-        local pp = ally.pp[i]
-        local power = ally.moves[i].power
-        local total_pp = 0
-        if pp ~= 0 and power ~= nil then
-            total_pp = total_pp + pp
-        end
-    end
-end
-
+--- Sends a Pokemon to the dashboard to log it as a seen encounter
 function pokemon.log_encounter(mon)
     if not mon then
         print_warn("Tried to log a non-existent Pokemon!")
@@ -365,7 +353,8 @@ function pokemon.log_encounter(mon)
     return is_target
 end
 
-function pokemon.find_best_move(ally, foe)
+--- Returns the index of the most suitable move for KO-ing the target
+function pokemon.find_best_attacking_move(ally, foe)
     local max_power_index = 1
     local max_power = 0
 
@@ -377,7 +366,7 @@ function pokemon.find_best_move(ally, foe)
             power = nil
         end
 
-        -- Ignore useless moves
+        -- Only check damaging moves with PP remaining
         if ally.pp[i] ~= 0 and power ~= nil then
             local type_matchup = _TYPE[move.type]
 
@@ -387,6 +376,7 @@ function pokemon.find_best_move(ally, foe)
 
                 if table_contains(type_matchup.cant_hit, foe_type) then
                     power = 0
+                    break
                 elseif table_contains(type_matchup.resisted_by, foe_type) then
                     power = power / 2
                 elseif table_contains(type_matchup.super_effective, foe_type) then
@@ -423,6 +413,7 @@ function pokemon.find_best_move(ally, foe)
     }
 end
 
+--- Returns whether a Pokemon has traits desired by a specified user ruleset
 function pokemon.matches_ruleset(mon, ruleset)
     if not ruleset then
         print_warn("Can't check Pokemon against an empty ruleset")
@@ -498,6 +489,7 @@ function pokemon.matches_ruleset(mon, ruleset)
     return is_target
 end
 
+--- Returns the index of a given move within a Pokemon's moveset
 function pokemon.get_move_slot(mon, move_name)
     for i, v in ipairs(mon.moves) do
         if v.name == move_name and mon.pp[i] > 0 then
@@ -507,7 +499,8 @@ function pokemon.get_move_slot(mon, move_name)
     return 0
 end
 
-function pokemon.is_dud(mon)
+--- Returns whether a Pokemon is both newly hatched and not a target
+function pokemon.is_hatched_dud(mon)
     return mon.level == 1 and not pokemon.matches_ruleset(mon, config.target_traits)
 end
 

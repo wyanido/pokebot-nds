@@ -371,7 +371,7 @@ function battle_foe()
         end
     end
     
-    local best_move = pokemon.find_best_move(party[get_lead_mon_index()], foe[1])
+    local best_move = pokemon.find_best_attacking_move(party[get_lead_mon_index()], foe[1])
     
     if best_move.power > 0 then
         print_debug("Best move is " .. best_move.name .. " (Avg Power: " .. best_move.power .. ")")
