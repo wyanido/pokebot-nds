@@ -49,7 +49,7 @@ function update_pointers()
     }
 end
 
---- Wait a random number of frames after a reset to decrease the odds of hitting duplicate seeds.
+--- Waits a random duration after a reset to decrease the odds of hitting duplicate seeds
 function randomise_reset()
     wait_frames(200) -- White screen on startup
 
@@ -421,7 +421,7 @@ function mode_daycare_eggs()
 
     -- Initialise party state for future reference
     process_frame()
-    party_eggs = get_party_eggs()
+    party_eggs = get_party_egg_states()
 
     mount_bike()
     move_to({x=562}, check_hatching_eggs)

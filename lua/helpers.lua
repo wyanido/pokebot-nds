@@ -182,9 +182,7 @@ function process_frame()
         print_debug("Party updated")
         dashboard_send({
             type = "party",
-            data = {
-                party = party
-            }
+            data = party
         })
     end
 
@@ -200,7 +198,7 @@ function process_frame()
 end
 
 --- Returns an array of the isEgg value for each party member.
-function get_party_eggs()
+function get_party_egg_states()
     local eggs = {}
 
     for i = 1, 6, 1 do
@@ -224,7 +222,7 @@ function check_hatching_eggs()
         end
     end
     
-    local new_eggs = get_party_eggs()
+    local new_eggs = get_party_egg_states()
     
     for i, is_egg in ipairs(new_eggs) do
         -- Eggs are already considered "hatched" as soon as the animation starts

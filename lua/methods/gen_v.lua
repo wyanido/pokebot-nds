@@ -417,7 +417,7 @@ function mode_daycare_eggs()
 
     -- Initialise party state for future reference
     process_frame()
-    party_eggs = get_party_eggs()
+    party_eggs = get_party_egg_states()
 
     -- mount_bike()
     move_to({z=563}, check_hatching_eggs)

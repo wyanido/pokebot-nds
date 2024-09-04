@@ -464,7 +464,7 @@ function interpretClientMessage(socket, message) {
             writeJSONToFile('../user/stats.json', stats);
             break;
         case 'party':
-            client.party = data.party;
+            client.party = data;
             break;
         case 'load_game':
             console.log('[%s] Session %d loaded %s', getTimestamp(), clientData.length + 1, data.version);
