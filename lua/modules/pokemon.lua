@@ -1,5 +1,14 @@
+-----------------------------------------------------------------------------
+-- Pure Lua handler for emulator Pokemon data
+-- Author: wyanido
+-- Homepage: https://github.com/wyanido/pokebot-nds
+--
+-- Responsible for reading, parsing, and handling general logic
+-- that uses Pokemon data for other bot modes.
+-----------------------------------------------------------------------------
 local pokemon = {}
 
+--- Verifies the checksum of Pokemon data in memory
 local function verify_checksums(data, checksum)
     local sum = 0
 
@@ -12,6 +21,7 @@ local function verify_checksums(data, checksum)
     return sum == checksum and sum ~= 0
 end
 
+--- Creates a surface-level copy of a lua table without nested elements 
 local function shallow_copy(orig)
     local orig_type = type(orig)
     local copy
@@ -26,7 +36,7 @@ local function shallow_copy(orig)
     return copy
 end
 
---- Returns a decrypted byte table of Pokemon data from the game's memory
+--- Returns a decrypted byte table of Pokemon data from memory
 function pokemon.read_data(address, is_raw)
     local function rand(seed) -- Thanks Kaphotics
         return (0x4e6d * (seed % 65536) + ((0x41c6 * (seed % 65536) + 0x4e6d * math.floor(seed / 65536)) % 65536) * 65536 + 0x6073) % 4294967296
@@ -38,7 +48,7 @@ function pokemon.read_data(address, is_raw)
         for i = start, finish, 0x2 do
             local word = mword(address + i)
             
-            -- Decrypt bytes
+            -- Decrypt bytes if the data isn't already unencrypted (only applies to Platinum statics)
             if not is_raw then
                 seed = rand(seed)
 
@@ -121,7 +131,8 @@ function pokemon.read_data(address, is_raw)
     seed = pid
     append_bytes(decrypt_block(0x88, 0xDB))
 
-    if _ROM.gen == 4 then -- Write blank ball seal data
+    if _ROM.gen == 4 then
+        -- Write blank ball seal data
         for i = 0x1, 0x10 do
             table.insert(data, 0x0)
         end
@@ -131,6 +142,8 @@ function pokemon.read_data(address, is_raw)
 end
 
 --- Parses raw Pokemon data from bytes into a human-readable table
+-- All properties are included here, but ones that aren't relevant to any
+-- bot modes have been commented out to keep the data simple. Customise if needed.
 function pokemon.parse_data(data, enrich)
     local function read_real(start, length)
         local bytes = 0
@@ -294,7 +307,7 @@ function pokemon.parse_data(data, enrich)
     return mon
 end
 
---- Sends a Pokemon to the dashboard to log it as a seen encounter
+--- Sends a Pokemon to the dashboard to log it as an encounter
 function pokemon.log_encounter(mon)
     if not mon then
         print_warn("Tried to log a non-existent Pokemon!")

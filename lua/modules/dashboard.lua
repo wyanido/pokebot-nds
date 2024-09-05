@@ -1,12 +1,32 @@
+-----------------------------------------------------------------------------
+-- Dashboard connection and communication
+-- Author: wyanido
+-- Homepage: https://github.com/wyanido/pokebot-nds
+-----------------------------------------------------------------------------
 local socket = require("lua\\modules\\socket")
 local json = require("lua\\modules\\json")
 
 local disconnected = false
 
-function dashboard_connect() 
+--- Manually loads the config file from the user directory
+-- Only required when the dashboard connection fails to initialise, where
+-- otherwise it would have been received in the initialisation stage
+local function load_config_from_file()
+    config = json.load("user\\config.json")
+    
+    if not config then
+        abort("config.json couldn't be loaded! Please connect the bot to the dashboard at least once to generate the user/ folder.")
+    end
+
+    disconnected = true
+end
+
+--- Attempts to connect to the node server on the default port opened by the dashboard
+local function dashboard_connect() 
     dashboard = assert(socket.connect("127.0.0.1", 51055)) 
 end
 
+--- Attempts to receive incoming data from the dashboard on the open socket
 function dashboard_poll()
     if disconnected then
         return
@@ -29,6 +49,7 @@ function dashboard_poll()
     end
 end
 
+--- Attempts to send data to the dashboard via the open socket
 function dashboard_send(data)
     if disconnected then
         return 
@@ -37,6 +58,9 @@ function dashboard_send(data)
     dashboard:send(json.encode(data) .. "\0")
 end
 
+-----------------------------------------------------------------------------
+-- DASHBOARD SOCKET INITIALISATION
+-----------------------------------------------------------------------------
 print("Connecting to the dashboard... ")
 
 local status, err = pcall(dashboard_connect)
@@ -61,12 +85,12 @@ dashboard_send({
 
 print("Waiting for dashboard to relay config file... ")
 
+--- Keep emulator running until the dashboard sends the config file
 while not config do
     dashboard_poll()
 
-    -- Allow BizHawk to connect to dashboard while game is paused
     if _EMU == "BizHawk" then
-        emu.yield()
+        emu.yield() -- Allows BizHawk to connect even while the game is paused
     else
         emu.frameadvance()
     end

@@ -1,3 +1,9 @@
+-----------------------------------------------------------------------------
+-- General bot methods for gen 4 games (DPPt, HGSS)
+-- Author: wyanido
+-- Homepage: https://github.com/wyanido/pokebot-nds
+-----------------------------------------------------------------------------
+
 function update_pointers()
     local anchor = mdword(0x21C489C + _ROM.offset)
     local foe_anchor = mdword(anchor + 0x226FE)
@@ -63,7 +69,7 @@ function randomise_reset()
     end
 end
 
---- Opens the menu and selects the specified option.
+--- Opens the menu and selects the specified option
 -- @param menu Name of the menu to open
 function open_menu(menu)
     local option = {
@@ -87,7 +93,7 @@ function open_menu(menu)
     press_sequence("A", 90)
 end
 
---- Returns an array of all Poke Balls within the Poke Balls bag pocket.
+--- Returns an array of all Poke Balls within the Poke Balls bag pocket
 function get_usable_balls()
     local balls = {}
     local slot = 0
@@ -108,17 +114,17 @@ function get_usable_balls()
     return balls
 end
 
---- Returns true if the rod state has changed from being cast.
+--- Returns true if the rod state has changed from being cast
 function fishing_status_changed()
     return mbyte(pointers.fishing_bite_indicator) ~= 0
 end
 
---- Returns true if a Pokemon is on the hook.
+--- Returns true if a Pokemon is on the hook
 function fishing_has_bite()
     return mbyte(pointers.fishing_bite_indicator) == 1
 end
 
---- Navigates to the Solaceon Town daycare and releases all hatched Pokemon in the party.
+--- Navigates to the Solaceon Town daycare and releases all hatched Pokemon in the party
 function release_hatched_duds()
     local function release()
         press_sequence("A", 5, "Up", 5, "Up", 5, "A", 5, "Up", 5, "A", 120, "A", 60, "A", 10)
@@ -176,7 +182,7 @@ function release_hatched_duds()
     move_to({x=562})
 end
 
---- Proceeds until the egg hatch animation finishes.
+--- Proceeds until the egg hatch animation finishes
 function hatch_egg(slot)
     press_sequence(30, "B", 30)
             
@@ -253,7 +259,7 @@ function read_string(input, pointer)
     return text
 end
 
---- Returns the current stage of the battle as a simple string.
+--- Returns the current stage of the battle as a simple string
 function get_battle_state()
     if not game_state.in_battle then
         return nil
@@ -278,7 +284,7 @@ function get_battle_state()
     return nil
 end
 
---- Picks the specified starter Pokemon each reset until it's a target.
+--- Picks the specified starter Pokemon each reset until it's a target
 function mode_starters()
     cycle_starter_choice()
     
@@ -327,7 +333,7 @@ function mode_starters()
     end
 end
 
---- Encounters wild Pokemon until a target is found. Can battle and catch.
+--- Encounters wild Pokemon until a target is found. Can battle and catch
 function mode_random_encounters()
     local function spin()
         -- Prevent accidentally taking a step by
@@ -389,7 +395,7 @@ function mode_random_encounters()
     process_wild_encounter()
 end
 
---- Hunts for targets by hatching eggs.
+--- Hunts for targets by hatching eggs
 -- Bikes through Solaceon Town until the party is full of hatched eggs,
 -- then frees up party space at the PC if no targets were hatched
 function mode_daycare_eggs()
@@ -421,7 +427,7 @@ function mode_daycare_eggs()
 
     -- Initialise party state for future reference
     process_frame()
-    party_eggs = get_party_egg_states()
+    party_egg_states = get_party_egg_states()
 
     mount_bike()
     move_to({x=562}, check_hatching_eggs)

@@ -1,3 +1,9 @@
+-----------------------------------------------------------------------------
+-- Bot method overrides for Platinum
+-- Author: wyanido
+-- Homepage: https://github.com/wyanido/pokebot-nds
+-----------------------------------------------------------------------------
+
 function update_pointers()
     local anchor = mdword(0x21C0794 + _ROM.offset)
 	local foe_anchor = mdword(anchor + 0x217A8)

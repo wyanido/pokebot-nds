@@ -1,11 +1,18 @@
+-----------------------------------------------------------------------------
+-- Cross-emulator button and touch screen methods
+-- Author: wyanido
+-- Homepage: https://github.com/wyanido/pokebot-nds
+-----------------------------------------------------------------------------
 local input_buffer = {}
 
+-- Define touch screen methods specific to each emulator
 if _EMU == "BizHawk" then
     function touch_screen_at(x, y)
         joypad.setanalog({['Touch X'] = x, ['Touch Y'] = y})
         hold_button("Touch")
         wait_frames(4)
         release_button("Touch")
+        joypad.setanalog({['Touch X'] = nil, ['Touch Y'] = nil}) -- Remove touch position override
     end
 else
     function touch_screen_at(x, y)
@@ -80,8 +87,6 @@ function press_sequence(...)
 end
 
 --- Prevents other actions from processing for a set number of frames
--- Most frame advances go through this function, meaning it can
--- update the game state for other functions without needing asynchronosity
 function wait_frames(frames)
     for _ = 1, frames do
         joypad.set(input)
@@ -114,6 +119,7 @@ function decrement_input_buffers()
     end
 end
 
+--- Releases any button inputs still buffered that aren't explicitly set to 'held'
 function clear_unheld_inputs()
     for k, _ in pairs(input) do
         if k ~= "Touch X" and k ~= "Touch Y" and not held_input[k] then
@@ -124,6 +130,7 @@ function clear_unheld_inputs()
     joypad.set(input)
 end
 
+--- Releases all button inputs
 function clear_all_inputs()
     for k, _ in pairs(input) do
         if k ~= "Touch X" and k ~= "Touch Y" then

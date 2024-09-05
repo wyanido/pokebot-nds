@@ -1,3 +1,9 @@
+-----------------------------------------------------------------------------
+-- Bot method overrides for HGSS
+-- Author: wyanido
+-- Homepage: https://github.com/wyanido/pokebot-nds
+-----------------------------------------------------------------------------
+
 function update_pointers()
     local anchor = mdword(0x21D4158 + _ROM.offset)
     local foe_anchor = mdword(anchor + 0x6930)
@@ -420,7 +426,7 @@ function mode_daycare_eggs()
 
     -- Initialise party state for future reference
     process_frame()
-    party_eggs = get_party_egg_states()
+    party_egg_states = get_party_egg_states()
 
     mount_bike()
     move_to({x=358}, check_hatching_eggs)
@@ -432,6 +438,7 @@ function mode_daycare_eggs()
     end
 end
 
+--- Returns the current stage of the battle as a simple string
 function get_battle_state()
     if not game_state.in_battle then
         return nil

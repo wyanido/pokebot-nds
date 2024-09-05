@@ -1,4 +1,10 @@
---- Logs wild encounters without automated inputs while the user plays.
+-----------------------------------------------------------------------------
+-- General bot methods for all games
+-- Author: wyanido
+-- Homepage: https://github.com/wyanido/pokebot-nds
+-----------------------------------------------------------------------------
+
+--- Logs wild encounters without automated inputs while the user plays
 function mode_manual()
     while true do
         while not game_state.in_battle do
@@ -15,7 +21,7 @@ function mode_manual()
     end
 end
 
---- Continuously reels in Pokemon with the registered fishing rod.
+--- Continuously reels in Pokemon with the registered fishing rod
 function mode_fishing()
     while not game_state.in_battle do
         press_button("Y")
@@ -52,7 +58,7 @@ function get_lead_mon_index()
     end
 end
 
---- Finds and uses the best available options to safely weaken the foe.
+--- Finds and uses the best available options to safely weaken the foe
 function subdue_pokemon()
     -- Ensure target has no recoil moves before attempting to weaken it
     local recoil_moves = {"Brave Bird", "Double-Edge", "Flare Blitz", "Head Charge", "Head Smash", "Self-Destruct",
@@ -122,7 +128,7 @@ function subdue_pokemon()
     end
 end
 
---- Continuously tries to catch the foe until the battle ends, or there are no valid Poke Balls left.
+--- Continuously tries to catch the foe until the battle ends, or there are no valid Poke Balls left
 function catch_pokemon()
     local function get_preferred_ball(balls)
         -- Compare with override ruleset first
@@ -224,7 +230,7 @@ function catch_pokemon()
     end
 end
 
---- Logs the current wild foes and decides the next actions to take.
+--- Logs the current wild foes and decides the next actions to take
 function process_wild_encounter()
     clear_all_inputs()
     wait_frames(30)
@@ -290,7 +296,7 @@ function process_wild_encounter()
     end
 end
 
---- Collects held items from Pickup Pokemon if enough have accumulated.
+--- Collects held items from Pickup Pokemon if enough have accumulated
 function do_pickup()
     local item_count = 0
 
@@ -319,7 +325,7 @@ function do_pickup()
     end
 end
 
---- Saves the game.
+--- Saves the game
 function save_game()
     print("Saving game...")
     
@@ -337,7 +343,7 @@ function save_game()
     press_sequence("B", 10)
 end
 
--- Selects a move on the FIGHT menu.
+-- Selects a move on the FIGHT menu
 -- @param id The move index in the moveset
 function use_move(id)
     wait_frames(30)
@@ -350,7 +356,7 @@ function use_move(id)
     wait_frames(60)
 end
 
---- Attemps to defeat the opponent.
+--- Attemps to KO the current foe
 function battle_foe()
     while get_battle_state() ~= "Menu" do
         press_sequence("B", 5) -- Also cancels evolutions
@@ -382,7 +388,7 @@ function battle_foe()
     end
 end
 
---- Manages the party between battles to make sure the bot can proceed with its task.
+--- Manages the party between battles to make sure the bot can proceed with its task
 function check_party_status()
     local function is_healthy(mon)
         local pp = 0
@@ -469,7 +475,7 @@ function check_party_status()
     end
 end
 
---- Moves the bot toward a position on the map.
+--- Moves the bot toward a position on the map
 -- @param target Target position (x, z)
 -- @param on_move Function called each frame while moving
 function move_to(target, on_move)
@@ -502,6 +508,7 @@ function move_to(target, on_move)
     end
 end
 
+--- General script for receiving and checking multiple gift Pokemon types
 function mode_gift()
     if not game_state.in_game then
         print("Waiting to reach overworld...")
@@ -527,7 +534,7 @@ function mode_gift()
     end
 end
 
---- Resets until the encountered overworld Pokemon is a target.
+--- Resets until the encountered overworld Pokemon is a target
 function mode_static_encounters()
     while not game_state.in_battle do
         if game_state.map_name == "Dreamyard" then
@@ -558,7 +565,7 @@ function mode_static_encounters()
     end
 end
 
---- Presses the RUN button until the battle is over.
+--- Presses the RUN button until the battle is over
 function flee_battle()
     while game_state.in_battle do
         touch_screen_at(125, 175)
@@ -568,7 +575,7 @@ function flee_battle()
     print("Got away safely!")
 end
 
---- Progress text with imperfect inputs to increase the randomness of frames hit.
+--- Progress text with imperfect inputs to increase the randomness of frames hit
 function progress_text()
     hold_button("A")
     wait_frames(math.random(5, 20))

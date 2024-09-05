@@ -1,3 +1,9 @@
+-----------------------------------------------------------------------------
+-- Bot method overrides for B2W2
+-- Author: wyanido
+-- Homepage: https://github.com/wyanido/pokebot-nds
+-----------------------------------------------------------------------------
+
 function update_pointers()
     local anchor = mdword(0x2141950 + _ROM.offset)
 
