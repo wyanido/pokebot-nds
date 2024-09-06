@@ -303,10 +303,12 @@ function mode_starters()
     
     print("Waiting to open briefcase...")
     
-    -- Skip until starter selection is available
-    local ready_value = platinum and 0x4D or 0x75
+    -- Skip until the starter can be selected, which
+    -- is known when the lower 4 bits of the byte at
+    -- the starters pointer equals the ready value
+    local ready_value = platinum and 0xD or 0x5
 
-    while mbyte(pointers.starters_ready) ~= ready_value do
+    while bit.band(bit.band(mbyte(pointers.starters_ready), 15), ready_value) ~= ready_value do
         progress_text()
     end
 

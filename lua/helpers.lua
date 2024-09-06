@@ -52,7 +52,7 @@ function update_foes()
     -- Make sure a battle is actually underway before reading
     local battle_value = mbyte(pointers.battle_indicator)
 
-    if battle_value ~= 0x41 and battle_value ~= 0x97 then
+    if not game_state.in_game or (battle_value ~= 0x41 and battle_value ~= 0x97) then
         foe = nil
         return
     end
@@ -90,6 +90,11 @@ function update_foes()
 
     -- Attempt to identify the foe once per frame until it succeeds
     while foe == nil do
+        -- Exit in case the bot SR'ed during this stage
+        if not game_state.in_game then
+            return
+        end
+
         attempt_fetch()
         emu.frameadvance()
     end
@@ -198,8 +203,8 @@ function process_frame()
     
     decrement_input_buffers()
     update_pointers()
-    update_foes()
     update_game_state()
+    update_foes()
     
     -- Only send data on change to minimize expensive DOM updates on dashboard
     local party_was_updated = update_party()
@@ -290,4 +295,10 @@ function check_hatching_eggs()
             release_hatched_duds()
         end
     end
+end
+
+--- Debug function for printing the memory address of a pointer
+function print_pointer(pointer)
+    local local_pointer = pointer - 0x2000000
+    print(string.format("%06X", local_pointer))
 end
