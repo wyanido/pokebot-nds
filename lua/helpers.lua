@@ -52,7 +52,7 @@ function update_foes()
     -- Make sure a battle is actually underway before reading
     local battle_value = mbyte(pointers.battle_indicator)
 
-    if not game_state.in_game or (battle_value ~= 0x41 and battle_value ~= 0x97) then
+    if not game_state.in_game or (battle_value ~= 0x41 and battle_value ~= 0x97 and battle_value ~= 0xC0) then
         foe = nil
         return
     end

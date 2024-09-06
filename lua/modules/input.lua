@@ -25,21 +25,6 @@ else
     end
 end 
 
---- Releases D-pad inputs besides the one specified to match what's possible on a real D-pad
-local function release_conflicting_directions(direction)
-    local directions = {"up", "down", "left", "right"}
-
-    if not table_contains(directions, direction) then
-        return
-    end
-
-    for _, v in ipairs(directions) do
-        if v ~= direction then
-            release_button(v)
-        end
-    end
-end
-
 --- Adjusts for differences in input names between emulators by formatting them all consistently
 local function adjust_case(button)
     if _EMU == "DeSmuME" then
@@ -51,9 +36,27 @@ local function adjust_case(button)
     return button
 end
 
+--- Releases D-pad inputs besides the one specified to match what's possible on a real D-pad
+local function release_conflicting_directions(direction)
+    local directions = {"Up", "Down", "Left", "Right"}
+    direction = adjust_case(direction)
+
+    if not table_contains(directions, direction) then
+        return
+    end
+
+    for _, v in ipairs(directions) do
+        vdir = adjust_case(v)
+        
+        if vdir ~= direction then
+            release_button(v)
+        end
+    end
+end
+
 function press_button(button)
-    button = adjust_case(button)
     release_conflicting_directions(button)
+    button = adjust_case(button)
     input[button] = true
     joypad.set(input)
     wait_frames(4)
@@ -61,8 +64,8 @@ function press_button(button)
 end
 
 function hold_button(button)
-    button = adjust_case(button)
     release_conflicting_directions(button)
+    button = adjust_case(button)
     held_input[button] = true
     input[button] = true
     joypad.set(input)
