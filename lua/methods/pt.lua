@@ -1,8 +1,15 @@
+-----------------------------------------------------------------------------
+-- Bot method overrides for Platinum
+-- Author: wyanido
+-- Homepage: https://github.com/wyanido/pokebot-nds
+-----------------------------------------------------------------------------
+
 function update_pointers()
     local anchor = mdword(0x21C0794 + _ROM.offset)
 	local foe_anchor = mdword(anchor + 0x217A8)
     
 	pointers = {
+        start_value = 0x2101008, -- 0 until save has been loaded
 		party_count = anchor + 0xB0,
 		party_data  = anchor + 0xB4,
 
@@ -25,10 +32,13 @@ function update_pointers()
         starters_ready   = anchor + 0x418D4,
 
 		battle_menu_state      = anchor + 0x44878, -- 01 is FIGHT menu, 04 is Move Select, 08 is Bag,
+		battle_menu_state2     = anchor + 0x7E282,
 		battle_indicator       = 0x021D18F2 + _ROM.offset,
         fishing_bite_indicator = 0x021CF636 + _ROM.offset,
 
         trainer_name = anchor + 0x7C,
-        trainer_id   = anchor + 0x8C
+        trainer_id   = anchor + 0x8C,
+
+        roamer = mdword(anchor + 0x28364),
 	}
 end

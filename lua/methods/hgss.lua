@@ -1,3 +1,9 @@
+-----------------------------------------------------------------------------
+-- Bot method overrides for HGSS
+-- Author: wyanido
+-- Homepage: https://github.com/wyanido/pokebot-nds
+-----------------------------------------------------------------------------
+
 function update_pointers()
     local anchor = mdword(0x21D4158 + _ROM.offset)
     local foe_anchor = mdword(anchor + 0x6930)
@@ -81,7 +87,7 @@ function mode_starters()
     local target = false
 
     for i = 0, 2, 1 do
-        local mon_data = pokemon.decrypt_data(pointers.starter_data + i * _MON_BYTE_LENGTH)
+        local mon_data = pokemon.read_data(pointers.starter_data + i * _MON_BYTE_LENGTH)
         local starter = pokemon.parse_data(mon_data, true)
         target = pokemon.log_encounter(starter) or target
     end
@@ -307,7 +313,7 @@ function mode_headbutt()
         else
             -- Headbut Trees in HGSS have a 100% encounter rate, so if
             -- nothing is encountered, this tree will never spawn anything
-            abort("This tree doesn't yield any Pokémon!")
+            abort("This tree doesn't yield any Pokemon!")
         end
         
         -- Return to original position
@@ -370,7 +376,7 @@ function release_hatched_duds()
     wait_frames(60)
 
     for i = 6, 2, -1 do
-        if pokemon.is_dud(party[i]) then 
+        if pokemon.is_hatched_dud(party[i]) then 
             release(i)
         end
     end
@@ -420,7 +426,7 @@ function mode_daycare_eggs()
 
     -- Initialise party state for future reference
     process_frame()
-    party_eggs = get_party_eggs()
+    party_egg_states = get_party_egg_states()
 
     mount_bike()
     move_to({x=358}, check_hatching_eggs)
@@ -432,6 +438,7 @@ function mode_daycare_eggs()
     end
 end
 
+--- Returns the current stage of the battle as a simple string
 function get_battle_state()
     if not game_state.in_battle then
         return nil

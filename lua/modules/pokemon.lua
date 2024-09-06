@@ -1,42 +1,70 @@
+-----------------------------------------------------------------------------
+-- Pure Lua handler for emulator Pokemon data
+-- Author: wyanido
+-- Homepage: https://github.com/wyanido/pokebot-nds
+--
+-- Responsible for reading, parsing, and handling general logic
+-- that uses Pokemon data for other bot modes.
+-----------------------------------------------------------------------------
 local pokemon = {}
 
--- Interprets a region of RAM as Pokemon data and decrypts it as such
-function pokemon.decrypt_data(address)
-    local rand = function(seed) -- Thanks Kaphotics
+--- Verifies the checksum of Pokemon data in memory
+local function verify_checksums(data, checksum)
+    local sum = 0
+
+    for i = 0x09, 0x88, 2 do
+        sum = sum + data[i] + bit.lshift(data[i + 1], 8)
+    end
+
+    sum = bit.band(sum, 0xFFFF)
+
+    return sum == checksum and sum ~= 0
+end
+
+--- Creates a surface-level copy of a lua table without nested elements 
+local function shallow_copy(orig)
+    local orig_type = type(orig)
+    local copy
+    if orig_type == 'table' then
+        copy = {}
+        for orig_key, orig_value in pairs(orig) do
+            copy[orig_key] = orig_value
+        end
+    else -- number, string, boolean, etc
+        copy = orig
+    end
+    return copy
+end
+
+--- Returns a decrypted byte table of Pokemon data from memory
+function pokemon.read_data(address, is_raw)
+    local function rand(seed) -- Thanks Kaphotics
         return (0x4e6d * (seed % 65536) + ((0x41c6 * (seed % 65536) + 0x4e6d * math.floor(seed / 65536)) % 65536) * 65536 + 0x6073) % 4294967296
     end
 
-    local decrypt_block = function(start, finish)
+    local function decrypt_block(start, finish)
         local data = {}
 
         for i = start, finish, 0x2 do
-            seed = rand(seed)
-
-            local rs = bit.rshift(seed, 16)
             local word = mword(address + i)
-            local decrypted = bit.bxor(word, rs)
-            local end_word = bit.band(decrypted, 0xFFFF)
+            
+            -- Decrypt bytes if the data isn't already unencrypted (only applies to Platinum statics)
+            if not is_raw then
+                seed = rand(seed)
 
-            table.insert(data, bit.band(end_word, 0xFF))
-            table.insert(data, bit.band(bit.rshift(end_word, 8), 0xFF))
+                local rs = bit.rshift(seed, 16)
+                word = bit.bxor(word, rs)
+                word = bit.band(word, 0xFFFF)
+            end
+
+            table.insert(data, bit.band(word, 0xFF))
+            table.insert(data, bit.band(bit.rshift(word, 8), 0xFF))
         end
 
         return data
     end
 
-    local verify_checksums = function(checksum)
-        local sum = 0
-
-        for i = 0x09, 0x88, 2 do
-            sum = sum + data[i] + bit.lshift(data[i + 1], 8)
-        end
-
-        sum = bit.band(sum, 0xFFFF)
-
-        return sum == checksum
-    end
-
-    local append_bytes = function(source)
+    local function append_bytes(source)
         table.move(source, 1, #source, #data + 1, data)
     end
 
@@ -93,9 +121,9 @@ function pokemon.decrypt_data(address)
         append_bytes(_block[index])
     end
 
-    -- Re-calculate the checksum of the blocks and match it with mon.checksum
-    -- If the checksum fails, assume it's the data is garbage or still being written
-    if not verify_checksums(checksum) then
+    -- Re-calculate checksum of the data blocks and match it with mon.checksum
+    -- If there is no match, assume the Pokemon data is garbage or still being written
+    if not verify_checksums(data, checksum) then
         return nil
     end
 
@@ -103,7 +131,8 @@ function pokemon.decrypt_data(address)
     seed = pid
     append_bytes(decrypt_block(0x88, 0xDB))
 
-    if _ROM.gen == 4 then -- Write blank ball seal data
+    if _ROM.gen == 4 then
+        -- Write blank ball seal data
         for i = 0x1, 0x10 do
             table.insert(data, 0x0)
         end
@@ -112,9 +141,11 @@ function pokemon.decrypt_data(address)
     return data
 end
 
--- Parses decrypted data into a human-readable table of key value pairs
+--- Parses raw Pokemon data from bytes into a human-readable table
+-- All properties are included here, but ones that aren't relevant to any
+-- bot modes have been commented out to keep the data simple. Customise if needed.
 function pokemon.parse_data(data, enrich)
-    local read_real = function(start, length)
+    local function read_real(start, length)
         local bytes = 0
         local j = 0
 
@@ -168,8 +199,7 @@ function pokemon.parse_data(data, enrich)
         sid = tonumber(config.sid_override)
     end
 
-    mon.shinyValue = bit.bxor(bit.bxor(bit.bxor(tid, sid), (bit.band(bit.rshift(mon.pid, 16), 0xFFFF))),
-        bit.band(mon.pid, 0xFFFF))
+    mon.shinyValue = bit.bxor(bit.bxor(bit.bxor(tid, sid), (bit.band(bit.rshift(mon.pid, 16), 0xFFFF))), bit.band(mon.pid, 0xFFFF))
     mon.shiny = mon.shinyValue < 8
 
     -- Block B
@@ -201,7 +231,7 @@ function pokemon.parse_data(data, enrich)
     else
         mon.nature = read_real(0x41, 1)
 
-        local value = read_real(0x42, 1)
+        -- local value = read_real(0x42, 1)
         -- mon.dreamWorldAbility = bit.band(value, 0x01)
         -- mon.isNsPokemon		  = bit.band(value, 0x01)
     end
@@ -277,34 +307,10 @@ function pokemon.parse_data(data, enrich)
     return mon
 end
 
-function pokemon.check_battle_moves(ally)
-    for i = 1, #ally.moves, 1 do
-        local pp = ally.pp[i]
-        local power = ally.moves[i].power
-        local total_pp = 0
-        if pp ~= 0 and power ~= nil then
-            total_pp = total_pp + pp
-        end
-    end
-end
-
-local function shallow_copy(orig)
-    local orig_type = type(orig)
-    local copy
-    if orig_type == 'table' then
-        copy = {}
-        for orig_key, orig_value in pairs(orig) do
-            copy[orig_key] = orig_value
-        end
-    else -- number, string, boolean, etc
-        copy = orig
-    end
-    return copy
-end
-
+--- Sends a Pokemon to the dashboard to log it as an encounter
 function pokemon.log_encounter(mon)
     if not mon then
-        print_warn("Tried to log a non-existent Pokémon!")
+        print_warn("Tried to log a non-existent Pokemon!")
         return false
     end
 
@@ -360,7 +366,8 @@ function pokemon.log_encounter(mon)
     return is_target
 end
 
-function pokemon.find_best_move(ally, foe)
+--- Returns the index of the most suitable move for KO-ing the target
+function pokemon.find_best_attacking_move(ally, foe)
     local max_power_index = 1
     local max_power = 0
 
@@ -372,7 +379,7 @@ function pokemon.find_best_move(ally, foe)
             power = nil
         end
 
-        -- Ignore useless moves
+        -- Only check damaging moves with PP remaining
         if ally.pp[i] ~= 0 and power ~= nil then
             local type_matchup = _TYPE[move.type]
 
@@ -382,6 +389,7 @@ function pokemon.find_best_move(ally, foe)
 
                 if table_contains(type_matchup.cant_hit, foe_type) then
                     power = 0
+                    break
                 elseif table_contains(type_matchup.resisted_by, foe_type) then
                     power = power / 2
                 elseif table_contains(type_matchup.super_effective, foe_type) then
@@ -418,6 +426,7 @@ function pokemon.find_best_move(ally, foe)
     }
 end
 
+--- Returns whether a Pokemon has traits desired by a specified user ruleset
 function pokemon.matches_ruleset(mon, ruleset)
     if not ruleset then
         print_warn("Can't check Pokemon against an empty ruleset")
@@ -493,6 +502,7 @@ function pokemon.matches_ruleset(mon, ruleset)
     return is_target
 end
 
+--- Returns the index of a given move within a Pokemon's moveset
 function pokemon.get_move_slot(mon, move_name)
     for i, v in ipairs(mon.moves) do
         if v.name == move_name and mon.pp[i] > 0 then
@@ -502,7 +512,8 @@ function pokemon.get_move_slot(mon, move_name)
     return 0
 end
 
-function pokemon.is_dud(mon)
+--- Returns whether a Pokemon is both newly hatched and not a target
+function pokemon.is_hatched_dud(mon)
     return mon.level == 1 and not pokemon.matches_ruleset(mon, config.target_traits)
 end
 

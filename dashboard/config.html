@@ -37,25 +37,28 @@
             <fieldset class="row row-eq-spacing" id="config-form" disabled>
                 <div class="col-6">
                     <div class="card">
-                        <h2 class="content-title">Primary</h2>
-                        <label for="mode">Bot Behaviour</label>
+                        <h2 class="content-title">Main</h2>
+                        <label for="mode">Bot Task</label>
                         <select class="form-control" id="mode">
-                            <option value="manual">Manual (logging only)</option>
-                            <option disabled>-- All Games</option>
-                            <option value="starters">Starters</option>
-                            <option value="gift">Gift Pokémon</option>
-                            <option value="static_encounters">Static Encounters</option>
-                            <option value="random_encounters">Random Encounters</option>
-                            <option value="daycare_eggs">Collect & Hatch Eggs</option>
-                            <option value="fishing">Fishing</option>
-                            <option disabled>-- HeartGold/SoulSilver</option>
-                            <option value="primo_gift">Primo Gift Eggs</option>
-                            <option value="voltorb_flip">Voltorb Flip</option>
-                            <option value="headbutt">Headbutt Trees</option>
-                            <option disabled>-- BW/B2W2</option>
-                            <option value="thundurus_tornadus">Thundurus/Tornadus Dex Resets</option>
-                            <option value="phenomenon_encounters">Phenomenon Encounters</option>
-                            <option value="hidden_grottos">Hidden Grottos (B2W2)</option>
+                            <option value="manual">Log only</option>
+                            <optgroup label="Soft Resets">
+                                <option value="starters">Starters</option>
+                                <option value="gift">Gifts</option>
+                                <option value="static_encounters">Static Encounters</option>
+                                <option value="primo_gift">Primo Gift Eggs</option>
+                                <option value="roamers">Roamers</option>
+                            </optgroup>
+                            <optgroup label="Standard">
+                                <option value="random_encounters">Random Encounters</option>
+                                <option value="daycare_eggs">Egg Hatching</option>
+                                <option value="fishing">Fishing</option>
+                                <option value="headbutt">Headbutt Tree Encounters</option>
+                                <option value="phenomenon_encounters">Phenomenon Encounters</option>
+                                <option value="hidden_grottos">Hidden Grotto Farming</option>
+                            </optgroup>
+                            <optgroup label="Misc.">
+                                <option value="voltorb_flip">Voltorb Flip</option>
+                            </optgroup>
                         </select>
                         <div id="option_moving_encounters">
                             <br>
@@ -136,6 +139,17 @@
                                 <select class="primo-phrase form-control" id="primo4"></select>
                             </div>
                         </div>
+                        <br>
+                        <div class="custom-switch">
+                            <input type="checkbox" id="debug">
+                            <label for="debug">Show debug log
+                                <i class="fa fa-info-circle" id="tooltip-icon" aria-describedby="tooltip"></i>
+                                <div id="tooltip" role="tooltip">Outputs extra info to the Lua Console. Useful if you
+                                    need to troubleshoot an issue or collect info for an Issue report.
+                                    <div id="arrow" data-popper-arrow></div>
+                                </div>
+                            </label>
+                        </div>
                     </div>
                     <div class="card">
                         <h2 class="content-title">Discord</h2>
@@ -204,17 +218,6 @@
                     <div class="card">
                         <h2 class="content-title">Other</h2>
                         <div class="custom-switch">
-                            <input type="checkbox" id="debug">
-                            <label for="debug">Debug mode
-                                <i class="fa fa-info-circle" id="tooltip-icon" aria-describedby="tooltip"></i>
-                                <div id="tooltip" role="tooltip">Outputs extra info to the Lua Console. Useful if you
-                                    need to troubleshoot an issue.
-                                    <div id="arrow" data-popper-arrow></div>
-                                </div>
-                            </label>
-                        </div>
-                        <br>
-                        <div class="custom-switch">
                             <input type="checkbox" id="focus_mode">
                             <label for="focus_mode">Focus mode
                                 <i class="fa fa-info-circle" id="tooltip-icon" aria-describedby="tooltip"></i>
@@ -223,9 +226,6 @@
                                 </div>
                             </label>
                         </div>
-                        <br>
-                        <label for="dashboard_poll_interval">Dashboard refresh interval (ms)</label>
-                        <input id="dashboard_poll_interval" style="width:100px" min="1" type="number" class="form-control">
                         <br>
                         <div class="custom-switch">
                             <input type="checkbox" id="auto_open_page">

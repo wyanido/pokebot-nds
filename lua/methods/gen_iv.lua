@@ -1,9 +1,17 @@
+-----------------------------------------------------------------------------
+-- General bot methods for gen 4 games (DPPt, HGSS)
+-- Author: wyanido
+-- Homepage: https://github.com/wyanido/pokebot-nds
+-----------------------------------------------------------------------------
+
 function update_pointers()
     local anchor = mdword(0x21C489C + _ROM.offset)
     local foe_anchor = mdword(anchor + 0x226FE)
     local bag_page_anchor = mdword(anchor + 0x560EE)
+    local roamer_anchor = mdword(anchor + 0x4272A)
 
     pointers = {
+        start_value = 0x21066D4, -- 0 until save has been loaded
         -- items_pocket      = anchor + 0x59E,
         -- key_items_pocket  = anchor + 0x832,
         -- tms_hms_pocket    = anchor + 0x8FA,
@@ -42,10 +50,12 @@ function update_pointers()
         trainer_id   = anchor - 0x12,
 
         save_indicator = 0x21C491F + _ROM.offset,
+        
+        roamer = roamer_anchor + 0x20,
     }
 end
 
---- Wait a random number of frames after a reset to decrease the odds of hitting duplicate seeds.
+--- Waits a random duration after a reset to decrease the odds of hitting duplicate seeds
 function randomise_reset()
     wait_frames(200) -- White screen on startup
 
@@ -53,9 +63,13 @@ function randomise_reset()
 
     print_debug("Delaying " .. delay .. " frames...")
     wait_frames(delay)
+
+    while not game_state.in_game do
+        press_sequence("Start", 20, "A", math.random(8, 28))
+    end
 end
 
---- Opens the menu and selects the specified option.
+--- Opens the menu and selects the specified option
 -- @param menu Name of the menu to open
 function open_menu(menu)
     local option = {
@@ -79,7 +93,7 @@ function open_menu(menu)
     press_sequence("A", 90)
 end
 
---- Returns an array of all Poke Balls within the Poke Balls bag pocket.
+--- Returns an array of all Poke Balls within the Poke Balls bag pocket
 function get_usable_balls()
     local balls = {}
     local slot = 0
@@ -100,17 +114,17 @@ function get_usable_balls()
     return balls
 end
 
---- Returns true if the rod state has changed from being cast.
+--- Returns true if the rod state has changed from being cast
 function fishing_status_changed()
     return mbyte(pointers.fishing_bite_indicator) ~= 0
 end
 
---- Returns true if a Pokemon is on the hook.
+--- Returns true if a Pokemon is on the hook
 function fishing_has_bite()
     return mbyte(pointers.fishing_bite_indicator) == 1
 end
 
---- Navigates to the Solaceon Town daycare and releases all hatched Pokemon in the party.
+--- Navigates to the Solaceon Town daycare and releases all hatched Pokemon in the party
 function release_hatched_duds()
     local function release()
         press_sequence("A", 5, "Up", 5, "Up", 5, "A", 5, "Up", 5, "A", 120, "A", 60, "A", 10)
@@ -142,15 +156,15 @@ function release_hatched_duds()
     press_sequence("Up", 20, "Up", 20)
 
     -- Release Lv 1 Pokemon from back to front to accomodate for positions shifting
-    if pokemon.is_dud(party[6]) then release() end
+    if pokemon.is_hatched_dud(party[6]) then release() end
     press_sequence("Left", 10)
-    if pokemon.is_dud(party[5]) then release() end
+    if pokemon.is_hatched_dud(party[5]) then release() end
     press_sequence("Up", 10, "Right", 10)
-    if pokemon.is_dud(party[4]) then release() end
+    if pokemon.is_hatched_dud(party[4]) then release() end
     press_sequence("Left", 10)
-    if pokemon.is_dud(party[3]) then release() end
+    if pokemon.is_hatched_dud(party[3]) then release() end
     press_sequence("Up", 10, "Right", 10)
-    if pokemon.is_dud(party[2]) then release() end
+    if pokemon.is_hatched_dud(party[2]) then release() end
 
     -- Close PC
     press_sequence("B", 60, "B", 20, "B", 160, "B", 60, "B", 20)
@@ -168,7 +182,7 @@ function release_hatched_duds()
     move_to({x=562})
 end
 
---- Proceeds until the egg hatch animation finishes.
+--- Proceeds until the egg hatch animation finishes
 function hatch_egg(slot)
     press_sequence(30, "B", 30)
             
@@ -245,7 +259,7 @@ function read_string(input, pointer)
     return text
 end
 
---- Returns the current stage of the battle as a simple string.
+--- Returns the current stage of the battle as a simple string
 function get_battle_state()
     if not game_state.in_battle then
         return nil
@@ -270,7 +284,7 @@ function get_battle_state()
     return nil
 end
 
---- Picks the specified starter Pokemon each reset until it's a target.
+--- Picks the specified starter Pokemon each reset until it's a target
 function mode_starters()
     cycle_starter_choice()
     
@@ -289,10 +303,12 @@ function mode_starters()
     
     print("Waiting to open briefcase...")
     
-    -- Skip until starter selection is available
-    local ready_value = platinum and 0x4D or 0x75
+    -- Skip until the starter can be selected, which
+    -- is known when the lower 4 bits of the byte at
+    -- the starters pointer equals the ready value
+    local ready_value = platinum and 0xD or 0x5
 
-    while mbyte(pointers.starters_ready) ~= ready_value do
+    while bit.band(bit.band(mbyte(pointers.starters_ready), 15), ready_value) ~= ready_value do
         progress_text()
     end
 
@@ -319,7 +335,7 @@ function mode_starters()
     end
 end
 
---- Encounters wild Pokemon until a target is found. Can battle and catch.
+--- Encounters wild Pokemon until a target is found. Can battle and catch
 function mode_random_encounters()
     local function spin()
         -- Prevent accidentally taking a step by
@@ -381,7 +397,7 @@ function mode_random_encounters()
     process_wild_encounter()
 end
 
---- Hunts for targets by hatching eggs.
+--- Hunts for targets by hatching eggs
 -- Bikes through Solaceon Town until the party is full of hatched eggs,
 -- then frees up party space at the PC if no targets were hatched
 function mode_daycare_eggs()
@@ -413,7 +429,7 @@ function mode_daycare_eggs()
 
     -- Initialise party state for future reference
     process_frame()
-    party_eggs = get_party_eggs()
+    party_egg_states = get_party_egg_states()
 
     mount_bike()
     move_to({x=562}, check_hatching_eggs)
@@ -423,5 +439,34 @@ function mode_daycare_eggs()
         check_and_collect_egg()
         move_to({z=675}, check_hatching_eggs)
         check_and_collect_egg()
+    end
+end
+
+function mode_roamers()
+    local data
+    local a_cooldown = 0
+    local is_unencrypted = _ROM.version ~= "PL" -- Only Platinum encrypts roamer data after generating it 
+
+    while not data do
+        data = pokemon.read_data(pointers.roamer, is_unencrypted)
+
+        if a_cooldown == 0 then
+            press_button_async("A")
+            a_cooldown = math.random(5, 20)
+        else
+            a_cooldown = a_cooldown - 1
+        end
+
+        wait_frames(1)
+    end
+
+    local mon = pokemon.parse_data(data, true)
+    local is_target = pokemon.log_encounter(mon)
+
+    if is_target then
+        abort(mon.name .. " is a target!")
+    else
+        print(mon.name .. " was not a target, resetting...")
+        soft_reset()
     end
 end

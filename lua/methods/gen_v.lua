@@ -1,3 +1,9 @@
+-----------------------------------------------------------------------------
+-- General bot methods for gen 5 games (BW, B2W2)
+-- Author: wyanido
+-- Homepage: https://github.com/wyanido/pokebot-nds
+-----------------------------------------------------------------------------
+
 function update_pointers()
     local anchor = mdword(0x2146A88 + _ROM.offset)
 
@@ -52,12 +58,12 @@ function update_pointers()
         trainer_name = 0x2234FB0 + _ROM.offset,
         trainer_id   = 0x2234FC0 + _ROM.offset,
 
-        thundurus_tornadus = 0x225960C + _ROM.offset,
+        roamer = 0x225960C + _ROM.offset,
         daycare_egg = 0x223CB74 + _ROM.offset,
     }
 end
 
---- Press random key combo after SRing to increase seed randomness
+--- Presses a random key combination after SRing to increase seed randomness
 -- https://www.smogon.com/ingame/rng/bw_rng_part2
 function randomise_reset()
     local inputs = { "Up", "Down", "Left", "Right", "A", "B", "X", "Y", "L", "R", "Start", "Select" }
@@ -78,7 +84,7 @@ function randomise_reset()
     end
 end
 
---- Opens the menu and selects the specified option.
+--- Opens the menu and selects the specified option
 -- @param menu Name of the menu to open
 function open_menu(menu)
     press_sequence(60, "X", 30)
@@ -106,17 +112,17 @@ function open_menu(menu)
     wait_frames(90)
 end
 
---- Returns true if the rod state has changed from being cast.
+--- Returns true if the rod state has changed from being cast
 function fishing_status_changed()
     return not (mword(pointers.fishing_bite_indicator) ~= 0xFFF1 and mbyte(pointers.fishing_no_bite) == 0)
 end
 
---- Returns true if a Pokemon is on the hook.
+--- Returns true if a Pokemon is on the hook
 function fishing_has_bite()
     return mword(pointers.fishing_bite_indicator) == 0xFFF1
 end
 
---- Converts bytes into readable text using the game's respective encoding method.
+--- Converts bytes into readable text using the game's respective encoding method
 -- @param input Table of bytes or memory address to read from
 -- @param pointer Offset into the byte table if provided
 function read_string(input, pointer)
@@ -124,7 +130,7 @@ function read_string(input, pointer)
 
     if type(input) == "table" then
         for i = pointer + 1, #input, 2 do
-            local value = input[i] + (bit.lshift(input[i + 1], 8))
+            local value = input[i] + bit.lshift(input[i + 1], 8)
 
             if value == 0xFFFF or value == 0x0000 then -- Null terminator
                 break
@@ -172,7 +178,7 @@ function get_usable_balls()
     end
 end
 
---- Returns whether a Pokemon is registered in the dex under a certain form.
+--- Returns whether a Pokemon is registered in the dex under a certain form
 -- @param name Name of the Pokemon
 -- @param field Form to check if registered
 function dex_registered(name, field)
@@ -211,7 +217,7 @@ function dex_registered(name, field)
     return nil
 end
 
---- Proceeds until the egg hatch animation finishes
+--- Proceeds until the egg hatch animation finishes.
 function hatch_egg(slot)
     while mdword(pointers.egg_hatching) == 1 do
         press_sequence(15, "B")
@@ -417,7 +423,7 @@ function mode_daycare_eggs()
 
     -- Initialise party state for future reference
     process_frame()
-    party_eggs = get_party_eggs()
+    party_egg_states = get_party_egg_states()
 
     -- mount_bike()
     move_to({z=563}, check_hatching_eggs)
@@ -432,7 +438,7 @@ function mode_daycare_eggs()
     end
 end
 
-function mode_thundurus_tornadus()
+function mode_roamers()
     local function dex_entry_added()
         local tornadus_seen = dex_registered("tornadus", "male") or dex_registered("tornadus", "shiny_male")
         local thundurus_seen = dex_registered("thundurus", "male") or dex_registered("thundurus", "shiny_male")
@@ -457,7 +463,7 @@ function mode_thundurus_tornadus()
     end
 
     -- Read pre-generated Pokemon from memory
-    local data = pokemon.decrypt_data(pointers.thundurus_tornadus)
+    local data = pokemon.read_data(pointers.roamer)
     local mon = pokemon.parse_data(data, true)
     local is_target = pokemon.log_encounter(mon)
 
@@ -469,7 +475,7 @@ function mode_thundurus_tornadus()
     end
 end
 
---- Navigates to the Route 3 daycare and releases all hatched Pokemon in the party.
+--- Navigates to the Route 3 daycare and releases all hatched Pokemon in the party
 function release_hatched_duds()
     local function release(i)
         local x = 40 * ((i - 1) % 2 + 1)
@@ -512,7 +518,7 @@ function release_hatched_duds()
 
     -- Release party in reverse order so the positions don't shuffle to fit empty spaces
     for i = #party, 1, -1 do
-        if pokemon.is_dud(party[i]) then
+        if pokemon.is_hatched_dud(party[i]) then
             release(i)
         end
     end
@@ -536,7 +542,7 @@ function release_hatched_duds()
     move_to({z=563})
 end
 
---- Returns the current stage of the battle as a simple string.
+--- Returns the current stage of the battle as a simple string
 function get_battle_state()
     if not game_state.in_battle then
         return nil
