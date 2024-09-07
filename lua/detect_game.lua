@@ -153,7 +153,8 @@ local function identify_game()
     local rom = RECOGNISED_GAMES[game_code]
     rom.offset = rom.offset[language_code]
     rom.version = game_code
-
+    rom.language = language_code
+    
     return rom
 end
 

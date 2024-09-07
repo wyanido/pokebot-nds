@@ -62,6 +62,10 @@ function update_pointers()
         daycare_egg = 0x22264AC + _ROM.offset,
         -- pass_power_1_duration = 0x21410B8 + _ROM.offset,
     }
+
+    if _ROM.language == "JP" then
+        pointers.starter_selection_is_open = 0x22572ED + _ROM.offset
+    end
 end
 
 local function bike_back_and_forth()
