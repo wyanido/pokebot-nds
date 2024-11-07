@@ -20,7 +20,7 @@ function update_party()
     local party_size = mbyte(pointers.party_count)
     local party_was_updated = false
 
-    for i = 1, 6, 1 do
+    for i = 1, 6 do
         local checksum = mword(pointers.party_data + 6 + _MON_BYTE_LENGTH * (i - 1))
         
         if i <= party_size then
@@ -232,7 +232,7 @@ end
 function get_party_egg_states()
     local eggs = {}
 
-    for i = 1, 6, 1 do
+    for i = 1, 6 do
         if party[i] then
             eggs[i] = party[i].isEgg
         else
@@ -260,10 +260,9 @@ function check_hatching_eggs()
         -- so we can tell if an egg is hatching when 'is_egg' has changed since last reference
         if party[i] and party_egg_states[i] ~= is_egg then
             clear_all_inputs()
-            
             print("Egg is hatching!")
             hatch_egg(i)
-            
+
             local is_target = pokemon.log_encounter(party[i])
             if is_target then
                 abort("Hatched a target Pokemon!")
@@ -277,23 +276,24 @@ function check_hatching_eggs()
     end
 
     party_egg_states = current_egg_states
-    
+
     -- Check party to see if it's clear of eggs
-    if #party == 6 then
+    if party and #party == 6 then  -- Added check for party being nil
         local has_egg = false
         
-        for _, is_egg in ipairs(new_eggs) do
+        for _, is_egg in ipairs(new_eggs or {}) do  -- Prevent nil case for new_eggs
             if is_egg then
                 has_egg = true
                 break
             end
         end
 
-        -- If no eggs are left and no target was found, release all Lv. 1 Pokemon from the party
         if not has_egg then
             print("Party has no room for eggs! Releasing last 5 Pokemon...")
             release_hatched_duds()
         end
+    elseif not party then
+        print("Error: Party is nil.")
     end
 end
 
