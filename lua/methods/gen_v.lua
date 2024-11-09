@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- General bot methods for gen 5 games (BW, B2W2)
--- Author: wyanido
+-- Author: wyanido, storyzealot
 -- Homepage: https://github.com/wyanido/pokebot-nds
 -----------------------------------------------------------------------------
 
@@ -393,49 +393,178 @@ function mode_phenomenon_encounters()
 end
 
 function mode_daycare_eggs()
+    print("Start of Egg Hatching.")
+    print("Ensure your key menu item has Bicycle selected.")
+
     local function mount_bike()
         if mbyte(pointers.bike) ~= 1 then 
             press_sequence("Y")
         end
     end
-    
+
     local function check_and_collect_egg()
-        -- Don't bother with additional eggs if party is full
-        if #party == 6 or mdword(pointers.daycare_egg) == 0 then
+        print("Checking for eggs...")
+
+        -- Don't bother if party is full
+        if #party == 6 then
+            print("Party is full, cannot collect more eggs.")
             return
         end
 
         print("That's an egg!")
-
-        move_to({x=748}, check_hatching_eggs)
-        move_to({z=557}, check_hatching_eggs)
+        move_to({x = 748}, check_hatching_eggs)
+        move_to({z = 557}, check_hatching_eggs)
         clear_all_inputs()
 
         local party_count = #party
+        print("Waiting for a party change...")
         while #party == party_count do
             progress_text()
         end
+        print("Party has changed. New count: " .. #party)
 
         -- Return to long horizontal path 
+        print("Returning to previous position...")
         press_sequence(30, "B")
-        move_to({z=563}, check_hatching_eggs)
+        move_to({z = 563}, check_hatching_eggs)
     end
 
-    -- Initialise party state for future reference
+    print("Processing frame...")
     process_frame()
     party_egg_states = get_party_egg_states()
+    print("Initial party egg states acquired.")
 
+    -- Uncomment for debugging bike mount
     -- mount_bike()
-    move_to({z=563}, check_hatching_eggs)
-    
+
+    move_to({z = 563}, check_hatching_eggs)
+
     while true do
-        move_to({x=680}, check_hatching_eggs)
-        move_to({x=748}, check_hatching_eggs)
+        print("Moving to x=680...")
+        move_to({x = 680}, check_hatching_eggs)
+
+        print("Moving to x=748...")
+        move_to({x = 748}, check_hatching_eggs)
         check_and_collect_egg()
-        move_to({x=759}, check_hatching_eggs)
-        move_to({x=748}, check_hatching_eggs)
+
+        print("Moving to x=759...")
+        move_to({x = 759}, check_hatching_eggs)
+
+        print("Moving back to x=748...")
+        move_to({x = 748}, check_hatching_eggs)
         check_and_collect_egg()
+
+        -- Check if the party is full and if there are no eggs remaining
+        if #party == 6 then  -- Check if party is full
+            local current_egg_states = get_party_egg_states()  -- Refresh the egg states
+
+            -- Only release if there are no eggs left in the party
+            local has_egg = false
+            for _, is_egg in ipairs(current_egg_states) do
+                if is_egg then
+                    has_egg = true
+                    break
+                end
+            end
+            
+            if not has_egg then
+                print("All eggs hatched. Releasing hatched duds...")
+                release_hatched_duds()
+            else
+                print("Some eggs are still unhatched. Not releasing.")
+            end
+        end
     end
+end
+
+-- Navigates to the Route 3 daycare and releases all hatched Pokemon in the party
+function release_hatched_duds()
+    print("Releasing eggs...")
+
+    local function release(i)
+        print("Releasing Pokemon at index: " .. i)
+        local x = 40 * ((i - 1) % 2 + 1)
+        local y = 72 + 30 * math.floor((i - 1) / 2)
+
+        touch_screen_at(x, y) -- Select Pokemon
+        print("Selected Pokemon at: (" .. x .. ", " .. y .. ")")
+        wait_frames(30)
+        touch_screen_at(211, 121) -- RELEASE
+        print("Tapped RELEASE")
+        wait_frames(30)
+        touch_screen_at(220, 110) -- YES
+        print("Confirmed RELEASE")
+        press_sequence(60, "B", 20, "B", 20) -- Bye-bye!
+        print("Released Pokémon.")
+    end
+
+    move_to({x = 748}) -- Move to staircase
+    move_to({z = 557}) -- Move to the door
+    move_to({x = 749, z = 556})
+    print("Navigating to daycare lady at desk...")
+
+    -- Walk to daycare lady at desk
+    while game_state.map_header ~= 323 do
+        hold_button("Up")
+    end
+
+    release_button("Up")
+
+    -- Walk to PC
+    print("Moving to PC...")
+    hold_button("B")
+    move_to({z = 9})
+    move_to({x = 9})
+    hold_button("Up")
+    wait_frames(10)
+    release_button("Up")
+    wait_frames(10)
+    release_button("B")
+
+    press_sequence("A", 140, "A", 120, "A", 110, "A", 60)
+    print("Navigating through PC options...")
+    press_sequence("Down", 5, "Down", 5, "A", 110)
+
+    touch_screen_at(45, 175)
+    wait_frames(60)
+
+    -- Release party in reverse order so the positions don't shuffle to fit empty spaces
+    for i = #party, 1, -1 do
+        if pokemon.is_hatched_dud(party[i]) then
+            release(i)
+        else
+            print("Pokémon at index " .. i .. " is not a hatched dud.")
+        end
+    end
+
+    press_sequence("B", 25, "B", 30, "B", 30, "B", 150, "B", 90) -- Exit PC
+
+    -- Exit daycare
+    print("Exiting daycare...")
+    hold_button("B")
+    move_to({x = 6})  -- Move to the door's x-coordinate
+    move_to({z = 13}) -- Move to the door's z-coordinate
+
+    -- Move down to fully exit the daycare
+    hold_button("Down") -- Hold down to step down
+    wait_frames(10)     -- Wait for a moment to allow for the action
+    release_button("Down") -- Release the down button
+
+    -- Wait until the map changes
+    while game_state.map_header ~= 323 do
+        emu.yield() -- Allow time for the game to process the input
+    end
+
+    -- Stop holding buttons once the map changes
+    release_button("B")
+    print("Exited daycare.")
+
+    -- Perform actions after exiting daycare
+    print("Getting on bike...")
+    press_sequence(180, "Y", 30, "A", 30) -- Press Y (and A in case of multiple key items)
+    move_to({z = 557}) -- Move to the desired z-coordinate after exiting
+    move_to({x = 748}) -- Move to the desired x-coordinate
+    move_to({z = 563}) -- Move to final z-coordinate
 end
 
 function mode_roamers()
@@ -473,73 +602,6 @@ function mode_roamers()
         print(mon.name .. " was not a target, resetting...")
         soft_reset()
     end
-end
-
---- Navigates to the Route 3 daycare and releases all hatched Pokemon in the party
-function release_hatched_duds()
-    local function release(i)
-        local x = 40 * ((i - 1) % 2 + 1)
-        local y = 72 + 30 * math.floor((i - 1) / 2)
-
-        touch_screen_at(x, y) -- Select Pokemon
-        wait_frames(30)
-        touch_screen_at(211, 121) -- RELEASE
-        wait_frames(30)
-        touch_screen_at(220, 110) -- YES
-        press_sequence(60, "B", 20, "B", 20) -- Bye-bye!
-    end
-
-    move_to({x=748}) -- Move to staircase
-    move_to({z=557}) -- Move to the door
-    move_to({x=749,z=556})
-    
-    -- Walk to daycare lady at desk
-    while game_state.map_header ~= 323 do
-        hold_button("Up")
-    end
-
-    release_button("Up")
-
-    -- Walk to PC
-    hold_button("B")
-    move_to({z=9})
-    move_to({x=9})
-    hold_button("Up")
-    wait_frames(10)
-    release_button("Up")
-    wait_frames(10)
-    release_button("B")
-    
-    press_sequence("A", 140, "A", 120, "A", 110, "A", 60)
-    press_sequence("Down", 5, "Down", 5, "A", 110)
-
-    touch_screen_at(45, 175)
-    wait_frames(60)
-
-    -- Release party in reverse order so the positions don't shuffle to fit empty spaces
-    for i = #party, 1, -1 do
-        if pokemon.is_hatched_dud(party[i]) then
-            release(i)
-        end
-    end
-
-    press_sequence("B", 25, "B", 30, "B", 30, "B", 150, "B", 90) -- Exit PC
-    
-    -- Exit daycare
-    hold_button("B")
-    move_to({x=6})
-    move_to({z=13})
-    
-    while game_state.map_header ~= 321 do
-        hold_button("Down")
-    end
-
-    release_button("B")
-    release_button("Down")
-    press_sequence(180, "Y", 30)
-    move_to({z=557})
-    move_to({x=748})
-    move_to({z=563})
 end
 
 --- Returns the current stage of the battle as a simple string
