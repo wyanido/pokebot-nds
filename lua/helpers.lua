@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- General helper methods for bot functionality
--- Author: wyanido, storyzealot
+-- Author: wyanido
 -- Homepage: https://github.com/wyanido/pokebot-nds
 -----------------------------------------------------------------------------
 
@@ -246,7 +246,7 @@ end
 --- Presses A to allow the egg hatch animation to finish if it's currently happening
 function check_hatching_eggs()
     if emu.framecount() % 10 == 0 then
-        if _ROM.version == "HG" or _ROM.version == "SS" then
+        if _ROM.version == "HG" or _ROM.version == "SS" then -- HGSS needs to deny phone calls a lot of the time, so we use B instead
             press_button_async("B")
         else
             press_button_async("A")
@@ -257,6 +257,8 @@ function check_hatching_eggs()
 
     -- Check for egg hatching
     for i, is_egg in ipairs(current_egg_states) do
+        -- Eggs are already considered "hatched" as soon as the animation starts,
+        -- so we can tell if an egg is hatching when 'is_egg' has changed since last reference
         if party[i] then
             if party_egg_states[i] ~= is_egg then
                 clear_all_inputs()
@@ -289,7 +291,7 @@ function check_hatching_eggs()
 
         -- Only release hatched duds if all eggs are hatched
         if not has_egg then
-            print("No eggs left in the party; releasing hatched duds.")
+            print("Party has no room for eggs! Releasing last 5 Pokemon...")
             release_hatched_duds()
         end
     elseif not party then
