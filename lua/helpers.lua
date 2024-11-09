@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- General helper methods for bot functionality
--- Author: wyanido
+-- Author: wyanido, storyzealot
 -- Homepage: https://github.com/wyanido/pokebot-nds
 -----------------------------------------------------------------------------
 
