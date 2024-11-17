@@ -282,7 +282,7 @@ function check_hatching_eggs()
     if #party == 6 then
         local has_egg = false
         
-        for _, is_egg in ipairs(new_eggs) do
+        for _, is_egg in ipairs(party_egg_states) do
             if is_egg then
                 has_egg = true
                 break
