@@ -539,7 +539,7 @@ function mode_static_encounters()
     while not game_state.in_battle do
         if game_state.map_name == "Dreamyard" then
             hold_button("Right")
-        elseif game_state.map_name == "Spear Pillar" then
+        elseif game_state.map_name == "Spear Pillar" or "Hall of Origin" then
             hold_button("Up")
         end
 
