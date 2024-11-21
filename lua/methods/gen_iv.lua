@@ -448,7 +448,7 @@ function mode_roamers()
     local is_unencrypted = _ROM.version ~= "PL" -- Only Platinum encrypts roamer data after generating it 
 
     if not config.ot_override then
-        abort("Please set your TID/SID in the override before you begin.") -- Prevents mode from beginning if override is not set.
+        abort("You must set your TID/SID override before you can start.") -- Prevents mode from beginning if override is not set.
     end
 
     while not data do
@@ -467,7 +467,8 @@ function mode_roamers()
     local mon = pokemon.parse_data(data, true)
 
     if config.ot_override then
-        mon.otSID = tonumber(config.sid_override) --SID is not generated during initial encounter. This will prevent false flagging.
+        mon.otSID = tonumber(config.sid_override) -- SID is not generated during initial encounter. This will prevent false flagging.
+        mon.otID = tonumber(config.sid_override) -- Sets the ID as well for those who are overriding it from their usual TID.
     end
 
     local is_target = pokemon.log_encounter(mon)
