@@ -450,6 +450,10 @@ function mode_roamers()
     if not config.ot_override then
         abort("You must set your TID/SID override before you can start.") -- Prevents mode from beginning if override is not set.
     end
+    
+    if mon.name == "Unown" then
+        abort("Please clear the journal and then save to resume.") -- Sometimes the roamer is read as an Unown due to the journal. This will stop pointless resets.
+    end
 
     while not data do
         data = pokemon.read_data(pointers.roamer, is_unencrypted)
