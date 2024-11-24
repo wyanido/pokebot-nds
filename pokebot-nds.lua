@@ -20,10 +20,16 @@ config = nil
 foe = nil
 party = {}
 
-dofile("lua\\data\\misc.lua")
 pokemon = require("lua\\modules\\pokemon")
 dofile("lua\\modules\\input.lua")
 dofile("lua\\detect_game.lua")
+
+if _ROM.gen > 5 then
+    dofile("lua\\data\\misc_3ds.lua")
+else
+    dofile("lua\\data\\misc.lua")
+end
+
 dofile("lua\\modules\\dashboard.lua")
 dofile("lua\\helpers.lua")
 
