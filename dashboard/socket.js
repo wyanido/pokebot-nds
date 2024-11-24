@@ -363,8 +363,7 @@ function webhookLogPokemon(mon, client) {
     const species = mon.species.toString().padStart(3, '0');
     const iv_sum = mon.hpIV + mon.attackIV + mon.defenseIV + mon.spAttackIV + mon.spDefenseIV + mon.speedIV;
     const sparkle = (mon.shinyValue < 8 || mon.shiny) ? '✨' : '';
-    const folder = (mon.shinyValue < 8 || mon.shiny) ? 'shiny/' : '';
-    const file = new AttachmentBuilder(`./assets/pokemon/${folder}${species}.png`);
+    const file = new AttachmentBuilder(`./assets/pokemon/${species}.png`);
     const embed = new EmbedBuilder()
     if (mon.shinyValue < 8 || mon.shiny) {
         embed

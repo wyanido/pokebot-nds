@@ -12,7 +12,7 @@ class Header extends HTMLElement {
         this.innerHTML = `
             <nav class="navbar">
                 <div class="navbar-brand text-nowrap">
-                    <img src="assets/pokemon-icon/201-27.png" class="icon" id="icon">
+                    <img src="assets/pokemon/201-27.png" class="icon" id="icon">
                     PokéBot NDS
                 </div>
                 <span class="navbar-text text-monospace font-size-12">v1.1-beta</span>
@@ -145,7 +145,7 @@ function randomisePageIcon() {
                     break;
             }
             
-            const iconURL = 'assets/pokemon-icon/' + icon.toString().padStart(3, '0') + '.png';
+            const iconURL = 'assets/pokemon/' + icon.toString().padStart(3, '0') + '.png';
             document.getElementById('icon').src = iconURL;
         } else {
             console.error('No clients connected.');

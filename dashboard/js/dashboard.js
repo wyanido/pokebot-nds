@@ -66,13 +66,11 @@ function displayClientParty(tabIndex, party) {
         
         // Hide species of unhatched eggs
         if (mon.isEgg) {
-            mon.folder = '';
             mon.name = `~${mon.friendship << 8} Steps Remaining`;
         }
 
         const shiny = mon.shinyValue < 8;
 
-        mon.folder = shiny ? 'shiny/' : '';
         mon.shiny = shiny ? '✨' : '';
 
         ele.append(partyMonTemplate.tmpl(mon))
@@ -229,7 +227,6 @@ function enrichFurther(mon) {
 
     if (mon.isEgg) {
         mon.species = 'egg';
-        mon.folder = '';
         
         if (mon.name == 'Manaphy') {
             mon.species = 'manaphy-egg';
