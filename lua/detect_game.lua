@@ -140,6 +140,17 @@ end
 
 --- Attempts to match the loaded game with one in the RECOGNISED_GAMES list
 local function identify_game()
+    -- Identify 3DS titles
+    if _EMU == "BizHawk" then
+        if memory.getcurrentmemorydomainsize() >= 200000000 then
+            local game_code = mdword(0x74CD340)
+
+            -- Temporary
+            local version = game_code == 0x55E00 and "Y" or "X"
+            return {version = version, offset = 0, gen = 6}
+        end
+    end
+
     local game_code = get_game_code()
     local language_code = get_language_code()
     local game_is_recognised = not (not game_code or not RECOGNISED_GAMES[game_code] or not language_code or not RECOGNISED_GAMES[game_code].offset[language_code])
@@ -162,10 +173,6 @@ end
 -----------------------------------------------------------------------------
 _ROM = identify_game()
 
--- Defines the bot modes from least to most specific to allow for overrides. 
--- Starts with global methods, then per-generation methods, then per-game methods if necessary
-dofile("lua\\methods\\global.lua")
-
 if _ROM.gen == 4 then
     dofile("lua\\methods\\gen_iv.lua")
     _MON_BYTE_LENGTH = 236 -- Gen 4 has 16 extra trailing bytes of ball seals data
@@ -180,7 +187,7 @@ if _ROM.gen == 4 then
             dofile("lua\\methods\\pt.lua")
         end
     end
-else
+elseif _ROM.gen == 5 then
     dofile("lua\\methods\\gen_v.lua")
     dofile("lua\\data\\maps\\gen_v.lua")
     _MON_BYTE_LENGTH = 220
@@ -188,4 +195,9 @@ else
     if _ROM.version == "B2" or _ROM.version == "W2" then
         dofile("lua\\methods\\b2w2.lua")
     end
+else
+    _MON_BYTE_LENGTH = 232 + 28
+
+    dofile("lua\\data\\maps\\gen_vi.lua")
+    dofile("lua\\methods\\gen_vi.lua")
 end

@@ -23,15 +23,17 @@ party = {}
 pokemon = require("lua\\modules\\pokemon")
 dofile("lua\\modules\\input.lua")
 dofile("lua\\detect_game.lua")
+dofile("lua\\methods\\global.lua")
+dofile("lua\\helpers.lua")
 
 if _ROM.gen > 5 then
     dofile("lua\\data\\misc_3ds.lua")
+    dofile("lua\\modules\\pokemon_3ds.lua")
 else
     dofile("lua\\data\\misc.lua")
 end
 
 dofile("lua\\modules\\dashboard.lua")
-dofile("lua\\helpers.lua")
 
 -- Get the respective global scope function for the current bot mode
 local mode_function = _G["mode_" .. config.mode]

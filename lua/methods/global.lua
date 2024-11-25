@@ -582,3 +582,34 @@ function progress_text()
     release_button("A")
     wait_frames(5)
 end
+
+--- Converts bytes into readable text via utf8 encoding
+-- @param input Table of bytes or memory address to read from
+-- @param pointer Offset into the byte table if provided
+function read_string(input, pointer)
+    local text = ""
+
+    if type(input) == "table" then
+        for i = pointer + 1, #input, 2 do
+            local value = input[i] + bit.lshift(input[i + 1], 8)
+
+            if value == 0xFFFF or value == 0x0000 then -- Null terminator
+                break
+            end
+
+            text = text .. utf8.char(value)
+        end
+    else
+        for i = input, input + 32, 2 do
+            local value = mword(i)
+
+            if value == 0xFFFF or value == 0x0000 then -- Null terminator
+                break
+            end
+
+            text = text .. utf8.char(value)
+        end
+    end
+    
+    return text
+end

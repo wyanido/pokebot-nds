@@ -125,7 +125,7 @@ function randomisePageIcon() {
         }
 
         if (Array.isArray(clients) && clients.length > 0) {
-            let icon = 0;
+            let icon = 201-27;
             
             switch (clients[0].version) {
                 case 'D':
@@ -142,6 +142,10 @@ function randomisePageIcon() {
                 case 'B2':
                 case 'W2':
                     icon = randomRange(494, 649);
+                    break;
+                case 'X':
+                case 'Y':
+                    icon = randomRange(650, 721)
                     break;
             }
             

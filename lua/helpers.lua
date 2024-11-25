@@ -17,25 +17,20 @@ function update_party()
         return party_was_emptied
     end
 
-    local party_size = mbyte(pointers.party_count)
     local party_was_updated = false
 
     for i = 1, 6, 1 do
         local checksum = mword(pointers.party_data + 6 + _MON_BYTE_LENGTH * (i - 1))
-        
-        if i <= party_size then
-            if party[i] == nil or checksum ~= party[i].checksum then -- If the Pokemon has changed, re-read its data
-                local mon_data = pokemon.read_data(pointers.party_data + (i - 1) * _MON_BYTE_LENGTH)
+        local mon_data = pokemon.read_data(pointers.party_data + (i - 1) * _MON_BYTE_LENGTH)
 
-                if mon_data then
-                    local mon = pokemon.parse_data(mon_data, true)
-                    
-                    party[i] = mon
-                    party_was_updated = true
-                else
-                    print_debug("Party checksum failed at slot " .. i)
-                end
+        if mon_data then
+            local mon = pokemon.parse_data(mon_data, true)
+            
+            if party[i] == nil or party[i].pid ~= pid then
+                party_was_updated = true
             end
+
+            party[i] = mon
         else
             if party[i] ~= nil then
                 party_was_updated = true
@@ -107,6 +102,14 @@ end
 
 --- Updates the global reference of the current game state for bot modes to use
 function update_game_state()
+    if _ROM.gen == 6 then
+        -- Temporary
+        game_state = {
+            in_game = true,
+        }
+        return
+    end
+    
     if pointers.map_header < 0 then
         game_state = {}
         return
@@ -299,6 +302,6 @@ end
 
 --- Debug function for printing the memory address of a pointer
 function print_pointer(pointer)
-    local local_pointer = pointer - 0x2000000
+    local local_pointer = pointer
     print(string.format("%06X", local_pointer))
 end

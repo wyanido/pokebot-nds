@@ -205,7 +205,7 @@ function pokemon.parse_data(data, enrich)
     -- Block B
     mon.moves = {read_real(0x28, 2), read_real(0x2A, 2), read_real(0x2C, 2), read_real(0x2E, 2)}
     mon.pp = {read_real(0x30, 1), read_real(0x31, 1), read_real(0x32, 1), read_real(0x33, 1)}
-    mon.ppUps = read_real(0x34, 4)
+    -- mon.ppUps = read_real(0x34, 4)
 
     local value = read_real(0x38, 5)
     mon.hpIV = bit.band(value, 0x1F)
