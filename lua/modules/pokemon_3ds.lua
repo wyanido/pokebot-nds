@@ -149,8 +149,8 @@ function pokemon.parse_data(data, enrich)
     mon.nature = read_real(0x1C, 1)
 
     local gender_byte = read_real(0x1D, 1)
-    local is_female = bit.band(gender_byte, 1) == 1
-    local is_genderless = bit.band(gender_byte, 3) == 1
+    local is_female = bit.band(gender_byte, 2) > 0
+    local is_genderless = bit.band(gender_byte, 4) > 0
     
     if is_female then
         mon.gender = 1

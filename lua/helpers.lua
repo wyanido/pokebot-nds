@@ -102,14 +102,6 @@ end
 
 --- Updates the global reference of the current game state for bot modes to use
 function update_game_state()
-    if _ROM.gen == 6 then
-        -- Temporary
-        game_state = {
-            in_game = true,
-        }
-        return
-    end
-    
     if pointers.map_header < 0 then
         game_state = {}
         return
