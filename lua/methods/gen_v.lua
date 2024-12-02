@@ -403,7 +403,7 @@ function mode_daycare_eggs()
         bike_state = mbyte(pointers.on_bike) -- Ensure you get the latest state
         if bike_state ~= 1 then 
             print("DEBUG: Attempting to mount the bike.")
-            press_sequence("Y")
+            press_sequence("Y", 30, "Y")
         end
     end
 
@@ -482,6 +482,112 @@ function mode_daycare_eggs()
                 print("Some eggs are still unhatched. Not releasing.")
             end
         end
+    end
+end
+
+--- Navigates to the Route 3 daycare and releases all hatched Pokemon in the party
+function release_hatched_duds()
+    local function release(i)
+        local x = 40 * ((i - 1) % 2 + 1)
+        local y = 72 + 30 * math.floor((i - 1) / 2)
+        
+        touch_screen_at(x, y) -- Select Pokemon
+        wait_frames(30)
+        touch_screen_at(211, 121) -- RELEASE
+        wait_frames(30)
+        touch_screen_at(220, 110) -- YES
+        press_sequence(60, "B", 20, "B", 20) -- Bye-bye!
+    end
+
+    move_to({x=748}) -- Move to staircase
+    move_to({z=557}) -- Move to the door
+    move_to({x=749,z=556})
+    
+    -- Walk to daycare lady at desk
+    while game_state.map_header ~= 323 do
+        hold_button("Up")
+    end
+
+    release_button("Up")
+
+    -- Walk to PC
+    hold_button("B")
+    move_to({z=9})
+    move_to({x=9})
+    hold_button("Up")
+    wait_frames(10)
+    release_button("Up")
+    wait_frames(10)
+    release_button("B")
+    
+    -- PC Menu
+    press_sequence("A", 140, "A", 120, "A", 110, "A", 60, "A", 60, "Down", 5, "Down", 5, "A", 110)
+
+    touch_screen_at(45, 175)
+    wait_frames(60)
+
+    -- Release party in reverse order so the positions don't shuffle to fit empty spaces
+    for i = #party, 1, -1 do
+        if pokemon.is_hatched_dud(party[i]) then
+            release(i)
+        end
+    end
+
+    press_sequence("B", 25, "B", 30, "B", 30, "B", 150, "B", 90) -- Exit PC
+    
+    -- Exit daycare
+    hold_button("B")
+    move_to({x=6})
+    move_to({z=13})
+    press_sequence("Down")
+    print('pressed down')
+
+    --Restart the loop
+    release_button("B")
+    print('release b')
+    release_button("Down")
+    print('release down')
+    press_sequence(180, "Y", 30, "Y", 30, "Y")
+    move_to({z=557})
+    print('moving')
+    move_to({x=748})
+    move_to({z=563})
+end
+
+function mode_roamers()
+    local function dex_entry_added()
+        local tornadus_seen = dex_registered("tornadus", "male") or dex_registered("tornadus", "shiny_male")
+        local thundurus_seen = dex_registered("thundurus", "male") or dex_registered("thundurus", "shiny_male")
+
+        return tornadus_seen or thundurus_seen
+    end
+
+    while not game_state.in_game do
+        progress_text()
+    end
+
+    -- Exit house
+    while game_state.map_header == 344 do
+        hold_button("Down")
+    end
+
+    release_button("Down")
+
+    -- Skip through cutscene until dex entry is registered
+    while not dex_entry_added() do
+        progress_text()
+    end
+
+    -- Read pre-generated Pokemon from memory
+    local data = pokemon.read_data(pointers.roamer)
+    local mon = pokemon.parse_data(data, true)
+    local is_target = pokemon.log_encounter(mon)
+
+    if is_target then
+        abort(mon.name .. " is a target!")
+    else
+        print(mon.name .. " was not a target, resetting...")
+        soft_reset()
     end
 end
 
