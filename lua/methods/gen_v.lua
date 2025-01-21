@@ -402,7 +402,6 @@ function mode_daycare_eggs()
         -- Re-check bike state after any prior checks
         bike_state = mbyte(pointers.on_bike) -- Ensure you get the latest state
         if bike_state ~= 1 then 
-            print("DEBUG: Attempting to mount the bike.")
             press_sequence("Y", 30, "Y")
         end
     end
@@ -546,7 +545,6 @@ function release_hatched_duds()
     release_button("Down")
     press_sequence(180, "Y", 30, "Y")
     move_to({z=557})
-    print('moving')
     move_to({x=748})
     move_to({z=563})
 end
