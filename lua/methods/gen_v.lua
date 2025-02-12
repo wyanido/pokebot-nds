@@ -309,8 +309,7 @@ function mode_random_encounters()
         hold_button("B")
 
         while not game_state.in_battle do
-            move_in_direction(dir1)
-            move_in_direction(dir2)
+            press_sequence(dir1, 10, dir2, 10)
         end
         
         release_button("B")
@@ -321,7 +320,6 @@ function mode_random_encounters()
 end
 
 function mode_phenomenon_encounters()
-    -- Remember initial position to return to after every battle
     local home = {
         x = game_state.trainer_x,
         z = game_state.trainer_z
@@ -352,10 +350,8 @@ function mode_phenomenon_encounters()
 
     while true do
         check_party_status()
-        
-        local function do_encounter()
-            print("Running until a phenomenon spawns...")
 
+        local function do_encounter()
             local dir1 = config.move_direction == "horizontal" and "Left" or "Up"
             local dir2 = config.move_direction == "horizontal" and "Right" or "Down"
 
@@ -364,27 +360,17 @@ function mode_phenomenon_encounters()
                 move_in_direction(dir2)
             end
 
-            release_button(dir2)
+            print("Phenomenon detected! Moving...")
+            move_to({ x = game_state.phenomenon_x, z = game_state.phenomenon_z })
 
-            print("Phenomenon spawned! Attempting to reach it...")
-
-            while not game_state.in_battle do
-                if game_state.phenomenon_x == 0 then -- Phenomenon was an item
-                    return
-                end
-
-                move_to({
-                    x = game_state.phenomenon_x,
-                    z = game_state.phenomenon_z
-                })
-            end
-
+            wait_frames(300) --- Needs a moment before checking the encounter.
             if game_state.in_battle then
                 process_wild_encounter()
             else
-                accept_interrupt_text() -- Accept repel dialogue or dust cloud item
+                print("Item received.")
+                accept_interrupt_text()
             end
-
+            
             move_to(home)
         end
 
