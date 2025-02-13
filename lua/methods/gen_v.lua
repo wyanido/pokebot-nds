@@ -321,6 +321,7 @@ function mode_random_encounters()
 end
 
 function mode_random_encounters_small()
+    print("WARNING: Do not use this mode with a bike")
     local home = {
         x = game_state.trainer_x,
         z = game_state.trainer_z
@@ -339,7 +340,6 @@ function mode_random_encounters_small()
     while true do
         check_party_status()
 
-        print("WARNING: Do not use this mode with a bike")
         print("Attempting to start a battle...")
 
         local dir1 = config.move_direction == "horizontal" and "Left" or "Up"
@@ -347,12 +347,12 @@ function mode_random_encounters_small()
         
         wait_frames(60) -- Wait to regain control post-battle
         hold_button("B")
+        move_to_fixed(home)
 
         while not game_state.in_battle do
-            move_to_fixed(home)
             press_sequence(dir1, 10, dir2, 10)
         end
-
+        
         release_button("B")
         release_button(dir2)
 
