@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- General bot methods for gen 4 games (DPPt, HGSS)
--- Author: wyanido
+-- Author: wyanido, storyzealot
 -- Homepage: https://github.com/wyanido/pokebot-nds
 -----------------------------------------------------------------------------
 
@@ -447,6 +447,10 @@ function mode_roamers()
     local a_cooldown = 0
     local is_unencrypted = _ROM.version ~= "PL" -- Only Platinum encrypts roamer data after generating it 
 
+    if not config.ot_override then
+        abort("You must set your TID/SID override before you can start.") -- Prevents mode from beginning if override is not set.
+    end
+
     while not data do
         data = pokemon.read_data(pointers.roamer, is_unencrypted)
 
@@ -461,12 +465,21 @@ function mode_roamers()
     end
 
     local mon = pokemon.parse_data(data, true)
-    local is_target = pokemon.log_encounter(mon)
 
+    if config.ot_override then
+        mon.otSID = tonumber(config.sid_override) -- SID is not generated during initial encounter. This will prevent false flagging.
+        mon.otID = tonumber(config.sid_override) -- Sets the ID as well for those who are overriding it from their usual TID.
+    end
+
+    local is_target = pokemon.log_encounter(mon)
+    
+    if mon.name == "Unown" then
+        abort("Please clear the journal and then save to resume.") -- The journal is read as 'Unown'. This will stop pointless resets.
+    end
+    
     if is_target then
         abort(mon.name .. " is a target!")
     else
-        print(mon.name .. " was not a target, resetting...")
         soft_reset()
     end
 end
