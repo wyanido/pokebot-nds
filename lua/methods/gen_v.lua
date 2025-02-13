@@ -309,9 +309,50 @@ function mode_random_encounters()
         hold_button("B")
 
         while not game_state.in_battle do
-            press_sequence(dir1, 10, dir2, 10)
+            move_in_direction(dir1)
+            move_in_direction(dir2)
         end
         
+        release_button("B")
+        release_button(dir2)
+
+        process_wild_encounter()
+    end
+end
+
+function mode_random_encounters_small()
+    local home = {
+        x = game_state.trainer_x,
+        z = game_state.trainer_z
+    }
+
+    local function move_in_direction(dir)
+        if emu.framecount() % 10 == 0 then -- Re-apply repel
+            press_button_async("A")
+        end
+
+        hold_button(dir)
+        wait_frames(7)
+        release_button(dir)
+    end
+
+    while true do
+        check_party_status()
+
+        print("WARNING: Do not use this mode with a bike")
+        print("Attempting to start a battle...")
+
+        local dir1 = config.move_direction == "horizontal" and "Left" or "Up"
+        local dir2 = config.move_direction == "horizontal" and "Right" or "Down"
+        
+        wait_frames(60) -- Wait to regain control post-battle
+        hold_button("B")
+
+        while not game_state.in_battle do
+            move_to_fixed(home)
+            press_sequence(dir1, 10, dir2, 10)
+        end
+
         release_button("B")
         release_button(dir2)
 
