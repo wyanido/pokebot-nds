@@ -181,7 +181,7 @@ if _ROM.gen == 4 then
         dofile("lua\\data\\maps\\hgss.lua")
         dofile("lua\\methods\\hgss.lua")
     else
-        dofile("lua\\data\\maps\\gen_iv.lua")
+        dofile("lua\\data\\maps\\dppt.lua")
         
         if _ROM.version == "PL" then
             dofile("lua\\methods\\pt.lua")
@@ -189,7 +189,7 @@ if _ROM.gen == 4 then
     end
 elseif _ROM.gen == 5 then
     dofile("lua\\methods\\gen_v.lua")
-    dofile("lua\\data\\maps\\gen_v.lua")
+    dofile("lua\\data\\maps\\b2w2.lua")
     _MON_BYTE_LENGTH = 220
 
     if _ROM.version == "B2" or _ROM.version == "W2" then
@@ -198,6 +198,6 @@ elseif _ROM.gen == 5 then
 else
     _MON_BYTE_LENGTH = 232 + 28
 
-    dofile("lua\\data\\maps\\gen_vi.lua")
+    dofile("lua\\data\\maps\\xy.lua")
     dofile("lua\\methods\\gen_vi.lua")
 end
