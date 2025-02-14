@@ -375,7 +375,7 @@ function mode_phenomenon_encounters()
         end
 
         if interrupted then
-            move_to(home)
+            move_to_fixed(home)
         end
     end
 
