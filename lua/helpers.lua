@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- General helper methods for bot functionality
--- Author: wyanido
+-- Author: wyanido, storyzealot
 -- Homepage: https://github.com/wyanido/pokebot-nds
 -----------------------------------------------------------------------------
 
@@ -20,7 +20,7 @@ function update_party()
     local party_size = mbyte(pointers.party_count)
     local party_was_updated = false
 
-    for i = 1, 6, 1 do
+    for i = 1, 6 do
         local checksum = mword(pointers.party_data + 6 + _MON_BYTE_LENGTH * (i - 1))
         
         if i <= party_size then
@@ -232,7 +232,7 @@ end
 function get_party_egg_states()
     local eggs = {}
 
-    for i = 1, 6, 1 do
+    for i = 1, 6 do
         if party[i] then
             eggs[i] = party[i].isEgg
         else
@@ -246,54 +246,56 @@ end
 --- Presses A to allow the egg hatch animation to finish if it's currently happening
 function check_hatching_eggs()
     if emu.framecount() % 10 == 0 then
-        if _ROM.version == "HG" or _ROM.version == "SS" then
-            press_button_async("B") -- HGSS needs to deny phone calls a lot of the time, so we use B instead
+        if _ROM.version == "HG" or _ROM.version == "SS" then -- HGSS needs to deny phone calls a lot of the time, so we use B instead
+            press_button_async("B")
         else
             press_button_async("A")
         end
     end
-    
+
     local current_egg_states = get_party_egg_states()
-    
+
+    -- Check for egg hatching
     for i, is_egg in ipairs(current_egg_states) do
         -- Eggs are already considered "hatched" as soon as the animation starts,
         -- so we can tell if an egg is hatching when 'is_egg' has changed since last reference
-        if party[i] and party_egg_states[i] ~= is_egg then
-            clear_all_inputs()
-            
-            print("Egg is hatching!")
-            hatch_egg(i)
-            
-            local is_target = pokemon.log_encounter(party[i])
-            if is_target then
-                abort("Hatched a target Pokemon!")
-            else
-                print("Hatched " .. party[i].name .. " was not a target...")
+        if party[i] then
+            if party_egg_states[i] ~= is_egg then
+                clear_all_inputs()
+                hatch_egg(i)
+
+                local is_target = pokemon.log_encounter(party[i])
+                if is_target then
+                    abort("Hatched a target Pokémon: " .. party[i].name .. "!")
+                end
+                
+                wait_frames(90)
+                break
             end
-            
-            wait_frames(90)
-            break
         end
     end
 
     party_egg_states = current_egg_states
-    
-    -- Check party to see if it's clear of eggs
-    if #party == 6 then
+
+    -- Check if all eggs are hatched only if the party is full
+    if party and #party == 6 then
         local has_egg = false
         
-        for _, is_egg in ipairs(new_eggs) do
+        -- This should check the current egg states to see if any are still not hatched
+        for i, is_egg in ipairs(current_egg_states) do
             if is_egg then
                 has_egg = true
                 break
             end
         end
 
-        -- If no eggs are left and no target was found, release all Lv. 1 Pokemon from the party
+        -- Only release hatched duds if all eggs are hatched
         if not has_egg then
             print("Party has no room for eggs! Releasing last 5 Pokemon...")
             release_hatched_duds()
         end
+    elseif not party then
+        print("Error: Party is nil.")
     end
 end
 

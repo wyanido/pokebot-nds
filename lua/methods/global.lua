@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- General bot methods for all games
--- Author: wyanido
+-- Author: wyanido, storyzealot
 -- Homepage: https://github.com/wyanido/pokebot-nds
 -----------------------------------------------------------------------------
 
@@ -505,6 +505,25 @@ function move_to(target, on_move)
             hold_button("Up")
             if on_move then on_move() end
         end
+    end
+end
+
+-- Same as above essentially, but won't gradually move the player off course
+function move_to_fixed(target)
+    while game_state.trainer_x < target.x do
+        hold_button("Right")
+    end
+
+    while game_state.trainer_x > target.x do
+        hold_button("Left")
+    end
+
+    while game_state.trainer_z < target.z do
+        hold_button("Down")
+    end
+
+    while game_state.trainer_z > target.z do
+        hold_button("Up")
     end
 end
 

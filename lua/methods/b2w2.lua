@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- Bot method overrides for B2W2
--- Author: wyanido
+-- Author: wyanido, storyzealot
 -- Homepage: https://github.com/wyanido/pokebot-nds
 -----------------------------------------------------------------------------
 
@@ -226,4 +226,69 @@ function mode_hidden_grottos()
     else
         press_sequence("A", 50, "A") -- Item dialogue
     end
+end
+
+--- Navigates to the Route 3 daycare and releases all hatched Pokemon in the party
+function release_hatched_duds()
+    local function release(i)
+        local x = 40 * ((i - 1) % 2 + 1)
+        local y = 72 + 30 * math.floor((i - 1) / 2)
+        
+        touch_screen_at(x, y) -- Select Pokemon
+        wait_frames(30)
+        touch_screen_at(211, 121) -- RELEASE
+        wait_frames(30)
+        touch_screen_at(220, 110) -- YES
+        press_sequence(60, "B", 20, "B", 20) -- Bye-bye!
+    end
+
+    move_to({x=748}) -- Move to staircase
+    move_to({z=557}) -- Move to the door
+    move_to({x=749,z=556})
+    
+    -- Walk to daycare lady at desk
+    while game_state.map_header ~= 323 do
+        hold_button("Up")
+    end
+
+    release_button("Up")
+
+    -- Walk to PC
+    hold_button("B")
+    move_to({z=9})
+    move_to({x=9})
+    hold_button("Up")
+    wait_frames(10)
+    release_button("Up")
+    wait_frames(10)
+    release_button("B")
+    
+    -- PC Menu
+    press_sequence("A", 140, "A", 120, "A", 110, "A", 60, "A", 60, "Down", 5, "Down", 5, "A", 110)
+
+    touch_screen_at(45, 175)
+    wait_frames(60)
+
+    -- Release party in reverse order so the positions don't shuffle to fit empty spaces
+    for i = #party, 1, -1 do
+        if pokemon.is_hatched_dud(party[i]) then
+            release(i)
+        end
+    end
+
+    press_sequence("B", 25, "B", 30, "B", 30, "B", 150, "B", 90) -- Exit PC
+    
+    -- Exit daycare
+    hold_button("B")
+    move_to({x=6})
+    move_to({z=13})
+    press_sequence("Down")
+
+    --Restart the loop
+    release_button("B")
+    release_button("Down")
+    press_sequence(180, "Y", 30, "Y", 30, "Y")
+    move_to({z=557})
+    move_to({x=748})
+    move_to({z=563})
 end
