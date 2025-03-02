@@ -62,10 +62,6 @@ function update_pointers()
         daycare_egg = 0x22264AC + _ROM.offset,
         -- pass_power_1_duration = 0x21410B8 + _ROM.offset,
     }
-
-    if _ROM.language == "JP" then
-        pointers.starter_selection_is_open = 0x22572ED + _ROM.offset
-    end
 end
 
 local function bike_back_and_forth()
@@ -178,7 +174,7 @@ function mode_hidden_grottos()
     end
 
     local function enter_grotto()
-        press_sequence(4, "A")
+        press_sequence("Up", 4, "A")
 
         while game_state.map_name ~= "Hidden Grotto" do
             progress_text()
@@ -208,9 +204,8 @@ function mode_hidden_grottos()
 
     while not grotto_has_regenerated() do
         bike_back_and_forth()
-
         if game_state.in_battle then
-            abort("Please a Repel while hunting this grotto!")
+            abort("Please use a Repel while hunting this grotto!")
         end
     end
     
