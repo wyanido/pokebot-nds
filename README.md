@@ -15,7 +15,9 @@ You'll need to install [node.js](https://nodejs.org/en), and have a recent versi
 **Recommended**: Install [Github Desktop](https://desktop.github.com/) and locally clone this repository to stay up to date with the latest versions of the bot.
 _(You can also clone the [dev branch](https://github.com/wyanido/pokebot-nds/tree/dev) to preview upcoming features)_
 
-Alternatively, download [the latest release](https://github.com/wyanido/pokebot-nds/releases/latest) as a .zip archive and extract it anywhere you like.
+Alternatively, download [the latest release](https://github.com/wyanido/pokebot-nds/releases/latest) as a .zip archive and extract it anywhere you like.\
+
+**Note**: Keep the folder as a whole. **DO NOT** just extract the .lua file.
 
 #### Setup
 1. Start the dashboard with `start-dashboard.bat`, or run these commands inside the `dashboard/` folder:
