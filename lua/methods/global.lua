@@ -291,6 +291,8 @@ function process_wild_encounter()
         end
     end
 
+    wait_frames(90)
+    
     if config.pickup then
         do_pickup()
     end
