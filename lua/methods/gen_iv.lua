@@ -308,6 +308,10 @@ function mode_starters()
     -- the starters pointer equals the ready value
     local ready_value = platinum and 0xD or 0x5
 
+    if _ROM.language == "JP" and not platinum then
+        ready_value = 0x1
+    end
+
     while bit.band(bit.band(mbyte(pointers.starters_ready), 15), ready_value) ~= ready_value do
         progress_text()
     end

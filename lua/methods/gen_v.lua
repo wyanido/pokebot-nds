@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- General bot methods for gen 5 games (BW, B2W2)
--- Author: wyanido, storyzealot
+-- Author: wyanido
 -- Homepage: https://github.com/wyanido/pokebot-nds
 -----------------------------------------------------------------------------
 
@@ -630,4 +630,31 @@ function get_battle_state()
     end
 
     return nil
+end
+
+function mode_gift()
+    if not game_state.in_game then
+        print("Waiting to reach overworld...")
+
+        while not game_state.in_game do
+            progress_text()
+        end
+
+        wait_frames(200)
+    end
+
+    local og_party_count = #party
+    while #party == og_party_count do
+        progress_text()
+    end
+
+    local mon = party[#party]
+    local is_target = pokemon.log_encounter(mon)
+
+    if is_target then
+        abort(mon.name .. " is a target!")
+    else
+        print(mon.name .. " was not a target, resetting...")
+        soft_reset()
+    end
 end
