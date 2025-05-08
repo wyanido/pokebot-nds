@@ -15,7 +15,7 @@ You'll need to install [node.js](https://nodejs.org/en), and have a recent versi
 **Recommended**: Install [Github Desktop](https://desktop.github.com/) and locally clone this repository to stay up to date with the latest versions of the bot.
 _(You can also clone the [dev branch](https://github.com/wyanido/pokebot-nds/tree/dev) to preview upcoming features)_
 
-Alternatively, download [the latest release](https://github.com/wyanido/pokebot-nds/releases/latest) as a .zip archive and extract it anywhere you like.\
+Alternatively, download [the latest release](https://github.com/wyanido/pokebot-nds/releases/latest) as a .zip archive and extract it anywhere you like.
 
 **Note**: Keep the folder as a whole. **DO NOT** just extract the .lua file.
 
@@ -52,6 +52,13 @@ The game will then be connected to the dashboard, which you can view info for on
 | Thief farming			| ✅ | ✅ | ✅ | ✅ |
 | Pickup farming		| ✅ | ✅ | ✅ | ✅ |
 | Voltorb Flip		|  | ✅ |  |  |
+
+#### Supported Languages
+English is the only supported language for Gen 4 (Diamond, Pearl, Platinum, HeartGold & SoulSilver), with minimal support with non-English languages.
+
+All languages are supported for Gen 5 games (Black, White & their sequels).
+
+This is due to the internal structures of the two generations being wildly different. Gen 5's data remains consistent between languages, but Gen 4's data changes depending on the language. While a ROM offset has been applied for non-English ROMs, there will undoubtedly be issues.
 
 ## Special Thanks
 
