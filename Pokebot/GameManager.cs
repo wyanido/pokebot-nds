@@ -14,7 +14,7 @@ namespace Wyanido.Pokebot
 
         public static List<string> GetGameScripts(GameDefinition game)
         {
-            var scripts = GetGameScriptsFromDirectory(game, PokebotLuaManager.ScriptsPath);
+            var scripts = GetGameScriptsFromDirectory(game, PokebotLuaLibraries.ScriptsPath);
             var basenames = new List<string>();
 
             // Return the first (most context-specific) script of any given name to allow overrides
@@ -24,7 +24,7 @@ namespace Wyanido.Pokebot
 
                 if (basenames.Contains(basename))
                 {
-                    PokebotLuaManager.PrintDebug($"Skipped overriden script {basename}");
+                    PokebotLuaLibraries.PrintDebug($"Skipped overriden script {basename}");
                     return false;
                 }
 
@@ -78,7 +78,7 @@ namespace Wyanido.Pokebot
         {
             if (!Directory.Exists(directory))
             {
-                PokebotLuaManager.PrintError($"Script directory {directory} doesn't exist");
+                PokebotLuaLibraries.PrintError($"Script directory {directory} doesn't exist");
                 return;
             }
 
@@ -115,7 +115,7 @@ namespace Wyanido.Pokebot
 
             if (gameInfo.IsNullInstance() || gameInfo == null)
             {
-                PokebotLuaManager.PrintDebug("GameInfo was a null instance");
+                PokebotLuaLibraries.PrintDebug("GameInfo was a null instance");
                 return null;
             }
 
@@ -123,7 +123,7 @@ namespace Wyanido.Pokebot
 
             if (languageCode == null)
             {
-                PokebotLuaManager.PrintDebug("Could not determine language code");
+                PokebotLuaLibraries.PrintDebug("Could not determine language code");
                 return null;
             }
 
@@ -132,7 +132,7 @@ namespace Wyanido.Pokebot
 
             if (!generation.HasValue)
             {
-                PokebotLuaManager.PrintDebug("Could not determine ROM generation");
+                PokebotLuaLibraries.PrintDebug("Could not determine ROM generation");
                 return null;
             }
 
@@ -140,7 +140,7 @@ namespace Wyanido.Pokebot
 
             if (!offset.HasValue)
             {
-                PokebotLuaManager.PrintDebug("Could not determine ROM memory offset");
+                PokebotLuaLibraries.PrintDebug("Could not determine ROM memory offset");
                 return null;
             }
 

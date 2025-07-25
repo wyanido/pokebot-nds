@@ -12,18 +12,20 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
+using Wyanido.Pokebot.LuaLibrary.Libraries;
 
 namespace Wyanido.Pokebot.LuaStuff
 {
-    public class PokebotLuaManager : ILuaLibraries
+    public class PokebotLuaLibraries : ILuaLibraries
     {
-        public static string PokebotLuaPath => Path.Combine([PathUtils.DataDirectoryPath, "ExternalTools", "lua"]);
-        public static string ScriptsPath => Path.Combine([PokebotLuaPath, "scripts"]);
-        public static PokebotLuaManager Instance { set; get; }
+        public static string PokebotDataPath => Path.Combine([PathUtils.DataDirectoryPath, "ExternalTools", "Pokebot"]);
+        public static string ScriptsPath => Path.Combine([PokebotDataPath, "scripts"]);
+
+        public static PokebotLuaLibraries Instance { set; get; }
 
         public string EngineName => "NLua+Lua";
 
-        public Action<string> OnExit;
+        public Action<LuaFile> OnExit;
 
         public bool FrameAdvanceRequested { get; private set; }
         public bool IsRebootingCore { get; set; }
@@ -56,7 +58,7 @@ namespace Wyanido.Pokebot.LuaStuff
         private readonly IDictionary<Type, LuaLibraryBase> Libraries = new Dictionary<Type, LuaLibraryBase>();
         private EventWaitHandle LuaWait;
 
-        public PokebotLuaManager(LuaFileList scriptList, LuaFunctionList registeredFuncList, IEmulatorServiceProvider serviceProvider, MainForm mainForm, DisplayManagerBase displayManager, InputManager inputManager, Config config, IEmulator emulator, IGameInfo game, RichTextBox outputBox)
+        public PokebotLuaLibraries(LuaFileList scriptList, LuaFunctionList registeredFuncList, IEmulatorServiceProvider serviceProvider, MainForm mainForm, DisplayManagerBase displayManager, InputManager inputManager, Config config, IEmulator emulator, IGameInfo game, RichTextBox outputBox)
         {
             if (!LuaMethodsLoaded)
                 throw new InvalidOperationException("The Lua dynamic library was not able to be loaded");
@@ -68,12 +70,12 @@ namespace Wyanido.Pokebot.LuaStuff
             this.mainForm = mainForm;
             this.emulator = emulator;
 
-            tableHelper = new NLuaTableHelper(lua, LogToLuaConsole);
+            tableHelper = new NLuaTableHelper(lua, Print);
             LuaWait = new AutoResetEvent(false);
             PathEntries = config.PathEntries;
             RegisteredFunctions = registeredFuncList;
             ScriptList = scriptList;
-            apiContainer = ApiManager.RestartLua(serviceProvider, LogToLuaConsole, this.mainForm, this.displayManager, this.inputManager, this.mainForm.MovieSession, this.mainForm.Tools, config, emulator, game);
+            apiContainer = ApiManager.RestartLua(serviceProvider, Print, this.mainForm, this.displayManager, this.inputManager, this.mainForm.MovieSession, this.mainForm.Tools, config, emulator, game);
 
             LuaSandbox.DefaultLogger = (message) => PrintError(message);
 
@@ -112,7 +114,7 @@ namespace Wyanido.Pokebot.LuaStuff
 
             RegisterLibrary(typeof(PokebotConsoleLibrary), serviceProvider);
 
-            lua.RegisterFunction("print", this, typeof(PokebotLuaManager).GetMethod(nameof(Print)));
+            lua.RegisterFunction("print", this, typeof(PokebotLuaLibraries).GetMethod(nameof(Print)));
         }
 
         /// <summary>
@@ -124,7 +126,7 @@ namespace Wyanido.Pokebot.LuaStuff
                 !ServiceInjector.UpdateServices(serviceProvider, library, mayCache: true))
                 throw new Exception($"Library {library} has required service(s) that can't be fulfilled. It will not be loaded.");
 
-            if (Activator.CreateInstance(library, this, apiContainer, (Action<string>)LogToLuaConsole) is not LuaLibraryBase instance)
+            if (Activator.CreateInstance(library, this, apiContainer, (Action<string>)Print) is not LuaLibraryBase instance)
                 throw new Exception($"Failed to create instance of library {library}. It will not be loaded.");
 
             var tableName = instance.Name;
@@ -156,7 +158,7 @@ namespace Wyanido.Pokebot.LuaStuff
                 // emu lib may be null now, depending on order of ReflectionCache.Types, but definitely won't be null when this is called
                 guiLib.CreateLuaCanvasCallback = (width, height, x, y) =>
                 {
-                    var canvas = new LuaCanvas(EmulationLuaLibrary, width, height, x, y, tableHelper, LogToLuaConsole);
+                    var canvas = new LuaCanvas(EmulationLuaLibrary, width, height, x, y, tableHelper, Print);
                     canvas.Show();
 
                     return tableHelper.ObjectToTable(canvas);
@@ -178,6 +180,13 @@ namespace Wyanido.Pokebot.LuaStuff
         public Dictionary<object, object> GetDict(string path)
         {
             var table = GetTable(path);
+
+            if (table is null)
+            {
+                PrintDebug($"WARNING: LuaTable at {path} was nil. Returned empty dictionary");
+                return [];
+            }
+
             return lua.GetTableDict(table);
         }
 
@@ -212,7 +221,10 @@ namespace Wyanido.Pokebot.LuaStuff
         /// </summary>
         public void Restart(IEmulatorServiceProvider newServiceProvider, Config config, IEmulator emulator, IGameInfo game)
         {
-            apiContainer = ApiManager.RestartLua(newServiceProvider, LogToLuaConsole, mainForm, displayManager, inputManager, mainForm.MovieSession, mainForm.Tools, config, emulator, game);
+            var enabledScripts = ScriptList.Where(lf => lf.Enabled).ToList();
+            RemoveAllScripts();
+
+            apiContainer = ApiManager.RestartLua(newServiceProvider, Print, mainForm, displayManager, inputManager, mainForm.MovieSession, mainForm.Tools, config, emulator, game);
             PathEntries = config.PathEntries;
 
             foreach (var lib in Libraries.Values)
@@ -224,95 +236,92 @@ namespace Wyanido.Pokebot.LuaStuff
 
                 lib.Restarted();
             }
+
+            foreach (var file in enabledScripts)
+                EnableScript(file);
         }
 
-        public void CallSaveStateEvent(string name)
+        private void DetachRegisteredFunctions(LuaFile lf)
         {
-            try
+            foreach (var nlf in RegisteredFunctions.Where(f => f.LuaFile == lf).ToList())
+                nlf.DetachFromScript();
+        }
+
+        /// <summary>
+        /// resumes suspended Co-routines
+        /// </summary>
+        /// <param name="includeFrameWaiters">should frame waiters be waken up? only use this immediately before a frame of emulation</param>
+        public void ResumeScripts(bool includeFrameWaiters)
+        {
+            if (!ScriptList.Any() || IsUpdateSupressed)
+                return;
+
+            foreach (var luaFile in ActiveScripts)
             {
-                foreach (var lf in RegisteredFunctions.Where(static l => l.Event == NamedLuaFunction.EVENT_TYPE_SAVESTATE))
+                try
                 {
-                    lf.Call(name);
+                    LuaSandbox.Sandbox(luaFile.Thread, () =>
+                    {
+                        if (luaFile.FrameWaiting && !includeFrameWaiters)
+                            return;
+
+                        var (waitForFrame, terminated) = ResumeScript(luaFile);
+
+                        if (terminated)
+                        {
+                            CallExitEvent(luaFile);
+                            luaFile.Stop();
+                            DetachRegisteredFunctions(luaFile);
+                        }
+
+                        luaFile.FrameWaiting = waitForFrame;
+                    }, () =>
+                    {
+                        luaFile.Stop();
+                        DetachRegisteredFunctions(luaFile);
+                    });
+                }
+                catch (Exception ex)
+                {
+                    PrintError(ex);
                 }
             }
-            catch (Exception e)
-            {
-                LogToLuaConsole($"error running function attached by lua function event.onsavestate\nError message: {e.Message}");
-            }
         }
 
-        public void CallLoadStateEvent(string name)
+        /// <summary>
+        /// Loads a Lua script from a file and adds it to the scripts list.
+        /// </summary>
+        public LuaFile LoadScript(string path, bool autorun = false)
         {
-            try
+            if (!File.Exists(path))
+                throw new IOException($"Couldn't find the Lua file at {path}");
+
+            // Enable existing copy of script is present
+            var existingFile = ScriptList.FirstOrDefault(t => path == t.Path);
+
+            if (existingFile is not null)
             {
-                foreach (var lf in RegisteredFunctions.Where(static l => l.Event == NamedLuaFunction.EVENT_TYPE_LOADSTATE))
+                if (!existingFile.Enabled)
                 {
-                    lf.Call(name);
+                    EnableScript(existingFile);
                 }
+
+                return existingFile;
             }
-            catch (Exception e)
-            {
-                LogToLuaConsole($"error running function attached by lua function event.onloadstate\nError message: {e.Message}");
-            }
+
+            // Otherwise load from disk
+            var luaFile = new LuaFile("", path)
+            { State = LuaFile.RunState.Disabled };
+
+            ScriptList.Add(luaFile);
+
+            if (autorun)
+                EnableScript(luaFile);
+
+            return luaFile;
         }
 
-        public void CallFrameBeforeEvent()
-        {
-            if (IsUpdateSupressed) return;
-
-            try
-            {
-                foreach (var lf in RegisteredFunctions.Where(static l => l.Event == NamedLuaFunction.EVENT_TYPE_PREFRAME))
-                {
-                    lf.Call();
-                }
-            }
-            catch (Exception e)
-            {
-                LogToLuaConsole($"error running function attached by lua function event.onframestart\nError message: {e.Message}");
-            }
-        }
-
-        public void CallFrameAfterEvent()
-        {
-            if (IsUpdateSupressed) return;
-
-            try
-            {
-                foreach (var lf in RegisteredFunctions.Where(static l => l.Event == NamedLuaFunction.EVENT_TYPE_POSTFRAME))
-                {
-                    lf.Call();
-                }
-            }
-            catch (Exception e)
-            {
-                LogToLuaConsole($"error running function attached by lua function event.onframeend\nError message: {e.Message}");
-            }
-        }
-
-        public void CallExitEvent(LuaFile lf)
-        {
-            foreach (var exitCallback in RegisteredFunctions
-                .Where(l => l.Event == NamedLuaFunction.EVENT_TYPE_ENGINESTOP
-                    && (l.LuaFile.Path == lf.Path || ReferenceEquals(l.LuaFile.Thread, lf.Thread)))
-                .ToList())
-            {
-                exitCallback.Call();
-            }
-
-            OnExit?.Invoke(lf.Path);
-        }
-
-        public void CallCloseEvent(LuaFile lf)
-        {
-            foreach (var closeCallback in RegisteredFunctions
-                .Where(l => l.Event == NamedLuaFunction.EVENT_TYPE_CONSOLECLOSE
-                    && (l.LuaFile.Path == lf.Path || ReferenceEquals(l.LuaFile.Thread, lf.Thread)))
-                .ToList())
-            {
-                closeCallback.Call();
-            }
-        }
+        public List<LuaFile> ActiveScripts => [.. ScriptList.Where(static lf => lf.State is LuaFile.RunState.Running && lf.Thread is not null)];
 
         public void Close()
         {
@@ -346,6 +355,9 @@ namespace Wyanido.Pokebot.LuaStuff
             return true;
         }
 
+        /// <summary>
+        /// Creates a new LuaThread to execute a LuaFile.
+        /// </summary>
         public LuaThread SpawnCoroutine(string file)
         {
             var content = File.ReadAllText(file);
@@ -353,22 +365,19 @@ namespace Wyanido.Pokebot.LuaStuff
             return lua.NewThread(main);
         }
 
+        /// <summary>
+        /// Spawns a coroutine of a LuaFile and assigns it to its current thread.
+        /// </summary>
         public void SpawnAndSetFileThread(string filePath, LuaFile lf)
         {
             lf.Thread = SpawnCoroutine(filePath);
         }
 
-        public object[] RunScriptPersistent(string file)
-        {
-            var function = lua.LoadFile(file);
-            return function.Call();
-        }
-
         /// <summary>
-        /// Runs the provided string as a Lua command in the global context so
-        /// that any values set will persist in the current environment.
+        /// Required by ILuaLibraries. Executes a string as a Lua command
+        /// at the top level, such that any values set will persist.
         /// </summary>
-        public object[] RunStringPersistent(string command)
+        public object[]? ExecuteString(string command)
         {
             const string ChunkName = "input"; // shows up in error messages
 
@@ -404,31 +413,101 @@ namespace Wyanido.Pokebot.LuaStuff
             return null;
         }
 
-        public void StopScript(LuaFile file)
+        /// <summary>
+        /// Runs a previously loaded Lua script.
+        /// </summary>
+        private void EnableScript(LuaFile luaFile)
         {
-            if (file.IsSeparator) return;
-
-            file.State = LuaFile.RunState.Disabled;
-
-            if (file.Thread is not null)
-            {
-                CallExitEvent(file);
-                RegisteredFunctions.RemoveForFile(file, emulator);
-                file.Stop();
-            }
-        }
-
-        public (bool WaitForFrame, bool Terminated) ResumeScript(LuaFile lf)
-        {
-            currentThread = lf.Thread;
+            luaFile.State = LuaFile.RunState.Running;
 
             try
             {
-                LuaLibraryBase.SetCurrentThread(lf);
+                LuaSandbox.Sandbox(luaFile.Thread, () =>
+                {
+                    SpawnAndSetFileThread(luaFile.Path, luaFile);
+                    LuaSandbox.CreateSandbox(luaFile.Thread, luaFile.Path);
+                    Print($"Enabled script {luaFile.Path}");
+                },
+                () =>
+                {
+                    luaFile.State = LuaFile.RunState.Disabled;
+                });
+            }
+            catch (IOException ex)
+            {
+                luaFile.State = LuaFile.RunState.Disabled;
+                PrintError($"Couldn't access Lua file {luaFile.Path}: {ex}");
+            }
+            catch (Exception ex)
+            {
+                luaFile.State = LuaFile.RunState.Disabled;
+                PrintError($"Failed to enable Lua file {luaFile.Path}: {ex}");
+            }
+        }
 
+        public void RemoveScript(string path)
+        {
+            var absolutePath = Path.GetFullPath(path);
+            var luaFile = ScriptList.FirstOrDefault(t => absolutePath == t.Path);
+
+            if (luaFile is not null)
+                RemoveScript(luaFile);
+        }
+
+        public void RemoveScript(LuaFile item)
+        {
+            if (!item.IsSeparator)
+                DisableScript(item);
+
+            ScriptList.Remove(item);
+        }
+
+        public void RemoveAllScripts()
+        {
+            while (ScriptList.Count > 0)
+                RemoveScript(ScriptList[^1]);
+        }
+
+        /// <summary>
+        /// Stops all active Lua scripts.
+        /// </summary>
+        public void DisableAllScripts()
+        {
+            foreach (var file in ScriptList)
+                DisableScript(file);
+        }
+
+        /// <summary>
+        /// Disables a Lua script.
+        /// </summary>
+        public void DisableScript(LuaFile luaFile)
+        {
+            if (luaFile.IsSeparator) return;
+
+            luaFile.State = LuaFile.RunState.Disabled;
+
+            if (luaFile.Thread is not null)
+            {
+                CallExitEvent(luaFile);
+                RegisteredFunctions.RemoveForFile(luaFile, emulator);
+                luaFile.Stop();
+            }
+        }
+
+        /// <summary>
+        /// Resumes execution of a given LuaFile.
+        /// </summary>
+        public (bool WaitForFrame, bool Terminated) ResumeScript(LuaFile luaFile)
+        {
+            currentThread = luaFile.Thread;
+
+            try
+            {
+                LuaLibraryBase.SetCurrentThread(luaFile);
+                
                 var execResult = currentThread.Resume();
+                //currentThread = null;
 
-                currentThread = null;
                 var result = execResult switch
                 {
                     LuaStatus.OK => (WaitForFrame: false, Terminated: true),
@@ -445,6 +524,96 @@ namespace Wyanido.Pokebot.LuaStuff
             }
         }
 
+        public void CallSaveStateEvent(string name)
+        {
+            try
+            {
+                foreach (var lf in RegisteredFunctions.Where(static l => l.Event == NamedLuaFunction.EVENT_TYPE_SAVESTATE))
+                {
+                    lf.Call(name);
+                }
+            }
+            catch (Exception e)
+            {
+                Print($"error running function attached by lua function event.onsavestate\nError message: {e.Message}");
+            }
+        }
+
+        public void CallLoadStateEvent(string name)
+        {
+            try
+            {
+                foreach (var lf in RegisteredFunctions.Where(static l => l.Event == NamedLuaFunction.EVENT_TYPE_LOADSTATE))
+                {
+                    lf.Call(name);
+                }
+            }
+            catch (Exception e)
+            {
+                Print($"error running function attached by lua function event.onloadstate\nError message: {e.Message}");
+            }
+        }
+
+        public void CallFrameBeforeEvent()
+        {
+            if (IsUpdateSupressed) return;
+
+            try
+            {
+                foreach (var lf in RegisteredFunctions.Where(static l => l.Event == NamedLuaFunction.EVENT_TYPE_PREFRAME))
+                {
+                    lf.Call();
+                }
+            }
+            catch (Exception e)
+            {
+                Print($"error running function attached by lua function event.onframestart\nError message: {e.Message}");
+            }
+        }
+
+        public void CallFrameAfterEvent()
+        {
+            if (IsUpdateSupressed) return;
+
+            try
+            {
+                foreach (var lf in RegisteredFunctions.Where(static l => l.Event == NamedLuaFunction.EVENT_TYPE_POSTFRAME))
+                {
+                    lf.Call();
+                }
+            }
+            catch (Exception e)
+            {
+                Print($"error running function attached by lua function event.onframeend\nError message: {e.Message}");
+            }
+
+            ResumeScripts(true);
+        }
+
+        public void CallExitEvent(LuaFile luaFile)
+        {
+            foreach (var exitCallback in RegisteredFunctions
+                .Where(l => l.Event == NamedLuaFunction.EVENT_TYPE_ENGINESTOP
+                    && (l.LuaFile.Path == luaFile.Path || ReferenceEquals(l.LuaFile.Thread, luaFile.Thread)))
+                .ToList())
+            {
+                exitCallback.Call();
+            }
+
+            OnExit?.Invoke(luaFile);
+        }
+
+        public void CallCloseEvent(LuaFile luaFile)
+        {
+            foreach (var closeCallback in RegisteredFunctions
+                .Where(l => l.Event == NamedLuaFunction.EVENT_TYPE_CONSOLECLOSE
+                    && (l.LuaFile.Path == luaFile.Path || ReferenceEquals(l.LuaFile.Thread, luaFile.Thread)))
+                .ToList())
+            {
+                closeCallback.Call();
+            }
+        }
+
         public static void Clear() => Instance?.PokebotConsole?.Clear();
 
         public static void Print(params object[] outputs) => Instance?.PokebotConsole?.Log(outputs);
@@ -453,7 +622,7 @@ namespace Wyanido.Pokebot.LuaStuff
 
         public static void PrintError(params object[] outputs) => Instance?.PokebotConsole?.LogError(outputs);
 
-        private static void LogToLuaConsole(object outputs) => Instance?.PokebotConsole?.Log(outputs);
+        private static void Print(object outputs) => Instance?.PokebotConsole?.Log(outputs);
 
         private void FrameAdvance()
         {
@@ -465,7 +634,5 @@ namespace Wyanido.Pokebot.LuaStuff
         {
             currentThread.Yield();
         }
-
-        public object[] ExecuteString(string command) => RunStringPersistent(command);
     }
 }

@@ -27,10 +27,10 @@
 	</ItemGroup>
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
 		<Copy SourceFiles="$(OutputPath)$(MSBuildProjectName).dll" DestinationFolder="$(BIZHAWK_DATA_HOME)ExternalTools" />
-		<Copy SourceFiles="@(LuaFiles)" DestinationFiles="@(LuaFiles->'$(BIZHAWK_DATA_HOME)ExternalTools\lua\%(RecursiveDir)%(Filename)%(Extension)')" />
+		<Copy SourceFiles="@(LuaFiles)" DestinationFiles="@(LuaFiles->'$(BIZHAWK_DATA_HOME)ExternalTools\Pokebot\%(RecursiveDir)%(Filename)%(Extension)')" />
 	</Target>
 	<ItemGroup>
-		<LuaFiles Include="$(ProjectDir)lua\**\*" />
+		<LuaFiles Include="$(ProjectDir)Pokebot\**\*" />
 	</ItemGroup>
 	<ItemGroup>
 	  <None Include="Properties\PublishProfiles\FolderProfile.pubxml.user" />

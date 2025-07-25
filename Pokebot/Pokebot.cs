@@ -50,46 +50,58 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
     [RequiredService]
     private IEmulator Emulator { get; set; }
 
-    private readonly LuaManager lua;
+    private PokebotLuaLibraries lua;
 
     public Pokebot()
     {
         InitializeComponent();
-        lua = new LuaManager();
 
-        Closing += (o, e) => lua.Close();
+        Closing += (o, e) => lua?.Close();
     }
 
     public override void Restart()
     {
         gameDetector = new(APIs);
 
-        lua.Restart(Emulator, Config, Game, MainForm, DisplayManager, InputManager, consoleOutput);
+        LuaFileList newScripts = new(lua?.ScriptList, onChanged: SessionChangedCallback);
+        LuaFunctionList registeredFuncList = new(onChanged: UpdateRegisteredFunctionsDialog);
+        lua = new PokebotLuaLibraries(newScripts, registeredFuncList, Emulator.ServiceProvider, (MainForm)MainForm, DisplayManager, InputManager, Config, Emulator, Game, consoleOutput);
+
         UpdateLoadedGame();
         RefreshScriptsList();
+    }
+
+    private void UpdateRegisteredFunctionsDialog()
+    {
+
+    }
+
+    private void SessionChangedCallback()
+    {
+        throw new NotImplementedException();
     }
 
     private void RefreshScriptsList()
     {
         if (loadedGame == null)
         {
-            PokebotLuaManager.Print("Couldn't find any scripts, because no game is loaded!");
+            PokebotLuaLibraries.Print("Couldn't find any scripts, because no game is loaded!");
             return;
         }
 
-        PokebotLuaManager.Print("Searching for scripts...");
+        PokebotLuaLibraries.Print("Searching for scripts...");
         scriptsTree.Nodes.Clear();
 
         var scripts = GameManager.GetGameScripts(loadedGame);
         var count = scripts.Count();
         if (count == 0)
         {
-            PokebotLuaManager.Print($"Couldn't find any .lua scripts for this game! Did you copy the lua/ folder into BizHawk/ExternalTools?");
+            PokebotLuaLibraries.Print($"Couldn't find any .lua scripts for this game! Did you copy the Pokebot/ folder into BizHawk/ExternalTools?");
             return;
         }
 
         PopulateScriptsTree(scripts);
-        PokebotLuaManager.Print($"Loaded {count} scripts");
+        PokebotLuaLibraries.Print($"Loaded {count} scripts");
     }
 
     /// <summary>
@@ -103,7 +115,7 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
 
         foreach (var absolutePath in paths)
         {
-            var path = absolutePath.Replace(PokebotLuaManager.ScriptsPath + separator, "");
+            var path = absolutePath.Replace(PokebotLuaLibraries.ScriptsPath + separator, "");
             subPathAgg = string.Empty;
 
             foreach (string subPath in path.Split(separator))
@@ -146,12 +158,12 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
         }
 
         loadedGameLabel.Text = $"{loadedGame.GameCode} ({loadedGame.LanguageCode})";
-        PokebotLuaManager.Print($"Loaded {loadedGame.Title}");
+        PokebotLuaLibraries.Print($"Loaded {loadedGame.Title}");
     }
 
     protected override void UpdateBefore()
     {
-        lua.UpdateBefore();
+        lua.CallFrameBeforeEvent();
     }
 
     protected override void UpdateAfter()
@@ -159,10 +171,10 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
         var framerate = APIs.EmuClient.GetApproxFramerate();
         framerateLabel.Text = $"FPS: {framerate}";
 
-        lua.UpdateAfter();
+        lua.CallFrameAfterEvent();
 
         // Update button state
-        var scripts = lua.GetRunningScripts();
+        var scripts = lua.ActiveScripts;
 
         if (scripts.Count > 0 && !wasRunningScripts)
         {
@@ -190,7 +202,7 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
 
     private void buttonStop_Click(object sender, EventArgs e)
     {
-        lua.StopAllScripts();
+        lua.DisableAllScripts();
     }
 
     private void scriptsTree_AfterSelect(object sender, TreeViewEventArgs e)
@@ -211,15 +223,13 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
         selectedScripts.Tag = absolutePath;
 
         // Evaluate the config properties this script uses
-        PokebotLuaManager.PrintDebug($"Preloading script {filename} to get config values...");
+        PokebotLuaLibraries.PrintDebug($"Preloading script {filename} to get config values...");
         //buttonRun.Enabled = false;
 
         GetScriptConfigProperties(absolutePath, (properties) =>
         {
-            PokebotLuaManager.Print("out");
-
             foreach (var property in properties)
-                PokebotLuaManager.PrintDebug(property.Item1);
+                PokebotLuaLibraries.PrintDebug(property.Item1);
 
             //buttonRun.Enabled = true;
         });
@@ -230,7 +240,7 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
         var files = GameManager.GetGameScriptsFromDirectory(loadedGame, dir);
 
         foreach (var file in files)
-            lua.LuaLibraries.RunScriptPersistent(file);
+            lua.LoadScript(file, true);
     }
 
     private void LoadGameDependencies()
@@ -238,68 +248,58 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
         if (loadedGame == null)
             throw new Exception("No game is loaded. Couldn't determine which scripts to load.");
 
-        lua.LuaLibraries.RunScriptPersistent(Path.Combine([PokebotLuaManager.PokebotLuaPath, "core.lua"]));
+        lua.LoadScript(Path.Combine([PokebotLuaLibraries.PokebotDataPath, "core.lua"]), true);
 
-        lua.LuaLibraries.RunStringPersistent("_ROM = {}");
-        lua.LuaLibraries.RunStringPersistent($"_ROM.offset = {loadedGame.MemoryOffset}");
-        lua.LuaLibraries.RunStringPersistent($"_ROM.version = \"{loadedGame.GameCode}\"");
-        lua.LuaLibraries.RunStringPersistent($"_ROM.language = \"{loadedGame.LanguageCode}\"");
+        lua.ExecuteString("_ROM = {}");
+        lua.ExecuteString($"_ROM.offset = {loadedGame.MemoryOffset}");
+        lua.ExecuteString($"_ROM.version = \"{loadedGame.GameCode}\"");
+        lua.ExecuteString($"_ROM.language = \"{loadedGame.LanguageCode}\"");
 
-        RunDependencyDir(Path.Combine(PokebotLuaManager.PokebotLuaPath, "modules"));
-        RunDependencyDir(Path.Combine(PokebotLuaManager.PokebotLuaPath, "constants"));
-        RunDependencyDir(Path.Combine(PokebotLuaManager.PokebotLuaPath, "methods"));
+        RunDependencyDir(Path.Combine(PokebotLuaLibraries.PokebotDataPath, "modules"));
+        RunDependencyDir(Path.Combine(PokebotLuaLibraries.PokebotDataPath, "constants"));
+        RunDependencyDir(Path.Combine(PokebotLuaLibraries.PokebotDataPath, "methods"));
     }
 
     private bool TryLoadGameDependencies()
     {
-        PokebotLuaManager.PrintDebug("Loading script dependencies...");
+        PokebotLuaLibraries.PrintDebug("Loading script dependencies...");
 
         try
         {
             LoadGameDependencies();
-            PokebotLuaManager.PrintDebug("Done!...");
+            PokebotLuaLibraries.PrintDebug("Done!...");
         }
         catch (Exception ex)
         {
-            PokebotLuaManager.PrintError($"One or more dependencies of the script failed to load: {ex}");
+            PokebotLuaLibraries.PrintError($"One or more dependencies of the script failed to load: {ex}");
             return false;
         }
 
         return true;
     }
 
-    private void RunGameScript(string file)
-    {
-        // Run one frame before starting script to let pointers and state update
-        lua.LuaLibraries.RunStringPersistent("update_pointers()");
-        lua.LuaLibraries.RunStringPersistent("update_game_state()");
-
-        PokebotLuaManager.PrintDebug($"Adding script {file} for execution...");
-
-        var script = lua.AddScript(file);
-        lua.RunScript(script);
-        lua.LuaLibraries.ExecuteString("main()");
-    }
-
     private void GetScriptConfigProperties(string file, Action<Tuple<string, bool>[]> callback)
     {
-        lua.StopAllScripts();
+        lua.RemoveAllScripts();
+        lua.ExecuteString("_CONFIG = {}");
 
         if (!TryLoadGameDependencies())
             return;
 
         // Load keys required by this script's dependencies
-        var generalKeys = lua.LuaLibraries.GetDict("_CONFIG");
-        var script = lua.AddScript(file);
-        lua.RunScript(script);
+        var generalKeys = lua.GetDict("_CONFIG");
+        var script = lua.LoadScript(file, true);
 
-        Action<string> evalProperties = null;
+        Action<LuaFile> evalProperties = null;
 
-        evalProperties = (string file) =>
+        evalProperties = (LuaFile luaFile) =>
         {
-            lua.LuaLibraries.OnExit -= evalProperties;
+            if (luaFile != script)
+                return;
 
-            var scriptKeys = lua.LuaLibraries.GetDict("_CONFIG");
+            lua.OnExit -= evalProperties;
+
+            var scriptKeys = lua.GetDict("_CONFIG");
             var properties = new List<Tuple<string, bool>>();
 
             properties = [.. scriptKeys.Select((p) => {
@@ -312,30 +312,30 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
             callback.Invoke([.. properties]);
         };
 
-        lua.LuaLibraries.OnExit += evalProperties;
+        lua.OnExit += evalProperties;
     }
 
     private void runScript_Click(object sender, EventArgs e)
     {
-        var absolutePath = (string)selectedScripts.Tag;
-        RunGameScript(absolutePath);
+        var mainPath = Path.Combine([PokebotLuaLibraries.PokebotDataPath, "main.lua"]);
+        lua.LoadScript(mainPath, true);
     }
 
     private void openFolder_Click(object sender, EventArgs e)
     {
         try
         {
-            Process.Start(PokebotLuaManager.ScriptsPath);
+            Process.Start(PokebotLuaLibraries.ScriptsPath);
         }
         catch (Exception ex)
         {
-            PokebotLuaManager.PrintError($"Couldn't open the folder at {PokebotLuaManager.ScriptsPath}: {ex}");
+            PokebotLuaLibraries.PrintError($"Couldn't open the folder at {PokebotLuaLibraries.ScriptsPath}: {ex}");
         }
     }
 
     private void clearConsole_Click(object sender, EventArgs e)
     {
-        PokebotLuaManager.Clear();
+        PokebotLuaLibraries.Clear();
     }
 
     private void button1_Click(object sender, EventArgs e)
@@ -349,12 +349,12 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
 
         try
         {
-            var result = lua.LuaLibraries.RunStringPersistent(command);
-            PokebotLuaManager.Print(result);
+            var result = lua.ExecuteString(command);
+            PokebotLuaLibraries.Print(result);
         }
         catch (Exception ex)
         {
-            PokebotLuaManager.PrintError(ex);
+            PokebotLuaLibraries.PrintError(ex);
         }
 
         consoleInput.Text = "";
