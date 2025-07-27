@@ -426,8 +426,8 @@ function pokemon.find_best_attacking_move(ally, foe)
     }
 end
 
-config_set_default("always_catch_shinies", true)
-config_set_default("target_traits", {})
+hint_config_default("always_catch_shinies", true)
+hint_config_default("target_traits", { ivSum = 180 })
 
 --- Returns whether a Pokemon has traits desired by a specified user ruleset
 function pokemon.matches_ruleset(mon, ruleset)

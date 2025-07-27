@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Wyanido.Pokebot.LuaStuff;
+using Wyanido.Pokebot.LuaLibrary;
 
 namespace Wyanido.Pokebot
 {

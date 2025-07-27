@@ -2,7 +2,7 @@
 -- General script for resetting overworld Pokemon until a target is found
 -- Author: wyanido
 -----------------------------------------------------------------------------
-config_set_default("auto_catch", false)
+hint_config_default("auto_catch", false)
 
 function main()
     while not game_state.in_battle do

@@ -1,6 +1,7 @@
 ﻿using BizHawk.Common.CollectionExtensions;
 using NLua;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
@@ -11,7 +12,7 @@ namespace Wyanido.Pokebot.LuaLibrary
         /// <summary>
         /// Serialises a LuaTable as a readable string.
         /// </summary>
-        public static string ParseTable(LuaTable lti)
+        public static string SerialiseTable(LuaTable lti)
         {
             var keyObjs = lti.Keys;
             var valueObjs = lti.Values;
@@ -38,7 +39,7 @@ namespace Wyanido.Pokebot.LuaLibrary
             stringBuilder.Append(output switch
             {
                 null => "nil",
-                LuaTable table => ParseTable(table),
+                LuaTable table => SerialiseTable(table),
                 _ => output.ToString(),
             });
         }
@@ -46,7 +47,7 @@ namespace Wyanido.Pokebot.LuaLibrary
         /// <summary>
         /// Parses a list of objects to a readable string. Intended for parsing Lua objects.
         /// </summary>
-        public static string ParseObjects(string separator, string terminator, params object[] outputs)
+        public static string SerialiseObjects(string separator, string terminator, params object[] outputs)
         {
             if (outputs == null || outputs.Length == 0 || outputs.Length == 1 && outputs[0] is null)
                 return $"(no return){terminator}";
@@ -65,5 +66,46 @@ namespace Wyanido.Pokebot.LuaLibrary
 
             return stringBuilder.ToString();
         }
+
+        /// <summary>
+        /// Converts a LuaTable into an appropriate C# collection representation based
+        /// on contents. Tables indexed with numbers are converted into lists, and
+        /// key-value pairs are converted into a dictionary.
+        /// </summary>
+        public static object ParseTable(LuaTable table)
+        {
+            // Convert the keys into an array to use the .All() query
+            var keyArray = new object[table.Keys.Count];
+            table.Keys.CopyTo(keyArray, 0);
+            var isArray = keyArray.All(key => key is Int64);
+
+            if (isArray)
+            {
+                var newTable = new List<object>();
+
+                for (var e = table.GetEnumerator(); e.MoveNext();)
+                {
+                    var item = (e.Value is LuaTable subTable) ? ParseTable(subTable) : e.Value;
+                    newTable.Add(item);
+                }
+
+                return newTable;
+            }
+            else
+            {
+                var newTable = new Dictionary<object, object>();
+
+                for (var e = table.GetEnumerator(); e.MoveNext();)
+                {
+                    var key = e.Key;
+                    var value = (e.Value is LuaTable subTable) ? ParseTable(subTable) : e.Value;
+
+                    newTable.Add(key, value);
+                }
+
+                return newTable;
+            }
+        }
+
     }
 }

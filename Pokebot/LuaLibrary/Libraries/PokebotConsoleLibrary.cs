@@ -84,7 +84,7 @@ namespace Wyanido.Pokebot.LuaLibrary.Libraries
             if (OutputBox is null)
                 return;
 
-            var message = LuaHelpers.ParseObjects(separator, terminator, outputs);
+            var message = LuaHelpers.SerialiseObjects(separator, terminator, outputs);
 
             if (colour.HasValue)
             {

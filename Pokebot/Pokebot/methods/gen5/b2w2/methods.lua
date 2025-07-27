@@ -3,7 +3,7 @@
 -- Author: wyanido
 -- Homepage: https://github.com/wyanido/pokebot-nds
 -----------------------------------------------------------------------------
-config_set_default("encounter_movement_style", "horizontal")
+hint_config_default("encounter_movement_style", "horizontal")
 
 function update_pointers()
     local anchor = mdword(0x2141950 + _ROM.offset)

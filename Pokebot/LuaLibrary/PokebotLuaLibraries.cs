@@ -14,7 +14,7 @@ using System.Threading;
 using System.Windows.Forms;
 using Wyanido.Pokebot.LuaLibrary.Libraries;
 
-namespace Wyanido.Pokebot.LuaStuff
+namespace Wyanido.Pokebot.LuaLibrary
 {
     public class PokebotLuaLibraries : ILuaLibraries
     {
@@ -177,7 +177,7 @@ namespace Wyanido.Pokebot.LuaStuff
 
         public LuaTable GetTable(string path) => lua.GetTable(path);
 
-        public Dictionary<object, object> GetDict(string path)
+        public Dictionary<object, object> GetTableDict(string path)
         {
             var table = GetTable(path);
 
@@ -189,6 +189,8 @@ namespace Wyanido.Pokebot.LuaStuff
 
             return lua.GetTableDict(table);
         }
+
+        public Dictionary<object, object> GetTableDict(LuaTable table) => lua.GetTableDict(table);
 
         /// <summary>
         /// Sets the package path in the Lua environment based on the host OS.
@@ -426,7 +428,9 @@ namespace Wyanido.Pokebot.LuaStuff
                 {
                     SpawnAndSetFileThread(luaFile.Path, luaFile);
                     LuaSandbox.CreateSandbox(luaFile.Thread, luaFile.Path);
-                    Print($"Enabled script {luaFile.Path}");
+
+                    var scriptName = Path.GetFileName(luaFile.Path);
+                    PrintDebug($"Enabled script {scriptName}");
                 },
                 () =>
                 {
@@ -504,7 +508,7 @@ namespace Wyanido.Pokebot.LuaStuff
             try
             {
                 LuaLibraryBase.SetCurrentThread(luaFile);
-                
+
                 var execResult = currentThread.Resume();
                 //currentThread = null;
 

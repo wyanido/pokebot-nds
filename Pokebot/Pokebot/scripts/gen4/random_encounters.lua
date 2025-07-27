@@ -3,7 +3,7 @@
 -- Encounters wild Pokemon until a target is found.
 -- Author: wyanido
 ------------------------------------------------------------------------------
-config_set_default("encounter_movement_style", "horizontal")
+hint_config_default("encounter_movement_style", "horizontal")
 
 local function spin()
     -- Prevent accidentally taking a step by

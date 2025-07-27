@@ -13,6 +13,7 @@
 	<ItemGroup>
 		<PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
 		<PackageReference Include="System.Drawing.Common" Version="9.0.7" />
+		<PackageReference Include="YamlDotNet" Version="16.3.0" />
 		<Reference Include="System.DirectoryServices" />
 		<Reference Include="System.Windows.Forms" />
 		<Reference Include="BizHawk.Bizware.Graphics" HintPath="$(BIZHAWK_HOME)dll/BizHawk.Bizware.Graphics.dll" />
@@ -27,6 +28,7 @@
 	</ItemGroup>
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
 		<Copy SourceFiles="$(OutputPath)$(MSBuildProjectName).dll" DestinationFolder="$(BIZHAWK_DATA_HOME)ExternalTools" />
+		<Copy SourceFiles="$(OutputPath)YamlDotNet.dll" DestinationFolder="$(BIZHAWK_DATA_HOME)ExternalTools" />
 		<Copy SourceFiles="@(LuaFiles)" DestinationFiles="@(LuaFiles->'$(BIZHAWK_DATA_HOME)ExternalTools\Pokebot\%(RecursiveDir)%(Filename)%(Extension)')" />
 	</Target>
 	<ItemGroup>
@@ -36,6 +38,9 @@
 	  <None Include="Properties\PublishProfiles\FolderProfile.pubxml.user" />
 	</ItemGroup>
 	<ItemGroup>
+	  <Compile Update="Forms\PokemonEncounter.cs">
+	    <SubType>UserControl</SubType>
+	  </Compile>
 	  <Compile Update="Properties\Resources.Designer.cs">
 	    <DesignTime>True</DesignTime>
 	    <AutoGen>True</AutoGen>

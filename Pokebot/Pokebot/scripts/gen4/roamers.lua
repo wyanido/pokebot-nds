@@ -4,9 +4,9 @@
 -- it will interact with it and reset until its data is initialised to be shiny.
 -- Author: wyanido
 -----------------------------------------------------------------------------
-config_set_default("ot_override", false)
-config_set_default("tid_override", "000000")
-config_set_default("sid_override", "000000")
+hint_config_default("ot_override", false)
+hint_config_default("tid_override", "000000")
+hint_config_default("sid_override", "000000")
 
 function main()
     local data

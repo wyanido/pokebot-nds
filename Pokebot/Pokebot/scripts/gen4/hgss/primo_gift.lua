@@ -2,10 +2,10 @@
 -- HGSS script for hunting gift Pokemon received from Primo in Violet City.
 -- Author: wyanido
 -----------------------------------------------------------------------------
-config_set_default("primo1", "0x0499")
-config_set_default("primo2", "0x058E")
-config_set_default("primo3", "0x05CF")
-config_set_default("primo4", "0x05CD")
+hint_config_default("primo1", "0x0499")
+hint_config_default("primo2", "0x058E")
+hint_config_default("primo3", "0x05CF")
+hint_config_default("primo4", "0x05CD")
 
 function main()
     -- Finds the location of a phrase ID within the Easy Chat menu

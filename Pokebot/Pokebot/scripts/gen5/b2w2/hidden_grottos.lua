@@ -2,7 +2,7 @@
 -- B2W2 script for hunting Pokemon in hidden grottos.
 -- Author: wyanido, StoryZealot
 -----------------------------------------------------------------------------
-config_set_default("grotto", 0)
+hint_config_default("grotto", 0)
 
 -- Set the 'grotto' value in your config to the value corresponding to the grotto you want to hunt.
 -- 0    Floccesy Ranch

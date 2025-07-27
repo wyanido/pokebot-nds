@@ -3,7 +3,7 @@ game_state = {}
 party = {}
 foe = nil
 
-function config_set_default(key, value)
+function hint_config_default(key, value)
     if table_contains(_CONFIG, key) then
         return
     end
@@ -63,7 +63,7 @@ bit = {
 --- Converts an unsigned 32-bit int to a signed 16-bit int
 function to_s16(u32) return ((u32 / 65536) + 32768) % 65536 - 32768 end
 
-config_set_default("focus_mode", false)
+hint_config_default("focus_mode", false)
 
 --- Advances the game by one frame and calls all update methods
 -- All frame advances go through this method, meaning it can

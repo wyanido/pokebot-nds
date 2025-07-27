@@ -147,9 +147,9 @@ function update_game_state()
     end
 end
 
-config_set_default("starter0", true)
-config_set_default("starter1", false)
-config_set_default("starter2", false)
+hint_config_default("starter0", true)
+hint_config_default("starter1", false)
+hint_config_default("starter2", false)
 
 function cycle_starter_choice()
     if starter == nil then starter = -1 end
@@ -323,10 +323,29 @@ function subdue_pokemon()
     end
 end
 
-config_set_default("pokeball_override", {})
-config_set_default("pokeball_priority", {})
-config_set_default("subdue_target", false)
-config_set_default("save_game_after_catch", false)
+hint_config_default("pokeball_override", {
+    ["Repeat Ball"] = {
+       ["name"] = {
+            "Lillipup",
+            "Bidoof",
+            "Sentret"
+        }
+    },
+    ["Net Ball"] = {
+        ["type"] = {
+            "Bug",
+            "Water"
+        }
+    }
+})
+hint_config_default("pokeball_priority", {
+    "Premier Ball",
+    "Ultra Ball",
+    "Great Ball",
+    "Poke Ball"
+})
+hint_config_default("subdue_target", false)
+hint_config_default("save_game_after_catch", false)
 
 --- Continuously tries to catch the foe until the battle ends, or there are no valid Poke Balls left
 function catch_pokemon()
@@ -430,11 +449,11 @@ function catch_pokemon()
     if _CONFIG.save_game_after_catch then save_game() end
 end
 
-config_set_default("battle_non_targets", false)
-config_set_default("pickup", false)
-config_set_default("pickup_threshold", 2)
-config_set_default("cycle_lead_pokemon", false)
-config_set_default("thief_wild_items", false)
+hint_config_default("battle_non_targets", false)
+hint_config_default("pickup", false)
+hint_config_default("pickup_threshold", 2)
+hint_config_default("cycle_lead_pokemon", false)
+hint_config_default("thief_wild_items", false)
 
 --- Logs the current wild foes and decides the next actions to take
 function process_wild_encounter()

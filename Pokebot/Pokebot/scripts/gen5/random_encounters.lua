@@ -2,7 +2,7 @@
 -- Gen 5 script for hunting Pokemon through random encounters in Gen 5.
 -- Author: wyanido
 -----------------------------------------------------------------------------
-config_set_default("encounter_movement_style", "horizontal")
+hint_config_default("encounter_movement_style", "horizontal")
 
 local home = {
     x = game_state.trainer_x,
