@@ -3,9 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
-using Wyanido.Pokebot.LuaLibrary;
-using Wyanido.Pokebot.Settings;
-using YamlDotNet.Core.Tokens;
+using Wyanido.Pokebot.Forms;
+using Wyanido.Pokebot.Lua;
+using Wyanido.Pokebot.Utils;
 using YamlDotNet.Serialization;
 
 namespace Wyanido.Pokebot;
@@ -138,7 +138,7 @@ public partial class ConfigPage : UserControl, IContainerControl
             else if (value is string stringValue)
                 AppendTextBox(property.Key, stringValue);
             else
-                PokebotLuaLibraries.PrintDebug($"Couldn't add unknown property type '{property.PropertyType}' ({property.Key} = {property.DefaultValue}) to the config form");
+                LuaLibraries.PrintDebug($"Couldn't add unknown property type '{property.PropertyType}' ({property.Key} = {property.DefaultValue}) to the config form");
         }
 
         ResumeLayout();
@@ -203,8 +203,7 @@ public partial class ConfigPage : UserControl, IContainerControl
 
     /// <summary>
     /// Iterates through the config form's properties and updates the property's
-    /// value if the same key exists inside the ScriptConfig. Equally, if a key is
-    /// missing on the ScriptConfig, its default value is assigned to it.
+    /// value if the same key exists inside the ScriptConfig.
     /// </summary>
     /// <param name="scriptConfig"></param>
     public void SetFromScriptConfig(ref ScriptConfig scriptConfig)

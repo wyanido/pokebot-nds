@@ -1,0 +1,7 @@
+[
+  { "name": "Poipole", "type": ["Poison", "Poison"] },
+  { "name": "Naganadel", "type": ["Poison", "Dragon"] },
+  { "name": "Stakataka", "type": ["Rock", "Steel"] },
+  { "name": "Blacephalon", "type": ["Fire", "Ghost"] },
+  { "name": "Zeraora", "type": ["Electric", "Electric"] }
+]

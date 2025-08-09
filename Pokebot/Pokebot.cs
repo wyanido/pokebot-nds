@@ -1,23 +1,30 @@
-﻿using System;
+﻿using BizHawk.Client.Common;
+using BizHawk.Client.EmuHawk;
+using BizHawk.Common.PathExtensions;
+using BizHawk.Emulation.Common;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
-
-using BizHawk.Client.Common;
-using BizHawk.Client.EmuHawk;
-using BizHawk.Emulation.Common;
-
-using Wyanido.Pokebot.LuaLibrary;
-using Wyanido.Pokebot.Settings;
+using Wyanido.Pokebot.Forms;
+using Wyanido.Pokebot.Games;
 
 namespace Wyanido.Pokebot;
+
+using LuaLibraries = Lua.LuaLibraries;
 
 [ExternalTool("Pokebot")]
 public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
 {
+    public static string DataPath => Path.Combine([PathUtils.DataDirectoryPath, "ExternalTools", "Pokebot"]);
+    public static string ImagesPath => Path.Combine([DataPath, "images"]);
+
+    public static Game? CurrentGame;
+    public static ScriptConfig PokebotConfig;
+
     public ApiContainer? _maybeAPIContainer { get; set; }
     public ApiContainer APIs => _maybeAPIContainer!;
 
@@ -37,69 +44,125 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
     private Button buttonStop;
     private SplitContainer splitContainer1;
     private Button buttonRun;
-    private GameManager gameDetector;
-    private GameDefinition? loadedGame;
-
+    
     private bool wasRunningScripts = false;
 
     [RequiredService]
     private IEmulator Emulator { get; set; }
 
-    private PokebotLuaLibraries lua;
-    private ScriptConfig scriptConfig;
+    private LuaLibraries lua;
+    private bool gameDataPagePopulated = false;
 
     public Pokebot()
     {
         InitializeComponent();
+
+        buttonRun.Image = Image.FromFile(Path.Combine([ImagesPath, "pokemon", "snivy.png"]));
+        buttonStop.Image = Image.FromFile(Path.Combine([ImagesPath, "pokemon", "tepig.png"]));
+        buttonRefresh.Image = Image.FromFile(Path.Combine([ImagesPath, "pokemon", "oshawott.png"]));
 
         Closing += (o, e) => lua?.Close();
     }
 
     public override void Restart()
     {
-        gameDetector = new(APIs);
-
         LuaFileList newScripts = new(lua?.ScriptList, onChanged: SessionChangedCallback);
         LuaFunctionList registeredFuncList = new(onChanged: UpdateRegisteredFunctionsDialog);
-        lua = new PokebotLuaLibraries(newScripts, registeredFuncList, Emulator.ServiceProvider, (MainForm)MainForm, DisplayManager, InputManager, Config, Emulator, Game, consoleOutput);
+        lua = new LuaLibraries(newScripts, registeredFuncList, Emulator.ServiceProvider, (MainForm)MainForm, DisplayManager, InputManager, Config, Emulator, Game, consoleOutput);
 
-        loadedGame = gameDetector.DetectGame();
+        CurrentGame = GameDetector.DetectGame(Game);
         RefreshScriptsList();
 
-        scriptConfig = ScriptConfig.LoadOrEmpty(ScriptConfig.DefaultConfigPath);
+        if (CurrentGame is not null)
+        {
+            // Define constants for this game
+            // This can be done with a direct object assignment, so improve it later
+            lua.ExecuteString("_ROM = {}");
+            lua.ExecuteString($"_ROM.offset = {CurrentGame.MemoryOffset}");
+            lua.ExecuteString($"_ROM.version = \"{CurrentGame.GameCode}\"");
+            lua.ExecuteString($"_ROM.language = \"{CurrentGame.LanguageCode}\"");
+            lua.LoadScript(Path.Combine([DataPath, "core.lua"]), true);
+        }
+
+        PopulateDataPage();
+
+        PokebotConfig = ScriptConfig.LoadOrEmpty(ScriptConfig.DefaultConfigPath);
     }
 
     private void UpdateRegisteredFunctionsDialog()
     {
-
+        LuaLibraries.PrintDebug("Registered functions updated");
     }
 
     private void SessionChangedCallback()
     {
-        throw new NotImplementedException();
+        LuaLibraries.PrintDebug("Session changed");
+    }
+
+    /// <summary>
+    /// Updates the form's Data tab with info from the currently loaded game.
+    /// </summary>
+    private void PopulateDataPage()
+    {
+        abilitiesList.Controls.Clear();
+        itemsList.Controls.Clear();
+        mapsList.Controls.Clear();
+        movesList.Controls.Clear();
+        typesList.Controls.Clear();
+        speciesList.Controls.Clear();
+
+        // Leave lists empty if no game loaded
+        if (CurrentGame is null)
+            return;
+
+        // Populate lists with game data
+        foreach (var abilityName in CurrentGame.Abilities.List)
+            abilitiesList.Items.Add(abilityName);
+
+        foreach (var itemName in CurrentGame.Items.List)
+            itemsList.Items.Add(itemName);
+
+        foreach (var mapName in CurrentGame.Maps.List)
+            mapsList.Items.Add(mapName);
+
+        foreach (var move in CurrentGame.Moves.List)
+            movesList.Items.Add(move.Name);
+
+        foreach (var typeName in CurrentGame.Types)
+            typesList.Items.Add(typeName);
+
+        foreach (var species in CurrentGame.Species.List)
+            speciesList.Items.Add(species.Name);
+
+        abilitiesList.SelectedIndex = 0;
+        itemsList.SelectedIndex = 0;
+        mapsList.SelectedIndex = 0;
+        movesList.SelectedIndex = 0;
+        typesList.SelectedIndex = 0;
+        speciesList.SelectedIndex = 0;
     }
 
     private void RefreshScriptsList()
     {
-        if (loadedGame == null)
+        if (CurrentGame == null)
         {
-            PokebotLuaLibraries.Print("Couldn't find any scripts, because no game is loaded!");
+            LuaLibraries.Print("Couldn't find any scripts, because no game is loaded!");
             return;
         }
 
-        PokebotLuaLibraries.PrintDebug("Searching for available scripts...");
+        LuaLibraries.PrintDebug("Searching for available scripts...");
         scriptsTree.Nodes.Clear();
 
-        var scripts = GameManager.GetGameScripts(loadedGame);
+        var scripts = Games.Game.GetGameScripts(CurrentGame);
         var count = scripts.Count();
         if (count == 0)
         {
-            PokebotLuaLibraries.Print($"Couldn't find any .lua scripts for this game! Did you copy the Pokebot/ folder into BizHawk/ExternalTools?");
+            LuaLibraries.Print($"Couldn't find any .lua scripts for this game! Did you copy the Pokebot/ folder into BizHawk/ExternalTools?");
             return;
         }
 
         PopulateScriptsTree(scripts);
-        PokebotLuaLibraries.PrintDebug($"Found {count} scripts for this game");
+        LuaLibraries.PrintDebug($"Found {count} scripts for this game");
     }
 
     /// <summary>
@@ -113,7 +176,7 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
 
         foreach (var absolutePath in paths)
         {
-            var path = absolutePath.Replace(PokebotLuaLibraries.ScriptsPath + separator, "");
+            var path = absolutePath.Replace(LuaLibraries.ScriptsPath + separator, "");
             subPathAgg = string.Empty;
 
             foreach (string subPath in path.Split(separator))
@@ -204,7 +267,7 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
         selectedScript.Tag = absolutePath;
 
         // Evaluate the config properties this script uses
-        PokebotLuaLibraries.PrintDebug($"Preloading script {filename} to get config values...");
+        LuaLibraries.PrintDebug($"Preloading script {filename} to get config values...");
 
         GetScriptConfigProperties(absolutePath, (properties) =>
         {
@@ -212,15 +275,17 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
 
             // Display current config on form, then copy the values back in
             // and save to default any missing properties the script may have.
-            configPage.SetFromScriptConfig(ref scriptConfig);
-            configPage.CopyToScriptConfig(ref scriptConfig);
-            scriptConfig.SaveToFile();
+            configPage.SetFromScriptConfig(ref PokebotConfig);
+            configPage.CopyToScriptConfig(ref PokebotConfig);
+            PokebotConfig.SaveToFile();
+
+            lua.SetObjectToPath("_CONFIG", PokebotConfig.Properties);
         });
     }
 
     private void RunDependencyDir(string dir)
     {
-        var files = GameManager.GetGameScriptsFromDirectory(loadedGame, dir);
+        var files = Games.Game.GetGameScriptsFromDirectory(CurrentGame, dir);
 
         foreach (var file in files)
             lua.LoadScript(file, true);
@@ -228,33 +293,24 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
 
     private void LoadGameDependencies()
     {
-        if (loadedGame == null)
+        if (CurrentGame == null)
             throw new Exception("No game is loaded. Couldn't determine which scripts to load.");
 
-        lua.LoadScript(Path.Combine([PokebotLuaLibraries.PokebotDataPath, "core.lua"]), true);
-
-        lua.ExecuteString("_ROM = {}");
-        lua.ExecuteString($"_ROM.offset = {loadedGame.MemoryOffset}");
-        lua.ExecuteString($"_ROM.version = \"{loadedGame.GameCode}\"");
-        lua.ExecuteString($"_ROM.language = \"{loadedGame.LanguageCode}\"");
-
-        RunDependencyDir(Path.Combine(PokebotLuaLibraries.PokebotDataPath, "modules"));
-        RunDependencyDir(Path.Combine(PokebotLuaLibraries.PokebotDataPath, "constants"));
-        RunDependencyDir(Path.Combine(PokebotLuaLibraries.PokebotDataPath, "methods"));
+        RunDependencyDir(Path.Combine(DataPath, "methods"));
     }
 
     private bool TryLoadGameDependencies()
     {
-        PokebotLuaLibraries.PrintDebug("Loading script dependencies...");
+        LuaLibraries.PrintDebug("Loading script dependencies...");
 
         try
         {
             LoadGameDependencies();
-            PokebotLuaLibraries.PrintDebug("Done!...");
+            LuaLibraries.PrintDebug("Done!...");
         }
         catch (Exception ex)
         {
-            PokebotLuaLibraries.PrintError($"One or more dependencies of the script failed to load: {ex}");
+            LuaLibraries.PrintError($"One or more dependencies of the script failed to load: {ex}");
             return false;
         }
 
@@ -270,7 +326,6 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
             return;
 
         // Load keys required by this script's dependencies
-        var generalKeys = lua.GetTableDict("_CONFIG");
         var script = lua.LoadScript(file, true);
 
         Action<LuaFile> evalProperties = null;
@@ -301,7 +356,7 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
 
     private void runScript_Click(object sender, EventArgs e)
     {
-        var mainPath = Path.Combine([PokebotLuaLibraries.PokebotDataPath, "main.lua"]);
+        var mainPath = Path.Combine([DataPath, "main.lua"]);
         lua.LoadScript(mainPath, true);
     }
 
@@ -312,7 +367,7 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
 
     private void clearConsole_Click(object sender, EventArgs e)
     {
-        PokebotLuaLibraries.Clear();
+        LuaLibraries.Clear();
     }
 
     private void button1_Click(object sender, EventArgs e)
@@ -327,11 +382,11 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
         try
         {
             var result = lua.ExecuteString(command);
-            PokebotLuaLibraries.Print(result);
+            LuaLibraries.Print(result);
         }
         catch (Exception ex)
         {
-            PokebotLuaLibraries.PrintError(ex);
+            LuaLibraries.PrintError(ex);
         }
 
         consoleInput.Text = "";
@@ -354,43 +409,62 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
 
     private void clearLuaConsoleToolStripMenuItem_Click(object sender, EventArgs e)
     {
-        PokebotLuaLibraries.Clear();
+        LuaLibraries.Clear();
     }
 
     private void openFolderToolStripMenuItem_Click(object sender, EventArgs e)
     {
         try
         {
-            Process.Start(PokebotLuaLibraries.ScriptsPath);
+            Process.Start(LuaLibraries.ScriptsPath);
         }
         catch (Exception ex)
         {
-            PokebotLuaLibraries.PrintError($"Couldn't open the folder at {PokebotLuaLibraries.ScriptsPath}: {ex}");
+            LuaLibraries.PrintError($"Couldn't open the folder at {LuaLibraries.ScriptsPath}: {ex}");
         }
     }
 
     private void saveConfigChanges_Click(object sender, EventArgs e)
     {
         // Update the config values from the form and write to disk
-        configPage.CopyToScriptConfig(ref scriptConfig);
-        scriptConfig.SaveToFile(ScriptConfig.DefaultConfigPath);
+        configPage.CopyToScriptConfig(ref PokebotConfig);
+        PokebotConfig.SaveToFile(ScriptConfig.DefaultConfigPath);
     }
 
     private void resetConfig_Click(object sender, EventArgs e)
     {
         // Reset the config form back to the last saved state
-        configPage.SetFromScriptConfig(ref scriptConfig);
+        configPage.SetFromScriptConfig(ref PokebotConfig);
     }
 
     private void openFolderToolStripMenuItem1_Click(object sender, EventArgs e)
     {
         try
         {
-            Process.Start(PokebotLuaLibraries.PokebotDataPath);
+            Process.Start(DataPath);
         }
         catch (Exception ex)
         {
-            PokebotLuaLibraries.PrintError($"Couldn't open the folder at {PokebotLuaLibraries.ScriptsPath}: {ex}");
+            LuaLibraries.PrintError($"Couldn't open the folder at {LuaLibraries.ScriptsPath}: {ex}");
         }
+    }
+
+    private void tabControl1_TabIndexChanged(object sender, EventArgs e)
+    {
+        if (tabControl1.SelectedTab == gameDataPage)
+        {
+            // Only populate data page once per ROM,
+            // and only when page is opened to minimise performance impact
+            if (gameDataPagePopulated)
+                return;
+
+            PopulateDataPage();
+            gameDataPagePopulated = true;
+        }
+    }
+
+    private void flowLayoutPanel1_Paint(object sender, PaintEventArgs e)
+    {
+
     }
 }

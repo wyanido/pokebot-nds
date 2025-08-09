@@ -32,9 +32,11 @@
 		<Copy SourceFiles="@(LuaFiles)" DestinationFiles="@(LuaFiles->'$(BIZHAWK_DATA_HOME)ExternalTools\Pokebot\%(RecursiveDir)%(Filename)%(Extension)')" />
 	</Target>
 	<ItemGroup>
-		<LuaFiles Include="$(ProjectDir)Pokebot\**\*" />
+		<LuaFiles Include="$(ProjectDir)External\**\*" />
 	</ItemGroup>
 	<ItemGroup>
+	  <None Include="Games\Data\Moves.cs" />
+	  <None Include="Games\Data\TypeMatchups.cs" />
 	  <None Include="Properties\PublishProfiles\FolderProfile.pubxml.user" />
 	</ItemGroup>
 	<ItemGroup>
@@ -52,5 +54,9 @@
 	    <Generator>ResXFileCodeGenerator</Generator>
 	    <LastGenOutput>Resources.Designer.cs</LastGenOutput>
 	  </EmbeddedResource>
+	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Games\Generations\" />
+	  <Folder Include="Resources\" />
 	</ItemGroup>
 </Project>
