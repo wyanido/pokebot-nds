@@ -12,7 +12,7 @@ function main()
     if not platinum then 
         hold_button("Up")
 
-        while game_state.map_name ~= "Lake Verity" do
+        while game.map_name() ~= "Lake Verity" do
             progress_text()
         end
         
@@ -47,12 +47,13 @@ function main()
 
     -- Log encounter, stopping if necessary
     local mon = party[1]
-    local is_target = pokemon.log_encounter(mon)
+    local is_target = pokemon.is_target(mon)
+    pokemon.log_encounter(mon)
 
     if is_target then
-        abort(mon.name .. " is a target!")
+        abort(mon.Species.Name .. " is a target!")
     else
-        print(mon.name .. " was not a target, resetting...")
+        print(mon.Species.Name .. " was not a target, resetting...")
         soft_reset()
     end
 end

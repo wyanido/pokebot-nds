@@ -12,7 +12,7 @@ local function spin()
         press_sequence("Right", 3)
     end
 
-    while not game_state.in_battle do
+    while not game.in_battle() do
         press_sequence(
             "Down", 3,
             "Left", 3,
@@ -25,7 +25,7 @@ end
 local function run_back_and_forth()
     local dir1, dir2, start_face
         
-    if _CONFIG.encounter_movement_style == "horizontal" then
+    if config.encounter_movement_style == "horizontal" then
         dir1 = "Left"
         dir2 = "Right"
         start_face = 2
@@ -41,7 +41,7 @@ local function run_back_and_forth()
 
     hold_button("B")
         
-    while not game_state.in_battle do
+    while not game.in_battle() do
         hold_button(dir1)
         wait_frames(7)
         hold_button(dir2)
@@ -57,7 +57,7 @@ function main()
     print("Attempting to start a battle...")
     wait_frames(30)
 
-    if _CONFIG.encounter_movement_style == "spin" then
+    if config.encounter_movement_style == "spin" then
         spin()
     else
         run_back_and_forth()

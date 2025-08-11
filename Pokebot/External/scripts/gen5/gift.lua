@@ -3,10 +3,10 @@
 -- Author: wyanido
 -----------------------------------------------------------------------------
 function main()
-    if not game_state.in_game then
+    if not game.save_file_loaded() then
         print("Waiting to reach overworld...")
 
-        while not game_state.in_game do
+        while not game.save_file_loaded() do
             progress_text()
         end
 
@@ -19,12 +19,13 @@ function main()
     end
 
     local mon = party[#party]
-    local is_target = pokemon.log_encounter(mon)
+    local is_target = pokemon.is_target(mon)
+    pokemon.log_encounter(mon)
 
     if is_target then
-        abort(mon.name .. " is a target!")
+        abort(mon.Species.Name .. " is a target!")
     else
-        print(mon.name .. " was not a target, resetting...")
+        print(mon.Species.Name .. " was not a target, resetting...")
         soft_reset()
     end
 end

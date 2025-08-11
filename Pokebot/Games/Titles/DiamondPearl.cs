@@ -1,8 +1,6 @@
 ﻿using BizHawk.Client.Common;
 using System;
-using System.IO;
 using System.Numerics;
-using System.Windows.Forms;
 using Wyanido.Pokebot.Games.Data;
 using Wyanido.Pokebot.Lua;
 using Wyanido.Pokebot.Utils;
@@ -28,16 +26,26 @@ public sealed class DiamondPearl(ApiContainer apis) : Game(apis)
     /// </summary>
     private long Anchor => Memory.ReadU32(0x21C489C + MemoryOffset);
 
-    private short ToS16(uint u32) => (short)(((u32 / 65536) + 32768) % 65536 - 32768);
+    public override uint GetMapHeader()
+    {
+        var mapHeaderAddress = Anchor + 0x11B2;
+        return Memory.ReadU16(mapHeaderAddress);
+    }
+
+    public override string? GetMapName()
+    {
+        var mapHeader = GetMapHeader();
+        return Maps.GetName(mapHeader);
+    }
 
     public override Vector3 GetTrainerPosition()
     {
         var address = 0x21CEF70 + MemoryOffset;
 
         return new Vector3(
-            ToS16(Memory.ReadU32(address)),
-            ToS16(Memory.ReadU32(address + 4)),
-            ToS16(Memory.ReadU32(address + 8))
+            UInt32ToInt16(Memory.ReadU32(address)),
+            UInt32ToInt16(Memory.ReadU32(address + 4)),
+            UInt32ToInt16(Memory.ReadU32(address + 8))
         );
     }
 

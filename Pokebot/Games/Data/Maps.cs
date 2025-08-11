@@ -28,6 +28,6 @@ namespace Wyanido.Pokebot.Games.Data
 
         private string[] ParseMapList(string filename) => ParseDataJson<string[]>(["maps", filename]);
 
-        public static string GetName(int mapHeader) => Instance.List[mapHeader];
+        public static string? GetName(uint mapHeader) => mapHeader < Instance.List.Length ? Instance.List[mapHeader] : null;
     }
 }

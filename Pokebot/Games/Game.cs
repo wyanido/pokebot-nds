@@ -52,9 +52,19 @@ namespace Wyanido.Pokebot.Games
         }
 
         /// <summary>
+        /// Converts a 4-byte unsigned integer to a 2-byte signed integer.
+        /// </summary>
+        protected short UInt32ToInt16(uint u32) => (short)(((u32 / 65536) + 32768) % 65536 - 32768);
+
+        /// <summary>
         /// Returns the internal index of the current map.
         /// </summary>
-        public virtual int GetMapHeader() => throw new NotImplementedException();
+        public virtual uint GetMapHeader() => throw new NotImplementedException();
+
+        /// <summary>
+        /// Returns the internal index of the current map.
+        /// </summary>
+        public virtual string? GetMapName() => throw new NotImplementedException();
 
         /// <summary>
         /// Returns the 3D position of the player character.
@@ -88,14 +98,8 @@ namespace Wyanido.Pokebot.Games
         public virtual Pokemon?[] GetParty() => throw new NotImplementedException();
 
         /// <summary>
-        /// Returns the sum of all checksums in the party, or null if at least one Pokemon fails checksum validation.
-        /// The returned checksum is required for the Dashboard to know whether the party data is valid and/or has changed.
-        /// </summary>
-        public virtual int[] GetPartyChecksums() => throw new NotImplementedException();
-
-        /// <summary>
         /// Returns an array containing the current battle opponents.
         /// </summary>
-        public virtual Pokemon[] GetFoes() => throw new NotImplementedException();
+        public virtual Pokemon?[] GetFoes() => throw new NotImplementedException();
     }
 }

@@ -312,7 +312,8 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
             try
             {
                 trainerName.Text = CurrentGame.GetTrainerName();
-                trainerId.Text = CurrentGame.GetTrainerId().ToString();
+                trainerId.Text = CurrentGame.GetTrainerId().ToString("05");
+                mapHeader.Text = CurrentGame.GetMapName();
 
                 var position = CurrentGame.GetTrainerPosition();
                 trainerPosition.Text = $"X: {position.X}, Y: {position.Y}, Z: {position.Z}";
@@ -367,7 +368,7 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
         // Evaluate the config properties this script uses
         LuaLibraries.PrintDebug($"Preloading script {filename} to get config values...");
 
-        GetScriptConfigProperties(absolutePath, (properties) =>
+        GetScriptConfigFields(absolutePath, (properties) =>
         {
             configPage.SetLayoutFromProperties(properties);
 
@@ -377,65 +378,53 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
             configPage.CopyToScriptConfig(ref PokebotConfig);
             PokebotConfig.SaveToFile();
 
-            lua.SetObjectToPath("_CONFIG", PokebotConfig.Properties);
+            lua.SetObjectToPath("config", PokebotConfig.Properties);
         });
     }
 
-    private void RunDependencyDir(string dir)
+    /// <summary>
+    /// Recursively runs lua files in the methods/ folder that correspond to the current game.
+    /// </summary>
+    private void LoadGameLuaDependencies()
     {
-        var files = GameManager.GetGameScriptsFromDirectory(CurrentGame, dir);
-
-        foreach (var file in files)
-            lua.LoadScript(file, true);
-    }
-
-    private void LoadGameDependencies()
-    {
-        if (CurrentGame == null)
+        if (CurrentGame is null)
             throw new Exception("No game is loaded. Couldn't determine which scripts to load.");
 
-        RunDependencyDir(Path.Combine(DataPath, "methods"));
+        var dir = Path.Combine(DataPath, "methods");
+        var scripts = GameManager.GetGameScriptsFromDirectory(CurrentGame, dir);
+
+        foreach (var script in scripts)
+            lua.LoadScript(script, true);
+
+        lua.LoadScript(Path.Combine([DataPath, "core.lua"]), true);
     }
 
-    private bool TryLoadGameDependencies()
-    {
-        LuaLibraries.PrintDebug("Loading script dependencies...");
-
-        try
-        {
-            LoadGameDependencies();
-            LuaLibraries.PrintDebug("Done!...");
-        }
-        catch (Exception ex)
-        {
-            LuaLibraries.PrintError($"One or more dependencies of the script failed to load: {ex}");
-            return false;
-        }
-
-        return true;
-    }
-
-    private void GetScriptConfigProperties(string file, Action<ConfigFormProperty[]> callback)
+    /// <summary>
+    /// Runs the given script and all dependencies of the current game to evaluate
+    /// the config properties specified by all the scripts by hint_config in lua.
+    /// </summary>
+    private void GetScriptConfigFields(string file, Action<ConfigFormProperty[]> callback)
     {
         lua.RemoveAllScripts();
-        lua.ExecuteString("_CONFIG = {}");
+        lua.ExecuteString("config = {}");
 
-        if (!TryLoadGameDependencies())
-            return;
-
-        // Load keys required by this script's dependencies
+        // Re-evaluate lua scripts for config hints. This is the only reason to
+        // ever reload this core.lua, as otherwise its values don't change.
+        LoadGameLuaDependencies();
         var script = lua.LoadScript(file, true);
 
-        Action<LuaFile> evalProperties = null;
+        // Create a callback for once the main script ends and its fields can be read.
+        Action<LuaFile> onExit = null;
 
-        evalProperties = (LuaFile luaFile) =>
+        onExit = (LuaFile luaFile) =>
         {
+            // Ignore any other scripts that end besides the one specified
             if (luaFile != script)
                 return;
 
-            lua.OnExit -= evalProperties;
+            lua.OnExit -= onExit;
 
-            var scriptKeys = lua.GetTableDict("_CONFIG");
+            var scriptKeys = lua.GetTableDict("config");
             var properties = new List<ConfigFormProperty>();
 
             properties = [.. scriptKeys.Select((p) => {
@@ -446,10 +435,11 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
                 return new ConfigFormProperty(key, type, defaultValue);
             })];
 
+            // Pass the complete list of config properties to the callback
             callback.Invoke([.. properties]);
         };
 
-        lua.OnExit += evalProperties;
+        lua.OnExit += onExit;
     }
 
     private void runScript_Click(object sender, EventArgs e)
@@ -551,8 +541,7 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
     {
         if (tabControl1.SelectedTab == gameDataPage)
         {
-            // Only populate data page once per ROM,
-            // and only when page is opened to minimise performance impact
+            // Only populate data page once per restart, and only when page is opened to minimise performance impact
             if (gameDataPagePopulated)
                 return;
 

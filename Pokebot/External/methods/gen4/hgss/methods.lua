@@ -137,7 +137,7 @@ end
 
 --- Returns the current stage of the battle as a simple string
 function get_battle_state()
-    if not game_state.in_battle then
+    if not game.in_battle() then
         return nil
     end
 

@@ -5,10 +5,10 @@
 hint_config_default("auto_catch", false)
 
 function main()
-    while not game_state.in_battle do
-        if game_state.map_name == "Dreamyard" then
+    while not game.in_battle() do
+        if game.map_name() == "Dreamyard" then
             hold_button("Right")
-        elseif game_state.map_name == "Spear Pillar" then
+        elseif game.map_name() == "Spear Pillar" then
             hold_button("Up")
         end
 
@@ -16,20 +16,21 @@ function main()
     end
 
     local mon = foe[1]
-    local is_target = pokemon.log_encounter(mon)
+    local is_target = pokemon.is_target(mon)
+    pokemon.log_encounter(mon)
 
     if is_target then
-        if _CONFIG.auto_catch then
-            while game_state.in_battle do
+        if config.auto_catch then
+            while game.in_battle() do
                 catch_pokemon()
             end
 
-            abort("Target " .. mon.name .. " was caught!")
+            abort("Target " .. mon.Species.Name .. " was caught!")
         else
-            abort(mon.name .. " is a target!")
+            abort(mon.Species.Name .. " is a target!")
         end
     else
-        print(mon.name .. " was not a target, resetting...")
+        print(mon.Species.Name .. " was not a target, resetting...")
         soft_reset()
     end
 end

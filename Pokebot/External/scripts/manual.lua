@@ -3,7 +3,7 @@
 -- Author: wyanido
 -----------------------------------------------------------------------------
 function main()
-    while not game_state.in_battle do
+    while not game.in_battle() do
         process_frame()
     end
 
@@ -11,7 +11,7 @@ function main()
         pokemon.log_encounter(foe[i])
     end
 
-    while game_state.in_battle do
+    while game.in_battle() do
         process_frame()
     end
 end

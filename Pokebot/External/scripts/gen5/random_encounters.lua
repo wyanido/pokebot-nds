@@ -5,8 +5,8 @@
 hint_config_default("encounter_movement_style", "horizontal")
 
 local home = {
-    x = game_state.trainer_x,
-    z = game_state.trainer_z
+    x = game.trainer_position().X,
+    z = game.trainer_position().Z
 }
 
 local function move_in_direction(dir)
@@ -24,13 +24,13 @@ function main()
 
     print("Attempting to start a battle...")
 
-    local dir1 = _CONFIG.encounter_movement_style == "horizontal" and "Left" or "Up"
-    local dir2 = _CONFIG.encounter_movement_style == "horizontal" and "Right" or "Down"
+    local dir1 = config.encounter_movement_style == "horizontal" and "Left" or "Up"
+    local dir2 = config.encounter_movement_style == "horizontal" and "Right" or "Down"
         
     wait_frames(60) -- Wait to regain control post-battle
     hold_button("B")
 
-    while not game_state.in_battle do
+    while not game.in_battle() do
         move_in_direction(dir1)
         move_in_direction(dir2)
     end

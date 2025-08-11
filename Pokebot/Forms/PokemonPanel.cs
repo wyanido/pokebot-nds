@@ -164,7 +164,7 @@ public class PokemonPanel : UserControl, IContainerControl
 
         string speciesId = displayedPokemon.SpeciesIndex.ToString("04");
         string shinyStar = displayedPokemon.IsShiny ? " ★" : "";
-        string nickname = displayedPokemon.IsNicknamed ? displayedPokemon.Nickname : displayedPokemon.Species;
+        string nickname = displayedPokemon.IsNicknamed ? displayedPokemon.Nickname : displayedPokemon.Species.Name;
         string checksum = displayedPokemon.Checksum.ToString("X4");
         string pid = displayedPokemon.PID.ToString("X8");
         string extension = $".pk{Pokebot.CurrentGame.Generation}";

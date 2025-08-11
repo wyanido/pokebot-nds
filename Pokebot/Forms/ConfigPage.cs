@@ -12,10 +12,10 @@ namespace Wyanido.Pokebot;
 
 public partial class ConfigPage : UserControl, IContainerControl
 {
-    private Control parentContainer;
-
     private static readonly ISerializer yamlSerialiser = new SerializerBuilder().Build();
     private static readonly IDeserializer yamlDeserialiser = new DeserializerBuilder().Build();
+
+    private readonly Control parentContainer;
 
     public ConfigPage() : base()
     {
@@ -244,14 +244,14 @@ public partial class ConfigPage : UserControl, IContainerControl
                 continue;
             }
 
-            // Number (always decimal, but yaml serialiser will make it int if whole on file write)
+            // Number (always decimal, but YAML serialiser will use int if the value is a whole number)
             if (subControl is NumericUpDown numericUpDown)
             {
                 SafeSetKeyValue(scriptConfig, key, numericUpDown.Value);
                 continue;
             }
 
-            // Deserialise yaml into List or Dictionary
+            // Deserialise YAML into List or Dictionary
             if (subControl is RichTextBox richTextBox)
             {
                 var value = yamlDeserialiser.Deserialize(richTextBox.Text);
@@ -261,7 +261,9 @@ public partial class ConfigPage : UserControl, IContainerControl
 
             // String
             if (subControl is TextBox textBox)
+            {
                 SafeSetKeyValue(scriptConfig, key, textBox.Text);
+            }
         }
     }
 

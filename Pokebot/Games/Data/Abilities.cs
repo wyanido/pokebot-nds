@@ -22,6 +22,6 @@ namespace Wyanido.Pokebot.Games.Data
 
         private string[] ParseAbilityList(string filename) => ParseDataJson<string[]>(["abilities", filename]);
 
-        public static string GetName(int abilityIndex) => Instance.List[abilityIndex];
+        public static string? GetName(uint abilityIndex) => abilityIndex < Instance.List.Length ? Instance.List[abilityIndex] : null;
     }
 }

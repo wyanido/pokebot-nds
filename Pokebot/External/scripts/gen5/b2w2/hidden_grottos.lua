@@ -26,7 +26,7 @@ hint_config_default("grotto", 0)
 -- 36   Route 2
 
 local function grotto_has_regenerated()
-    local grotto_value = mbyte(pointers.hidden_grottos + _CONFIG.grotto)
+    local grotto_value = mbyte(pointers.hidden_grottos + config.grotto)
     print("Grotto value: ", grotto_value)  -- Debug output
     return bit.band(grotto_value, 1) == 1
 end
@@ -35,7 +35,7 @@ local function exit_grotto()
     hold_button("B")
     hold_button("Down")
         
-    while game_state.map_name == "Hidden Grotto" do
+    while game.map_name() == "Hidden Grotto" do
         wait_frames(1)
         if emu.framecount() % 10 == 0 then -- Re-apply repel
             press_button_async("A")
@@ -50,7 +50,7 @@ end
 local function enter_grotto()
     press_sequence("Up", 4, "A")
 
-    while game_state.map_name ~= "Hidden Grotto" do
+    while game.map_name() ~= "Hidden Grotto" do
         progress_text()
     end
 
@@ -59,7 +59,7 @@ local function enter_grotto()
     hold_button("B")
     hold_button("Up")
         
-    while game_state.trainer_z > 13 do
+    while game.trainer_position().Z > 13 do
         wait_frames(1)
         if emu.framecount() % 10 == 0 then -- Re-apply repel
             press_button_async("A")
@@ -71,7 +71,7 @@ local function enter_grotto()
 end
 
 function main()
-    if game_state.map_name == "Hidden Grotto" then
+    if game.map_name() == "Hidden Grotto" then
         exit_grotto()
     end
 
@@ -79,7 +79,7 @@ function main()
 
     while not grotto_has_regenerated() do
         bike_back_and_forth()
-        if game_state.in_battle then
+        if game.in_battle() then
             abort("Please use a Repel while hunting this grotto!")
         end
     end
@@ -91,7 +91,7 @@ function main()
     -- Interact and wait for potential battle
     press_sequence("A", 300)
 
-    if game_state.in_battle then
+    if game.in_battle() then
         process_wild_encounter()
     else
         press_sequence("A", 50, "A") -- Item dialogue

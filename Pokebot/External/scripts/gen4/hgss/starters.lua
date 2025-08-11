@@ -15,8 +15,9 @@ function main()
     local target = false
 
     for i = 0, 2, 1 do
-        local starter = pokemon.decrypt(pointers.starter_data + i * _MON_BYTE_LENGTH)
-        target = pokemon.log_encounter(starter) or target
+        local starter = pokemon.parse_data(pointers.starter_data + i * _MON_BYTE_LENGTH)
+        pokemon.log_encounter(starter)
+        target = pokemon.is_target(mon) or target
     end
 
     if target then

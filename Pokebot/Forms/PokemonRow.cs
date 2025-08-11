@@ -132,7 +132,7 @@ public class PokemonRow : UserControl, IContainerControl
 
         level.Text = pokemon.Level.ToString();
 
-        speciesName.Text = pokemon.Species;
+        speciesName.Text = pokemon.Species.Name;
     }
 
     private void pictureBox1_Click(object sender, System.EventArgs e)

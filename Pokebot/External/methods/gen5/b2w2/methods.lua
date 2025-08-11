@@ -66,7 +66,7 @@ function update_pointers()
 end
 
 function bike_back_and_forth()
-    local horizontal = _CONFIG.encounter_movement_style == "horizontal"
+    local horizontal = config.encounter_movement_style == "horizontal"
     local axis = horizontal and pointers.trainer_x or pointers.trainer_z
     local dir1 = horizontal and "Right" or "Down"
     local dir2 = horizontal and "Left" or "Up"
@@ -83,7 +83,7 @@ function bike_back_and_forth()
                 press_button_async("A")
             end
 
-            if game_state.in_battle then
+            if game.in_battle() then
                 return
             end
         end
@@ -119,7 +119,7 @@ function release_hatched_duds()
     move_to({x=749,z=556})
     
     -- Walk to daycare lady at desk
-    while game_state.map_header ~= 323 do
+    while game.map_header() ~= 323 do
         hold_button("Up")
     end
 

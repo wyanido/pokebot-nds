@@ -90,14 +90,14 @@
 
     public class Pokemon
     {
-        public int SpeciesIndex;
-        public string Species => Data.Species.GetName(SpeciesIndex);
+        public uint SpeciesIndex;
+        public PokemonSpecies? Species => Data.Species.Get(SpeciesIndex);
 
-        public int HeldItemIndex;
-        public string HeldItem => Items.GetName(HeldItemIndex);
+        public uint HeldItemIndex;
+        public string? HeldItem => Items.GetName(HeldItemIndex);
 
-        public int AbilityIndex;
-        public string Ability => Abilities.GetName(AbilityIndex);
+        public uint AbilityIndex;
+        public string? Ability => Abilities.GetName(AbilityIndex);
 
         public bool IsNicknamed;
         public string Nickname;
@@ -135,7 +135,7 @@
         {
             get
             {
-                switch (Species)
+                switch (Species.Name)
                 {
                     case "Unown":
                         return AlternateFormIndex switch

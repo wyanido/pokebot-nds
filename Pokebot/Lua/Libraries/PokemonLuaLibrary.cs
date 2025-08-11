@@ -4,7 +4,7 @@ using BizHawk.Common.CollectionExtensions;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Windows.Forms;
+using System.Linq;
 using Wyanido.Pokebot.Games.Data;
 using Wyanido.Pokebot.Utils;
 
@@ -282,11 +282,9 @@ namespace Wyanido.Pokebot.Lua.Libraries
             return mon;
         }
 
-        [LuaMethodExample("pokemon.decrypt(address);")]
-        public object? DecryptAndParse(params object[] outputs)
+        [LuaMethod("parse_data", "Returns a decrypted and parsed Pokemon from memory, or nil if the checksum fails.")]
+        public object? DecryptAndParse(long address, bool isUnencrypted = false)
         {
-            var address = (long)outputs[0];
-            var isUnencrypted = outputs.Length != 1 && (bool)outputs[1];
             var bytes = DecryptPokemon(address, isUnencrypted);
 
             if (bytes is null)
@@ -295,43 +293,52 @@ namespace Wyanido.Pokebot.Lua.Libraries
             return ParseMonData(bytes);
         }
 
-        [LuaMethodExample("pokemon.matches_ruleset(mon, ruleset);")]
-        public bool MatchesRuleset(params object[] outputs)
+        [LuaMethod("matches_ruleset", "Returns whether the given Pokemon matches the given ruleset.")]
+        public bool MatchesRuleset(Pokemon pokemon, Dictionary<object, object> rulesetCollection)
         {
-            var pokemon = (Pokemon)outputs[0];
-            var rulesetCollection = (Dictionary<string, object>)outputs[1];
-
             if (rulesetCollection is null)
             {
-                LuaLibraries.PrintDebug("Can't check Pokemon against an empty ruleset list");
+                LuaLibraries.PrintWarn("Pokemon was checked against an empty ruleset collection. It may ignore targets!");
                 return false;
             }
+
+            var fields = typeof(Pokemon).GetFields().Select(f => f.Name);
 
             // Rulesets work by assuming the Pokemon is a target by default.
             // It will check each ruleset property against the Pokemon, and
             // only return false if there is any mismatch.
             for (var e = rulesetCollection.GetEnumerator(); e.MoveNext();)
             {
-                var rulesetName = e.Current.Key as string;
-                var ruleset = e.Current.Value as Dictionary<object, object>;
+                string rulesetName = (string)e.Current.Key;
+                var ruleset = (Dictionary<object, object>)e.Current.Value;
 
                 for (var e2 = ruleset.GetEnumerator(); e2.MoveNext();)
                 {
-                    var propertyName = e2.Current.Key as string;
-                    var propertyValue = e2.Current.Value;
-                    var pokemonValue = typeof(Pokemon).GetProperty(propertyName)?.GetValue(pokemon);
+                    string key = (string)e2.Current.Key;
+                    var value = e2.Current.Value;
+                    var pokemonValue = typeof(Pokemon).GetField(key)?.GetValue(pokemon);
 
-                    if (pokemonValue is null)
+                    // Rulesets come from YAML, so the original boolean type is lost.
+                    if (value is string stringValue)
                     {
-                        LuaLibraries.PrintDebug($"WARNING: Invalid property {propertyName} in Catch Ruleset {rulesetName}. This has no effect, and should be removed.");
+                        var success = bool.TryParse(stringValue, out bool boolValue);
+
+                        if (success)
+                            value = boolValue;
+                    }
+
+                    if (!fields.Contains(key) || pokemonValue is null)
+                    {
+                        // Property doesn't exist on the Pokemon
+                        LuaLibraries.PrintWarn($"Invalid field '{key}' in ruleset '{rulesetName}'. This field has no effect, and should be removed.");
                         continue;
                     }
 
-                    if (propertyValue is bool propertyBool)
+                    if (value is bool propertyBool)
                     {
                         if (pokemonValue is not bool pokemonBool)
                         {
-                            LuaLibraries.PrintDebug($"WARNING: Expected type {pokemonValue.GetType()} for field {propertyName} in Catch Ruleset {rulesetName}, got bool.");
+                            LuaLibraries.PrintWarn($"Expected type {pokemonValue.GetType()} for field '{key}' in ruleset '{rulesetName}', got bool.");
                             continue;
                         }
 
@@ -343,44 +350,30 @@ namespace Wyanido.Pokebot.Lua.Libraries
                         continue; // Value match, keep checking
                     }
 
-                    LuaLibraries.PrintDebug($"WARNING: Unhandled property {propertyName} in Catch Ruleset {rulesetName} matching {propertyValue.GetType()} against {pokemonValue.GetType()}");
+                    LuaLibraries.PrintWarn($"Unhandled property {key} in Catch Ruleset {rulesetName} matching {value.GetType()} against {pokemonValue.GetType()}");
                 }
             }
 
             return true;
         }
 
-        [LuaMethodExample("pokemon.encounter_is_target(mon);")]
-        [LuaMethod("encounter_is_target", "logs the pokemon to the dashboard and returns whether it matches the target_rulesets rules")]
-        public bool EncounterIsTarget(params object[] outputs)
+        [LuaMethod("is_target", "Returns whether the given Pokemon matches any of the target rulesets.")]
+        public bool EncounterIsTarget(Pokemon pokemon)
         {
-            var pokemon = (Pokemon)outputs[0];
-
             if (pokemon is null)
             {
-                LuaLibraries.PrintDebug("WARNING: Tried to log a non-existent Pokemon");
+                LuaLibraries.PrintDebug("Tried to log a non-existent Pokemon");
                 return false;
             }
 
             Pokebot.PokebotConfig.Properties.TryGetValue("target_rulesets", out object catchRulesets);
-            var isTarget = MatchesRuleset(pokemon, catchRulesets);
 
-            if (isTarget)
-            {
-                LuaLibraries.PrintDebug("Pokemon was meant to be saved, but the functionality is unimplemented.");
-            }
-
-            LuaLibraries.PrintDebug("Pokemon was meant to be sent to the dashboard, but the functionality is unimplemented.");
-
-            return isTarget;
+            return MatchesRuleset(pokemon, (Dictionary<object, object>)catchRulesets);
         }
 
-        [LuaMethodExample("pokemon.find_best_attacking_move(ally, foe);")]
-        [LuaMethod("find_best_attacking_move", "logs the pokemon to the dashboard and returns whether it matches the target_rulesets rules")]
-        public object FindBestAttackingMove(params object[] outputs)
+        [LuaMethod("find_best_attacking_move", "Returns the name, index, and power of the most optimal damaging move against the given target.")]
+        public object FindBestAttackingMove(Pokemon ally, Pokemon foe)
         {
-            var ally = (Pokemon)outputs[0];
-            var foe = (Pokemon)outputs[1];
             var usingThief = (bool)(Pokebot.PokebotConfig.Properties.GetValueOrDefault("thief_wild_items", false) ?? false);
 
             var bestMoveIndex = 1;
@@ -448,12 +441,9 @@ namespace Wyanido.Pokebot.Lua.Libraries
             };
         }
 
-        [LuaMethodExample("pokemon.get_move_slot(mon, move_name);")]
-        public int GetMoveSlot(params object[] outputs)
+        [LuaMethod("get_move_slot", "Returns the index of a given move inside the Pokemon's moveset from 1-4, or 0 if not present.")]
+        public int GetMoveSlot(Pokemon pokemon, string moveName)
         {
-            var pokemon = (Pokemon)outputs[0];
-            var moveName = (string)outputs[1];
-
             for (var i = 0; i < 4; i++)
             {
                 var moveData = pokemon.Moves[i];
@@ -466,12 +456,16 @@ namespace Wyanido.Pokebot.Lua.Libraries
             return 0;
         }
 
-        [LuaMethodExample("pokemon.is_hatched_dud(mon);")]
-        public bool IsHatchedDud(params object[] outputs)
+        [LuaMethod("is_hatched_dud", "Returns whether the Pokemon is both Level 1 and doesn't match the target rulesets.")]
+        public bool IsHatchedDud(Pokemon pokemon)
         {
-            var pokemon = (Pokemon)outputs[0];
+            return pokemon.Level == 1 && !MatchesRuleset(pokemon, (Dictionary<object, object>)Pokebot.PokebotConfig.Properties["target_rulesets"]);
+        }
 
-            return pokemon.Level == 1 && !MatchesRuleset(pokemon, Pokebot.PokebotConfig.Properties["target_rulesets"]);
+        [LuaMethod("log_encounter", "Logs the Pokemon to the Dashboard.")]
+        public void LogEncounter(Pokemon pokemon)
+        {
+            // TODO log this;
         }
     }
 }

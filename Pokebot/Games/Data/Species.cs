@@ -71,9 +71,9 @@ namespace Wyanido.Pokebot.Games.Data
             }
         }
 
-        public static PokemonSpecies Get(int speciesIndex) => speciesIndex < Instance.List.Length ? Instance.List[speciesIndex] : Instance.List[0];
+        public static PokemonSpecies? Get(uint speciesIndex) => speciesIndex < Instance.List.Length ? Instance.List[speciesIndex] : null;
 
-        public static string GetName(int speciesIndex) => speciesIndex < Instance.List.Length ? Instance.List[speciesIndex].Name : "???";
+        public static string? GetName(uint speciesIndex) => speciesIndex < Instance.List.Length ? Instance.List[speciesIndex].Name : null;
 
         /// <summary>
         /// Prepends the filename with the pokemon images folder, and appends the .png suffix to it.
@@ -101,7 +101,7 @@ namespace Wyanido.Pokebot.Games.Data
                 return Image.FromFile(femalePath);
 
             // Check for the most basic representation of the Pokemon in its default state
-            var defaultPath = GetIconPath(species);
+            var defaultPath = GetIconPath(species.Name);
             if (File.Exists(defaultPath))
                 return Image.FromFile(defaultPath);
 

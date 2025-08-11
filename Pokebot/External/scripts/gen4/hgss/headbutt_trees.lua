@@ -24,18 +24,18 @@ function main()
 
     while true do
         local og_dir = mbyte(pointers.facing)
-        local og_x = game_state.trainer_x
-        local og_z = game_state.trainer_z
+        local og_x = game.trainer_position().X
+        local og_z = game.trainer_position().Z
 
         -- Press A until following Pokemon pushes you out of the way
-        while game_state.trainer_x == og_x and game_state.trainer_z == og_z do
+        while game.trainer_position().X == og_x and game.trainer_position().Z == og_z do
             progress_text()
         end
 
         -- Wait for battle to start
         wait_frames(400)
 
-        if game_state.in_battle then
+        if game.in_battle() then
             process_wild_encounter()
             wait_frames(90)
         else

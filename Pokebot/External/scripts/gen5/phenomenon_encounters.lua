@@ -5,8 +5,8 @@
 hint_config_default("encounter_movement_style", "horizontal")
 
 local home = {
-    x = game_state.trainer_x,
-    z = game_state.trainer_z
+    x = game.trainer_position().X,
+    z = game.trainer_position().Z
 }
 
 local function accept_interrupt_text()
@@ -36,8 +36,8 @@ function main()
     check_party_status()
 
     local function do_encounter()
-        local dir1 = _CONFIG.encounter_movement_style == "horizontal" and "Left" or "Up"
-        local dir2 = _CONFIG.encounter_movement_style == "horizontal" and "Right" or "Down"
+        local dir1 = config.encounter_movement_style == "horizontal" and "Left" or "Up"
+        local dir2 = config.encounter_movement_style == "horizontal" and "Right" or "Down"
 
         while game_state.phenomenon_x == 0 and game_state.phenomenon_z == 0 do
             move_in_direction(dir1)
@@ -49,7 +49,7 @@ function main()
 
         wait_frames(300) --- Needs a moment before checking the encounter.
 
-        if game_state.in_battle then
+        if game.in_battle() then
             process_wild_encounter()
         else
             print("Item received.")

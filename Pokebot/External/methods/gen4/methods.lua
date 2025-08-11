@@ -63,10 +63,10 @@ function randomise_reset()
 
     local delay = math.random(100, 500)
 
-    print_debug("Delaying " .. delay .. " frames...")
+    console.debug("Delaying " .. delay .. " frames...")
     wait_frames(delay)
 
-    while not game_state.in_game do
+    while not game.save_file_loaded() do
         press_sequence("Start", 20, "A", math.random(8, 28))
     end
 end
@@ -105,7 +105,7 @@ function get_usable_balls()
 
         if count > 0 then
             local id = mword(i)
-            local item_name = _ITEM[id + 1]
+            local item_name = game.item_name(id)
 
             balls[string.lower(item_name)] = slot + 1
         end
@@ -263,7 +263,7 @@ end
 
 --- Returns the current stage of the battle as a simple string
 function get_battle_state()
-    if not game_state.in_battle then
+    if not game.in_battle() then
         return nil
     end
 

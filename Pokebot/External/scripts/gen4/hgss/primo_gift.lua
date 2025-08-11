@@ -31,7 +31,7 @@ function main()
             end
         end
 
-        print_debug("Found word " .. target_word .. " in category " .. category_idx .. " (position " .. word_idx .. ")")
+        console.debug("Found word " .. target_word .. " in category " .. category_idx .. " (position " .. word_idx .. ")")
 
         return { category_idx, word_idx }
     end
@@ -73,7 +73,7 @@ function main()
 
         local times_to_scroll = math.ceil((word_location[2] - page_location) / 10)
 
-        print_debug("Scrolling " .. times_to_scroll .. " times and pressing index " .. page_location .. "(" .. word_location[2] .. ")")
+        console.debug("Scrolling " .. times_to_scroll .. " times and pressing index " .. page_location .. "(" .. word_location[2] .. ")")
         
         while times_to_scroll > 0 do
             touch_screen_at(240, 131)
@@ -112,8 +112,8 @@ function main()
         wait_frames(60)
     end
 
-    input_easy_chat_phrase(_CONFIG.primo1, _CONFIG.primo2)
-    input_easy_chat_phrase(_CONFIG.primo3, _CONFIG.primo4)
+    input_easy_chat_phrase(config.primo1, config.primo2)
+    input_easy_chat_phrase(config.primo3, config.primo4)
 
     -- Now button mash until the egg is received
     local og_party_count = #party
@@ -122,12 +122,13 @@ function main()
     end
 
     local mon = party[#party]
-    local is_target = pokemon.log_encounter(mon)
+    local is_target = pokemon.is_target(mon)
+    pokemon.log_encounter(mon)
 
     if is_target then
-        abort(mon.name .. " is a target!")
+        abort(mon.Species.Name .. " is a target!")
     else
-        print(mon.name .. " was not a target, resetting...")
+        print(mon.Species.Name .. " was not a target, resetting...")
         soft_reset()
         wait_frames(60)
     end

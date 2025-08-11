@@ -98,9 +98,9 @@ namespace Wyanido.Pokebot.Lua
 
             foreach (var lib in libraries)
             {
-                var isLibReleased = lib.GetCustomAttribute<LuaLibraryAttribute>(inherit: false)?.Released is not false;
+                var isReleased = lib.GetCustomAttribute<LuaLibraryAttribute>(inherit: false)?.Released is not false;
 
-                if (!isLibReleased && !VersionInfo.DeveloperBuild) // Skip unreleased libs
+                if (!isReleased && !VersionInfo.DeveloperBuild) // Skip unreleased libs
                     continue;
 
                 try
@@ -115,6 +115,7 @@ namespace Wyanido.Pokebot.Lua
 
             RegisterLibrary(typeof(ConsoleLuaLibrary), serviceProvider);
             RegisterLibrary(typeof(PokemonLuaLibrary), serviceProvider);
+            RegisterLibrary(typeof(GameLuaLibrary), serviceProvider);
 
             lua.RegisterFunction("print", this, typeof(LuaLibraries).GetMethod(nameof(Print)));
         }
@@ -630,6 +631,8 @@ namespace Wyanido.Pokebot.Lua
         public static void Print(params object[] outputs) => Instance?.PokebotConsole?.Log(outputs);
 
         public static void PrintDebug(params object[] outputs) => Instance?.PokebotConsole?.LogDebug(outputs);
+
+        public static void PrintWarn(params object[] outputs) => Instance?.PokebotConsole?.LogWarning(outputs);
 
         public static void PrintError(params object[] outputs) => Instance?.PokebotConsole?.LogError(outputs);
 

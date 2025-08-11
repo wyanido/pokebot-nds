@@ -26,12 +26,16 @@ namespace Wyanido.Pokebot.Games.Data
 
         private string[] ParseItemList(string filename) => ParseDataJson<string[]>(["items", filename]);
 
-        public static string GetName(int index) => index >= Instance.List.Length ? "???" : Instance.List[index];
+        public static string? GetName(uint index) => index < Instance.List.Length ? Instance.List[index] : null;
 
-        public static Image GetIcon(int index)
+        public static Image GetIcon(uint index)
         {
-            var name = GetName(index).ToLower();
-            var path = Path.Combine([Pokebot.ImagesPath, "items", $"{name}.png"]);
+            var name = GetName(index);
+
+            if (name is null)
+                return FallbackIcon;
+
+            var path = Path.Combine([Pokebot.ImagesPath, "items", $"{name.ToLower()}.png"]);
 
             if (!File.Exists(path))
                 return FallbackIcon;

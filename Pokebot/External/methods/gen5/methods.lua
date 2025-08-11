@@ -100,7 +100,7 @@ function open_menu(menu)
     elseif menu == "Trainer" then
         touch_screen_at(200, 95)
     elseif menu == "Save" then
-        if game_state.map_name == "Nuvema Town" then
+        if game.map_name() == "Nuvema Town" then
             touch_screen_at(200, 95) -- Button position is different before receiving Pokedex
         else
             touch_screen_at(65, 145)
@@ -193,7 +193,7 @@ function dex_registered(name, field)
 
     local addr = dex[field]
     if not addr then
-        print_warn(field .. " is not a valid dex flag")
+        console.warn(field .. " is not a valid dex flag")
         return nil
     end
 
@@ -205,14 +205,14 @@ function dex_registered(name, field)
             local registered = bit.band(value, bit.lshift(1, idx % 8)) > 0
             
             if registered then
-                print_debug(name .. " " .. field)
+                console.debug(name .. " " .. field)
             end
 
             return registered
         end    
     end
 
-    print_warn("Pokemon " .. name .. " not found")
+    console.warn("Pokemon " .. name .. " not found")
 
     return nil
 end
@@ -243,7 +243,7 @@ function release_hatched_duds()
     move_to({x=749,z=556})
     
     -- Walk to daycare lady at desk
-    while game_state.map_header ~= 323 do
+    while game.map_header() ~= 323 do
         hold_button("Up")
     end
 
@@ -291,7 +291,7 @@ end
 
 --- Returns the current stage of the battle as a simple string
 function get_battle_state()
-    if not game_state.in_battle then
+    if not game.in_battle() then
         return nil
     end
 

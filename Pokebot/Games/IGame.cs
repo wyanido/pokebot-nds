@@ -1,5 +1,4 @@
 ﻿using BizHawk.Client.Common;
-using System;
 using System.Numerics;
 using Wyanido.Pokebot.Games.Data;
 
@@ -37,7 +36,9 @@ namespace Wyanido.Pokebot.Games
 
         public string GetTrainerName();
 
-        public int GetMapHeader();
+        public uint GetMapHeader();
+
+        public string? GetMapName();
 
         public bool IsInBattle();
     }

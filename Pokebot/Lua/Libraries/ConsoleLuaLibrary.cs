@@ -42,31 +42,38 @@ namespace Wyanido.Pokebot.Lua.Libraries
 
         [LuaMethodExample("console.log( \"New log.\" );")]
         [LuaMethod("log", "Outputs the given object to the output box on the Lua Console dialog. Note: Can accept a LuaTable")]
-        public void Log(params object[] outputs)
-        {
-            AppendMessage(outputs, "\t", "\n");
-        }
+        public void Log(params object[] outputs) => AppendMessage(outputs, "\t", "\n");
+
+        [LuaMethodExample("console.debug( \"New log.\" );")]
+        [LuaMethod("debug", "Outputs the given object to the output box on the Lua Console dialog. Note: Can accept a LuaTable")]
+        public void Debug(params object[] outputs) => LogDebug(outputs);
+
+        [LuaMethodExample("console.warn( \"New log.\" );")]
+        [LuaMethod("warn", "Outputs the given object to the output box on the Lua Console dialog. Note: Can accept a LuaTable")]
+        public void Warn(params object[] outputs) => LogWarning(outputs);
 
         [LuaMethodExample("console.writeline( \"New log line.\" );")]
         [LuaMethod("writeline", "Outputs the given object to the output box on the Lua Console dialog. Note: Can accept a LuaTable")]
-        public void WriteLine(params object[] outputs)
-        {
-            AppendMessage(outputs, "\n", "\n");
-        }
+        public void WriteLine(params object[] outputs) => AppendMessage(outputs, "\n", "\n");
 
         [LuaMethodExample("console.write( \"New log message.\" );")]
         [LuaMethod("write", "Outputs the given object to the output box on the Lua Console dialog. Note: Can accept a LuaTable")]
-        public void Write(params object[] outputs)
-        {
-            AppendMessage(outputs, "", "");
-        }
+        public void Write(params object[] outputs) => AppendMessage(outputs, "", "");
 
         /// <summary>
         /// Logs a message in gray text if ShowDebug is enabled.
         /// </summary>
         public void LogDebug(params object[] outputs)
         {
-            if (ShowDebug) AppendMessage(outputs, colour: Color.Gray);
+            if (ShowDebug) AppendMessage(["INFO", .. outputs], colour: Color.Gray);
+        }
+
+        /// <summary>
+        /// Logs a message in orange text.
+        /// </summary>
+        public void LogWarning(params object[] outputs)
+        {
+            AppendMessage(["WARN", .. outputs], colour: Color.OrangeRed);
         }
 
         /// <summary>

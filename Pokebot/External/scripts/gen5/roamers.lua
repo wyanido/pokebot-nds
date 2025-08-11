@@ -10,13 +10,13 @@ local function dex_entry_added()
 end
 
 function main()
-    while not game_state.in_game do
+    while not game.save_file_loaded() do
         print("Not in game yet")
         progress_text()
     end
 
     -- Exit house
-    while game_state.map_header == 344 do
+    while game.map_header() == 344 do
         hold_button("Down")
     end
 
@@ -28,13 +28,14 @@ function main()
     end
 
     -- Read pre-generated Pokemon from memory
-    local mon = pokemon.decrypt(pointers.roamer, true)
-    local is_target = pokemon.log_encounter(mon)
+    local mon = pokemon.parse_data(pointers.roamer, true)
+    local is_target = pokemon.is_target(mon)
+    pokemon.log_encounter(mon)
 
     if is_target then
-        abort(mon.name .. " is a target!")
+        abort(mon.Species.Name .. " is a target!")
     else
-        print(mon.name .. " was not a target, resetting...")
+        print(mon.Species.Name .. " was not a target, resetting...")
         soft_reset()
     end
 end

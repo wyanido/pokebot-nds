@@ -3,7 +3,7 @@
 -- Author: wyanido
 -----------------------------------------------------------------------------
 function main()
-    while not game_state.in_battle do
+    while not game.in_battle() do
         press_button("Y")
         wait_frames(60)
 
@@ -20,7 +20,7 @@ function main()
         end
     end
 
-    while not game_state.in_battle do
+    while not game.in_battle() do
         progress_text()
     end
 

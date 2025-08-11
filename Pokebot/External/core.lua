@@ -1,14 +1,12 @@
-_CONFIG = {}
-game_state = {}
-party = {}
+config = {}
 foe = nil
 
 function hint_config_default(key, value)
-    if table_contains(_CONFIG, key) then
+    if table_contains(config, key) then
         return
     end
 
-    _CONFIG[key] = value
+    config[key] = value
 end
 
 --- Returns whether a table contains a given string key
@@ -25,8 +23,7 @@ function table_contains(table_, item)
 end
 
 function abort(reason)
-    if _EMU == "BizHawk" then client.invisibleemulation(false) end
-
+    client.invisibleemulation(false)
     clear_all_inputs()
     print("##### BOT TASK ENDED #####")
     error(reason)
@@ -35,10 +32,6 @@ end
 mbyte = memory.read_u8
 mword = memory.read_u16_le
 mdword = memory.read_u32_le
-
-function print_debug(message) if _CONFIG.debug then print("- " .. message) end end
-
-function print_warn(message) print("# " .. message .. " #") end
 
 -- Suppress deprecation warnings for bitwise operations replaced in newer versions of BizHawk.
 -- The bot uses the old methods to maintain compatibility with DeSmuME which still uses them
@@ -60,9 +53,6 @@ bit = {
     byteswap_64 = bit.byteswap_64
 };
 
---- Converts an unsigned 32-bit int to a signed 16-bit int
-function to_s16(u32) return ((u32 / 65536) + 32768) % 65536 - 32768 end
-
 hint_config_default("focus_mode", false)
 
 --- Advances the game by one frame and calls all update methods
@@ -71,7 +61,7 @@ hint_config_default("focus_mode", false)
 function process_frame()
     joypad.set(input)
     
-    --client.invisibleemulation(_CONFIG.focus_mode)
+    --client.invisibleemulation(config.focus_mode)
     -- TEMPORARY, USE ORIGINAL LINE
     client.invisibleemulation(false)
     emu.frameadvance()
@@ -80,9 +70,7 @@ function process_frame()
     clear_unheld_inputs()
     
     update_pointers()
-    update_game_state()
     update_foes()
-    update_party()
 end
 
 --- Debug function for printing the memory address of a pointer
@@ -213,7 +201,7 @@ end
 hint_config_default("target_rulesets", 
     {
         MyRuleset1 = {
-            IsShiny = true,
+            IsShiny = True,
             IVs = {
                 Sum = 180
             }

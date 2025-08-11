@@ -5,12 +5,12 @@
 -- Author: wyanido
 -----------------------------------------------------------------------------
 function main()
-    local data
+    local mon
     local a_cooldown = 0
     local is_unencrypted = _ROM.version ~= "PT" -- Only Platinum encrypts roamer data after generating it 
 
-    while not data do
-        data = pokemon.decrypt(pointers.roamer, is_unencrypted)
+    while not mon do
+        mon = pokemon.parse_data(pointers.roamer, is_unencrypted)
 
         if a_cooldown == 0 then
             press_button_async("A")
@@ -22,21 +22,20 @@ function main()
         wait_frames(1)
     end
 
-    local mon = pokemon.parse_data(data, true)
-
-    if _CONFIG.ot_override then
-        mon.otSID = tonumber(_CONFIG.sid_override) -- SID is not generated during initial encounter. This will prevent false flagging.
-        mon.otID = tonumber(_CONFIG.sid_override) -- Sets the ID as well for those who are overriding it from their usual TID.
+    if config.ot_override then
+        mon.OT.SID = tonumber(config.sid_override) -- SID is not generated during initial encounter. This will prevent false flagging.
+        mon.OT.TID = tonumber(config.sid_override) -- Sets the ID as well for those who are overriding it from their usual TID.
     end
 
-    local is_target = pokemon.log_encounter(mon)
+    local is_target = pokemon.is_target(mon)
+    pokemon.log_encounter(mon)
     
-    if mon.name == "Unown" then
+    if mon.Species.Name == "Unown" then
         abort("Please clear the journal and then save to resume.") -- The journal is read as 'Unown'. This will stop pointless resets.
     end
     
     if is_target then
-        abort(mon.name .. " is a target!")
+        abort(mon.Species.Name .. " is a target!")
     else
         soft_reset()
     end
