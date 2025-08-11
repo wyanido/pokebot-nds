@@ -5,6 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Text.RegularExpressions;
+using System.Xml.Schema;
 using Wyanido.Pokebot.Games.Data;
 using Wyanido.Pokebot.Utils;
 
@@ -293,8 +296,175 @@ namespace Wyanido.Pokebot.Lua.Libraries
             return ParseMonData(bytes);
         }
 
+        private static bool IsStruct(Type type) => type.IsValueType && !type.IsEnum;
+
+        private static bool IsNumeric(object obj)
+        {
+            if (obj is null)
+                return false;
+
+            return Type.GetTypeCode(obj.GetType()) switch
+            {
+                TypeCode.Byte or
+                TypeCode.SByte or
+                TypeCode.UInt16 or
+                TypeCode.UInt32 or
+                TypeCode.UInt64 or
+                TypeCode.Int16 or
+                TypeCode.Int32 or
+                TypeCode.Int64 or
+                TypeCode.Decimal or
+                TypeCode.Double or
+                TypeCode.Single => true,
+                _ => false,
+            };
+        }
+
+        /// <summary>
+        /// Restores the typing of a number or boolean that was previously serialised to a string in YAML.
+        /// </summary>
+        private static object TryDeserialiseYamlString(object value)
+        {
+            if (value is not string ruleString)
+                return value;
+
+            if (bool.TryParse(ruleString, out bool boolValue))
+                return boolValue;
+            else if (double.TryParse(ruleString, out double doubleValue))
+                return doubleValue;
+
+            return value;
+        }
+
+        /// <summary>
+        /// Returns whether an individual value of a Pokemon matches a rule.
+        /// </summary>
+        private bool RuleMatchesValue(object rule, object value)
+        {
+            rule = TryDeserialiseYamlString(rule); // Restore bool/numeric typings
+
+            // Try to normalise numbers in the Pokemon class to double for easier comparison
+            if (double.TryParse(value.ToString(), out double doubleValue))
+                value = doubleValue;
+
+            if (rule is Dictionary<object, object> ruleDict)
+            {
+                // Compare Pokemon value with list of accepted values
+                if (ruleDict.TryGetValue("Values", out object ruleValues) && ruleValues is IEnumerable<object> ruleList)
+                {
+                    LuaLibraries.PrintDebug($"Check values. check {string.Join(", ", ruleList)} val {value}");
+
+                    // Rule is a list of possible values. Only one needs to match.
+                    // Values are normalised to strings so that same values in different types aren't missed.
+                    if (ruleList.Any(ruleValue => ruleValue.ToString() == value.ToString()))
+                        return true;
+
+                    return false;
+                }
+
+                // Compare Pokemon number using Min and Max ranges
+                if (value is double)
+                {
+                    if (ruleDict.TryGetValue("Min", out object minObject))
+                    {
+                        // Min range check
+                        /* IVs:
+                         *   Sum:
+                         *     Min: 180
+                        */
+                        LuaLibraries.PrintDebug($"Check min. check {minObject} val {doubleValue}");
+
+                        double.TryParse(minObject.ToString(), out double minDouble);
+
+                        if (doubleValue < minDouble)
+                            return false;
+                    }
+
+                    if (ruleDict.TryGetValue("Max", out object maxObject))
+                    {
+                        // Max range check
+                        /* IVs:
+                         *   Speed:
+                         *     Max: 0
+                        */
+                        LuaLibraries.PrintDebug($"Check max. check {maxObject} val {doubleValue}");
+
+                        double.TryParse(maxObject.ToString(), out double maxDouble);
+
+                        if (doubleValue > maxDouble)
+                            return false;
+                    }
+
+                    return true;
+                }
+
+                if (IsStruct(value.GetType()))
+                {
+                    // Rule is a generic key-value pair collection. These don't directly correspond
+                    // to a field in the Pokemon class, but likely a struct. e.g. IVs, Stats.
+                    for (var e = ruleDict.GetEnumerator(); e.MoveNext();)
+                    {
+                        var key = (string)e.Current.Key;
+                        var ruleValue = e.Current.Value;
+                        var monValue = value.GetType().GetField(key)?.GetValue(value);
+                        monValue ??= value.GetType().GetProperty(key)?.GetValue(value);
+
+                        if (monValue is null)
+                        {
+                            LuaLibraries.PrintWarn($"Invalid field or property '{key}'");
+                            continue;
+                        }
+
+                        if (!RuleMatchesValue(e.Current.Value, monValue))
+                            return false;
+                    }
+                }
+
+                return true;
+            }
+
+            // Compare strings, booleans, and integers directly
+            if (rule.GetType() == value.GetType())
+            {
+                if (rule != value)
+                    return false;
+
+                return true;
+            }
+
+            LuaLibraries.PrintWarn($"Unhandled rule checking {rule} ({rule.GetType()}) against {value} ({value.GetType()})");
+
+            return true;
+        }
+
+        /// <summary>
+        /// Returns whether the Pokemon meets all requirements set by the ruleset.
+        /// </summary>
+        public bool PokemonMatchesRuleset(Pokemon pokemon, Dictionary<object, object> ruleset)
+        {
+            var pokemonFields = typeof(Pokemon).GetMembers().Select(f => f.Name);
+
+            for (var e = ruleset.GetEnumerator(); e.MoveNext();)
+            {
+                string key = (string)e.Current.Key;
+                var rule = e.Current.Value;
+                var value = typeof(Pokemon).GetField(key)?.GetValue(pokemon);
+
+                // Skip rule field if it doesn't exist on the Pokemon
+                if (!pokemonFields.Contains(key) || value is null)
+                    // Todo reimplement warn
+                    //LuaLibraries.PrintWarn($"Invalid field '{key}' in ruleset '{rulesetName}'. This field has no effect, and should be removed.");
+                    continue;
+
+                if (!RuleMatchesValue(rule, value))
+                    return false;
+            }
+
+            return true;
+        }
+
         [LuaMethod("matches_ruleset", "Returns whether the given Pokemon matches the given ruleset.")]
-        public bool MatchesRuleset(Pokemon pokemon, Dictionary<object, object> rulesetCollection)
+        public bool PokemonMatchesRulesetCollection(Pokemon pokemon, Dictionary<object, object> rulesetCollection)
         {
             if (rulesetCollection is null)
             {
@@ -302,59 +472,16 @@ namespace Wyanido.Pokebot.Lua.Libraries
                 return false;
             }
 
-            var fields = typeof(Pokemon).GetFields().Select(f => f.Name);
-
-            // Rulesets work by assuming the Pokemon is a target by default.
-            // It will check each ruleset property against the Pokemon, and
-            // only return false if there is any mismatch.
             for (var e = rulesetCollection.GetEnumerator(); e.MoveNext();)
             {
-                string rulesetName = (string)e.Current.Key;
                 var ruleset = (Dictionary<object, object>)e.Current.Value;
 
-                for (var e2 = ruleset.GetEnumerator(); e2.MoveNext();)
-                {
-                    string key = (string)e2.Current.Key;
-                    var value = e2.Current.Value;
-                    var pokemonValue = typeof(Pokemon).GetField(key)?.GetValue(pokemon);
-
-                    // Rulesets come from YAML, so the original boolean type is lost.
-                    if (value is string stringValue)
-                    {
-                        var success = bool.TryParse(stringValue, out bool boolValue);
-
-                        if (success)
-                            value = boolValue;
-                    }
-
-                    if (!fields.Contains(key) || pokemonValue is null)
-                    {
-                        // Property doesn't exist on the Pokemon
-                        LuaLibraries.PrintWarn($"Invalid field '{key}' in ruleset '{rulesetName}'. This field has no effect, and should be removed.");
-                        continue;
-                    }
-
-                    if (value is bool propertyBool)
-                    {
-                        if (pokemonValue is not bool pokemonBool)
-                        {
-                            LuaLibraries.PrintWarn($"Expected type {pokemonValue.GetType()} for field '{key}' in ruleset '{rulesetName}', got bool.");
-                            continue;
-                        }
-
-                        // Checking ruleset bool against Pokemon bool
-                        // e.g. IsShiny = true
-                        if (propertyBool != pokemonBool)
-                            return false;
-
-                        continue; // Value match, keep checking
-                    }
-
-                    LuaLibraries.PrintWarn($"Unhandled property {key} in Catch Ruleset {rulesetName} matching {value.GetType()} against {pokemonValue.GetType()}");
-                }
+                if (PokemonMatchesRuleset(pokemon, ruleset))
+                    return true;
             }
 
-            return true;
+            // No rulesets matched; ignore
+            return false;
         }
 
         [LuaMethod("is_target", "Returns whether the given Pokemon matches any of the target rulesets.")]
@@ -368,7 +495,16 @@ namespace Wyanido.Pokebot.Lua.Libraries
 
             Pokebot.PokebotConfig.Properties.TryGetValue("target_rulesets", out object catchRulesets);
 
-            return MatchesRuleset(pokemon, (Dictionary<object, object>)catchRulesets);
+            var rulesetCollection = (Dictionary<object, object>)catchRulesets;
+            var isTarget = PokemonMatchesRulesetCollection(pokemon, rulesetCollection);
+            var pokemonString = $"{pokemon.Species?.Name ?? "???"} Lv. {pokemon.Level} ({pokemon.PID:X8})";
+
+            if (isTarget)
+                LuaLibraries.Print($"{pokemonString} is a target!");
+            else
+                LuaLibraries.Print($"{pokemonString} is not a target.");
+
+            return isTarget;
         }
 
         [LuaMethod("find_best_attacking_move", "Returns the name, index, and power of the most optimal damaging move against the given target.")]
@@ -459,7 +595,7 @@ namespace Wyanido.Pokebot.Lua.Libraries
         [LuaMethod("is_hatched_dud", "Returns whether the Pokemon is both Level 1 and doesn't match the target rulesets.")]
         public bool IsHatchedDud(Pokemon pokemon)
         {
-            return pokemon.Level == 1 && !MatchesRuleset(pokemon, (Dictionary<object, object>)Pokebot.PokebotConfig.Properties["target_rulesets"]);
+            return pokemon.Level == 1 && !PokemonMatchesRulesetCollection(pokemon, (Dictionary<object, object>)Pokebot.PokebotConfig.Properties["target_rulesets"]);
         }
 
         [LuaMethod("log_encounter", "Logs the Pokemon to the Dashboard.")]
