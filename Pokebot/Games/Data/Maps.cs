@@ -1,5 +1,4 @@
 ﻿using Wyanido.Pokebot.Games.Titles;
-using Wyanido.Pokebot.Games.Titles;
 
 namespace Wyanido.Pokebot.Games.Data
 {
@@ -13,9 +12,9 @@ namespace Wyanido.Pokebot.Games.Data
 
             var isHgss = game is HeartGoldSoulSilver;
             var isPlat = game is Platinum;
-            var isB2w2 = game.GameCode == "B2" || game.GameCode == "W2";
-            var isOras = game.GameCode == "OR" || game.GameCode == "AS";
-            var isUsum = game.GameCode == "US" || game.GameCode == "UM";
+            var isB2w2 = game is Black2White2;
+            var isOras = game is OmegaRubyAlphaSapphire;
+            var isUsum = game is UltraSunUltraMoon;
 
             List = game.Generation switch
             {

@@ -11,6 +11,7 @@ using System.Linq;
 using System.Windows.Forms;
 using Wyanido.Pokebot.Forms;
 using Wyanido.Pokebot.Games;
+using Wyanido.Pokebot.Games.Data;
 
 namespace Wyanido.Pokebot;
 
@@ -33,8 +34,6 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
     private RichTextBox consoleOutput;
     private MenuStrip optionsMenu;
     private ToolStripMenuItem aboutMenu;
-    private TabControl tabs;
-    private TabPage party;
     private SplitContainer splitContainer2;
     private Panel panel1;
     private TreeView scriptsTree;
@@ -44,7 +43,7 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
     private Button buttonStop;
     private SplitContainer splitContainer1;
     private Button buttonRun;
-    
+
     private bool wasRunningScripts = false;
 
     [RequiredService]
@@ -52,6 +51,8 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
 
     private LuaLibraries lua;
     private bool gameDataPagePopulated = false;
+
+    private int[] lastPartyChecksums = [];
 
     public Pokebot()
     {
@@ -70,7 +71,7 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
         LuaFunctionList registeredFuncList = new(onChanged: UpdateRegisteredFunctionsDialog);
         lua = new LuaLibraries(newScripts, registeredFuncList, Emulator.ServiceProvider, (MainForm)MainForm, DisplayManager, InputManager, Config, Emulator, Game, consoleOutput);
 
-        CurrentGame = GameDetector.DetectGame(Game);
+        CurrentGame = GameManager.DetectGame(Game, APIs);
         RefreshScriptsList();
 
         if (CurrentGame is not null)
@@ -128,7 +129,7 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
         foreach (var move in CurrentGame.Moves.List)
             movesList.Items.Add(move.Name);
 
-        foreach (var typeName in CurrentGame.Types)
+        foreach (var typeName in CurrentGame.TypeMatchups.List.Keys.ToArray())
             typesList.Items.Add(typeName);
 
         foreach (var species in CurrentGame.Species.List)
@@ -153,7 +154,7 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
         LuaLibraries.PrintDebug("Searching for available scripts...");
         scriptsTree.Nodes.Clear();
 
-        var scripts = Games.Game.GetGameScripts(CurrentGame);
+        var scripts = GameManager.GetGameScripts(CurrentGame);
         var count = scripts.Count();
         if (count == 0)
         {
@@ -208,6 +209,79 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
         scriptsTree.ExpandAll();
     }
 
+    /// <summary>
+    /// Updates the Dashboard Party display to show the current Party Pokemon while minimising form updates.
+    /// </summary>
+    private void DisplayCurrentParty()
+    {
+        const int MaxPartyCount = 6;
+
+        // Display nothing if no game is loaded
+        if (CurrentGame is null)
+        {
+            if (partyTable.Controls.Count > 0)
+                partyTable.Controls.Clear();
+
+            return;
+        }
+
+        Pokemon?[] party = CurrentGame.GetParty();
+
+        // Display nothing if party is empty
+        if (party.Length == 0)
+        {
+            if (partyTable.Controls.Count > 0)
+                partyTable.Controls.Clear();
+
+            return;
+        }
+
+        // Get each mon's checksum to compare against last update.
+        // If the Pokemon is null because of a checksum fail, try to repeat last update's checksum 
+        // to treat it as if the Pokemon is in the same state as it was last frame instead of null.
+        int[] partyChecksum = [.. party.Select((x, i) => x?.Checksum ?? (i >= lastPartyChecksums.Length ? 0 : lastPartyChecksums[i]))];
+
+        partyTable.SuspendLayout();
+
+        for (int i = 0; i < MaxPartyCount; i++)
+        {
+            if (i >= party.Length)
+            {
+                // Remove displays of Pokemon beyond the party length, as if they were deposited into the PC
+                var key = $"Party-{i}";
+                partyTable.Controls.RemoveByKey(key);
+                continue;
+            }
+
+            var pokemon = party[i];
+
+            // Pokemon exists, but the checksum failed. This sometimes happens
+            // during gameplay, so it shouldn't be treated as the Pokemon being removed
+            // from the party; just keep the current PokemonPanel instead.
+            if (pokemon is null)
+                continue;
+
+            // Pokemon changed if it was added to the end of the party, or the checksum is valid and different.
+            var wasUpdated = i >= lastPartyChecksums.Length || partyChecksum[i] != lastPartyChecksums[i];
+
+            if (wasUpdated)
+            {
+                // Remove existing display, if any
+                string key = $"Party-{i}";
+                partyTable.Controls.RemoveByKey(key);
+
+                // Add updated Pokemon state to the corresponding column
+                PokemonPanel panel = new();
+                panel.DisplayPokemon(pokemon);
+                panel.Name = key;
+                partyTable.Controls.Add(panel, i, 0);
+            }
+        }
+
+        partyTable.ResumeLayout();
+        lastPartyChecksums = partyChecksum; // Store checksums to compare on next update
+    }
+
     protected override void UpdateBefore()
     {
         lua.CallFrameBeforeEvent();
@@ -231,6 +305,30 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
             wasRunningScripts = false;
             buttonStop.Enabled = false;
             buttonRun.Enabled = true;
+        }
+
+        if (CurrentGame is not null)
+        {
+            try
+            {
+                trainerName.Text = CurrentGame.GetTrainerName();
+                trainerId.Text = CurrentGame.GetTrainerId().ToString();
+
+                var position = CurrentGame.GetTrainerPosition();
+                trainerPosition.Text = $"X: {position.X}, Y: {position.Y}, Z: {position.Z}";
+
+                DisplayCurrentParty();
+
+                //// Display battle state
+                //var foe = CurrentGame.GetFoes();
+
+                //if (foe.Length > 0)
+                //    currentFoe.DisplayPokemon(foe[0]);
+            }
+            catch (Exception ex)
+            {
+                LuaLibraries.PrintError(ex);
+            }
         }
     }
 
@@ -285,7 +383,7 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
 
     private void RunDependencyDir(string dir)
     {
-        var files = Games.Game.GetGameScriptsFromDirectory(CurrentGame, dir);
+        var files = GameManager.GetGameScriptsFromDirectory(CurrentGame, dir);
 
         foreach (var file in files)
             lua.LoadScript(file, true);
@@ -464,6 +562,11 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
     }
 
     private void flowLayoutPanel1_Paint(object sender, PaintEventArgs e)
+    {
+
+    }
+
+    private void Pokebot_Load(object sender, EventArgs e)
     {
 
     }

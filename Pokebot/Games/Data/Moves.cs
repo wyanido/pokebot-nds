@@ -1,6 +1,6 @@
 ﻿using BizHawk.Common.CollectionExtensions;
 using Newtonsoft.Json;
-using Wyanido.Pokebot.Games.Collections;
+using Wyanido.Pokebot.Games.Titles;
 
 namespace Wyanido.Pokebot.Games.Data
 {

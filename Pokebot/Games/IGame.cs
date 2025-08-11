@@ -20,6 +20,7 @@ namespace Wyanido.Pokebot.Games
         public int Generation { get; }
         public Language Language { set; get; }
         public int MemoryOffset { set; get; }
+        public int MonByteLength { get; }
 
         public Species Species { set; get; }
         public Items Items { set; get; }
@@ -32,7 +33,7 @@ namespace Wyanido.Pokebot.Games
 
         public Vector3 GetTrainerPosition();
 
-        public UInt16 GetTrainerId();
+        public ushort GetTrainerId();
 
         public string GetTrainerName();
 

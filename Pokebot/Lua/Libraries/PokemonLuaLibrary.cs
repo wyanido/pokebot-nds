@@ -3,11 +3,12 @@ using BizHawk.Common;
 using BizHawk.Common.CollectionExtensions;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Windows.Forms;
 using Wyanido.Pokebot.Games.Data;
-using Wyanido.Pokebot.Lua;
 using Wyanido.Pokebot.Utils;
 
-namespace Wyanido.Pokebot.LuaLibrary.Libraries
+namespace Wyanido.Pokebot.Lua.Libraries
 {
     public sealed class PokemonLuaLibrary(
         ILuaLibraries luaLibraries,
@@ -54,12 +55,10 @@ namespace Wyanido.Pokebot.LuaLibrary.Libraries
         {
             var sum = 0;
 
-            for (int i = 0x09; i <= 0x88; i += 2)
+            for (int i = 0x08; i < 0x87; i += 2)
                 sum += data[i] + (data[i + 1] << 8);
 
-            sum = sum & 0xFFFF;
-
-            return sum == checksum && sum != 0;
+            return (ushort)(sum & 0xFFFF) == checksum && sum != 0;
         }
 
         private int BytesToReal(byte[] bytes)
@@ -74,130 +73,128 @@ namespace Wyanido.Pokebot.LuaLibrary.Libraries
 
         private uint Rand(uint seed) => 0x41C64E6D * seed + 0x6073;
 
-        public byte[]? DecryptAndUnshuffleMon(long address, bool isUnencrypted = true)
+        public byte[]? DecryptPokemon(long address, bool isUnencrypted = false)
         {
-            var data = new BinaryBuffer();
-            var bin = data.Writer;
+            if (Pokebot.CurrentGame is null)
+                throw new Exception("Can't decrypt Pokemon data with no game loaded");
+
+            // Read in the entire encrypted Pokemon struct to minimise API calls
+            var structLength = Pokebot.CurrentGame.MonByteLength;
+
+            var inData = (byte[])APIs.Memory.ReadByteRange(address, structLength);
+            var inStream = new MemoryStream(inData);
+            var data = new BinaryReader(inStream);
+
+            var outStream = new MemoryStream();
+            var outData = new BinaryWriter(outStream);
 
             // Read unencrypted bytes
-            var pid = APIs.Memory.ReadU32(address);
-            bin.Write(pid);
+            var pid = data.ReadUInt32();
+            inStream.Seek(6, SeekOrigin.Begin);
+            var checksum = data.ReadUInt16();
 
-            bin.Write((byte)0); // Unused
-            bin.Write((byte)0); //
-
-            var checksum = (ushort)APIs.Memory.ReadU16(address + 6);
-            bin.Write(checksum);
+            outData.Write(pid);
+            outData.Write((byte)0); // Unused
+            outData.Write((byte)0); // Unused
+            outData.Write(checksum);
 
             // Find intended order of the shuffled data blocks
             var substructIndex = ((pid & 0x3E000) >> 0xD) % 24;
             var order = substruct[substructIndex];
-
-            // Decrypt blocks A,B,C,D and reshuffle according to the order
             var seed = (uint)checksum;
-            var blocks = new byte[0x20][];
 
-            byte[] DecryptBlock(long start, long end)
+            void DecryptBlock(uint length)
             {
-                var block = new byte[end - start + 1];
-
-                for (long i = start; i < end; i += 2)
+                for (long i = 0; i < length; i += 2)
                 {
-                    var word = APIs.Memory.ReadU16(address + i);
+                    var word = data.ReadUInt16();
 
                     // Only decrypt bytes if the data isn't already unencrypted (only applies to Platinum statics)
                     if (!isUnencrypted)
                     {
                         seed = Rand(seed);
-                        word = (word ^ seed >> 16) & 0xFFFF;
+                        word = (ushort)((word ^ seed >> 16) & 0xFFFF);
                     }
 
-                    block[i] = (byte)(word & 0xFF);
-                    block[i + 1] = (byte)(word >> 8 & 0xFF);
+                    outData.Write(word);
                 }
-
-                return block;
             }
 
-            for (int i = 0; i < 4; i++)
+            // Decrypt blocks A,B,C,D and reshuffle according to the order
+            for (int i = 1; i <= 4; i++)
             {
-                var block = i * 0x20;
-                blocks[i] = DecryptBlock(0x08 + block, 0x27 + block);
+                var block = order.IndexOf(i) * 0x20;
+                outData.Seek(0x8 + block, SeekOrigin.Begin);
+                DecryptBlock(0x20);
             }
-
-            foreach (var index in order)
-                bin.WriteByteBuffer(blocks[index]);
 
             // Recalculate checksum to verify data isn't garbage
-            if (!VerifyChecksums(data.ToArray(), checksum))
+            if (!VerifyChecksums(outStream.ToArray(), checksum))
                 return null;
 
             // Status data (not applicable to boxed Pokemon)
             seed = pid;
-
-            var statusBlock = DecryptBlock(0x88, 0xDB);
-            bin.WriteByteBuffer([.. statusBlock]);
+            outData.Seek(0x88, SeekOrigin.Begin);
+            DecryptBlock(0x4B);
 
             if (Pokebot.CurrentGame.Generation == 4)
-                for (int i = 0; i < 0x10; i++)
-                    bin.Write((byte)0); // Write blank ball seal data
+            {
+                outData.Write(data.ReadBytes(0x18)); // Write ball seal data
+                //outData.Write((byte)0); // One extra byte to push length to 236 so PKHeX will accept it
+            }
 
-            return data.ToArray();
+            return outStream.ToArray();
         }
 
         public Pokemon ParseMonData(byte[] data)
         {
+            if (Pokebot.CurrentGame is null)
+                throw new Exception("Can't parse Pokemon data with no game loaded");
+
             var mon = new Pokemon();
-            var buffer = new BinaryBuffer(data);
-            var bin = buffer.Reader;
+            var stream = new MemoryStream(data);
+            var reader = new BinaryReader(stream);
 
-            mon.PID = bin.ReadUInt32();
-            mon.Checksum = bin.ReadUInt16();
-
-            // Block A
-            mon.SpeciesIndex = bin.ReadUInt16();
-            mon.HeldItemIndex = bin.ReadUInt16();
-
-            mon.OT = new()
-            {
-                TID = bin.ReadUInt16(),
-                SID = bin.ReadUInt16()
-            };
-
-            mon.Experience = BytesToReal(bin.ReadBytes(3));
-            mon.Friendship = bin.ReadByte();
-            mon.AbilityIndex = bin.ReadByte();
-            mon.Markings = bin.ReadByte();
-            mon.OT.LanguageID = bin.ReadByte();
-
-            mon.EVs = new()
-            {
-                HP = bin.ReadByte(),
-                Attack = bin.ReadByte(),
-                Defense = bin.ReadByte(),
-                Speed = bin.ReadByte(),
-                SpecialAttack = bin.ReadByte(),
-                SpecialDefense = bin.ReadByte(),
-            };
-
-            mon.ContestStats = new()
-            {
-                Cool = bin.ReadByte(),
-                Beauty = bin.ReadByte(),
-                Cute = bin.ReadByte(),
-                Smart = bin.ReadByte(),
-                Tough = bin.ReadByte(),
-                Sheen = bin.ReadByte(),
-            };
-
-            mon.Ribbons = new()
-            {
-                SinnohRibbonSet1 = bin.ReadUInt16(),
-                UnovaRibbonSet = bin.ReadUInt16(),
-            };
+            mon.PID = reader.ReadUInt32();
+            stream.Seek(2, SeekOrigin.Current); // Skip unused bytes
+            mon.Checksum = reader.ReadUInt16();
 
             mon.ShinyValue = (ushort)(mon.OT.TID ^ mon.OT.SID ^ mon.PID >> 16 & 0xFFFF ^ mon.PID & 0xFFFF);
             mon.IsShiny = mon.ShinyValue < 8;
+
+            // Block A
+            mon.SpeciesIndex = reader.ReadUInt16();
+            mon.HeldItemIndex = reader.ReadUInt16();
+
+            mon.OT = new();
+            mon.OT.TID = reader.ReadUInt16();
+            mon.OT.SID = reader.ReadUInt16();
+
+            mon.Experience = reader.ReadUInt32();
+            mon.Friendship = reader.ReadByte();
+            mon.AbilityIndex = reader.ReadByte();
+            mon.Markings = reader.ReadByte();
+            mon.OT.LanguageID = reader.ReadByte();
+
+            mon.EVs = new();
+            mon.EVs.HP = reader.ReadByte();
+            mon.EVs.Attack = reader.ReadByte();
+            mon.EVs.Defense = reader.ReadByte();
+            mon.EVs.Speed = reader.ReadByte();
+            mon.EVs.SpecialAttack = reader.ReadByte();
+            mon.EVs.SpecialDefense = reader.ReadByte();
+
+            mon.ContestStats = new();
+            mon.ContestStats.Cool = reader.ReadByte();
+            mon.ContestStats.Beauty = reader.ReadByte();
+            mon.ContestStats.Cute = reader.ReadByte();
+            mon.ContestStats.Smart = reader.ReadByte();
+            mon.ContestStats.Tough = reader.ReadByte();
+            mon.ContestStats.Sheen = reader.ReadByte();
+
+            mon.Ribbons = new();
+            mon.Ribbons.SinnohRibbonSet1 = reader.ReadUInt16();
+            mon.Ribbons.UnovaRibbonSet = reader.ReadUInt16();
 
             // Block B
             mon.Moves = [
@@ -207,92 +204,90 @@ namespace Wyanido.Pokebot.LuaLibrary.Libraries
                 new Move()
             ];
 
-            for (int i = 0; i < 4; i++) mon.Moves[i].Index = bin.ReadUInt16();
-            for (int i = 0; i < 4; i++) mon.Moves[i].PP = bin.ReadByte();
-            for (int i = 0; i < 4; i++) mon.Moves[i].PPUps = bin.ReadByte();
+            for (int i = 0; i < 4; i++) mon.Moves[i].Index = reader.ReadUInt16();
+            for (int i = 0; i < 4; i++) mon.Moves[i].PP = reader.ReadByte();
+            for (int i = 0; i < 4; i++) mon.Moves[i].PPUps = reader.ReadByte();
 
-            var value = BytesToReal(bin.ReadBytes(5));
-            mon.IVs = new()
-            {
-                HP = (byte)(value & 0x1F),
-                Attack = (byte)(value << 5 & 0x1F),
-                Defense = (byte)(value << 10 & 0x1F),
-                Speed = (byte)(value << 15 & 0x1F),
-                SpecialAttack = (byte)(value << 20 & 0x1F),
-                SpecialDefense = (byte)(value << 25 & 0x1F),
-            };
+            var value = reader.ReadUInt32();
+            mon.IVs = new();
+            mon.IVs.HP = (byte)(value & 0x1F);
+            mon.IVs.Attack = (byte)(value << 5 & 0x1F);
+            mon.IVs.Defense = (byte)(value << 10 & 0x1F);
+            mon.IVs.Speed = (byte)(value << 15 & 0x1F);
+            mon.IVs.SpecialAttack = (byte)(value << 20 & 0x1F);
+            mon.IVs.SpecialDefense = (byte)(value << 25 & 0x1F);
 
             mon.IsEgg = (value >> 30 & 1) == 1;
             mon.IsNicknamed = (value >> 31 & 1) == 1;
 
-            mon.Ribbons.HoennRibbonSet1 = bin.ReadUInt16();
-            mon.Ribbons.HoennRibbonSet2 = bin.ReadUInt16();
+            mon.Ribbons.HoennRibbonSet1 = reader.ReadUInt16();
+            mon.Ribbons.HoennRibbonSet2 = reader.ReadUInt16();
 
-            var value2 = bin.ReadByte();
+            var value2 = reader.ReadByte();
             mon.FatefulEncounter = (value2 & 1) == 1;
             var genderValue = value2 >> 1 & 0x02;
-            mon.Gender = (genderValue & 0b1) > 0 ? "Female" : ((genderValue & 0b01) > 0 ? "Genderless" : "Male");
-            mon.AlternateForm = value2 >> 3 & 0x1F;
+            mon.Gender = (genderValue & 0b1) > 0 ? "Female" : (genderValue & 0b01) > 0 ? "Genderless" : "Male";
+            mon.AlternateFormIndex = value2 >> 3 & 0x1F;
 
             var isGen4 = Pokebot.CurrentGame.Generation == 4;
 
             if (isGen4)
             {
                 // Gen 4 calculates nature using PID instead of storing a separate value
-                mon.NatureIndex = (mon.PID % 25);
-                bin.BaseStream.Seek(2, System.IO.SeekOrigin.Current);
+                mon.NatureIndex = mon.PID % 25;
+                stream.Seek(2, System.IO.SeekOrigin.Current);
             }
             else
             {
-                mon.NatureIndex = bin.ReadByte();
+                mon.NatureIndex = reader.ReadByte();
 
-                var value3 = bin.ReadByte();
+                var value3 = reader.ReadByte();
                 mon.DreamWorldAbilityIndex = value3 & 1;
                 mon.IsNsPokemon = (value3 >> 1 & 1) == 1;
             }
 
             // Block C
-            mon.Nickname = GameString.BytesToString(bin.ReadBytes(0x1D), isGen4);
-            mon.OriginGame = bin.ReadByte();
-            mon.Ribbons.SinnohRibbonSet3 = bin.ReadUInt16();
-            mon.Ribbons.SinnohRibbonSet4 = bin.ReadUInt16();
+            mon.Nickname = GameString.BytesToString(reader.ReadBytes(0x1D), isGen4);
+            mon.OriginGame = reader.ReadByte();
+            mon.Ribbons.SinnohRibbonSet3 = reader.ReadUInt16();
+            mon.Ribbons.SinnohRibbonSet4 = reader.ReadUInt16();
 
             // Block D
-            mon.OT.Name = GameString.BytesToString(bin.ReadBytes(0x10), isGen4);
-            mon.DateEggReceived = (uint)BytesToReal(bin.ReadBytes(3));
-            mon.DateMet = (uint)BytesToReal(bin.ReadBytes(3));
-            mon.EggLocationIndex = (uint)BytesToReal(bin.ReadBytes(3));
-            mon.MetLocationIndex = bin.ReadUInt16();
-            mon.Pokerus = bin.ReadByte();
-            mon.PokeBallIndex = (PokeBall)bin.ReadByte();
-            mon.EncounterType = bin.ReadByte();
+            mon.OT.Name = GameString.BytesToString(reader.ReadBytes(0x10), isGen4);
+            mon.DateEggReceived = (uint)BytesToReal(reader.ReadBytes(3));
+            mon.DateMet = (uint)BytesToReal(reader.ReadBytes(3));
+            mon.EggLocationIndex = reader.ReadUInt16();
+            mon.MetLocationIndex = reader.ReadUInt16();
+            mon.Pokerus = reader.ReadByte();
+            mon.PokeBallIndex = (PokeBall)reader.ReadByte();
+            mon.EncounterType = reader.ReadByte();
 
             // Battle stats
-            mon.Level = bin.ReadByte();
-            mon.CapsuleIndex = bin.ReadByte();
-            mon.CurrentHP = bin.ReadUInt16();
+            stream.Seek(0x8C, SeekOrigin.Begin); // Skip Status and unknown flags
+            mon.Level = reader.ReadByte();
+            mon.CapsuleIndex = reader.ReadByte();
+            mon.CurrentHP = reader.ReadUInt16();
 
-            mon.Stats = new()
-            {
-                HP = bin.ReadUInt16(),
-                Attack = bin.ReadUInt16(),
-                Defense = bin.ReadUInt16(),
-                Speed = bin.ReadUInt16(),
-                SpecialAttack = bin.ReadUInt16(),
-                SpecialDefense = bin.ReadUInt16(),
-            };
+            mon.Stats = new();
+            mon.Stats.HP = reader.ReadUInt16();
+            mon.Stats.Attack = reader.ReadUInt16();
+            mon.Stats.Defense = reader.ReadUInt16();
+            mon.Stats.Speed = reader.ReadUInt16();
+            mon.Stats.SpecialAttack = reader.ReadUInt16();
+            mon.Stats.SpecialDefense = reader.ReadUInt16();
 
-            mon.MailMessage = bin.ReadBytes(37);
+            // Save a copy of the raw bytes for .pkx export
+            mon.Raw = data;
 
             return mon;
         }
 
         [LuaMethodExample("pokemon.decrypt(address);")]
-        public object? DecryptFromMemory(params object[] outputs)
+        public object? DecryptAndParse(params object[] outputs)
         {
             var address = (long)outputs[0];
-            var isUnencrypted = (bool)(outputs?[1] ?? true);
-            var bytes = DecryptAndUnshuffleMon(address, isUnencrypted);
+            var isUnencrypted = outputs.Length != 1 && (bool)outputs[1];
+            var bytes = DecryptPokemon(address, isUnencrypted);
 
             if (bytes is null)
                 return null;

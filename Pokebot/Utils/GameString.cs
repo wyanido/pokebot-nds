@@ -51,15 +51,24 @@ namespace Wyanido.Pokebot.Utils
         {
             var text = "";
 
-            for (int i = 0; i < bytes.Count; i++)
+            for (int i = 0; i < bytes.Count - 1; i += 2)
             {
                 var word = bytes[i] + (bytes[i + 1] << 8);
 
                 if (word == 0xFFFF || word == 0) // Null terminator
                     break;
 
-                var character = useCharmap ? Charmap?[word] : Encoding.UTF8.GetString([(byte)word]);
-                text += character ?? "?";
+                string character = "?";
+
+                if (useCharmap)
+                {
+                    if (word >= 0 && word < Charmap?.Length)
+                        character = Charmap[word - 1];
+                }
+                else
+                    character = Encoding.UTF8.GetString([(byte)word]);
+
+                text += character;
             }
 
             return text;

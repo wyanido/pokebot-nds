@@ -3,7 +3,7 @@ using System;
 using System.Numerics;
 using Wyanido.Pokebot.Games.Data;
 using Wyanido.Pokebot.Lua;
-using Wyanido.Pokebot.LuaLibrary.Libraries;
+using Wyanido.Pokebot.Lua.Libraries;
 
 namespace Wyanido.Pokebot.Games
 {
@@ -14,9 +14,18 @@ namespace Wyanido.Pokebot.Games
     /// </summary>
     public abstract class Game : IGame
     {
-        public virtual int Generation => -1;
-        public virtual Language Language { set; get; } = Language.Japanese;
-        public virtual int MemoryOffset { set; get; } = 0;
+        public virtual int Generation { get; }
+        public virtual Language Language { set; get; }
+        public virtual int MemoryOffset { set;  get; }
+
+        /// <summary>
+        /// The size of this game's Pokemon constructor in bytes.
+        /// </summary>
+        public virtual int MonByteLength { get; }
+
+        // Lua compatibility properties. These should be removed soon.
+        public string GameCode { set; get; }
+        public string LanguageCode { set; get; }
 
         protected PokemonLuaLibrary PokemonLibrary => (PokemonLuaLibrary)LuaLibraries.Libs[typeof(PokemonLuaLibrary)];
 
@@ -76,7 +85,13 @@ namespace Wyanido.Pokebot.Games
         /// <summary>
         /// Returns an array of Pokemon currently in the party.
         /// </summary>
-        public virtual Pokemon[] GetParty() => throw new NotImplementedException();
+        public virtual Pokemon?[] GetParty() => throw new NotImplementedException();
+
+        /// <summary>
+        /// Returns the sum of all checksums in the party, or null if at least one Pokemon fails checksum validation.
+        /// The returned checksum is required for the Dashboard to know whether the party data is valid and/or has changed.
+        /// </summary>
+        public virtual int[] GetPartyChecksums() => throw new NotImplementedException();
 
         /// <summary>
         /// Returns an array containing the current battle opponents.

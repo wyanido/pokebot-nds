@@ -1,6 +1,6 @@
 ﻿using BizHawk.Client.Common;
 
-namespace Wyanido.Pokebot.Games.Collections;
+namespace Wyanido.Pokebot.Games.Titles;
 
 public sealed class HeartGoldSoulSilver(ApiContainer apis) : Game(apis)
 {

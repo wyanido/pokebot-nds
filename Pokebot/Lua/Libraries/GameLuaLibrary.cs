@@ -12,11 +12,5 @@ namespace Wyanido.Pokebot.Lua.Libraries
               logOutputCallback)
     {
         public override string Name => "game";
-
-        [LuaMethodExample("game.( );")]
-        public void Clear()
-        {
-            OutputBox?.Clear();
-        }
     }
 }

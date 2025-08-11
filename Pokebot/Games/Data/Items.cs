@@ -1,11 +1,14 @@
 ﻿using System.Drawing;
-using Wyanido.Pokebot.Games.Collections;
+using System.IO;
+using Wyanido.Pokebot.Games.Titles;
 
 namespace Wyanido.Pokebot.Games.Data
 {
     public class Items : GameDataCollection<Items>
     {
         public readonly string[] List;
+
+        private readonly static Image FallbackIcon = Image.FromFile(Path.Combine([Pokebot.ImagesPath, "items", "unknown.png"]));
 
         public Items(IGame game)
         {
@@ -23,8 +26,17 @@ namespace Wyanido.Pokebot.Games.Data
 
         private string[] ParseItemList(string filename) => ParseDataJson<string[]>(["items", filename]);
 
-        public static string GetName(int index) => Instance.List[index];
+        public static string GetName(int index) => index >= Instance.List.Length ? "???" : Instance.List[index];
 
-        public static Image GetIcon(int index) => Image.FromFile("Resources/items/unknown.png");
+        public static Image GetIcon(int index)
+        {
+            var name = GetName(index).ToLower();
+            var path = Path.Combine([Pokebot.ImagesPath, "items", $"{name}.png"]);
+
+            if (!File.Exists(path))
+                return FallbackIcon;
+
+            return Image.FromFile(path);
+        }
     }
 }

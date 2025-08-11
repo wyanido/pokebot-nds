@@ -11,7 +11,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
-using Wyanido.Pokebot.LuaLibrary.Libraries;
+using Wyanido.Pokebot.Lua.Libraries;
 using ConsoleLuaLibrary = Wyanido.Pokebot.Lua.Libraries.ConsoleLuaLibrary;
 
 namespace Wyanido.Pokebot.Lua

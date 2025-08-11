@@ -2,7 +2,8 @@
 using Newtonsoft.Json;
 using System;
 using System.Drawing;
-using Wyanido.Pokebot.Games.Collections;
+using System.IO;
+using Wyanido.Pokebot.Games.Titles;
 
 namespace Wyanido.Pokebot.Games.Data
 {
@@ -18,6 +19,8 @@ namespace Wyanido.Pokebot.Games.Data
     public class Species : GameDataCollection<Species>
     {
         public readonly PokemonSpecies[] List;
+
+        private static readonly Image FallbackIcon = Image.FromFile(GetIconPath("unown-question"));
 
         public Species(IGame game)
         {
@@ -68,16 +71,42 @@ namespace Wyanido.Pokebot.Games.Data
             }
         }
 
-        public static PokemonSpecies Get(int speciesIndex) => Instance.List[speciesIndex];
+        public static PokemonSpecies Get(int speciesIndex) => speciesIndex < Instance.List.Length ? Instance.List[speciesIndex] : Instance.List[0];
 
-        public static string GetName(int speciesIndex) => Instance.List[speciesIndex].Name;
+        public static string GetName(int speciesIndex) => speciesIndex < Instance.List.Length ? Instance.List[speciesIndex].Name : "???";
+
+        /// <summary>
+        /// Prepends the filename with the pokemon images folder, and appends the .png suffix to it.
+        /// </summary>
+        private static string GetIconPath(string filename) => Path.Combine([Pokebot.ImagesPath, "pokemon", $"{filename}.png"]);
 
         /// <summary>
         /// Retrieves a drawable icon for the Pokemon.
         /// </summary>
         public static Image GetIcon(Pokemon pokemon)
         {
-            return Image.FromFile("Resources/pokemon/unown.png");
+            var species = pokemon.Species;
+
+            // First check if an image exists for the Pokemon's alternate form, e.g.
+            // Unown A, B, C... Arceus Steel, Flying...
+            var form = pokemon.AlternateForm;
+            var alternateFormPath = GetIconPath($"{species}-{form}".ToLower());
+
+            if (File.Exists(alternateFormPath))
+                return Image.FromFile(alternateFormPath);
+
+            // Otherwise check for female sprite variants for female Pokemon
+            var femalePath = GetIconPath($"{species}-female");
+            if (pokemon.Gender == "Female" && File.Exists(femalePath))
+                return Image.FromFile(femalePath);
+
+            // Check for the most basic representation of the Pokemon in its default state
+            var defaultPath = GetIconPath(species);
+            if (File.Exists(defaultPath))
+                return Image.FromFile(defaultPath);
+
+            // If for any reason an image for the Pokemon can't be found, use unown-question
+            return FallbackIcon;
         }
     }
 }

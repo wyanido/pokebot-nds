@@ -1,4 +1,4 @@
-﻿using Wyanido.Pokebot.Games.Collections;
+﻿using Wyanido.Pokebot.Games.Titles;
 
 namespace Wyanido.Pokebot.Games.Data
 {
