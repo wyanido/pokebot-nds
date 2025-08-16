@@ -46,7 +46,7 @@ function main()
     end
 
     -- Log encounter, stopping if necessary
-    local mon = party[1]
+    local mon = game.party()[0]
     local is_target = pokemon.is_target(mon)
     pokemon.log_encounter(mon)
 

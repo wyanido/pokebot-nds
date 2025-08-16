@@ -16,6 +16,7 @@ public partial class ConfigPage : UserControl, IContainerControl
     private static readonly IDeserializer yamlDeserialiser = new DeserializerBuilder().Build();
 
     private readonly Control parentContainer;
+    private readonly AnchorStyles anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
 
     public ConfigPage() : base()
     {
@@ -26,7 +27,7 @@ public partial class ConfigPage : UserControl, IContainerControl
     /// <summary>
     /// Converts a snake_case property key into a Camel Case name with spaces.
     /// </summary>
-    private string PropertyKeyToName(string key)
+    private static string PropertyKeyToName(string key)
     {
         var words = key.Split('_');
         var name = string.Join(" ", words);
@@ -54,16 +55,17 @@ public partial class ConfigPage : UserControl, IContainerControl
     /// </summary>
     private void AppendNumberInput(string propertyKey, Int64 defaultValue)
     {
-        var groupBox = new GroupBox()
+        var groupBox = new GroupBox
         {
             Text = PropertyKeyToName(propertyKey),
+            Height = 50,
+            Anchor = anchor
         };
 
         var numberInput = new NumericUpDown
         {
             Value = defaultValue,
             Tag = propertyKey,
-            Dock = DockStyle.Top
         };
 
         groupBox.Controls.Add(numberInput);
@@ -71,19 +73,21 @@ public partial class ConfigPage : UserControl, IContainerControl
     }
 
     /// <summary>
-    /// Adds a RichTextBox to the config form.
+    /// Adds a YamlTextBox to the config form.
     /// </summary>
-    private void AppendRichTextBox(string propertyKey, LuaTable defaultValue)
+    private void AppendYamlTextBox(string propertyKey, LuaTable defaultValue)
     {
         var groupBox = new GroupBox()
         {
             Text = PropertyKeyToName(propertyKey),
+            Height = 150,
+            Anchor = anchor
         };
 
         var table = LuaHelpers.ParseTable(defaultValue);
         var tableYaml = yamlSerialiser.Serialize(table);
 
-        var textBox = new RichTextBox()
+        var textBox = new YamlTextBox()
         {
             Tag = propertyKey,
             Text = tableYaml,
@@ -98,7 +102,9 @@ public partial class ConfigPage : UserControl, IContainerControl
     {
         var groupBox = new GroupBox()
         {
-            Text = PropertyKeyToName(propertyKey)
+            Text = PropertyKeyToName(propertyKey),
+            Anchor = anchor,
+            Height = 50
         };
 
         var textBox = new TextBox()
@@ -134,7 +140,7 @@ public partial class ConfigPage : UserControl, IContainerControl
             else if (value is Int64 number)
                 AppendNumberInput(property.Key, number);
             else if (value is LuaTable table)
-                AppendRichTextBox(property.Key, table);
+                AppendYamlTextBox(property.Key, table);
             else if (value is string stringValue)
                 AppendTextBox(property.Key, stringValue);
             else
@@ -181,17 +187,17 @@ public partial class ConfigPage : UserControl, IContainerControl
             }
 
             // Serialise Dictionary/List into yaml for easy user editing
-            if (subControl is RichTextBox richTextBox)
+            if (subControl is YamlTextBox yamlTextBox)
             {
                 if (value is Dictionary<object, object> dictValue)
                 {
                     var stringValue = yamlSerialiser.Serialize(dictValue);
-                    richTextBox.Text = stringValue;
+                    yamlTextBox.Text = stringValue;
                 }
                 else if (value is List<object> list)
                 {
                     var stringValue = yamlSerialiser.Serialize(list);
-                    richTextBox.Text = stringValue;
+                    yamlTextBox.Text = stringValue;
                 }
             }
 
@@ -252,9 +258,9 @@ public partial class ConfigPage : UserControl, IContainerControl
             }
 
             // Deserialise YAML into List or Dictionary
-            if (subControl is RichTextBox richTextBox)
+            if (subControl is YamlTextBox yamlTextBox)
             {
-                var value = yamlDeserialiser.Deserialize(richTextBox.Text);
+                var value = yamlDeserialiser.Deserialize(yamlTextBox.Text);
                 SafeSetKeyValue(scriptConfig, key, value);
                 continue;
             }

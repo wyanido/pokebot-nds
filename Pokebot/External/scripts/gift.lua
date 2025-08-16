@@ -16,7 +16,8 @@ function main()
         progress_text()
     end
 
-    local mon = party[#party]
+    local party = game.party()
+    local mon = party[#party - 1]
     local is_target = pokemon.is_target(mon)
     pokemon.log_encounter(mon)
 

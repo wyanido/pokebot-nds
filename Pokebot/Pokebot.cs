@@ -392,11 +392,11 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
 
         var dir = Path.Combine(DataPath, "methods");
         var scripts = GameManager.GetGameScriptsFromDirectory(CurrentGame, dir);
+        
+        lua.LoadScript(Path.Combine([DataPath, "core.lua"]), true);
 
         foreach (var script in scripts)
             lua.LoadScript(script, true);
-
-        lua.LoadScript(Path.Combine([DataPath, "core.lua"]), true);
     }
 
     /// <summary>

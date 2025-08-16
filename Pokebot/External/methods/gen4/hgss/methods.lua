@@ -115,8 +115,8 @@ function release_hatched_duds()
     touch_screen_at(46, 177)
     wait_frames(60)
 
-    for i = 6, 2, -1 do
-        if pokemon.is_hatched_dud(party[i]) then 
+    for i = 5, 1, -1 do
+        if pokemon.is_hatched_dud(game.party()[i]) then 
             release(i)
         end
     end

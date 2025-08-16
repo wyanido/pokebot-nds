@@ -83,8 +83,9 @@ end
 --- Returns an array of booleans to indicate the egg state for each party member
 function get_party_egg_states()
     local eggs = {}
+    local party = game.party()
 
-    for i = 1, 6 do
+    for i = 0, 5 do
         if party[i] then
             eggs[i] = party[i].IsEgg
         else
@@ -109,6 +110,8 @@ function check_hatching_eggs()
 
     -- Check for egg hatching
     for i, is_egg in ipairs(current_egg_states) do
+        local party = game.party()
+
         -- Eggs are already considered "hatched" as soon as the animation starts,
         -- so we can tell if an egg is hatching when 'is_egg' has changed since last reference
         if party[i] then
@@ -154,7 +157,8 @@ end
 
 --- Returns the index of the first non-fainted Pokémon in the party
 function get_lead_mon_index()
-    for i = 1, 6, 1 do if party[i].CurrentHP ~= 0 then return i end end
+    local party = game.party()
+    for i = 0, 5, 1 do if party[i].CurrentHP ~= 0 then return i end end
 end
 
 --- Finds and uses the best available options to safely weaken the foe

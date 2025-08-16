@@ -116,12 +116,14 @@ function main()
     input_easy_chat_phrase(config.primo3, config.primo4)
 
     -- Now button mash until the egg is received
-    local og_party_count = #party
-    while #party == og_party_count do
+    local og_party_count = #game.party()
+    
+    while #game.party() == og_party_count do
         progress_text()
     end
 
-    local mon = party[#party]
+    local party = game.party()
+    local mon = party[#party - 1]
     local is_target = pokemon.is_target(mon)
     pokemon.log_encounter(mon)
 

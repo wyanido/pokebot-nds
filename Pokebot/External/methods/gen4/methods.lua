@@ -158,15 +158,15 @@ function release_hatched_duds()
     press_sequence("Up", 20, "Up", 20)
 
     -- Release Lv 1 Pokemon from back to front to accomodate for positions shifting
-    if pokemon.is_hatched_dud(party[6]) then release() end
+    if pokemon.is_hatched_dud(game.party()[5]) then release() end
     press_sequence("Left", 10)
-    if pokemon.is_hatched_dud(party[5]) then release() end
+    if pokemon.is_hatched_dud(game.party()[4]) then release() end
     press_sequence("Up", 10, "Right", 10)
-    if pokemon.is_hatched_dud(party[4]) then release() end
+    if pokemon.is_hatched_dud(game.party()[3]) then release() end
     press_sequence("Left", 10)
-    if pokemon.is_hatched_dud(party[3]) then release() end
+    if pokemon.is_hatched_dud(game.party()[2]) then release() end
     press_sequence("Up", 10, "Right", 10)
-    if pokemon.is_hatched_dud(party[2]) then release() end
+    if pokemon.is_hatched_dud(game.party()[1]) then release() end
 
     -- Close PC
     press_sequence("B", 60, "B", 20, "B", 160, "B", 60, "B", 20)
@@ -189,8 +189,9 @@ function hatch_egg(slot)
     press_sequence(30, "B", 30)
             
     -- Mon data changes again once animation finishes
-    local checksum = party[slot].checksum
-    while party[slot].checksum == checksum do
+    local checksum = game.party()[slot].checksum
+
+    while game.party()[slot].checksum == checksum do
         press_sequence("B", 5)
     end
 end

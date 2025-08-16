@@ -7,6 +7,9 @@
     <Compile Update="Forms\ConfigPage.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Update="Forms\YamlTextBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Update="Pokebot.cs">
       <SubType>Form</SubType>
     </Compile>
