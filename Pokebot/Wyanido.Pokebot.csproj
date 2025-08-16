@@ -40,10 +40,10 @@
 	  <None Include="Properties\PublishProfiles\FolderProfile.pubxml.user" />
 	</ItemGroup>
 	<ItemGroup>
-	  <Compile Update="Forms\PokemonPanel.cs">
+	  <Compile Update="Forms\Controls\PokemonPanel.cs">
 	    <SubType>UserControl</SubType>
 	  </Compile>
-	  <Compile Update="Forms\PokemonRow.cs">
+	  <Compile Update="Forms\Controls\PokemonRow.cs">
 	    <SubType>UserControl</SubType>
 	  </Compile>
 	  <Compile Update="Properties\Resources.Designer.cs">

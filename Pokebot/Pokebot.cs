@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using Wyanido.Pokebot.Forms;
+using Wyanido.Pokebot.Forms.Controls;
 using Wyanido.Pokebot.Games;
 using Wyanido.Pokebot.Games.Data;
 
@@ -29,7 +30,7 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
     public ApiContainer? _maybeAPIContainer { get; set; }
     public ApiContainer APIs => _maybeAPIContainer!;
 
-    protected override string WindowTitleStatic => "Pokebot";
+    protected override string WindowTitleStatic => "Pokebot v1.3-beta";
 
     private RichTextBox consoleOutput;
     private MenuStrip optionsMenu;
@@ -392,7 +393,7 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
 
         var dir = Path.Combine(DataPath, "methods");
         var scripts = GameManager.GetGameScriptsFromDirectory(CurrentGame, dir);
-        
+
         lua.LoadScript(Path.Combine([DataPath, "core.lua"]), true);
 
         foreach (var script in scripts)
@@ -558,5 +559,11 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
     private void Pokebot_Load(object sender, EventArgs e)
     {
 
+    }
+
+    private void aboutMenu_Click(object sender, EventArgs e)
+    {
+        var aboutForm = new About();
+        aboutForm.ShowDialog();
     }
 }

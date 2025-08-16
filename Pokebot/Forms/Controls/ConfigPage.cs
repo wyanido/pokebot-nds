@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using Wyanido.Pokebot.Forms;
+using Wyanido.Pokebot.Forms.Controls;
 using Wyanido.Pokebot.Lua;
 using Wyanido.Pokebot.Utils;
 using YamlDotNet.Serialization;

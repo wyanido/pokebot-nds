@@ -4,10 +4,16 @@
     <_LastSelectedProfileId>C:\Users\NIDO\source\repos\Pokebot\Pokebot\Properties\PublishProfiles\FolderProfile.pubxml</_LastSelectedProfileId>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Update="Forms\ConfigPage.cs">
+    <Compile Update="Forms\About.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\Controls\ConfigPage.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Update="Forms\YamlTextBox.cs">
+    <Compile Update="Forms\Controls\PatronDisplay.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="Forms\Controls\YamlTextBox.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Update="Pokebot.cs">
