@@ -66,16 +66,17 @@ namespace Wyanido.Pokebot
             this.speciesList = new System.Windows.Forms.ComboBox();
             this.partyGroupBox = new System.Windows.Forms.GroupBox();
             this.groupBox10 = new System.Windows.Forms.GroupBox();
-            this.flowLayoutPanel2 = new System.Windows.Forms.FlowLayoutPanel();
             this.trainerName = new System.Windows.Forms.Label();
             this.trainerId = new System.Windows.Forms.Label();
-            this.trainerPosition = new System.Windows.Forms.Label();
-            this.mapHeader = new System.Windows.Forms.Label();
             this.scriptActions = new System.Windows.Forms.TableLayoutPanel();
             this.buttonRun = new System.Windows.Forms.Button();
             this.buttonStop = new System.Windows.Forms.Button();
             this.groupSelectedScript = new System.Windows.Forms.GroupBox();
             this.selectedScript = new System.Windows.Forms.TextBox();
+            this.settingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
+            this.mapHeader = new System.Windows.Forms.Label();
+            this.trainerPosition = new System.Windows.Forms.Label();
             this.optionsMenu.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).BeginInit();
             this.splitContainer2.Panel1.SuspendLayout();
@@ -115,9 +116,9 @@ namespace Wyanido.Pokebot
             this.groupBox1.SuspendLayout();
             this.partyGroupBox.SuspendLayout();
             this.groupBox10.SuspendLayout();
-            this.flowLayoutPanel2.SuspendLayout();
             this.scriptActions.SuspendLayout();
             this.groupSelectedScript.SuspendLayout();
+            this.tableLayoutPanel1.SuspendLayout();
             this.SuspendLayout();
             // 
             // consoleOutput
@@ -136,6 +137,7 @@ namespace Wyanido.Pokebot
             // 
             this.optionsMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.scriptsToolStripMenuItem,
+            this.settingsToolStripMenuItem,
             this.consoleToolStripMenuItem,
             this.aboutMenu});
             this.optionsMenu.Location = new System.Drawing.Point(8, 8);
@@ -545,7 +547,7 @@ namespace Wyanido.Pokebot
             this.gameDataPage.Location = new System.Drawing.Point(4, 22);
             this.gameDataPage.Name = "gameDataPage";
             this.gameDataPage.Padding = new System.Windows.Forms.Padding(3);
-            this.gameDataPage.Size = new System.Drawing.Size(192, 74);
+            this.gameDataPage.Size = new System.Drawing.Size(478, 383);
             this.gameDataPage.TabIndex = 2;
             this.gameDataPage.Text = "Game Data";
             this.gameDataPage.UseVisualStyleBackColor = true;
@@ -562,7 +564,7 @@ namespace Wyanido.Pokebot
             this.flowLayoutPanel1.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
             this.flowLayoutPanel1.Location = new System.Drawing.Point(3, 3);
             this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-            this.flowLayoutPanel1.Size = new System.Drawing.Size(186, 68);
+            this.flowLayoutPanel1.Size = new System.Drawing.Size(472, 377);
             this.flowLayoutPanel1.TabIndex = 1;
             this.flowLayoutPanel1.Paint += new System.Windows.Forms.PaintEventHandler(this.flowLayoutPanel1_Paint);
             // 
@@ -573,7 +575,7 @@ namespace Wyanido.Pokebot
             this.groupBox2.Controls.Add(this.abilitiesList);
             this.groupBox2.Location = new System.Drawing.Point(3, 3);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(0, 48);
+            this.groupBox2.Size = new System.Drawing.Size(473, 48);
             this.groupBox2.TabIndex = 6;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Abilities";
@@ -592,9 +594,9 @@ namespace Wyanido.Pokebot
             this.groupBox8.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBox8.Controls.Add(this.movesList);
-            this.groupBox8.Location = new System.Drawing.Point(9, 3);
+            this.groupBox8.Location = new System.Drawing.Point(3, 57);
             this.groupBox8.Name = "groupBox8";
-            this.groupBox8.Size = new System.Drawing.Size(0, 48);
+            this.groupBox8.Size = new System.Drawing.Size(473, 48);
             this.groupBox8.TabIndex = 9;
             this.groupBox8.TabStop = false;
             this.groupBox8.Text = "Moves";
@@ -611,7 +613,7 @@ namespace Wyanido.Pokebot
             // groupBox9
             // 
             this.groupBox9.Controls.Add(this.typesList);
-            this.groupBox9.Location = new System.Drawing.Point(15, 3);
+            this.groupBox9.Location = new System.Drawing.Point(3, 111);
             this.groupBox9.Name = "groupBox9";
             this.groupBox9.Size = new System.Drawing.Size(473, 85);
             this.groupBox9.TabIndex = 10;
@@ -632,9 +634,9 @@ namespace Wyanido.Pokebot
             this.groupBox6.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBox6.Controls.Add(this.itemsList);
-            this.groupBox6.Location = new System.Drawing.Point(494, 3);
+            this.groupBox6.Location = new System.Drawing.Point(3, 202);
             this.groupBox6.Name = "groupBox6";
-            this.groupBox6.Size = new System.Drawing.Size(0, 47);
+            this.groupBox6.Size = new System.Drawing.Size(473, 47);
             this.groupBox6.TabIndex = 7;
             this.groupBox6.TabStop = false;
             this.groupBox6.Text = "Items";
@@ -653,9 +655,9 @@ namespace Wyanido.Pokebot
             this.groupBox7.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBox7.Controls.Add(this.mapsList);
-            this.groupBox7.Location = new System.Drawing.Point(500, 3);
+            this.groupBox7.Location = new System.Drawing.Point(3, 255);
             this.groupBox7.Name = "groupBox7";
-            this.groupBox7.Size = new System.Drawing.Size(0, 47);
+            this.groupBox7.Size = new System.Drawing.Size(473, 47);
             this.groupBox7.TabIndex = 8;
             this.groupBox7.TabStop = false;
             this.groupBox7.Text = "Maps";
@@ -672,7 +674,7 @@ namespace Wyanido.Pokebot
             // groupBox1
             // 
             this.groupBox1.Controls.Add(this.speciesList);
-            this.groupBox1.Location = new System.Drawing.Point(506, 3);
+            this.groupBox1.Location = new System.Drawing.Point(482, 3);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(473, 88);
             this.groupBox1.TabIndex = 5;
@@ -701,7 +703,7 @@ namespace Wyanido.Pokebot
             // 
             // groupBox10
             // 
-            this.groupBox10.Controls.Add(this.flowLayoutPanel2);
+            this.groupBox10.Controls.Add(this.tableLayoutPanel1);
             this.groupBox10.Dock = System.Windows.Forms.DockStyle.Top;
             this.groupBox10.Location = new System.Drawing.Point(8, 77);
             this.groupBox10.Name = "groupBox10";
@@ -710,25 +712,13 @@ namespace Wyanido.Pokebot
             this.groupBox10.TabStop = false;
             this.groupBox10.Text = "Trainer";
             // 
-            // flowLayoutPanel2
-            // 
-            this.flowLayoutPanel2.Controls.Add(this.trainerName);
-            this.flowLayoutPanel2.Controls.Add(this.trainerId);
-            this.flowLayoutPanel2.Controls.Add(this.trainerPosition);
-            this.flowLayoutPanel2.Controls.Add(this.mapHeader);
-            this.flowLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.flowLayoutPanel2.Location = new System.Drawing.Point(3, 16);
-            this.flowLayoutPanel2.Name = "flowLayoutPanel2";
-            this.flowLayoutPanel2.Size = new System.Drawing.Size(480, 22);
-            this.flowLayoutPanel2.TabIndex = 6;
-            // 
             // trainerName
             // 
             this.trainerName.AutoSize = true;
             this.trainerName.Dock = System.Windows.Forms.DockStyle.Left;
             this.trainerName.Location = new System.Drawing.Point(3, 0);
             this.trainerName.Name = "trainerName";
-            this.trainerName.Size = new System.Drawing.Size(35, 13);
+            this.trainerName.Size = new System.Drawing.Size(35, 22);
             this.trainerName.TabIndex = 1;
             this.trainerName.Text = "Name";
             // 
@@ -736,31 +726,11 @@ namespace Wyanido.Pokebot
             // 
             this.trainerId.AutoSize = true;
             this.trainerId.Dock = System.Windows.Forms.DockStyle.Left;
-            this.trainerId.Location = new System.Drawing.Point(44, 0);
+            this.trainerId.Location = new System.Drawing.Point(123, 0);
             this.trainerId.Name = "trainerId";
-            this.trainerId.Size = new System.Drawing.Size(54, 13);
+            this.trainerId.Size = new System.Drawing.Size(54, 22);
             this.trainerId.TabIndex = 3;
             this.trainerId.Text = "Trainer ID";
-            // 
-            // trainerPosition
-            // 
-            this.trainerPosition.AutoSize = true;
-            this.trainerPosition.Dock = System.Windows.Forms.DockStyle.Left;
-            this.trainerPosition.Location = new System.Drawing.Point(104, 0);
-            this.trainerPosition.Name = "trainerPosition";
-            this.trainerPosition.Size = new System.Drawing.Size(70, 13);
-            this.trainerPosition.TabIndex = 2;
-            this.trainerPosition.Text = "x: 0, y: 0, z: 0";
-            // 
-            // mapHeader
-            // 
-            this.mapHeader.AutoSize = true;
-            this.mapHeader.Dock = System.Windows.Forms.DockStyle.Left;
-            this.mapHeader.Location = new System.Drawing.Point(180, 0);
-            this.mapHeader.Name = "mapHeader";
-            this.mapHeader.Size = new System.Drawing.Size(70, 13);
-            this.mapHeader.TabIndex = 6;
-            this.mapHeader.Text = "x: 0, y: 0, z: 0";
             // 
             // scriptActions
             // 
@@ -831,6 +801,51 @@ namespace Wyanido.Pokebot
             this.selectedScript.TabIndex = 17;
             this.selectedScript.Text = "None";
             // 
+            // settingsToolStripMenuItem
+            // 
+            this.settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
+            this.settingsToolStripMenuItem.Size = new System.Drawing.Size(61, 20);
+            this.settingsToolStripMenuItem.Text = "Settings";
+            // 
+            // tableLayoutPanel1
+            // 
+            this.tableLayoutPanel1.ColumnCount = 4;
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25F));
+            this.tableLayoutPanel1.Controls.Add(this.trainerName, 0, 0);
+            this.tableLayoutPanel1.Controls.Add(this.trainerId, 1, 0);
+            this.tableLayoutPanel1.Controls.Add(this.trainerPosition, 2, 0);
+            this.tableLayoutPanel1.Controls.Add(this.mapHeader, 3, 0);
+            this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tableLayoutPanel1.Location = new System.Drawing.Point(3, 16);
+            this.tableLayoutPanel1.Name = "tableLayoutPanel1";
+            this.tableLayoutPanel1.RowCount = 1;
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(480, 22);
+            this.tableLayoutPanel1.TabIndex = 7;
+            // 
+            // mapHeader
+            // 
+            this.mapHeader.AutoSize = true;
+            this.mapHeader.Dock = System.Windows.Forms.DockStyle.Left;
+            this.mapHeader.Location = new System.Drawing.Point(363, 0);
+            this.mapHeader.Name = "mapHeader";
+            this.mapHeader.Size = new System.Drawing.Size(28, 22);
+            this.mapHeader.TabIndex = 6;
+            this.mapHeader.Text = "Map";
+            // 
+            // trainerPosition
+            // 
+            this.trainerPosition.AutoSize = true;
+            this.trainerPosition.Dock = System.Windows.Forms.DockStyle.Left;
+            this.trainerPosition.Location = new System.Drawing.Point(243, 0);
+            this.trainerPosition.Name = "trainerPosition";
+            this.trainerPosition.Size = new System.Drawing.Size(48, 22);
+            this.trainerPosition.TabIndex = 2;
+            this.trainerPosition.Text = "Location";
+            // 
             // Pokebot
             // 
             this.ClientSize = new System.Drawing.Size(502, 611);
@@ -881,12 +896,12 @@ namespace Wyanido.Pokebot
             this.groupBox1.ResumeLayout(false);
             this.partyGroupBox.ResumeLayout(false);
             this.groupBox10.ResumeLayout(false);
-            this.flowLayoutPanel2.ResumeLayout(false);
-            this.flowLayoutPanel2.PerformLayout();
             this.scriptActions.ResumeLayout(false);
             this.scriptActions.PerformLayout();
             this.groupSelectedScript.ResumeLayout(false);
             this.groupSelectedScript.PerformLayout();
+            this.tableLayoutPanel1.ResumeLayout(false);
+            this.tableLayoutPanel1.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -935,12 +950,13 @@ namespace Wyanido.Pokebot
         private FlowLayoutPanel flowLayoutPanel1;
         private GroupBox groupBox10;
         private Label trainerName;
-        private Label trainerPosition;
         private Label trainerId;
         private GroupBox groupBox12;
         private GroupBox partyGroupBox;
         private PokemonRow currentFoe;
-        private FlowLayoutPanel flowLayoutPanel2;
+        private ToolStripMenuItem settingsToolStripMenuItem;
+        private TableLayoutPanel tableLayoutPanel1;
+        private Label trainerPosition;
         private Label mapHeader;
     }
 }

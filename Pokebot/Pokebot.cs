@@ -13,6 +13,7 @@ using Wyanido.Pokebot.Forms;
 using Wyanido.Pokebot.Forms.Controls;
 using Wyanido.Pokebot.Games;
 using Wyanido.Pokebot.Games.Data;
+using Wyanido.Pokebot.Utils;
 
 namespace Wyanido.Pokebot;
 
@@ -44,6 +45,7 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
     private Button buttonStop;
     private SplitContainer splitContainer1;
     private Button buttonRun;
+    private DiscordRichPresence rpc;
 
     private bool wasRunningScripts = false;
 
@@ -75,6 +77,8 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
         CurrentGame = GameManager.DetectGame(Game, APIs);
         RefreshScriptsList();
 
+        rpc ??= new();
+
         if (CurrentGame is not null)
         {
             // Define constants for this game
@@ -84,6 +88,12 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
             lua.ExecuteString($"_ROM.version = \"{CurrentGame.GameCode}\"");
             lua.ExecuteString($"_ROM.language = \"{CurrentGame.LanguageCode}\"");
             lua.LoadScript(Path.Combine([DataPath, "core.lua"]), true);
+
+            rpc.SetState($"{Game.Name}");
+        }
+        else
+        {
+            rpc.SetDefaultStatus();
         }
 
         PopulateDataPage();

@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using Wyanido.Pokebot.Forms;
-using Wyanido.Pokebot.Forms.Controls;
 using Wyanido.Pokebot.Lua;
 using Wyanido.Pokebot.Utils;
 using YamlDotNet.Serialization;
@@ -60,13 +59,15 @@ public partial class ConfigPage : UserControl, IContainerControl
         {
             Text = PropertyKeyToName(propertyKey),
             Height = 50,
-            Anchor = anchor
+            Anchor = anchor,
+            Dock = DockStyle.Top
         };
 
         var numberInput = new NumericUpDown
         {
             Value = defaultValue,
             Tag = propertyKey,
+            Dock = DockStyle.Fill
         };
 
         groupBox.Controls.Add(numberInput);
@@ -81,8 +82,9 @@ public partial class ConfigPage : UserControl, IContainerControl
         var groupBox = new GroupBox()
         {
             Text = PropertyKeyToName(propertyKey),
-            Height = 150,
-            Anchor = anchor
+            Height = 200,
+            Anchor = anchor,
+            Dock = DockStyle.Top
         };
 
         var table = LuaHelpers.ParseTable(defaultValue);
@@ -92,7 +94,7 @@ public partial class ConfigPage : UserControl, IContainerControl
         {
             Tag = propertyKey,
             Text = tableYaml,
-            Dock = DockStyle.Fill
+            Dock = DockStyle.Fill,
         };
 
         groupBox.Controls.Add(textBox);
