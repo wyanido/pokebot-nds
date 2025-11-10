@@ -1,11 +1,11 @@
 ﻿using System;
 
-namespace Wyanido.Pokebot.Forms
+namespace Wyanido.Pokebot.Utils.Config
 {
     /// <summary>
     /// Definition for individual properties in construction of the config form.
     /// </summary>
-    public class ConfigFormProperty(string key, Type propertyType, object defaultValue)
+    public class ScriptConfigFormProperty(string key, Type propertyType, object defaultValue)
     {
         /// <summary>
         /// The property's key inside the config table.

@@ -14,6 +14,7 @@ using Wyanido.Pokebot.Forms.Controls;
 using Wyanido.Pokebot.Games;
 using Wyanido.Pokebot.Games.Data;
 using Wyanido.Pokebot.Utils;
+using Wyanido.Pokebot.Utils.Config;
 
 namespace Wyanido.Pokebot;
 
@@ -26,7 +27,7 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
     public static string ImagesPath => Path.Combine([DataPath, "images"]);
 
     public static Game? CurrentGame;
-    public static ScriptConfig PokebotConfig;
+    public static UserData UserData;
 
     public ApiContainer? _maybeAPIContainer { get; set; }
     public ApiContainer APIs => _maybeAPIContainer!;
@@ -46,6 +47,7 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
     private SplitContainer splitContainer1;
     private Button buttonRun;
     private DiscordRichPresence rpc;
+
 
     private bool wasRunningScripts = false;
 
@@ -98,7 +100,10 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
 
         PopulateDataPage();
 
-        PokebotConfig = ScriptConfig.LoadOrEmpty(ScriptConfig.DefaultConfigPath);
+        // Load config & stats
+        UserData = new();
+        UserData.Log += LuaLibraries.PrintDebug;
+        UserData.Initialise();
     }
 
     private void UpdateRegisteredFunctionsDialog()
@@ -381,15 +386,15 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
 
         GetScriptConfigFields(absolutePath, (properties) =>
         {
-            configPage.SetLayoutFromProperties(properties);
+            configForm.SetLayoutFromProperties(properties);
 
             // Display current config on form, then copy the values back in
             // and save to default any missing properties the script may have.
-            configPage.SetFromScriptConfig(ref PokebotConfig);
-            configPage.CopyToScriptConfig(ref PokebotConfig);
-            PokebotConfig.SaveToFile();
+            configForm.SetFromScriptConfig(ref UserData);
+            configForm.CopyToScriptConfig(ref UserData);
+            UserData.SaveConfig();
 
-            lua.SetObjectToPath("config", PokebotConfig.Properties);
+            lua.SetObjectToPath("config", UserData.Config);
         });
     }
 
@@ -414,7 +419,7 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
     /// Runs the given script and all dependencies of the current game to evaluate
     /// the config properties specified by all the scripts by hint_config in lua.
     /// </summary>
-    private void GetScriptConfigFields(string file, Action<ConfigFormProperty[]> callback)
+    private void GetScriptConfigFields(string file, Action<ScriptConfigFormProperty[]> callback)
     {
         lua.RemoveAllScripts();
         lua.ExecuteString("config = {}");
@@ -436,14 +441,14 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
             lua.OnExit -= onExit;
 
             var scriptKeys = lua.GetTableDict("config");
-            var properties = new List<ConfigFormProperty>();
+            var properties = new List<ScriptConfigFormProperty>();
 
             properties = [.. scriptKeys.Select((p) => {
                 var key = p.Key.ToString();
                 var type = p.Value.GetType();
                 var defaultValue = p.Value;
 
-                return new ConfigFormProperty(key, type, defaultValue);
+                return new ScriptConfigFormProperty(key, type, defaultValue);
             })];
 
             // Pass the complete list of config properties to the callback
@@ -526,14 +531,14 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
     private void saveConfigChanges_Click(object sender, EventArgs e)
     {
         // Update the config values from the form and write to disk
-        configPage.CopyToScriptConfig(ref PokebotConfig);
-        PokebotConfig.SaveToFile(ScriptConfig.DefaultConfigPath);
+        configForm.CopyToScriptConfig(ref UserData);
+        UserData.SaveConfig();
     }
 
     private void resetConfig_Click(object sender, EventArgs e)
     {
         // Reset the config form back to the last saved state
-        configPage.SetFromScriptConfig(ref PokebotConfig);
+        configForm.SetFromScriptConfig(ref UserData);
     }
 
     private void openFolderToolStripMenuItem1_Click(object sender, EventArgs e)
@@ -559,16 +564,6 @@ public sealed partial class Pokebot : ToolFormBase, IExternalToolForm
             PopulateDataPage();
             gameDataPagePopulated = true;
         }
-    }
-
-    private void flowLayoutPanel1_Paint(object sender, PaintEventArgs e)
-    {
-
-    }
-
-    private void Pokebot_Load(object sender, EventArgs e)
-    {
-
     }
 
     private void aboutMenu_Click(object sender, EventArgs e)

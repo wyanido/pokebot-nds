@@ -628,15 +628,13 @@ namespace Wyanido.Pokebot.Lua
 
         public static void Clear() => Instance?.PokebotConsole?.Clear();
 
-        public static void Print(params object[] outputs) => Instance?.PokebotConsole?.Log(outputs);
+        public static void Print(object outputs) => Instance?.PokebotConsole?.Log(outputs);
 
-        public static void PrintDebug(params object[] outputs) => Instance?.PokebotConsole?.LogDebug(outputs);
+        public static void PrintDebug(object outputs) => Instance?.PokebotConsole?.LogDebug(outputs);
 
-        public static void PrintWarn(params object[] outputs) => Instance?.PokebotConsole?.LogWarning(outputs);
+        public static void PrintWarn(object outputs) => Instance?.PokebotConsole?.LogWarning(outputs);
 
-        public static void PrintError(params object[] outputs) => Instance?.PokebotConsole?.LogError(outputs);
-
-        private static void Print(object outputs) => Instance?.PokebotConsole?.Log(outputs);
+        public static void PrintError(object outputs) => Instance?.PokebotConsole?.LogError(outputs);
 
         private void FrameAdvance()
         {

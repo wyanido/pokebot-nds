@@ -1,97 +1,286 @@
-﻿using System;
+﻿using NLua;
+using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Linq;
+using System.Windows.Forms;
 using Wyanido.Pokebot.Lua;
+using Wyanido.Pokebot.Utils;
+using Wyanido.Pokebot.Utils.Config;
 using YamlDotNet.Serialization;
 
-namespace Wyanido.Pokebot.Forms
+namespace Wyanido.Pokebot.Forms;
+
+public sealed partial class ScriptConfig : UserControl, IContainerControl
 {
-    public sealed class ScriptConfig
+    private static readonly ISerializer yamlSerialiser = new SerializerBuilder().Build();
+    private static readonly IDeserializer yamlDeserialiser = new DeserializerBuilder().Build();
+
+    private readonly Control parentContainer;
+    private readonly AnchorStyles anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+
+    public ScriptConfig() : base()
     {
-        public static string DefaultConfigPath = Path.Combine(Pokebot.DataPath, "config.yaml");
+        InitializeComponent();
+        parentContainer = this.flowLayoutPanel;
+    }
 
-        public Dictionary<string, object> Properties = [];
+    /// <summary>
+    /// Converts a snake_case property key into a Camel Case name with spaces.
+    /// </summary>
+    private static string PropertyKeyToName(string key)
+    {
+        var words = key.Split('_');
+        var name = string.Join(" ", words);
+        return char.ToUpper(name[0]) + name.Substring(1);
+    }
 
-        private readonly ISerializer serializer = new SerializerBuilder().Build();
-        private readonly IDeserializer deserializer = new DeserializerBuilder().Build();
-        private string originalPath = DefaultConfigPath;
-
-        /// <summary>
-        /// Attemps to load a config file from disk, returning an empty ScriptConfig if it fails for any reason.
-        /// </summary>
-        public static ScriptConfig LoadOrEmpty(string path)
+    /// <summary>
+    /// Adds a checkbox to the config form.
+    /// </summary>
+    private void AppendCheckbox(string propertyKey, bool defaultValue)
+    {
+        var checkBox = new CheckBox
         {
-            try
-            {
-                return LoadFromFile(path);
-            }
-            catch
-            {
-                LuaLibraries.PrintDebug($"Created new config file at {DefaultConfigPath}");
+            Text = PropertyKeyToName(propertyKey) + "?",
+            Checked = defaultValue,
+            Tag = propertyKey,
+            AutoSize = true // Fix label being cropped
+        };
 
-                var scriptConfig = new ScriptConfig();
-                scriptConfig.SaveToFile();
-                return scriptConfig;
-            }
+        parentContainer.Controls.Add(checkBox);
+    }
+
+    /// <summary>
+    /// Adds a NumericUpDown to the config form.
+    /// </summary>
+    private void AppendNumberInput(string propertyKey, Int64 defaultValue)
+    {
+        var groupBox = new GroupBox
+        {
+            Text = PropertyKeyToName(propertyKey),
+            Height = 50,
+            Anchor = anchor,
+            Dock = DockStyle.Top
+        };
+
+        var numberInput = new NumericUpDown
+        {
+            Value = defaultValue,
+            Tag = propertyKey,
+            Dock = DockStyle.Fill
+        };
+
+        groupBox.Controls.Add(numberInput);
+        parentContainer.Controls.Add(groupBox);
+    }
+
+    /// <summary>
+    /// Adds a YamlTextBox to the config form.
+    /// </summary>
+    private void AppendYamlTextBox(string propertyKey, LuaTable defaultValue)
+    {
+        var groupBox = new GroupBox()
+        {
+            Text = PropertyKeyToName(propertyKey),
+            Height = 200,
+            Anchor = anchor,
+            Dock = DockStyle.Top
+        };
+
+        var table = LuaHelpers.ParseTable(defaultValue);
+        var tableYaml = yamlSerialiser.Serialize(table);
+
+        var textBox = new YamlTextBox()
+        {
+            Tag = propertyKey,
+            Text = tableYaml,
+            Dock = DockStyle.Fill,
+        };
+
+        groupBox.Controls.Add(textBox);
+        parentContainer.Controls.Add(groupBox);
+    }
+
+    private void AppendTextBox(string propertyKey, string defaultValue)
+    {
+        var groupBox = new GroupBox()
+        {
+            Text = PropertyKeyToName(propertyKey),
+            Anchor = anchor,
+            Height = 50
+        };
+
+        var textBox = new TextBox()
+        {
+            Tag = propertyKey,
+            Text = defaultValue,
+            Dock = DockStyle.Fill,
+        };
+
+        groupBox.Controls.Add(textBox);
+        parentContainer.Controls.Add(groupBox);
+    }
+
+    /// <summary>
+    /// Updates the control to display a list of config properties.
+    /// </summary>
+    public void SetLayoutFromProperties(ScriptConfigFormProperty[] properties)
+    {
+        SuspendLayout();
+
+        parentContainer.Controls.Clear();
+
+        // Order alphabetically to make it easier to find things
+        var sortedProperties = properties.OrderBy(property => property.Key);
+
+        foreach (var property in sortedProperties)
+        {
+            var value = property.DefaultValue;
+
+            // Use the most suitable form input type for the property type
+            if (value is bool isChecked)
+                AppendCheckbox(property.Key, isChecked);
+            else if (value is Int64 number)
+                AppendNumberInput(property.Key, number);
+            else if (value is LuaTable table)
+                AppendYamlTextBox(property.Key, table);
+            else if (value is string stringValue)
+                AppendTextBox(property.Key, stringValue);
+            else
+                LuaLibraries.PrintDebug($"Couldn't add unknown property type '{property.PropertyType}' ({property.Key} = {property.DefaultValue}) to the config form");
         }
 
-        /// <summary>
-        /// Loads and deserialises a YAML config object from disk.
-        /// </summary>
-        public static ScriptConfig LoadFromFile(string path)
+        ResumeLayout();
+    }
+
+    private void SetFromScriptConfigDeep(Control control, ref UserData userData)
+    {
+        foreach (Control subControl in control.Controls)
         {
-            var config = new ScriptConfig();
-
-            if (!File.Exists(path))
-                throw new FileNotFoundException($"Couldn't find the config file at {path}.");
-
-            var configYamlString = File.ReadAllText(path);
-            var configObject = config.deserializer.Deserialize(configYamlString);
-
-            // No properties to iterate
-            if (configObject is null)
-                return new ScriptConfig();
-
-            // Config file shouldn be key-value pairs that deserialise to a dictionary.
-            // This would only happen if it was improperly written by the user to be a YAML array.
-            if (configObject is List<object>)
-                throw new Exception("Config file was improperly written. It contains a list, not key-value pairs.");
-
-            // I don't expect any other collection types, so catch them all here.
-            if (configObject is not Dictionary<object, object> configDictionary)
-                throw new Exception($"Unexpected config type '{configObject.GetType()}'");
-
-            for (var e = configDictionary.GetEnumerator(); e.MoveNext();)
+            // Control is likely a GroupBox, not a property, so iterate over child controls
+            if (subControl.Tag is not string key)
             {
-                var key = (string)e.Current.Key;
-                var value = e.Current.Value;
-
-                config.Properties.Add(key, value);
+                SetFromScriptConfigDeep(subControl, ref userData);
+                continue;
             }
 
-            config.originalPath = path;
+            userData.Config.TryGetValue(key, out object value);
 
-            return config;
+            // The ScriptConfig lacks this property, but don't add it 
+            // here because that's managed by CopyToScriptConfig.
+            if (value is null)
+                continue;
+
+            // Boolean
+            if (subControl is CheckBox checkbox && value is bool isChecked)
+            {
+                checkbox.Checked = isChecked;
+                continue;
+            }
+
+            // Any numeric value
+            if (subControl is NumericUpDown numericUpDown)
+            {
+                if (value is Int64 number)
+                    numericUpDown.Value = number;
+                else if (value is Decimal number2)
+                    numericUpDown.Value = number2;
+
+                continue;
+            }
+
+            // Serialise Dictionary/List into yaml for easy user editing
+            if (subControl is YamlTextBox yamlTextBox)
+            {
+                if (value is Dictionary<object, object> dictValue)
+                {
+                    var stringValue = yamlSerialiser.Serialize(dictValue);
+                    yamlTextBox.Text = stringValue;
+                }
+                else if (value is List<object> list)
+                {
+                    var stringValue = yamlSerialiser.Serialize(list);
+                    yamlTextBox.Text = stringValue;
+                }
+            }
+
+            // String
+            if (subControl is TextBox textBox && value is string textValue)
+                textBox.Text = textValue;
         }
+    }
 
-        /// <summary>
-        /// Serialises the config object as YAML and writes it to disk.
-        /// </summary>
-        public void SaveToFile(string? path = null)
+    /// <summary>
+    /// Iterates through the config form's properties and updates the property's
+    /// value if the same key exists inside the ScriptConfig.
+    /// </summary>
+    /// <param name="userData"></param>
+    public void SetFromScriptConfig(ref UserData userData)
+    {
+        SetFromScriptConfigDeep(parentContainer, ref userData);
+    }
+
+    /// <summary>
+    /// Safely sets the ScriptConfig's key to the given value. If the key doesn't exist,
+    /// it will be added, and nothing will happen if the value is null.
+    /// </summary>
+    private void SafeSetKeyValue(UserData userData, string key, object? value = null)
+    {
+        if (value is null)
+            return;
+
+        if (userData.Config.ContainsKey(key))
+            userData.Config[key] = value;
+        else
+            userData.Config.Add(key, value);
+    }
+
+    private void CopyToScriptConfigDeep(Control control, ref UserData userData)
+    {
+        foreach (Control subControl in control.Controls)
         {
-            if (path is null)
-                path = originalPath;
+            // Control is likely a GroupBox, not a property, so iterate over child controls
+            if (subControl.Tag is not string key)
+            {
+                CopyToScriptConfigDeep(subControl, ref userData);
+                continue;
+            }
 
-            var directory = Path.GetDirectoryName(path);
+            // Boolean
+            if (subControl is CheckBox checkbox)
+            {
+                SafeSetKeyValue(userData, key, checkbox.Checked);
+                continue;
+            }
 
-            if (!Directory.Exists(directory))
-                throw new FileNotFoundException($"Couldn't create config file at nonexistent directory {directory}.");
+            // Number (always decimal, but YAML serialiser will use int if the value is a whole number)
+            if (subControl is NumericUpDown numericUpDown)
+            {
+                SafeSetKeyValue(userData, key, numericUpDown.Value);
+                continue;
+            }
 
-            var configYamlString = serializer.Serialize(Properties);
+            // Deserialise YAML into List or Dictionary
+            if (subControl is YamlTextBox yamlTextBox)
+            {
+                var value = yamlDeserialiser.Deserialize(yamlTextBox.Text);
+                SafeSetKeyValue(userData, key, value);
+                continue;
+            }
 
-            var stream = File.CreateText(path);
-            stream.Write(configYamlString);
-            stream.Close();
+            // String
+            if (subControl is TextBox textBox)
+            {
+                SafeSetKeyValue(userData, key, textBox.Text);
+            }
         }
+    }
+
+    /// <summary>
+    /// Recursively copies the value of all script property form entries into the ScriptConfig.
+    /// </summary>
+    public void CopyToScriptConfig(ref UserData userData)
+    {
+        CopyToScriptConfigDeep(parentContainer, ref userData);
     }
 }

@@ -493,7 +493,7 @@ namespace Wyanido.Pokebot.Lua.Libraries
                 return false;
             }
 
-            Pokebot.PokebotConfig.Properties.TryGetValue("target_rulesets", out object catchRulesets);
+            Pokebot.UserData.Config.TryGetValue("target_rulesets", out object catchRulesets);
 
             var rulesetCollection = (Dictionary<object, object>)catchRulesets;
             var isTarget = PokemonMatchesRulesetCollection(pokemon, rulesetCollection);
@@ -510,7 +510,7 @@ namespace Wyanido.Pokebot.Lua.Libraries
         [LuaMethod("find_best_attacking_move", "Returns the name, index, and power of the most optimal damaging move against the given target.")]
         public object FindBestAttackingMove(Pokemon ally, Pokemon foe)
         {
-            var usingThief = (bool)(Pokebot.PokebotConfig.Properties.GetValueOrDefault("thief_wild_items", false) ?? false);
+            var usingThief = (bool)(Pokebot.UserData.Config.GetValueOrDefault("thief_wild_items", false) ?? false);
 
             var bestMoveIndex = 1;
             var bestMovePower = 0.0;
@@ -595,7 +595,7 @@ namespace Wyanido.Pokebot.Lua.Libraries
         [LuaMethod("is_hatched_dud", "Returns whether the Pokemon is both Level 1 and doesn't match the target rulesets.")]
         public bool IsHatchedDud(Pokemon pokemon)
         {
-            return pokemon.Level == 1 && !PokemonMatchesRulesetCollection(pokemon, (Dictionary<object, object>)Pokebot.PokebotConfig.Properties["target_rulesets"]);
+            return pokemon.Level == 1 && !PokemonMatchesRulesetCollection(pokemon, (Dictionary<object, object>)Pokebot.UserData.Config["target_rulesets"]);
         }
 
         [LuaMethod("log_encounter", "Logs the Pokemon to the Dashboard.")]

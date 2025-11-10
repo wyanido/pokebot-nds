@@ -14,7 +14,7 @@
 		<PackageReference Include="DiscordRichPresence" Version="1.6.1.70" />
 		<PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
 		<PackageReference Include="YamlDotNet" Version="16.3.0" />
-		<Reference Include="System.Drawing.Common"  HintPath="$(BIZHAWK_HOME)dll/System.Drawing.Common.dll" />
+		<Reference Include="System.Drawing.Common" HintPath="$(BIZHAWK_HOME)dll/System.Drawing.Common.dll" />
 		<Reference Include="System.DirectoryServices" />
 		<Reference Include="System.Windows.Forms" />
 		<Reference Include="BizHawk.Bizware.Graphics" HintPath="$(BIZHAWK_HOME)dll/BizHawk.Bizware.Graphics.dll" />
